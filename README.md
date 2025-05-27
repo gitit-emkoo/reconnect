@@ -21,11 +21,11 @@
 * React (with TypeScript)
 * React Router DOM
 * styled-components
-* Vite or CRA 기반 설정 가능
+* Vite
 
 ---
 
-## 📁 폴더 구조 예시
+## 📁 폴더 구조
 
 ```
 src/
@@ -61,8 +61,7 @@ npm start
 * GPT API 연동 (감정 메시지 추천)
 * Firebase 기반 유저 인증 및 DB 연동
 * 감정 상태 전역 저장 (Context API 또는 Zustand)
-* Vercel, Netlify 등으로 배포
 
 ---
 
-> 본 프로젝트는 감정 표현이 어려운 부부를 위한 ‘부드러운 연결’을 목표로 기획되었습니다.
+> 본 프로젝트는 감정 표현이 어려운 부부를 위한 ‘부드러운 관계 개선’을 목표로 기획되었습니다.
