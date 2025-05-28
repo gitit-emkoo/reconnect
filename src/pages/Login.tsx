@@ -1,3 +1,4 @@
+// src/pages/LoginPage.tsx
 'use client'
 
 import React from 'react';
@@ -7,7 +8,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { loginSchema,type LoginFormData } from '../utils/validationSchemas';
 
-// 스타일 컴포넌트
+// 스타일 컴포넌트 (생략 - 변경 없음)
 const Container = styled.div`
   display: flex;
   flex-direction: column;
@@ -29,7 +30,7 @@ const AuthBox = styled.div`
 `;
 
 const Logo = styled.h1`
-  font-family: 'Georgia', serif; // 예시 로고 폰트
+  font-family: 'Georgia', serif;
   font-size: 2.5rem;
   color: #2c3e50;
   margin-bottom: 2rem;
@@ -116,6 +117,7 @@ const LinkText = styled.p`
   }
 `;
 
+
 const LoginPage: React.FC = () => {
   const navigate = useNavigate();
   const { register, handleSubmit, formState: { errors, isSubmitting } } = useForm<LoginFormData>({
@@ -141,10 +143,26 @@ const LoginPage: React.FC = () => {
       }
 
       const result = await response.json();
-      console.log("로그인 성공:", result);
+      console.log("로그인 성공 응답:", result); // 백엔드에서 받은 응답 확인
+
+      // --- 핵심 변경 부분 시작 ---
+      // 1. 백엔드에서 받은 accessToken을 localStorage에 저장
+      if (result.accessToken) {
+        localStorage.setItem('accessToken', result.accessToken);
+        console.log('Access Token 저장 완료:', result.accessToken);
+      }
+
+      // 2. 사용자 정보 (선택 사항, 필요에 따라 저장)
+      // 백엔드에서 user 객체를 보낼 경우, 여기서 닉네임 등을 저장할 수 있습니다.
+      if (result.user && result.user.nickname) {
+          localStorage.setItem('userNickname', result.user.nickname);
+          console.log('User Nickname 저장 완료:', result.user.nickname);
+      }
+      // --- 핵심 변경 부분 끝 ---
+
       alert('로그인 성공!');
-      // 실제 로그인 성공 시 토큰 저장 등의 로직 필요 (현재는 임시)
-      navigate('/dashboard'); // 예시 경로
+      navigate('/dashboard'); // 예시 경로 (대시보드 페이지 등으로 이동)
+
     } catch (error: any) {
       console.error("로그인 에러:", error.message);
       alert(`로그인 실패: ${error.message || '알 수 없는 오류'}`);
@@ -154,7 +172,7 @@ const LoginPage: React.FC = () => {
   return (
     <Container>
       <AuthBox>
-        <Logo>Reconnect</Logo> {/* 로고 */}
+        <Logo>Reconnect</Logo>
         <Title>로그인</Title>
         <Form onSubmit={handleSubmit(onSubmit)}>
           <InputGroup>
