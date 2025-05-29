@@ -1,10 +1,13 @@
+// src/pages/EmotionCard.tsx (업데이트된 부분)
 import React, { useState } from "react";
 import styled from "styled-components";
+import NavigationBar from "../components/NavigationBar"; // NavigationBar 임포트
 
 const Container = styled.div`
   padding: 2rem;
-  min-height: 100vh;
+  min-height: calc(100vh - 60px); /* NavigationBar 높이만큼 줄임 */
   background-color: #ecfeff;
+  padding-bottom: 80px; /* NavigationBar에 가려지지 않도록 하단 패딩 추가 */
 `;
 
 const Title = styled.h2`
@@ -69,19 +72,22 @@ const EmotionCard: React.FC = () => {
   };
 
   return (
-    <Container>
-      <Title>오늘의 감정카드 작성</Title>
-      <TextArea
-        value={message}
-        onChange={(e) => setMessage(e.target.value)}
-        placeholder="오늘 느낀 감정을 짧게 표현해보세요."
-      />
-      {suggestion && <SuggestionBox>✨ AI 제안: {suggestion}</SuggestionBox>}
-      <ButtonGroup>
-        <Button onClick={handleSuggest}>AI 말투 다듬기</Button>
-        <Button onClick={handleSubmit}>보내기</Button>
-      </ButtonGroup>
-    </Container>
+    <> {/* Fragment로 감싸서 NavigationBar와 함께 렌더링 */}
+      <Container>
+        <Title>오늘의 감정카드 작성</Title>
+        <TextArea
+          value={message}
+          onChange={(e) => setMessage(e.target.value)}
+          placeholder="오늘 느낀 감정을 짧게 표현해보세요."
+        />
+        {suggestion && <SuggestionBox>✨ AI 제안: {suggestion}</SuggestionBox>}
+        <ButtonGroup>
+          <Button onClick={handleSuggest}>AI 말투 다듬기</Button>
+          <Button onClick={handleSubmit}>보내기</Button>
+        </ButtonGroup>
+      </Container>
+      <NavigationBar /> {/* EmotionCard에서도 NavigationBar 렌더링 */}
+    </>
   );
 };
 

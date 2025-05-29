@@ -19,9 +19,13 @@
     "strict": true,
     "noUnusedLocals": true,
     "noUnusedParameters": true,
-    "erasableSyntaxOnly": true,
     "noFallthroughCasesInSwitch": true,
     "noUncheckedSideEffectImports": true
   },
-  "include": ["src"]
+  "include": [
+    "src", // src 폴더 전체를 포함
+    "src/**/*.ts", // src 폴더 내의 모든 .ts 파일
+    "src/**/*.tsx", // src 폴더 내의 모든 .tsx 파일
+    "src/**/*.d.ts" // src 폴더 내의 모든 .d.ts 파일 (타입 정의 파일 포함!)
+  ],
 }

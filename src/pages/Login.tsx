@@ -127,7 +127,7 @@ const LoginPage: React.FC = () => {
     try {
       // Vercel에 설정될 환경 변수를 사용하고, 로컬 개발용 fallback을 추가
       const backendUrl = import.meta.env.VITE_APP_API_URL || 'http://localhost:3000'; 
-      console.log("백엔드 URL 사용:", backendUrl); // 어떤 URL을 사용하는지 확인용
+      console.log("백엔드 URL 사용:", backendUrl); // 어떤 URL을 사용하는지 확인용cd ..
 
       const response = await fetch(`${backendUrl}/auth/login`, { // 백엔드 로그인 API URL
         method: 'POST',
@@ -147,7 +147,7 @@ const LoginPage: React.FC = () => {
       console.log("로그인 성공:", result);
       alert('로그인 성공!');
       // 실제 로그인 성공 시 토큰 저장 등의 로직 필요 (현재는 임시)
-      navigate('/dashboard'); // 예시 경로
+      navigate('/Dashboard'); // 대시보드로 이동동
     } catch (error: any) {
       console.error("로그인 에러:", error.message);
       alert(`로그인 실패: ${error.message || '알 수 없는 오류'}`);

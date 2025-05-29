@@ -71,7 +71,7 @@ const DiagnosisResult: React.FC = () => {
           이대로 괜찮은 걸까요?
         </Summary>
         <ButtonGroup>
-          <OptionButton color="#0ea5e9" onClick={() => navigate("/main/solo")}>
+          <OptionButton color="#0ea5e9" onClick={() => navigate("/login")}>
             혼자 시작하기
           </OptionButton>
           <OptionButton color="#10b981" onClick={() => navigate("/invite")}>
