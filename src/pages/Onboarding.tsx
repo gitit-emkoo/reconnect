@@ -62,7 +62,7 @@ const CardWrapper = styled.div<{ index: number; currentIndex: number; total: num
   };
 
   @media (max-width: 767px) {
-    transform: ${({ index, currentIndex, total }) => {
+    transform: ${({ index, currentIndex }) => {
       const diff = index - currentIndex;
       if (diff === 0) return 'translateX(-50%) scale(1)';
       if (Math.abs(diff) === 1) {
@@ -76,7 +76,7 @@ const CardWrapper = styled.div<{ index: number; currentIndex: number; total: num
   }
 
   @media (min-width: 768px) {
-    transform: ${({ index, currentIndex, total }) => {
+    transform: ${({ index, currentIndex }) => {
       const diff = index - currentIndex;
       if (diff === 0) return 'translateX(-50%) scale(1)';
       if (Math.abs(diff) === 1) {
