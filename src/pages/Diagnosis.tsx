@@ -1,6 +1,6 @@
-import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
-import styled from "styled-components";
+import React, { useState } from 'react';
+import styled from 'styled-components';
+import { useNavigate } from 'react-router-dom';
 
 // 샘플 진단 질문 리스트
 const questions = [
@@ -12,49 +12,90 @@ const questions = [
   "요즘 배우자와 단둘이 보내는 시간이 있나요?"
 ];
 
-// 스타일 정의
 const Container = styled.div`
   display: flex;
   flex-direction: column;
-  align-items: center;
+  min-height: 100vh;
+  background: #FAF9F6;
+  padding: 0 1rem;
   justify-content: center;
-  height: 100vh;
-  padding: 2rem;
-  background-color: #f0fdf4;
+  
+  @media (min-width: 768px) {
+    padding: 0 2rem;
+  }
 `;
 
-const QuestionBox = styled.div`
-  background-color: white;
-  padding: 2rem;
-  border-radius: 1.5rem;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+const Header = styled.div`
   text-align: center;
-  max-width: 90%;
+  margin-bottom: 2rem;
 `;
 
-const QuestionText = styled.h2`
-  font-size: 1.25rem;
-  margin-bottom: 1.5rem;
+const Title = styled.h1`
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: #333;
+  margin-bottom: 0.5rem;
 `;
 
-const ButtonGroup = styled.div`
+const Subtitle = styled.p`
+  font-size: 0.9rem;
+  color: #666;
+  margin-bottom: 2rem;
+`;
+
+const QuestionCard = styled.div`
+  background: #FFE5EE;
+  border-radius: 20px;
+  padding: 2rem;
+  margin: 0 auto 2rem;
+  width: 100%;
+  max-width: 500px;
+  text-align: center;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+`;
+
+const Question = styled.p`
+  font-size: 1.2rem;
+  color: #333;
+  line-height: 1.6;
+  white-space: pre-line;
+  margin: 0;
+`;
+
+const ButtonContainer = styled.div`
   display: flex;
   gap: 1rem;
   justify-content: center;
+  padding: 0 1rem;
+
+  @media (max-width: 480px) {
+    flex-direction: column;
+    gap: 0.8rem;
+  }
 `;
 
-const AnswerButton = styled.button<{ color: string }>`
-  background-color: ${({ color }) => color};
-  color: white;
-  padding: 0.75rem 1.5rem;
-  border: none;
-  border-radius: 0.75rem;
-  font-size: 1rem;
+const Button = styled.button<{ isYes?: boolean }>`
+  padding: 1rem 3rem;
+  border-radius: 30px;
+  font-size: 1.1rem;
   font-weight: 500;
+  border: none;
   cursor: pointer;
+  width: 100%;
+  max-width: 200px;
+  color: white;
+  background: ${({ isYes }) =>
+    isYes
+      ? 'linear-gradient(to right, #FF69B4, #FF1493)'
+      : 'linear-gradient(to right, #4169E1, #0000CD)'};
+  transition: transform 0.2s;
 
   &:hover {
-    opacity: 0.9;
+    transform: translateY(-2px);
+  }
+
+  @media (max-width: 480px) {
+    max-width: 100%;
   }
 `;
 
@@ -77,13 +118,25 @@ const Diagnosis: React.FC = () => {
 
   return (
     <Container>
-      <QuestionBox>
-        <QuestionText>{questions[step]}</QuestionText>
-        <ButtonGroup>
-          <AnswerButton color="#10b981" onClick={() => handleAnswer("yes")}>네</AnswerButton>
-          <AnswerButton color="#ef4444" onClick={() => handleAnswer("no")}>아니요</AnswerButton>
-        </ButtonGroup>
-      </QuestionBox>
+      <Header>
+        <Title>관계온도 테스트</Title>
+        <Subtitle>솔직하게 대답해 주세요</Subtitle>
+      </Header>
+
+      <QuestionCard>
+        <Question>
+          {questions[step]}
+        </Question>
+      </QuestionCard>
+
+      <ButtonContainer>
+        <Button isYes onClick={() => handleAnswer("yes")}>
+          예
+        </Button>
+        <Button onClick={() => handleAnswer("no")}>
+          아니요
+        </Button>
+      </ButtonContainer>
     </Container>
   );
 };

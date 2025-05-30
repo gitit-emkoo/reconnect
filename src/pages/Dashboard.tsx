@@ -2,60 +2,146 @@
 import React, { useState } from "react";
 import styled from "styled-components";
 import { useNavigate } from "react-router-dom";
-import NavigationBar from "../components/NavigationBar"; // NavigationBar 임포트
+import NavigationBar from "../components/NavigationBar";
+import reconnectLogo from "../assets/reconnect.png";
+import husbandImage from "../assets/husband.jpg";
 
 const Container = styled.div`
-  padding: 2rem;
-  min-height: calc(100vh - 60px); /* NavigationBar 높이만큼 줄임 */
-  background-color: #ecfdf5;
-  padding-bottom: 80px; /* NavigationBar에 가려지지 않도록 하단 패딩 추가 */
-`;
-
-const Section = styled.div`
-  background-color: white;
-  border-radius: 1rem;
   padding: 1.5rem;
-  margin-bottom: 1.5rem;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+  min-height: calc(100vh - 60px);
+  background-color: #ffffff;
+  padding-bottom: 80px;
 `;
 
-const Title = styled.h2`
-  font-size: 1.25rem;
-  font-weight: 600;
-  margin-bottom: 0.5rem;
-  color: #1f2937;
-`;
-
-const Text = styled.p`
-  color: #4b5563;
-  font-size: 1rem;
-`;
-
-const CTAButton = styled.button`
-  background-color: #3b82f6;
-  color: white;
-  padding: 0.75rem 1.5rem;
-  font-size: 1rem;
-  font-weight: 500;
-  border: none;
-  border-radius: 0.75rem;
-  cursor: pointer;
-  margin-top: 1rem;
-  &:hover {
-    background-color: #2563eb;
+const LogoWrapper = styled.div`
+  width: 120px;
+  margin-bottom: 2rem;
+  
+  img {
+    width: 100%;
+    height: auto;
   }
 `;
 
-const FeatureDisabledMessage = styled.p`
-  color: #ef4444;
-  font-size: 0.9rem;
-  margin-top: 0.5rem;
+const WelcomeSection = styled.div`
+  margin-bottom: 2rem;
+`;
+
+const WelcomeTitle = styled.h1`
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+`;
+
+const WelcomeSubtitle = styled.p`
+  color: #666;
+  font-size: 1rem;
+`;
+
+const PartnerCard = styled.div<{ bgColor?: string }>`
+  background-color: ${props => props.bgColor || '#FFB6C1'};
+  border-radius: 1rem;
+  padding: 1.5rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+  cursor: pointer;
+`;
+
+const PartnerInfo = styled.div`
+  flex: 1;
+`;
+
+const PartnerName = styled.div`
+  font-size: 1rem;
+  margin-bottom: 0.25rem;
+`;
+
+const PartnerTime = styled.div`
+  font-size: 0.875rem;
+  color: #666;
+`;
+
+const PartnerImageWrapper = styled.div`
+  width: 60px;
+  height: 60px;
+  border-radius: 0.5rem;
+  overflow: hidden;
+  
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+`;
+
+const MenuCard = styled.div<{ disabled?: boolean }>`
+  background-color: ${props => props.disabled ? '#f1f3f7' : '#2f3542'};
+  border-radius: 1rem;
+  padding: 1.5rem;
+  margin-bottom: 1rem;
+  cursor: ${props => props.disabled ? 'not-allowed' : 'pointer'};
+  color: ${props => props.disabled ? '#666' : '#fff'};
+
+  &:hover {
+    background-color: ${props => props.disabled ? '#f1f3f7' : '#3d4453'};
+  }
+`;
+
+const MenuTitle = styled.h2`
+  font-size: 1.25rem;
+  margin-bottom: 0.5rem;
+`;
+
+const MenuText = styled.p`
+  font-size: 0.875rem;
+  opacity: 0.8;
+`;
+
+const RecommendedSection = styled.div`
+  margin-top: 2rem;
+`;
+
+const RecommendedTitle = styled.h2`
+  font-size: 1.25rem;
+  margin-bottom: 1rem;
+`;
+
+const RecommendedGrid = styled.div`
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 1rem;
+  overflow-x: auto;
+  padding-bottom: 1rem;
+`;
+
+const RecommendedCard = styled.div`
+  background-color: #e8f5e9;
+  border-radius: 1rem;
+  padding: 1rem;
+  aspect-ratio: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+`;
+
+const RecommendedName = styled.div`
+  font-size: 0.875rem;
+  text-align: center;
+`;
+
+const RecommendedTime = styled.div`
+  font-size: 0.75rem;
+  color: #666;
+  margin-top: 0.25rem;
 `;
 
 const Dashboard: React.FC = () => {
   const navigate = useNavigate();
-  // 이 상태는 실제 앱에서는 사용자 데이터에 따라 결정되어야 합니다.
-  const [isSolo, setIsSolo] = useState(true); // 초기값: 혼자 사용 모드 (테스트용)
+  const [isSolo, setIsSolo] = useState(true);
 
   const handleFeatureClick = (path: string, requiresPartner: boolean = false) => {
     if (requiresPartner && isSolo) {
@@ -67,146 +153,58 @@ const Dashboard: React.FC = () => {
   };
 
   return (
-    <> {/* Fragment로 감싸서 NavigationBar와 함께 렌더링 */}
+    <>
       <Container>
-        {isSolo ? (
-          <>
-            <Section>
-              <Title>혼자 시작한 당신의 공간</Title>
-              <Text>
-                파트너와 아직 연결되지 않았지만, 지금부터 당신의 감정을 기록하고
-                되돌아볼 수 있어요.
-              </Text>
-            </Section>
-            <Section>
-              <Title>감정카드 작성</Title>
-              <Text>감정카드를 통해 마음을 표현해보세요.</Text>
-              <CTAButton onClick={() => handleFeatureClick("/emotion-card")}>
-                감정카드 작성
-              </CTAButton>
-            </Section>
-            <Section>
-              <Title>감정 일기</Title>
-              <Text>매일의 감정을 기록하고 돌아보세요.</Text>
-              <CTAButton onClick={() => handleFeatureClick("/emotion-diary")}>
-                감정 일기 쓰기
-              </CTAButton>
-            </Section>
-            <Section>
-              <Title>파트너 초대하기</Title>
-              <Text>파트너를 초대하고 싶다면 아래 버튼을 눌러보세요.</Text>
-              <CTAButton onClick={() => navigate("/invite")}>
-                파트너 초대
-              </CTAButton>
-            </Section>
+        <LogoWrapper>
+          <img src={reconnectLogo} alt="Reconnect" />
+        </LogoWrapper>
+        <WelcomeSection>
+          <WelcomeTitle>테스트님, 반가워요!</WelcomeTitle>
+          <WelcomeSubtitle>We Wish you have a good day</WelcomeSubtitle>
+        </WelcomeSection>
 
-            {/* 파트너와 함께하는 기능은 비활성화 상태로 표시 */}
-            <Section>
-              <Title>이번 주 연결 미션</Title>
-              <Text>파트너와 연결 후 이용 가능한 기능입니다.</Text>
-              <FeatureDisabledMessage>
-                🔒 파트너 초대 후 활성화됩니다.
-              </FeatureDisabledMessage>
-            </Section>
-            <Section>
-              <Title>관계 온도</Title>
-              <Text>파트너와 연결 후 이용 가능한 기능입니다.</Text>
-              <FeatureDisabledMessage>
-                🔒 파트너 초대 후 활성화됩니다.
-              </FeatureDisabledMessage>
-            </Section>
-            <Section>
-              <Title>맞춤 콘텐츠 추천</Title>
-              <Text>파트너와 연결 후 이용 가능한 기능입니다.</Text>
-              <FeatureDisabledMessage>
-                🔒 파트너 초대 후 활성화됩니다.
-              </FeatureDisabledMessage>
-            </Section>
-            <Section>
-              <Title>나의 연결 캘린더</Title>
-              <Text>파트너와 연결 후 이용 가능한 기능입니다.</Text>
-              <FeatureDisabledMessage>
-                🔒 파트너 초대 후 활성화됩니다.
-              </FeatureDisabledMessage>
-            </Section>
-            <Section>
-              <Title>커뮤니티</Title>
-              <Text>파트너와 연결 후 이용 가능한 기능입니다.</Text>
-              <FeatureDisabledMessage>
-                🔒 파트너 초대 후 활성화됩니다.
-              </FeatureDisabledMessage>
-            </Section>
-            <Section>
-              <Title>마이 페이지</Title>
-              <Text>내 정보와 설정을 관리합니다.</Text>
-              {/* 마이페이지는 혼자 사용 모드에서도 접근 가능하므로 비활성화 메시지 없음 */}
-              <CTAButton onClick={() => handleFeatureClick("/my")}>
-                마이 페이지로 이동
-              </CTAButton>
-            </Section>
-          </>
-        ) : (
-          <>
-            {/* 파트너와 함께하는 모드 UI */}
-            <Section>
-              <Title>오늘의 감정카드</Title>
-              <Text>상대방이 감정카드를 아직 작성하지 않았어요.</Text>
-              <CTAButton onClick={() => handleFeatureClick("/emotion-card")}>
-                내 감정카드 작성하기
-              </CTAButton>
-            </Section>
-            <Section>
-              <Title>감정 일기</Title>
-              <Text>오늘의 감정을 기록해보세요.</Text>
-              <CTAButton onClick={() => handleFeatureClick("/emotion-diary")}>
-                감정 일기 쓰기
-              </CTAButton>
-            </Section>
-            <Section>
-              <Title>이번 주 연결 미션</Title>
-              <Text>함께 저녁 만들기 🍳 (2일 남음)</Text>
-              <CTAButton onClick={() => handleFeatureClick("/challenge")}>
-                미션 보러가기
-              </CTAButton>
-            </Section>
-            <Section>
-              <Title>관계 온도</Title>
-              <Text>현재 온도: 37.2℃ — 안정적인 거리입니다.</Text>
-              <CTAButton onClick={() => handleFeatureClick("/report")}>
-                자세히 보기
-              </CTAButton>
-            </Section>
-            <Section>
-              <Title>맞춤 콘텐츠 추천</Title>
-              <Text>파트너와 함께 성장을 위한 맞춤 콘텐츠를 만나보세요.</Text>
-              <CTAButton onClick={() => handleFeatureClick("/content-center")}>
-                콘텐츠 보러가기
-              </CTAButton>
-            </Section>
-            <Section>
-              <Title>나의 연결 캘린더</Title>
-              <Text>중요한 연결 이벤트들을 기록하고 확인하세요.</Text>
-              <CTAButton onClick={() => handleFeatureClick("/calendar")}>
-                캘린더 열기
-              </CTAButton>
-            </Section>
-            <Section>
-              <Title>커뮤니티</Title>
-              <Text>다른 사용자들과 소통하고 경험을 공유해보세요.</Text>
-              <CTAButton onClick={() => handleFeatureClick("/community")}>
-                커뮤니티 참여
-              </CTAButton>
-            </Section>
-            <Section>
-              <Title>마이 페이지</Title>
-              <Text>내 정보와 설정을 관리합니다.</Text>
-              <CTAButton onClick={() => handleFeatureClick("/my")}>
-                마이 페이지로 이동
-              </CTAButton>
-            </Section>
-          </>
+        {!isSolo && (
+          <PartnerCard bgColor="#FFE4B5">
+            <PartnerInfo>
+              <PartnerName>배우자</PartnerName>
+              <PartnerTime>3-10 MIN</PartnerTime>
+            </PartnerInfo>
+            <PartnerImageWrapper>
+              <img src={husbandImage} alt="Partner" />
+            </PartnerImageWrapper>
+          </PartnerCard>
         )}
-        {/* 테스트용 isSolo 전환 버튼 */}
+
+        <MenuCard disabled={isSolo} onClick={() => handleFeatureClick("/calendar", true)}>
+          <MenuTitle>Daily Thought</MenuTitle>
+          <MenuText>MEDITATION • 3-10 MIN</MenuText>
+        </MenuCard>
+
+        <MenuCard disabled={isSolo} onClick={() => handleFeatureClick("/emotion-card", true)}>
+          <MenuTitle>감정카드</MenuTitle>
+          <MenuText>오늘의 감정을 카드에 담아보세요</MenuText>
+        </MenuCard>
+
+        <MenuCard onClick={() => handleFeatureClick("/emotion-diary")}>
+          <MenuTitle>감정일기</MenuTitle>
+          <MenuText>오늘의 감정을 기록해보세요</MenuText>
+        </MenuCard>
+
+        <RecommendedSection>
+          <RecommendedTitle>Recommended for you</RecommendedTitle>
+          <RecommendedGrid>
+            <RecommendedCard>
+              <RecommendedName>Focus</RecommendedName>
+              <RecommendedTime>MEDITATION • 3-10 MIN</RecommendedTime>
+            </RecommendedCard>
+            <RecommendedCard>
+              <RecommendedName>Happiness</RecommendedName>
+              <RecommendedTime>MEDITATION • 3-10 MIN</RecommendedTime>
+            </RecommendedCard>
+          </RecommendedGrid>
+        </RecommendedSection>
+
+        {/* 테스트용 버튼 */}
         <div style={{ textAlign: "center", marginTop: "2rem" }}>
           <button
             onClick={() => setIsSolo(!isSolo)}
@@ -223,8 +221,7 @@ const Dashboard: React.FC = () => {
           </button>
         </div>
       </Container>
-      {/* NavigationBar를 컴포넌트 하단에 렌더링 */}
-      <NavigationBar isSolo={isSolo} />
+      <NavigationBar />
     </>
   );
 };
