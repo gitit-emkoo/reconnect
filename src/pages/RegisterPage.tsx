@@ -1,134 +1,217 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { registerSchema, type RegisterFormData } from '../utils/validationSchemas';
+import CloseEye from '../assets/Icon_CloseEye.svg?react';
+import OpenEye from '../assets/Icon_OpenEye.svg?react';
 
-// 스타일 컴포넌트는 LoginPage.tsx와 유사하므로 재사용하거나 필요한 부분만 조정하여 사용하세요.
-// 여기서는 코드 간결성을 위해 LoginPage.tsx에 정의된 스타일을 그대로 가져왔습니다.
 const Container = styled.div`
   display: flex;
   flex-direction: column;
-  justify-content: center;
   align-items: center;
   min-height: 100vh;
-  background: linear-gradient(to top, #e0f2f7, #ffffff);
-  padding: 1.5rem;
+  background: white;
+  padding: 2rem;
 `;
 
-const AuthBox = styled.div`
-  background-color: white;
-  padding: 2.5rem;
-  border-radius: 1.5rem;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
-  width: 100%;
-  max-width: 400px;
+const BackButton = styled.button`
+  position: absolute;
+  top: 1.5rem;
+  left: 1.5rem;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0.5rem;
+  display: flex;
+  align-items: center;
+  color: #333;
+  font-size: 1.5rem;
+`;
+
+const Title = styled.h1`
+  font-size: 2rem;
+  font-weight: 600;
+  color: #333;
+  margin: 3rem 0 2rem;
   text-align: center;
 `;
 
-const Logo = styled.h1`
-  font-family: 'Georgia', serif; // 예시 로고 폰트
-  font-size: 2.5rem;
-  color: #2c3e50;
-  margin-bottom: 2rem;
+const SocialLoginButton = styled.button<{ $isKakao?: boolean }>`
+  width: 100%;
+  max-width: 340px;
+  padding: 1rem;
+  border: none;
+  border-radius: 15px;
+  background: ${props => props.$isKakao ? '#FEE500' : '#fff'};
+  color: ${props => props.$isKakao ? '#000' : '#333'};
+  font-size: 1rem;
+  font-weight: 500;
+  cursor: pointer;
+  margin-bottom: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+
+  img {
+    width: 24px;
+    height: 24px;
+    margin-right: 0.5rem;
+  }
 `;
 
-const Title = styled.h2`
-  font-size: 1.75rem;
-  font-weight: bold;
-  margin-bottom: 1.5rem;
-  color: #333;
+const Divider = styled.div`
+  width: 100%;
+  max-width: 340px;
+  display: flex;
+  align-items: center;
+  margin: 2rem 0;
+  color: #999;
+  font-size: 0.9rem;
+
+  &::before,
+  &::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: #eee;
+    margin: 0 1rem;
+  }
 `;
 
 const Form = styled.form`
+  width: 100%;
+  max-width: 340px;
   display: flex;
   flex-direction: column;
   gap: 1rem;
 `;
 
-const InputGroup = styled.div`
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-`;
-
-const Label = styled.label`
-  font-size: 0.9rem;
-  color: #555;
-  margin-bottom: 0.25rem;
+const InputWrapper = styled.div`
+  position: relative;
+  width: 100%;
 `;
 
 const Input = styled.input`
   width: 100%;
-  padding: 0.75rem;
-  border: 1px solid #ccc;
-  border-radius: 0.75rem;
+  padding: 1rem;
+  border: 1px solid #eee;
+  border-radius: 15px;
+  background-color: white;
   font-size: 1rem;
+  transition: all 0.2s;
+
+  &:-webkit-autofill,
+  &:-webkit-autofill:hover,
+  &:-webkit-autofill:focus,
+  &:-webkit-autofill:active {
+    -webkit-box-shadow: 0 0 0 30px white inset !important;
+    -webkit-text-fill-color: #333 !important;
+  }
+
   &:focus {
     outline: none;
-    border-color: #0ea5e9;
-    box-shadow: 0 0 0 2px rgba(14, 165, 233, 0.2);
+    border-color: #FF69B4;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  }
+
+  &::placeholder {
+    color: #999;
+  }
+`;
+
+const PasswordToggle = styled.button`
+  position: absolute;
+  right: 1rem;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+
+  svg {
+    width: 100%;
+    height: 100%;
+    opacity: 0.5;
+    transition: opacity 0.2s;
+  }
+
+  &:hover svg {
+    opacity: 0.8;
   }
 `;
 
 const ErrorMessage = styled.p`
-  color: #ef4444;
+  color: #FF1493;
   font-size: 0.85rem;
-  margin-top: 0.25rem;
+  margin-left: 0.5rem;
 `;
 
-const SubmitButton = styled.button`
-  background-color: #10b981;
-  color: white;
-  padding: 0.9rem 1.5rem;
+const RegisterButton = styled.button`
+  width: 100%;
+  padding: 1rem;
   border: none;
-  border-radius: 0.75rem;
-  font-size: 1.1rem;
-  font-weight: 600;
+  border-radius: 15px;
+  background: linear-gradient(to right, #FF69B4, #4169E1);
+  color: white;
+  font-size: 1rem;
+  font-weight: 500;
   cursor: pointer;
   margin-top: 1rem;
-  transition: background-color 0.3s;
 
-  &:hover {
-    background-color: #059669;
-  }
   &:disabled {
-    background-color: #94a3b8;
+    background: #ccc;
     cursor: not-allowed;
   }
 `;
 
-const LinkText = styled.p`
-  margin-top: 1.5rem;
-  font-size: 0.95rem;
-  color: #555;
+const CheckboxWrapper = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 1rem;
+`;
+
+const Checkbox = styled.input`
+  width: 20px;
+  height: 20px;
+  margin: 0;
+`;
+
+const CheckboxLabel = styled.label`
+  font-size: 0.9rem;
+  color: #666;
+  cursor: pointer;
 
   a {
-    color: #0ea5e9;
-    text-decoration: none;
-    font-weight: 500;
-
-    &:hover {
-      text-decoration: underline;
-    }
+    color: #FF69B4;
+    text-decoration: underline;
   }
 `;
 
 const RegisterPage: React.FC = () => {
   const navigate = useNavigate();
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const { register, handleSubmit, formState: { errors, isSubmitting } } = useForm<RegisterFormData>({
     resolver: zodResolver(registerSchema),
   });
 
   const onSubmit = async (data: RegisterFormData) => {
-    console.log("회원가입 시도:", data);
     try {
-      // 비밀번호 확인 필드는 백엔드로 전송하지 않음
       const { confirmPassword, ...registerData } = data;
-
-      // 백엔드 회원가입 API URL
-      const response = await fetch('http://localhost:3000/auth/register', { // 백엔드 회원가입 API URL
+      const backendUrl = import.meta.env.VITE_APP_API_URL;
+      console.log('백엔드 URL:', backendUrl); // URL이 제대로 설정되었는지 확인
+      
+      const response = await fetch(`${backendUrl}/auth/register`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -138,7 +221,6 @@ const RegisterPage: React.FC = () => {
 
       if (!response.ok) {
         const errorData = await response.json();
-        // 백엔드 에러 메시지(예: 이메일 중복)를 사용자에게 보여주기
         throw new Error(errorData.message || '회원가입 실패');
       }
 
@@ -152,65 +234,81 @@ const RegisterPage: React.FC = () => {
     }
   };
 
-
   return (
     <Container>
-      <AuthBox>
-        <Logo>Reconnet</Logo> {/* 로고 */}
-        <Title>회원가입</Title>
-        <Form onSubmit={handleSubmit(onSubmit)}>
-          <InputGroup>
-            <Label htmlFor="email">이메일</Label>
-            <Input
-              id="email"
-              type="email"
-              placeholder="example@email.com"
-              {...register('email')}
-            />
-            {errors.email && <ErrorMessage>{errors.email.message}</ErrorMessage>}
-          </InputGroup>
+      <BackButton onClick={() => navigate('/')}>←</BackButton>
+      <Title>Create your account</Title>
+      
+      <SocialLoginButton $isKakao>
+        카카오톡으로 회원가입하기
+      </SocialLoginButton>
+      
+      <SocialLoginButton>
+        구글로 회원가입하기
+      </SocialLoginButton>
 
-<InputGroup>
-            <Label htmlFor="nickname">닉네임</Label>
-            <Input
-              id="nickname"
-              type="text" // 텍스트 타입
-              placeholder="닉네임"
-              {...register('nickname')} // 'nickname'으로 register
-            />
-            {errors.nickname && <ErrorMessage>{errors.nickname.message}</ErrorMessage>}
-          </InputGroup>
+      <Divider>이메일로 회원가입하기</Divider>
 
-          <InputGroup>
-            <Label htmlFor="password">비밀번호</Label>
-            <Input
-              id="password"
-              type="password"
-              placeholder="비밀번호 (최소 6자, 대문자, 소문자, 숫자, 특수문자 포함)"
-              {...register('password')}
-            />
-            {errors.password && <ErrorMessage>{errors.password.message}</ErrorMessage>}
-          </InputGroup>
+      <Form onSubmit={handleSubmit(onSubmit)}>
+        <InputWrapper>
+          <Input
+            type="email"
+            placeholder="이메일을 입력하세요"
+            {...register('email')}
+          />
+        </InputWrapper>
+        {errors.email && <ErrorMessage>{errors.email.message}</ErrorMessage>}
 
-          <InputGroup>
-            <Label htmlFor="confirmPassword">비밀번호 확인</Label>
-            <Input
-              id="confirmPassword"
-              type="password"
-              placeholder="비밀번호 재입력"
-              {...register('confirmPassword')}
-            />
-            {errors.confirmPassword && <ErrorMessage>{errors.confirmPassword.message}</ErrorMessage>}
-          </InputGroup>
+        <InputWrapper>
+          <Input
+            type="text"
+            placeholder="닉네임을 입력하세요"
+            {...register('nickname')}
+          />
+        </InputWrapper>
+        {errors.nickname && <ErrorMessage>{errors.nickname.message}</ErrorMessage>}
 
-          <SubmitButton type="submit" disabled={isSubmitting}>
-            {isSubmitting ? '가입 중...' : '회원가입'}
-          </SubmitButton>
-        </Form>
-        <LinkText>
-          이미 계정이 있으신가요? <a href="#" onClick={() => navigate('/login')}>로그인</a>
-        </LinkText>
-      </AuthBox>
+        <InputWrapper>
+          <Input
+            type={showPassword ? "text" : "password"}
+            placeholder="비밀번호를 입력하세요"
+            {...register('password')}
+          />
+          <PasswordToggle 
+            type="button" 
+            onClick={() => setShowPassword(!showPassword)}
+          >
+            {showPassword ? <CloseEye /> : <OpenEye />}
+          </PasswordToggle>
+        </InputWrapper>
+        {errors.password && <ErrorMessage>{errors.password.message}</ErrorMessage>}
+
+        <InputWrapper>
+          <Input
+            type={showConfirmPassword ? "text" : "password"}
+            placeholder="비밀번호를 다시 입력하세요"
+            {...register('confirmPassword')}
+          />
+          <PasswordToggle 
+            type="button" 
+            onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+          >
+            {showConfirmPassword ? <CloseEye /> : <OpenEye />}
+          </PasswordToggle>
+        </InputWrapper>
+        {errors.confirmPassword && <ErrorMessage>{errors.confirmPassword.message}</ErrorMessage>}
+
+        <CheckboxWrapper>
+          <Checkbox type="checkbox" id="terms" />
+          <CheckboxLabel htmlFor="terms">
+            <a href="#">약관</a>에 동의합니다
+          </CheckboxLabel>
+        </CheckboxWrapper>
+
+        <RegisterButton type="submit" disabled={isSubmitting}>
+          {isSubmitting ? '가입 중...' : 'GET STARTED'}
+        </RegisterButton>
+      </Form>
     </Container>
   );
 };

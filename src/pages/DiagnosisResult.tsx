@@ -52,36 +52,78 @@ const Title = styled.h1`
 
 const TemperatureBar = styled.div`
   width: 100%;
-  height: 80px;
-  background: linear-gradient(to right, #FF69B4, #4169E1);
-  border-radius: 30px;
+  height: 100px;
+  background: #f0f0f0;
+  border-radius: 15px;
   position: relative;
   display: flex;
+  flex-direction: column;
+  padding: 1rem;
+  margin: 1rem 0 0.2rem;
+`;
+
+const TopSection = styled.div`
+  display: flex;
   align-items: center;
-  padding: 0 1.5rem;
-  margin: 1.5rem 0 1rem;
-  color: white;
-  font-size: 1.2rem;
+  margin-bottom: 1rem;
+`;
+
+const TemperatureText = styled.div`
+  color: #333;
+  font-size: 0.95rem;
+  flex: 1;
+`;
+
+const TemperatureValue = styled.div`
+  color: #FF1493;
+  font-weight: bold;
+  font-size: 1.1rem;
+  margin-left: 1rem;
+  
+  span {
+    font-size: 0.8rem;
+    margin-left: 1px;
+  }
+`;
+
+const TemperatureMeter = styled.div<{ temperature: number }>`
+  width: 100%;
+  height: 10px;
+  background: #e0e0e0;
+  border-radius: 5px;
+  position: relative;
+  overflow: hidden;
+
+  &:before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    height: 100%;
+    width: ${props => props.temperature}%;
+    background: linear-gradient(to right, #FF69B4, #4169E1);
+    border-radius: 5px;
+    transition: width 0.3s ease;
+  }
 `;
 
 const TemperatureCircle = styled.div`
-  width: 70px;
-  height: 70px;
+  width: 40px;
+  height: 40px;
   background: white;
   border-radius: 50%;
-  position: absolute;
-  right: 5px;
   display: flex;
   align-items: center;
   justify-content: center;
   color: #FF1493;
   font-weight: bold;
-  font-size: 1.8rem;
+  font-size: 1rem;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  margin-bottom: 0.5rem;
 
   span {
-    font-size: 1rem;
-    margin-left: 2px;
+    font-size: 0.7rem;
+    margin-left: 1px;
   }
 `;
 
@@ -183,10 +225,13 @@ const DiagnosisResult: React.FC = () => {
       <ContentSection>
         <Title>당신의 관계온도는</Title>
         <TemperatureBar>
-          우리 지금 이대로 괜찮은걸까...
-          <TemperatureCircle>
-            {temperature.toFixed(1)}<span>℃</span>
-          </TemperatureCircle>
+          <TopSection>
+            <TemperatureText>우리 지금 이대로 괜찮은걸까...</TemperatureText>
+            <TemperatureValue>
+              {temperature.toFixed(1)}<span>℃</span>
+            </TemperatureValue>
+          </TopSection>
+          <TemperatureMeter temperature={temperature} />
         </TemperatureBar>
         
         <PercentageText>
