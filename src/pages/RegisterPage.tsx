@@ -178,12 +178,32 @@ const CheckboxWrapper = styled.div`
   align-items: center;
   gap: 0.5rem;
   margin-top: 1rem;
+  cursor: pointer;
 `;
 
-const Checkbox = styled.input`
+const CustomCheckbox = styled.div<{ $isChecked: boolean }>`
   width: 20px;
   height: 20px;
-  margin: 0;
+  border: 2px solid ${props => props.$isChecked ? '#FF69B4' : '#666'};
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+  background-color: ${props => props.$isChecked ? '#FF69B4' : 'transparent'};
+  position: relative;
+
+  &:after {
+    content: '';
+    display: ${props => props.$isChecked ? 'block' : 'none'};
+    width: 6px;
+    height: 10px;
+    border: solid white;
+    border-width: 0 2px 2px 0;
+    transform: rotate(45deg);
+    position: absolute;
+    top: 2px;
+  }
 `;
 
 const CheckboxLabel = styled.label`
@@ -201,11 +221,17 @@ const RegisterPage: React.FC = () => {
   const navigate = useNavigate();
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [isChecked, setIsChecked] = useState(false);
   const { register, handleSubmit, formState: { errors, isSubmitting } } = useForm<RegisterFormData>({
     resolver: zodResolver(registerSchema),
   });
 
   const onSubmit = async (data: RegisterFormData) => {
+    if (!isChecked) {
+      alert('약관에 동의해주세요.');
+      return;
+    }
+
     try {
       const { confirmPassword, ...registerData } = data;
       const backendUrl = import.meta.env.VITE_APP_API_URL;
@@ -298,10 +324,13 @@ const RegisterPage: React.FC = () => {
         </InputWrapper>
         {errors.confirmPassword && <ErrorMessage>{errors.confirmPassword.message}</ErrorMessage>}
 
-        <CheckboxWrapper>
-          <Checkbox type="checkbox" id="terms" />
-          <CheckboxLabel htmlFor="terms">
-            <a href="#">약관</a>에 동의합니다
+        <CheckboxWrapper onClick={() => setIsChecked(!isChecked)}>
+          <CustomCheckbox $isChecked={isChecked} />
+          <CheckboxLabel>
+            <a onClick={(e) => {
+              e.stopPropagation();
+              navigate('/terms');
+            }}>약관</a>에 동의합니다
           </CheckboxLabel>
         </CheckboxWrapper>
 
