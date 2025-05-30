@@ -107,26 +107,6 @@ const TemperatureMeter = styled.div<{ temperature: number }>`
   }
 `;
 
-const TemperatureCircle = styled.div`
-  width: 40px;
-  height: 40px;
-  background: white;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: #FF1493;
-  font-weight: bold;
-  font-size: 1rem;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  margin-bottom: 0.5rem;
-
-  span {
-    font-size: 0.7rem;
-    margin-left: 1px;
-  }
-`;
-
 const PercentageText = styled.p`
   text-align: center;
   font-size: 1.1rem;

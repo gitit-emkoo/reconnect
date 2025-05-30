@@ -1,5 +1,5 @@
 // src/App.tsx (업데이트된 부분)
-import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
+import { BrowserRouter as Router, Routes, Route,  } from "react-router-dom";
 import GlobalStyle from "./styles/GlobalStyle";
 import ProtectedRoute from "./components/ProtectedRoute";
 
