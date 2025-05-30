@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import styled from 'styled-components';
 import { useNavigate } from 'react-router-dom';
+import BackButton from '../components/common/BackButton';
+import ProgressBar from '../components/common/ProgressBar';
 
 // 샘플 진단 질문 리스트
 const questions = [
@@ -19,6 +21,7 @@ const Container = styled.div`
   background: #FAF9F6;
   padding: 0 1rem;
   justify-content: center;
+  position: relative;
   
   @media (min-width: 768px) {
     padding: 0 2rem;
@@ -118,10 +121,16 @@ const Diagnosis: React.FC = () => {
 
   return (
     <Container>
+      <BackButton />
       <Header>
         <Title>관계온도 테스트</Title>
         <Subtitle>솔직하게 대답해 주세요</Subtitle>
       </Header>
+
+      <ProgressBar 
+        current={step} 
+        total={questions.length}
+      />
 
       <QuestionCard>
         <Question>

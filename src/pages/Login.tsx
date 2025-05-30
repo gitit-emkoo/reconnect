@@ -5,114 +5,128 @@ import { useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { loginSchema,type LoginFormData } from '../utils/validationSchemas';
+import { loginSchema, type LoginFormData } from '../utils/validationSchemas';
 
-// 스타일 컴포넌트
 const Container = styled.div`
   display: flex;
   flex-direction: column;
-  justify-content: center;
   align-items: center;
   min-height: 100vh;
-  background: linear-gradient(to top, #e0f2f7, #ffffff);
-  padding: 1.5rem;
+  background: linear-gradient(135deg, #FFE5E5 0%, #E5E5FF 100%);
+  padding: 3rem 1.5rem;
 `;
 
-const AuthBox = styled.div`
-  background-color: white;
-  padding: 2.5rem;
-  border-radius: 1.5rem;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
-  width: 100%;
-  max-width: 400px;
-  text-align: center;
-`;
-
-const Logo = styled.h1`
-  font-family: 'Georgia', serif; // 예시 로고 폰트
-  font-size: 2.5rem;
-  color: #2c3e50;
+const Logo = styled.img`
+  width: 140px;
+  height: auto;
   margin-bottom: 2rem;
 `;
 
+const IllustrationWrapper = styled.div`
+  width: 100%;
+  max-width: 340px;
+  aspect-ratio: 16/10;
+  position: relative;
+  border-radius: 20px;
+  margin-bottom: 2.5rem;
+  background: white;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+  border: 2px solid #9370DB;
+  padding: 0;
+  overflow: hidden;
+
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    filter: grayscale(100%);
+  }
+`;
+
 const Title = styled.h2`
-  font-size: 1.75rem;
-  font-weight: bold;
-  margin-bottom: 1.5rem;
+  font-size: 1.5rem;
+  font-weight: 600;
   color: #333;
+  margin-bottom: 0.5rem;
+  text-align: center;
+`;
+
+const Subtitle = styled.p`
+  font-size: 0.9rem;
+  color: #666;
+  margin-bottom: 2.5rem;
+  text-align: center;
 `;
 
 const Form = styled.form`
+  width: 100%;
+  max-width: 340px;
   display: flex;
   flex-direction: column;
   gap: 1rem;
 `;
 
-const InputGroup = styled.div`
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-`;
-
-const Label = styled.label`
-  font-size: 0.9rem;
-  color: #555;
-  margin-bottom: 0.25rem;
-`;
-
 const Input = styled.input`
   width: 100%;
-  padding: 0.75rem;
-  border: 1px solid #ccc;
-  border-radius: 0.75rem;
+  padding: 1rem;
+  border: none;
+  border-radius: 15px;
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(4px);
   font-size: 1rem;
+  transition: all 0.2s;
+
   &:focus {
     outline: none;
-    border-color: #0ea5e9;
-    box-shadow: 0 0 0 2px rgba(14, 165, 233, 0.2);
+    background: rgba(255, 255, 255, 0.95);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  }
+
+  &::placeholder {
+    color: #999;
   }
 `;
 
 const ErrorMessage = styled.p`
-  color: #ef4444;
+  color: #FF1493;
   font-size: 0.85rem;
-  margin-top: 0.25rem;
+  margin-left: 0.5rem;
 `;
 
-const SubmitButton = styled.button`
-  background-color: #0ea5e9;
-  color: white;
-  padding: 0.9rem 1.5rem;
+const LoginButton = styled.button`
+  width: 100%;
+  padding: 1rem;
   border: none;
-  border-radius: 0.75rem;
-  font-size: 1.1rem;
-  font-weight: 600;
+  border-radius: 30px;
+  background: linear-gradient(to right, #FF69B4, #4169E1);
+  color: white;
+  font-size: 1rem;
+  font-weight: 500;
   cursor: pointer;
-  margin-top: 1rem;
-  transition: background-color 0.3s;
+  transition: transform 0.2s;
 
   &:hover {
-    background-color: #0284c7;
+    transform: translateY(-2px);
   }
+
   &:disabled {
-    background-color: #94a3b8;
+    background: #ccc;
     cursor: not-allowed;
+    transform: none;
   }
 `;
 
 const LinkText = styled.p`
-  margin-top: 1.5rem;
-  font-size: 0.95rem;
-  color: #555;
+  margin-top: 1rem;
+  text-align: center;
+  color: #666;
+  font-size: 0.85rem;
 
   a {
-    color: #0ea5e9;
-    text-decoration: none;
-    font-weight: 500;
-
-    &:hover {
-      text-decoration: underline;
-    }
+    color: #666;
+    text-decoration: underline;
+    font-weight: 400;
+    margin-left: 0.25rem;
   }
 `;
 
@@ -123,13 +137,9 @@ const LoginPage: React.FC = () => {
   });
 
   const onSubmit = async (data: LoginFormData) => {
-    console.log("로그인 시도:", data);
     try {
-      // Vercel에 설정될 환경 변수를 사용하고, 로컬 개발용 fallback을 추가
-      const backendUrl = import.meta.env.VITE_APP_API_URL || 'http://localhost:3000'; 
-      console.log("백엔드 URL 사용:", backendUrl); // 어떤 URL을 사용하는지 확인용cd ..
-
-      const response = await fetch(`${backendUrl}/auth/login`, { // 백엔드 로그인 API URL
+      const backendUrl = import.meta.env.VITE_APP_API_URL || 'http://localhost:3000';
+      const response = await fetch(`${backendUrl}/auth/login`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -139,15 +149,12 @@ const LoginPage: React.FC = () => {
 
       if (!response.ok) {
         const errorData = await response.json();
-        // 백엔드 에러 메시지(예: 이메일 또는 비밀번호 불일치)를 사용자에게 보여주기
         throw new Error(errorData.message || '로그인 실패');
       }
 
       const result = await response.json();
       console.log("로그인 성공:", result);
-      alert('로그인 성공!');
-      // 실제 로그인 성공 시 토큰 저장 등의 로직 필요 (현재는 임시)
-      navigate('/Dashboard'); // 대시보드로 이동동
+      navigate('/Dashboard');
     } catch (error: any) {
       console.error("로그인 에러:", error.message);
       alert(`로그인 실패: ${error.message || '알 수 없는 오류'}`);
@@ -156,40 +163,38 @@ const LoginPage: React.FC = () => {
 
   return (
     <Container>
-      <AuthBox>
-        <Logo>Reconnect</Logo> {/* 로고 */}
-        <Title>로그인</Title>
-        <Form onSubmit={handleSubmit(onSubmit)}>
-          <InputGroup>
-            <Label htmlFor="email">이메일</Label>
-            <Input
-              id="email"
-              type="email"
-              placeholder="example@email.com"
-              {...register('email')}
-            />
-            {errors.email && <ErrorMessage>{errors.email.message}</ErrorMessage>}
-          </InputGroup>
+      <Logo src="/src/assets/reconnect.png" alt="Reconnect" />
+      <IllustrationWrapper>
+        <img src="/src/assets/img1.jpg" alt="Couple illustration" />
+      </IllustrationWrapper>
+      <Title>다시 관계를 이어보세요</Title>
+      <Subtitle>당신의 관계, 리커넥트가 도와줄게요</Subtitle>
+      <Form onSubmit={handleSubmit(onSubmit)}>
+        <Input
+          type="email"
+          placeholder="example@email.com"
+          {...register('email')}
+        />
+        {errors.email && <ErrorMessage>{errors.email.message}</ErrorMessage>}
+        
+        <Input
+          type="password"
+          placeholder="비밀번호를 입력하세요"
+          {...register('password')}
+        />
+        {errors.password && <ErrorMessage>{errors.password.message}</ErrorMessage>}
 
-          <InputGroup>
-            <Label htmlFor="password">비밀번호</Label>
-            <Input
-              id="password"
-              type="password"
-              placeholder="비밀번호"
-              {...register('password')}
-            />
-            {errors.password && <ErrorMessage>{errors.password.message}</ErrorMessage>}
-          </InputGroup>
+        <LoginButton type="submit" disabled={isSubmitting}>
+          {isSubmitting ? '로그인 중...' : 'LOG IN'}
+        </LoginButton>
+      </Form>
 
-          <SubmitButton type="submit" disabled={isSubmitting}>
-            {isSubmitting ? '로그인 중...' : '로그인'}
-          </SubmitButton>
-        </Form>
-        <LinkText>
-          계정이 없으신가요? <a href="#" onClick={() => navigate('/register')}>회원가입</a>
-        </LinkText>
-      </AuthBox>
+      <LinkText>
+        계정이 없으신가요?
+        <a href="#" onClick={(e) => { e.preventDefault(); navigate('/register'); }}>
+          회원가입
+        </a>
+      </LinkText>
     </Container>
   );
 };
