@@ -296,30 +296,24 @@ const RegisterPage: React.FC = () => {
 
         <InputWrapper>
           <Input
-            type={showPassword ? "text" : "password"}
-            placeholder="비밀번호를 입력하세요"
+            type={showPassword ? 'text' : 'password'}
+            placeholder="비밀번호"
             {...register('password')}
           />
-          <PasswordToggle 
-            type="button" 
-            onClick={() => setShowPassword(!showPassword)}
-          >
-            {showPassword ? <CloseEye /> : <OpenEye />}
+          <PasswordToggle type="button" onClick={() => setShowPassword(!showPassword)}>
+            {!showPassword ? <OpenEye /> : <CloseEye />}
           </PasswordToggle>
         </InputWrapper>
         {errors.password && <ErrorMessage>{errors.password.message}</ErrorMessage>}
 
         <InputWrapper>
           <Input
-            type={showConfirmPassword ? "text" : "password"}
-            placeholder="비밀번호를 다시 입력하세요"
+            type={showConfirmPassword ? 'text' : 'password'}
+            placeholder="비밀번호 확인"
             {...register('confirmPassword')}
           />
-          <PasswordToggle 
-            type="button" 
-            onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-          >
-            {showConfirmPassword ? <CloseEye /> : <OpenEye />}
+          <PasswordToggle type="button" onClick={() => setShowConfirmPassword(!showConfirmPassword)}>
+            {!showConfirmPassword ? <OpenEye /> : <CloseEye />}
           </PasswordToggle>
         </InputWrapper>
         {errors.confirmPassword && <ErrorMessage>{errors.confirmPassword.message}</ErrorMessage>}
