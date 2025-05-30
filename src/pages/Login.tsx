@@ -71,14 +71,13 @@ const Input = styled.input`
   padding: 1rem;
   border: none;
   border-radius: 15px;
-  background: rgba(255, 255, 255, 0.8);
-  backdrop-filter: blur(4px);
+  background-color: white;
   font-size: 1rem;
   transition: all 0.2s;
 
   &:focus {
     outline: none;
-    background: rgba(255, 255, 255, 0.95);
+    background-color: white;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
   }
 
@@ -123,7 +122,7 @@ const LinkText = styled.p`
   font-size: 0.85rem;
 
   a {
-    color: #666;
+    color: #FF69B4;
     text-decoration: underline;
     font-weight: 400;
     margin-left: 0.25rem;
