@@ -9,19 +9,19 @@ const Container = styled.div`
   justify-content: space-between;
   min-height: 100vh;
   background: #0A1B3D;
-  padding: 4rem 1rem 2rem;
+  padding: 3rem 1rem 2rem;
   color: white;
   position: relative;
   overflow: hidden;
 
   @media (min-width: 768px) {
-    padding: 5rem 2rem 2rem;
+    padding: 4rem 2rem 2rem;
   }
 `;
 
 const Header = styled.div`
   text-align: center;
-  margin-bottom: 3rem;
+  margin-bottom: 2rem;
 
   @media (min-width: 768px) {
     margin-bottom: 4rem;

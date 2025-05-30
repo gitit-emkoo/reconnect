@@ -1,67 +1,64 @@
-# 리커넥트 (Reconnect) 앱
+# ReConnect (리커넥트)
 
-부부 사이의 감정 거리 회복을 위한 감정 공유 & 리포트 기반 웹 애플리케이션입니다.
+## 프로젝트 소개
+ReConnect는 부부/연인 관계 개선을 위한 웹 애플리케이션입니다. 관계 온도 측정, 감정 카드 교환, 감정 일기 작성 등 다양한 기능을 통해 서로의 마음을 이해하고 소통할 수 있도록 도와줍니다.
 
----
+## 주요 기능
+- **관계 온도 테스트**: 현재 관계의 상태를 진단
+- **감정 카드**: 서로의 감정을 카드로 표현하고 교환
+- **감정 일기**: 일상의 감정을 기록
+- **Daily Thought**: 매일의 생각을 공유
+- **혼자/함께 모드**: 상황에 맞는 맞춤형 기능 제공
 
-## 💡 주요 기능
+## 기술 스택
+- React
+- TypeScript
+- Vite
+- Styled-components
+- React Router DOM
 
-* 감정 진단: 간단한 질문을 통해 관계 상태 측정
-* 감정카드 작성: 감정을 AI가 정리한 말투로 전송
-* 감정 일기: 하루의 감정을 기록하고 파트너에게 공유
-* 연결 미션: 함께 수행하는 소소한 행동 챌린지
-* 관계 리포트: 감정 공유/미션 이행률/온도 분석
-* 콘텐츠 센터: 섹스리스, 스킨십 등 개선 콘텐츠 제공
-* 파트너 초대 및 연결 기능 지원
+## 시작하기
 
----
-
-## 🛠️ 기술 스택
-
-* React (with TypeScript)
-* React Router DOM
-* styled-components
-* Vite
-
----
-
-## 📁 폴더 구조
-
-```
-src/
-├── pages/            # 주요 화면 페이지 컴포넌트
-├── styles/           # 전역 스타일 및 테마
-│   └── GlobalStyle.ts
-├── App.tsx           # 라우팅 설정 및 GlobalStyle 적용
-├── index.tsx         # 진입점
-```
-
----
-
-## 📦 설치 라이브러리
-
+### 설치
 ```bash
-npm install react-router-dom styled-components
-npm install --save-dev @types/react-router-dom @types/styled-components
-```
+# 저장소 클론
+git clone https://github.com/gitit-emkoo/reconnect.git
 
----
+# 디렉토리 이동
+cd reconnect
 
-## 🚀 실행 방법
-
-```bash
+# 의존성 설치
 npm install
-npm start
 ```
 
----
+### 개발 서버 실행
+```bash
+npm run dev
+```
 
-## ✨ 추후 확장 예정
+### 빌드
+```bash
+npm run build
+```
 
-* GPT API 연동 (감정 메시지 추천)
-* Firebase 기반 유저 인증 및 DB 연동
-* 감정 상태 전역 저장 (Context API 또는 Zustand)
+## 브랜치 관리
+- `main`: 안정적인 배포 버전
+- `develop`: 개발 중인 기능
 
----
+## 프로젝트 구조
+```
+reconnect/
+├── src/
+│   ├── assets/         # 이미지, 아이콘 등 정적 파일
+│   ├── components/     # 재사용 가능한 컴포넌트
+│   ├── pages/         # 페이지 컴포넌트
+│   ├── styles/        # 전역 스타일
+│   └── types/         # TypeScript 타입 정의
+├── public/            # 정적 파일
+└── package.json       # 프로젝트 설정 및 의존성
+```
 
-> 본 프로젝트는 감정 표현이 어려운 부부를 위한 ‘부드러운 관계 개선’을 목표로 기획되었습니다.
+## 개발 현황
+현재 개발 진행 중인 프로젝트입니다. 추가 기능과 개선사항은 지속적으로 업데이트될 예정입니다.
+
+© 2024 ReConnect. All Rights Reserved.

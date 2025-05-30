@@ -1,6 +1,7 @@
 // src/pages/MyPage.tsx
 import React from "react";
 import styled from "styled-components";
+import { useNavigate } from "react-router-dom";
 
 const Container = styled.div`
   background-color: #fbf7f0; /* 밝은 베이지 계열 */
@@ -53,11 +54,17 @@ const Button = styled.button`
 `;
 
 const MyPage: React.FC = () => {
+  const navigate = useNavigate();
   // 더미 사용자 정보
   const userName = "테스트님";
   const partnerName = "배우자님";
   const email = "test@example.com";
   const subscriptionStatus = "프리미엄 (만료일: 2025.12.31)";
+
+  const handleLogout = () => {
+    localStorage.removeItem('token');
+    navigate('/login');
+  };
 
   return (
     <Container>
@@ -88,7 +95,7 @@ const MyPage: React.FC = () => {
       <Section>
         <SectionTitle>기타</SectionTitle>
         <Button style={{ marginRight: '1rem' }}>자주 묻는 질문</Button>
-        <Button>로그아웃</Button>
+        <Button onClick={handleLogout}>로그아웃</Button>
       </Section>
     </Container>
   );
