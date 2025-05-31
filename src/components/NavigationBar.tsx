@@ -2,6 +2,11 @@
 import React from 'react';
 import styled from 'styled-components';
 import { useNavigate, useLocation } from 'react-router-dom';
+import HomeIcon from '../assets/Icon_Home.svg?react';
+import ExpertIcon from '../assets/Icon_Expert.svg?react';
+import ContentIcon from '../assets/Icon_Content.svg?react';
+import CommunityIcon from '../assets/Icon_Community.svg?react';
+import MyIcon from '../assets/Icon_My.svg?react';
 
 const NavContainer = styled.nav`
   position: fixed;
@@ -20,6 +25,7 @@ const NavContainer = styled.nav`
 
 interface NavButtonProps {
   $isActive?: boolean;
+  disabled?: boolean;
 }
 
 const NavButton = styled.button<NavButtonProps>`
@@ -30,43 +36,26 @@ const NavButton = styled.button<NavButtonProps>`
   flex: 1;
   background: none;
   border: none;
-  color: ${props => (props.$isActive ? '#14b8a6' : '#6b7280')}; /* 활성/비활성 색상 */
+  color: ${props => (props.disabled ? '#ccc' : props.$isActive ? '#14b8a6' : '#6b7280')}; /* 활성/비활성 색상 */
   font-size: 0.75rem;
   font-weight: ${props => (props.$isActive ? '600' : '500')};
-  cursor: pointer;
+  cursor: ${props => (props.disabled ? 'not-allowed' : 'pointer')};
   transition: color 0.2s ease-in-out;
   padding: 0.2rem 0; /* 내부 여백 조정 */
+  opacity: ${props => (props.disabled ? 0.5 : 1)};
 
   &:hover {
-    color: #0d9488;
+    color: ${props => (props.disabled ? '#ccc' : '#0d9488')};
   }
 
   svg {
-    font-size: 1.5rem; /* 아이콘 크기 */
-    margin-bottom: 0.2rem;
+    width: 20px;
+    height: 20px;
+    margin-bottom: 4px;
   }
 `;
 
-// 간단한 아이콘 대신 텍스트로 대체하거나, 실제 아이콘 라이브러리 사용
-const IconPlaceholder = styled.div`
-  width: 24px; /* 아이콘 크기 맞춤 */
-  height: 24px;
-  background-color: transparent;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin-bottom: 4px; /* 텍스트와의 간격 */
-`;
-
-// 임시 아이콘 (나중에 실제 아이콘으로 대체 필요)
-const HomeIcon = () => <IconPlaceholder>🏠</IconPlaceholder>;
-const ExpertIcon = () => <IconPlaceholder>👨‍🏫</IconPlaceholder>; // 전문가
-const ContentIcon = () => <IconPlaceholder>📚</IconPlaceholder>; // 콘텐츠센터
-const CommunityIcon = () => <IconPlaceholder>👥</IconPlaceholder>;
-const MyIcon = () => <IconPlaceholder>👤</IconPlaceholder>;
-
 interface NavigationBarProps {
-  // isSolo 상태를 props로 받아와서 특정 버튼을 disabled 처리할 수도 있습니다.
   isSolo?: boolean;
 }
 
@@ -92,16 +81,15 @@ const NavigationBar: React.FC<NavigationBarProps> = ({ isSolo = false }) => {
         <HomeIcon />
         Home
       </NavButton>
-      {/* 전문가 페이지는 일단 isSolo와 관계없이 접근 가능하게 처리, 필요 시 변경 */}
       <NavButton
-        onClick={() => handleNavClick("/expert")} // 전문가 페이지 라우트 추가 필요
+        onClick={() => handleNavClick("/expert")}
         $isActive={location.pathname === '/expert'}
       >
         <ExpertIcon />
         전문가
       </NavButton>
       <NavButton
-        onClick={() => handleNavClick("/content-center", true)} // 콘텐츠센터는 파트너 필요
+        onClick={() => handleNavClick("/content-center", true)}
         $isActive={location.pathname === '/content-center'}
         disabled={isSolo}
       >
@@ -109,7 +97,7 @@ const NavigationBar: React.FC<NavigationBarProps> = ({ isSolo = false }) => {
         콘텐츠센터
       </NavButton>
       <NavButton
-        onClick={() => handleNavClick("/community", true)} // 커뮤니티는 파트너 필요
+        onClick={() => handleNavClick("/community", true)}
         $isActive={location.pathname === '/community'}
         disabled={isSolo}
       >
@@ -117,7 +105,7 @@ const NavigationBar: React.FC<NavigationBarProps> = ({ isSolo = false }) => {
         커뮤니티
       </NavButton>
       <NavButton
-        onClick={() => handleNavClick("/my")} // 마이페이지는 항상 접근 가능
+        onClick={() => handleNavClick("/my")}
         $isActive={location.pathname === '/my'}
       >
         <MyIcon />
