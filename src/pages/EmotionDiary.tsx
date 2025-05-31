@@ -2,6 +2,7 @@ import React, { useState, useMemo } from "react";
 import styled from "styled-components";
 import { useNavigate } from "react-router-dom";
 import NavigationBar from "../components/NavigationBar";
+import BackButton from "../components/common/BackButton";
 
 // SVG 아이콘 임포트
 import TriggerActivitiesIcon from "../assets/Trigger_Activities.svg?react";
@@ -49,6 +50,7 @@ const Container = styled.div`
   margin: 0 auto;
   position: relative;
   padding-bottom: 80px;
+  padding-top: 80px; /* 뒤로가기 버튼을 위한 여백 추가 */
 
   @media (min-width: 1024px) {
     display: grid;
@@ -338,28 +340,12 @@ const TopBar = styled.div`
   margin-bottom: 2rem;
 `;
 
-const BackButton = styled.button`
-  background: none;
-  border: none;
-  padding: 0.5rem;
-  cursor: pointer;
-  color: #78350f;
-  font-size: 1.5rem;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-
-  &:hover {
-    opacity: 0.8;
-  }
-`;
-
 const PageTitle = styled.h1`
   color: #78350f;
   font-size: 1.5rem;
   margin: 0;
-  flex-grow: 1;
   text-align: center;
+  width: 100%;
 `;
 
 // 감정 데이터 정의
@@ -576,9 +562,7 @@ const EmotionDiary: React.FC = () => {
       <Container>
         <MainContent>
           <TopBar>
-            <BackButton onClick={handleBack}>
-              ←<span style={{ fontSize: '1rem' }}>뒤로가기</span>
-            </BackButton>
+            <BackButton onClick={handleBack} />
             <PageTitle>감정 다이어리 작성</PageTitle>
           </TopBar>
 
