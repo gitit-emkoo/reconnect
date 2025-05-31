@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
 
@@ -89,12 +89,24 @@ const LinkText = styled.p`
 
 const RootPage: React.FC = () => {
   const navigate = useNavigate();
+  const [imageLoaded, setImageLoaded] = useState(false);
+  const [logoLoaded, setLogoLoaded] = useState(false);
 
   return (
     <Container>
-      <Logo src="/images/reconnect.png" alt="Reconnect" />
+      <Logo 
+        src="/images/reconnect.png" 
+        alt="Reconnect" 
+        onLoad={() => setLogoLoaded(true)}
+        style={{ opacity: logoLoaded ? 1 : 0, transition: 'opacity 0.3s' }}
+      />
       <IllustrationWrapper>
-        <img src="/images/img1.jpg" alt="Couple illustration" />
+        <img 
+          src="/images/img1.jpg" 
+          alt="Couple illustration" 
+          onLoad={() => setImageLoaded(true)}
+          style={{ opacity: imageLoaded ? 1 : 0, transition: 'opacity 0.3s' }}
+        />
       </IllustrationWrapper>
       <Title>다시 관계를 이어보세요</Title>
       <Subtitle>당신의 관계, 리커넥트가 도와줄게요</Subtitle>
