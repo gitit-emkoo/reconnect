@@ -3,24 +3,12 @@ import React, { useState } from "react";
 import styled from "styled-components";
 import { useNavigate } from "react-router-dom";
 import NavigationBar from "../components/NavigationBar";
-import reconnectLogo from "../assets/reconnect.png";
-import husbandImage from "../assets/husband.jpg";
 
 const Container = styled.div`
   padding: 1.5rem;
   min-height: calc(100vh - 60px);
   background-color: #ffffff;
   padding-bottom: 80px;
-`;
-
-const LogoWrapper = styled.div`
-  width: 120px;
-  margin-bottom: 2rem;
-  
-  img {
-    width: 100%;
-    height: auto;
-  }
 `;
 
 const WelcomeSection = styled.div`
@@ -139,6 +127,25 @@ const RecommendedTime = styled.div`
   margin-top: 0.25rem;
 `;
 
+const Header = styled.div`
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+`;
+
+const Logo = styled.img`
+  width: 120px;
+  height: auto;
+`;
+
+const ProfileImage = styled.img`
+  width: 60px;
+  height: 60px;
+  border-radius: 0.5rem;
+  overflow: hidden;
+`;
+
 const Dashboard: React.FC = () => {
   const navigate = useNavigate();
   const [isSolo, setIsSolo] = useState(true);
@@ -155,9 +162,10 @@ const Dashboard: React.FC = () => {
   return (
     <>
       <Container>
-        <LogoWrapper>
-          <img src={reconnectLogo} alt="Reconnect" />
-        </LogoWrapper>
+        <Header>
+          <Logo src="/images/reconnect.png" alt="Reconnect Logo" />
+          <ProfileImage src="/images/husband.jpg" alt="Profile" />
+        </Header>
         <WelcomeSection>
           <WelcomeTitle>테스트님, 반가워요!</WelcomeTitle>
           <WelcomeSubtitle>We Wish you have a good day</WelcomeSubtitle>
@@ -170,7 +178,7 @@ const Dashboard: React.FC = () => {
               <PartnerTime>3-10 MIN</PartnerTime>
             </PartnerInfo>
             <PartnerImageWrapper>
-              <img src={husbandImage} alt="Partner" />
+              <img src="/images/husband.jpg" alt="Partner" />
             </PartnerImageWrapper>
           </PartnerCard>
         )}

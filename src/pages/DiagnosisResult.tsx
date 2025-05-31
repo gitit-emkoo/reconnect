@@ -3,7 +3,6 @@ import { useLocation, useNavigate } from "react-router-dom";
 import styled from "styled-components";
 import BackButton from '../components/common/BackButton';
 import ActionButton from '../components/common/ActionButton';
-import img1 from '../assets/img1.jpg';
 
 const Container = styled.div`
   display: flex;
@@ -199,7 +198,7 @@ const DiagnosisResult: React.FC = () => {
         <ActionButton type="download" onClick={handleDownload} />
       </ActionButtons>
       <ImageSection>
-        <img src={img1} alt="Temperature illustration" />
+        <img src="/images/img1.jpg" alt="Temperature illustration" />
       </ImageSection>
       
       <ContentSection>

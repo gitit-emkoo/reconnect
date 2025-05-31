@@ -8,4 +8,7 @@ export default defineConfig({
     react(), 
     svgr()   
   ],
+  define: {
+    'import.meta.env.VITE_APP_API_URL': JSON.stringify('https://reconnect-backend.onrender.com')
+  }
 });

@@ -277,7 +277,7 @@ const LoginPage: React.FC = () => {
             type="button" 
             onClick={() => setShowPassword(!showPassword)}
           >
-            {showPassword ? <CloseEye /> : <OpenEye />}
+            {showPassword ? <OpenEye /> : <CloseEye />}
           </PasswordToggle>
         </InputWrapper>
         {errors.password && <ErrorMessage>{errors.password.message}</ErrorMessage>}

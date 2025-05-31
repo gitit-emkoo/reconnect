@@ -235,9 +235,12 @@ const RegisterPage: React.FC = () => {
     try {
       const { confirmPassword, ...registerData } = data;
       const backendUrl = import.meta.env.VITE_APP_API_URL;
-      console.log('백엔드 URL:', backendUrl); // URL이 제대로 설정되었는지 확인
+      console.log('백엔드 URL:', backendUrl);
+      console.log('전송할 데이터:', registerData);
+      const fullUrl = `${backendUrl}/auth/register`;
+      console.log('전체 요청 URL:', fullUrl);
       
-      const response = await fetch(`${backendUrl}/auth/register`, {
+      const response = await fetch(fullUrl, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -245,8 +248,12 @@ const RegisterPage: React.FC = () => {
         body: JSON.stringify(registerData),
       });
 
+      console.log('서버 응답 상태:', response.status);
+      console.log('서버 응답 헤더:', Object.fromEntries(response.headers.entries()));
+
       if (!response.ok) {
         const errorData = await response.json();
+        console.log('에러 응답 데이터:', errorData);
         throw new Error(errorData.message || '회원가입 실패');
       }
 
@@ -301,7 +308,7 @@ const RegisterPage: React.FC = () => {
             {...register('password')}
           />
           <PasswordToggle type="button" onClick={() => setShowPassword(!showPassword)}>
-            {!showPassword ? <OpenEye /> : <CloseEye />}
+            {!showPassword ? <CloseEye /> : <OpenEye />}
           </PasswordToggle>
         </InputWrapper>
         {errors.password && <ErrorMessage>{errors.password.message}</ErrorMessage>}
@@ -313,7 +320,7 @@ const RegisterPage: React.FC = () => {
             {...register('confirmPassword')}
           />
           <PasswordToggle type="button" onClick={() => setShowConfirmPassword(!showConfirmPassword)}>
-            {!showConfirmPassword ? <OpenEye /> : <CloseEye />}
+            {!showConfirmPassword ? <CloseEye /> : <OpenEye />}
           </PasswordToggle>
         </InputWrapper>
         {errors.confirmPassword && <ErrorMessage>{errors.confirmPassword.message}</ErrorMessage>}
