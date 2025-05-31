@@ -92,9 +92,9 @@ const RootPage: React.FC = () => {
 
   return (
     <Container>
-      <Logo src="/src/assets/reconnect.png" alt="Reconnect" />
+      <Logo src="/images/reconnect.png" alt="Reconnect" />
       <IllustrationWrapper>
-        <img src="/src/assets/img1.jpg" alt="Couple illustration" />
+        <img src="/images/img1.jpg" alt="Couple illustration" />
       </IllustrationWrapper>
       <Title>다시 관계를 이어보세요</Title>
       <Subtitle>당신의 관계, 리커넥트가 도와줄게요</Subtitle>
