@@ -329,7 +329,7 @@ const RegisterPage: React.FC = () => {
         </CheckboxWrapper>
 
         <RegisterButton type="submit" disabled={isSubmitting}>
-          {isSubmitting ? '가입 중...' : 'GET STARTED'}
+          {isSubmitting ? '가입중.....' : 'GET STARTED'}
         </RegisterButton>
       </Form>
     </Container>
