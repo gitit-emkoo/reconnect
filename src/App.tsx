@@ -34,10 +34,11 @@ const App = () => {
       <GlobalStyle />
       <Router>
         <Routes>
-          <Route path="/" element={<RootPage />} />
+          {/* 루트 경로를 온보딩으로 변경 */}
+          <Route path="/" element={<Onboarding />} />
+          <Route path="/welcome" element={<RootPage />} />
 
           {/* 공개 라우트 */}
-          <Route path="/onboarding" element={<Onboarding />} />
           <Route path="/diagnosis" element={<Diagnosis />} />
           <Route path="/diagnosis/result" element={<DiagnosisResult />} />
           <Route path="/register" element={<RegisterPage />} />

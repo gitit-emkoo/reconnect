@@ -164,9 +164,9 @@ const StyledBackButton = styled(BackButton)`
 `;
 
 const getTemperatureDescription = (temp: number) => {
-  if (temp < 36.5) return "더 자세한 내용과\n솔루션을 보고 싶다면\n회원가입 하세요!";
-  if (temp < 37) return "더 자세한 내용과\n솔루션을 보고 싶다면\n회원가입 하세요!";
-  return "더 자세한 내용과\n솔루션을 보고 싶다면\n회원가입 하세요!";
+  if (temp < 36.5) return "더 자세한 내용과\n솔루션을 보고 싶다면\n로그인 하세요!";
+  if (temp < 37) return "더 자세한 내용과\n솔루션을 보고 싶다면\n로그인 하세요!";
+  return "더 자세한 내용과\n솔루션을 보고 싶다면\n로그인 하세요!";
 };
 
 const DiagnosisResult: React.FC = () => {
@@ -220,8 +220,8 @@ const DiagnosisResult: React.FC = () => {
         
         <Description>{description}</Description>
 
-        <InviteButton onClick={() => navigate("/login")}>
-          회원가입
+        <InviteButton onClick={() => navigate("/welcome")}>
+          로그인
         </InviteButton>
       </ContentSection>
     </Container>
