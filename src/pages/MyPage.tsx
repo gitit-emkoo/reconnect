@@ -62,7 +62,10 @@ const MyPage: React.FC = () => {
   const subscriptionStatus = "프리미엄 (만료일: 2025.12.31)";
 
   const handleLogout = () => {
+    // 모든 인증 관련 데이터 삭제
+    localStorage.removeItem('accessToken');
     localStorage.removeItem('token');
+    localStorage.removeItem('userNickname');
     navigate('/login');
   };
 

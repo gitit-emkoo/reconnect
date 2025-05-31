@@ -233,7 +233,10 @@ const LoginPage: React.FC = () => {
       }
 
       const result = await response.json();
-      localStorage.setItem('token', result.token);
+      localStorage.setItem('accessToken', result.accessToken);
+      if (result.userNickname) {
+        localStorage.setItem('userNickname', result.userNickname);
+      }
       console.log("로그인 성공:", result);
       navigate('/dashboard');
     } catch (error: any) {

@@ -6,7 +6,7 @@ const Button = styled.button`
   width: 40px;
   height: 40px;
   border-radius: 50%;
-  background: #F5F5F5;
+  background: rgba(255, 255, 255, 0.5);
   border: none;
   display: flex;
   align-items: center;
@@ -19,11 +19,11 @@ const Button = styled.button`
   z-index: 10;
 
   &:hover {
-    background: #EBEBEB;
+    background: rgba(255, 255, 255, 0.7);
   }
 
   &:active {
-    background: #E0E0E0;
+    background: rgba(255, 255, 255, 0.9);
   }
 
   svg {
