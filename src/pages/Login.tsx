@@ -229,7 +229,7 @@ const LoginPage: React.FC = () => {
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.message || '로그인 실패');
+        throw new Error(errorData.message || '로그인 실패🥺');
       }
 
       const result = await response.json();
@@ -237,7 +237,7 @@ const LoginPage: React.FC = () => {
       if (result.userNickname) {
         localStorage.setItem('userNickname', result.userNickname);
       }
-      console.log("로그인 성공:", result);
+      console.log("로그인 성공🫡:", result);
       navigate('/dashboard');
     } catch (error: any) {
       console.error("로그인 에러:", error.message);
