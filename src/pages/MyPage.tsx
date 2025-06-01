@@ -2,6 +2,7 @@
 import React from "react";
 import styled from "styled-components";
 import { useNavigate } from "react-router-dom";
+import { logout } from "../utils/auth";
 
 const Container = styled.div`
   background-color: #fbf7f0; /* 밝은 베이지 계열 */
@@ -61,12 +62,11 @@ const MyPage: React.FC = () => {
   const email = "test@example.com";
   const subscriptionStatus = "프리미엄 (만료일: 2025.12.31)";
 
-  const handleLogout = () => {
-    // 모든 인증 관련 데이터 삭제
-    localStorage.removeItem('accessToken');
-    localStorage.removeItem('token');
-    localStorage.removeItem('userNickname');
-    navigate('/login');
+  const handleLogout = async () => {
+    const success = await logout(navigate);
+    if (!success) {
+      alert('로그아웃 중 오류가 발생했습니다. 다시 시도해주세요.');
+    }
   };
 
   return (
