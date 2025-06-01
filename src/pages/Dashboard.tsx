@@ -1,8 +1,9 @@
 // src/pages/Dashboard.tsx (업데이트된 부분)
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import styled from "styled-components";
 import { useNavigate } from "react-router-dom";
 import NavigationBar from "../components/NavigationBar";
+import { isAuthenticated } from "../utils/auth";
 
 const Container = styled.div`
   padding: 1.5rem;
@@ -139,18 +140,42 @@ const Logo = styled.img`
   height: auto;
 `;
 
-const ProfileImage = styled.img`
-  width: 60px;
-  height: 60px;
-  border-radius: 0.5rem;
-  overflow: hidden;
+const MyPageButton = styled.button`
+  background: none;
+  border: none;
+  color: #333;
+  font-size: 1.5rem;
+  cursor: pointer;
+  padding: 0.5rem;
+  display: flex;
+  align-items: center;
 `;
 
 const Dashboard: React.FC = () => {
   const navigate = useNavigate();
   const [isSolo, setIsSolo] = useState(true);
+  const [userNickname, setUserNickname] = useState<string>("");
+
+  useEffect(() => {
+    // 인증 상태 확인
+    if (!isAuthenticated()) {
+      navigate('/login');
+      return;
+    }
+
+    // 사용자 닉네임 가져오기
+    const nickname = localStorage.getItem('userNickname');
+    if (nickname) {
+      setUserNickname(nickname);
+    }
+  }, [navigate]);
 
   const handleFeatureClick = (path: string, requiresPartner: boolean = false) => {
+    if (!isAuthenticated()) {
+      navigate('/login');
+      return;
+    }
+
     if (requiresPartner && isSolo) {
       alert("파트너와 연결 후 이용 가능한 기능입니다. 파트너를 초대해보세요!");
       navigate("/invite");
@@ -164,10 +189,10 @@ const Dashboard: React.FC = () => {
       <Container>
         <Header>
           <Logo src="/images/reconnect.png" alt="Reconnect Logo" />
-          <ProfileImage src="/images/husband.jpg" alt="Profile" />
+          <MyPageButton onClick={() => navigate('/my')}>👤</MyPageButton>
         </Header>
         <WelcomeSection>
-          <WelcomeTitle>테스트님, 반가워요!</WelcomeTitle>
+          <WelcomeTitle>{userNickname}님, 반가워요!</WelcomeTitle>
           <WelcomeSubtitle>We Wish you have a good day</WelcomeSubtitle>
         </WelcomeSection>
 

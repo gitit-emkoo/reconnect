@@ -225,23 +225,52 @@ const LoginPage: React.FC = () => {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify(data),
+        credentials: 'include',
       });
 
+      const result = await response.json();
+      
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || '로그인 실패🥺');
+        throw new Error(result.message || '로그인 실패🥺');
       }
 
-      const result = await response.json();
-      localStorage.setItem('accessToken', result.accessToken);
+      if (result.accessToken) {
+        localStorage.setItem('accessToken', result.accessToken);
+        window.fetch = new Proxy(window.fetch, {
+          apply: function(fetch, that, args: [URL | RequestInfo, RequestInit | undefined]) {
+            if (args[1]) {
+              const headers = args[1].headers as Record<string, string> || {};
+              if (!headers['Authorization']) {
+                args[1] = {
+                  ...args[1],
+                  headers: {
+                    ...headers,
+                    'Authorization': `Bearer ${result.accessToken}`
+                  }
+                };
+              }
+            }
+            return fetch.apply(that, args);
+          }
+        });
+      }
+
       if (result.userNickname) {
         localStorage.setItem('userNickname', result.userNickname);
       }
+      
       console.log("로그인 성공🫡:", result);
-      navigate('/dashboard');
+      
+      const storedToken = localStorage.getItem('accessToken');
+      if (storedToken) {
+        navigate('/dashboard', { replace: true });
+        return;
+      }
+      throw new Error('토큰 저장 실패');
     } catch (error: any) {
       console.error("로그인 에러:", error.message);
       alert(`로그인 실패: ${error.message || '알 수 없는 오류'}`);
+      throw error; // react-hook-form에 에러를 전달하여 isSubmitting 상태를 해제
     }
   };
 
