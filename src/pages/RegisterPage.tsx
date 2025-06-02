@@ -6,6 +6,9 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { registerSchema, type RegisterFormData } from '../utils/validationSchemas';
 import CloseEye from '../assets/Icon_CloseEye.svg?react';
 import OpenEye from '../assets/Icon_OpenEye.svg?react';
+import { useGoogleLogin } from '@react-oauth/google';
+import { getKakaoRegisterUrl } from '../utils/socialAuth';
+import axios, { AxiosError } from 'axios';
 
 const Container = styled.div`
   display: flex;
@@ -213,7 +216,7 @@ const CheckboxLabel = styled.label`
 
   a {
     color: #FF69B4;
-    text-decoration: underline;
+      text-decoration: underline;
   }
 `;
 
@@ -225,6 +228,52 @@ const RegisterPage: React.FC = () => {
   const { register, handleSubmit, formState: { errors, isSubmitting } } = useForm<RegisterFormData>({
     resolver: zodResolver(registerSchema),
   });
+
+  const googleLogin = useGoogleLogin({
+    onSuccess: async (tokenResponse) => {
+      try {
+        const backendUrl = import.meta.env.VITE_APP_API_URL || 'http://localhost:3000';
+        const response = await axios.post(
+          `${backendUrl}/auth/google/register`,
+          { access_token: tokenResponse.access_token },
+          { 
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            withCredentials: true 
+          }
+        );
+
+        const data = response.data;
+        console.log("구글 회원가입 성공! 🎉", data);
+        alert('구글 회원가입이 완료되었습니다. 로그인 페이지로 이동합니다.');
+        navigate('/login');
+      } catch (error) {
+        console.error('구글 회원가입 에러:', error);
+        
+        if (error instanceof AxiosError) {
+          // 409 Conflict - 이미 가입된 사용자
+          if (error.response?.status === 409) {
+            alert('이미 가입된 이메일입니다. 로그인 페이지로 이동합니다.');
+            navigate('/login');
+            return;
+          }
+
+          // 기타 에러
+          alert(error.response?.data?.message || '구글 회원가입 중 오류가 발생했습니다.');
+        } else {
+          alert('알 수 없는 오류가 발생했습니다.');
+        }
+      }
+    },
+    onError: () => {
+      alert('구글 회원가입 중 오류가 발생했습니다.');
+    }
+  });
+
+  const handleKakaoRegister = () => {
+    window.location.href = getKakaoRegisterUrl();
+  };
 
   const onSubmit = async (data: RegisterFormData) => {
     if (!isChecked) {
@@ -239,91 +288,93 @@ const RegisterPage: React.FC = () => {
       console.log('전송할 데이터:', registerData);
       const fullUrl = `${backendUrl}/auth/register`;
       console.log('전체 요청 URL:', fullUrl);
-      
-      const response = await fetch(fullUrl, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(registerData),
-      });
 
-      console.log('서버 응답 상태:', response.status);
-      console.log('서버 응답 헤더:', Object.fromEntries(response.headers.entries()));
+      const response = await axios.post(
+        fullUrl,
+        registerData,
+        {
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          withCredentials: true
+        }
+      );
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        console.log('에러 응답 데이터:', errorData);
-        throw new Error(errorData.message || '회원가입 실패');
-      }
-
-      const result = await response.json();
-      console.log("회원가입 성공:", result);
+      console.log("회원가입 성공:", response.data);
       alert('회원가입 성공! 로그인 페이지로 이동합니다.');
       navigate('/login');
-    } catch (error: any) {
-      console.error("회원가입 에러:", error.message);
-      alert(`회원가입 실패: ${error.message || '알 수 없는 오류'}`);
+    } catch (error) {
+      console.error("회원가입 에러:", error);
+      
+      if (error instanceof AxiosError) {
+        if (error.response?.status === 409) {
+          alert('이미 가입된 이메일입니다.');
+          return;
+        }
+        alert(`회원가입 실패: ${error.response?.data?.message || '알 수 없는 오류가 발생했습니다.'}`);
+      } else {
+        alert('알 수 없는 오류가 발생했습니다.');
+      }
     }
   };
 
   return (
     <Container>
       <BackButton onClick={() => navigate('/')}>←</BackButton>
-      <Title>Create your account</Title>
+      <Title>Welcome!</Title>
       
-      <SocialLoginButton $isKakao>
-        카카오톡으로 회원가입하기
+      <SocialLoginButton $isKakao onClick={handleKakaoRegister}>
+        카카오톡으로 회원가입
       </SocialLoginButton>
       
-      <SocialLoginButton>
-        구글로 회원가입하기
+      <SocialLoginButton onClick={() => googleLogin()}>
+        구글로 회원가입
       </SocialLoginButton>
 
-      <Divider>이메일로 회원가입하기</Divider>
+      <Divider>이메일로 회원가입</Divider>
 
-      <Form onSubmit={handleSubmit(onSubmit)}>
+        <Form onSubmit={handleSubmit(onSubmit)}>
         <InputWrapper>
-          <Input
-            type="email"
+            <Input
+              type="email"
             placeholder="이메일을 입력하세요"
-            {...register('email')}
-          />
+              {...register('email')}
+            />
         </InputWrapper>
-        {errors.email && <ErrorMessage>{errors.email.message}</ErrorMessage>}
+            {errors.email && <ErrorMessage>{errors.email.message}</ErrorMessage>}
 
         <InputWrapper>
-          <Input
+            <Input
             type="text"
             placeholder="닉네임을 입력하세요"
             {...register('nickname')}
           />
         </InputWrapper>
-        {errors.nickname && <ErrorMessage>{errors.nickname.message}</ErrorMessage>}
+            {errors.nickname && <ErrorMessage>{errors.nickname.message}</ErrorMessage>}
 
         <InputWrapper>
-          <Input
+            <Input
             type={showPassword ? 'text' : 'password'}
             placeholder="비밀번호"
-            {...register('password')}
-          />
+              {...register('password')}
+            />
           <PasswordToggle type="button" onClick={() => setShowPassword(!showPassword)}>
             {!showPassword ? <CloseEye /> : <OpenEye />}
           </PasswordToggle>
         </InputWrapper>
-        {errors.password && <ErrorMessage>{errors.password.message}</ErrorMessage>}
+            {errors.password && <ErrorMessage>{errors.password.message}</ErrorMessage>}
 
         <InputWrapper>
-          <Input
+            <Input
             type={showConfirmPassword ? 'text' : 'password'}
             placeholder="비밀번호 확인"
-            {...register('confirmPassword')}
-          />
+              {...register('confirmPassword')}
+            />
           <PasswordToggle type="button" onClick={() => setShowConfirmPassword(!showConfirmPassword)}>
             {!showConfirmPassword ? <CloseEye /> : <OpenEye />}
           </PasswordToggle>
         </InputWrapper>
-        {errors.confirmPassword && <ErrorMessage>{errors.confirmPassword.message}</ErrorMessage>}
+            {errors.confirmPassword && <ErrorMessage>{errors.confirmPassword.message}</ErrorMessage>}
 
         <CheckboxWrapper onClick={() => setIsChecked(!isChecked)}>
           <CustomCheckbox $isChecked={isChecked} />
@@ -336,9 +387,9 @@ const RegisterPage: React.FC = () => {
         </CheckboxWrapper>
 
         <RegisterButton type="submit" disabled={isSubmitting}>
-          {isSubmitting ? '가입중.....' : 'GET STARTED'}
+          {isSubmitting ? '가입중.....' : '회원 가입하기'}
         </RegisterButton>
-      </Form>
+        </Form>
     </Container>
   );
 };

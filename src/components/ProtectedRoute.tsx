@@ -7,7 +7,7 @@ interface ProtectedRouteProps {
 
 const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
   // TODO: 실제 인증 상태 관리 로직으로 대체
-  const isAuthenticated = localStorage.getItem('token') !== null;
+  const isAuthenticated = localStorage.getItem('accessToken') !== null;
 
   if (!isAuthenticated) {
     return <Navigate to="/login" replace />;

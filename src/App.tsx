@@ -1,5 +1,6 @@
 // src/App.tsx (업데이트된 부분)
-import { BrowserRouter as Router, Routes, Route,  } from "react-router-dom";
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import { GoogleOAuthProvider } from '@react-oauth/google';
 import GlobalStyle from "./styles/GlobalStyle";
 import ProtectedRoute from "./components/ProtectedRoute";
 
@@ -10,12 +11,13 @@ import Diagnosis from "./pages/Diagnosis";
 import DiagnosisResult from "./pages/DiagnosisResult";
 import Invite from "./pages/Invite";
 
-import LoginPage from "./pages/Login";
+import Login from "./pages/Login";
 import RegisterPage from "./pages/RegisterPage";
 import ForgotPassword from "./pages/ForgotPassword";
 import ResetPassword from "./pages/ResetPassword";
 import FindEmail from "./pages/FindEmail";
 import TermsPage from "./pages/TermsPage";
+import KakaoCallback from "./pages/KakaoCallback";
 
 import Dashboard from "./pages/Dashboard";
 import EmotionCard from "./pages/EmotionCard";
@@ -29,8 +31,11 @@ import MyPage from "./pages/MyPage";
 import ExpertPage from "./pages/ExpertPage";
 
 const App = () => {
+  const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
+  console.log('Google Client ID:', clientId); // 환경변수 확인용 로그
+
   return (
-    <>
+    <GoogleOAuthProvider clientId={clientId || ''}>  {/* clientId가 undefined일 경우 빈 문자열 전달 */}
       <GlobalStyle />
       <Router>
         <Routes>
@@ -42,11 +47,13 @@ const App = () => {
           <Route path="/diagnosis" element={<Diagnosis />} />
           <Route path="/diagnosis/result" element={<DiagnosisResult />} />
           <Route path="/register" element={<RegisterPage />} />
-          <Route path="/login" element={<LoginPage />} />
+          <Route path="/login" element={<Login />} />
           <Route path="/forgot-password" element={<ForgotPassword />} />
           <Route path="/reset-password" element={<ResetPassword />} />
           <Route path="/find-email" element={<FindEmail />} />
           <Route path="/terms" element={<TermsPage />} />
+          <Route path="/auth/kakao/callback" element={<KakaoCallback />} />
+          <Route path="/auth/kakao/register/callback" element={<KakaoCallback />} />
 
           {/* 보호된 라우트 */}
           <Route path="/dashboard" element={
@@ -106,7 +113,7 @@ const App = () => {
           } />
         </Routes>
       </Router>
-    </>
+    </GoogleOAuthProvider>
   );
 };
 
