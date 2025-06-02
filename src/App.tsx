@@ -10,6 +10,7 @@ import Onboarding from "./pages/Onboarding";
 import Diagnosis from "./pages/Diagnosis";
 import DiagnosisResult from "./pages/DiagnosisResult";
 import Invite from "./pages/Invite";
+import NotFound from "./pages/NotFound";
 
 import Login from "./pages/Login";
 import RegisterPage from "./pages/RegisterPage";
@@ -111,6 +112,9 @@ const App = () => {
               <ExpertPage />
             </ProtectedRoute>
           } />
+          
+          {/* 404 페이지 - 항상 마지막에 위치해야 함 */}
+          <Route path="*" element={<NotFound />} />
         </Routes>
       </Router>
     </GoogleOAuthProvider>
