@@ -5,9 +5,12 @@ import { useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { useGoogleLogin } from '@react-oauth/google';
 import { loginSchema, type LoginFormData } from '../utils/validationSchemas';
+import { getKakaoLoginUrl } from '../utils/socialAuth';
 import CloseEye from '../assets/Icon_CloseEye.svg?react';
 import OpenEye from '../assets/Icon_OpenEye.svg?react';
+import axios, { AxiosError } from 'axios';
 
 const Container = styled.div`
   display: flex;
@@ -204,7 +207,7 @@ const SignUpText = styled.p`
     cursor: pointer;
 
     &:hover {
-      text-decoration: underline;
+    text-decoration: underline;
     }
   }
 `;
@@ -216,61 +219,85 @@ const LoginPage: React.FC = () => {
     resolver: zodResolver(loginSchema),
   });
 
+  const googleLogin = useGoogleLogin({
+    onSuccess: async (tokenResponse) => {
+      try {
+        const backendUrl = import.meta.env.VITE_APP_API_URL || 'http://localhost:3000';
+        const response = await axios.post(
+          `${backendUrl}/auth/google/login`,
+          { access_token: tokenResponse.access_token },
+          {
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            withCredentials: true
+          }
+        );
+
+        const { data } = response;
+        if (data.accessToken) {
+          localStorage.setItem('accessToken', data.accessToken);
+        }
+        if (data.userNickname) {
+          localStorage.setItem('userNickname', data.userNickname);
+        }
+
+        navigate('/dashboard', { replace: true });
+      } catch (error) {
+        console.error('구글 로그인 에러:', error);
+        
+        if (error instanceof AxiosError) {
+          alert(error.response?.data?.message || '구글 로그인 중 오류가 발생했습니다.');
+        } else {
+          alert('구글 로그인 중 오류가 발생했습니다.');
+        }
+      }
+    },
+    onError: () => {
+      alert('구글 로그인 중 오류가 발생했습니다.');
+    }
+  });
+
+  const handleKakaoLogin = () => {
+    window.location.href = getKakaoLoginUrl();
+  };
+
   const onSubmit = async (data: LoginFormData) => {
     try {
-      const backendUrl = import.meta.env.VITE_APP_API_URL || 'http://localhost:3000';
-      const response = await fetch(`${backendUrl}/auth/login`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(data),
-        credentials: 'include',
-      });
+      const backendUrl = import.meta.env.VITE_APP_API_URL;
+      const response = await axios.post(
+        `${backendUrl}/auth/login`,
+        data,
+        {
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          withCredentials: true
+        }
+      );
 
-      const result = await response.json();
-      
-      if (!response.ok) {
-        throw new Error(result.message || '로그인 실패🥺');
+      const { data: responseData } = response;
+      if (responseData.accessToken) {
+        localStorage.setItem('accessToken', responseData.accessToken);
       }
-
-      if (result.accessToken) {
-        localStorage.setItem('accessToken', result.accessToken);
-        window.fetch = new Proxy(window.fetch, {
-          apply: function(fetch, that, args: [URL | RequestInfo, RequestInit | undefined]) {
-            if (args[1]) {
-              const headers = args[1].headers as Record<string, string> || {};
-              if (!headers['Authorization']) {
-                args[1] = {
-                  ...args[1],
-                  headers: {
-                    ...headers,
-                    'Authorization': `Bearer ${result.accessToken}`
-                  }
-                };
-              }
-            }
-            return fetch.apply(that, args);
-          }
-        });
+      if (responseData.userNickname) {
+        localStorage.setItem('userNickname', responseData.userNickname);
       }
 
-      if (result.userNickname) {
-        localStorage.setItem('userNickname', result.userNickname);
-      }
+      console.log("로그인 성공:", responseData);
+      navigate('/dashboard', { replace: true });
+    } catch (error) {
+      console.error("로그인 에러:", error);
       
-      console.log("로그인 성공🫡:", result);
-      
-      const storedToken = localStorage.getItem('accessToken');
-      if (storedToken) {
-        navigate('/dashboard', { replace: true });
-        return;
+      if (error instanceof AxiosError) {
+        if (error.response?.status === 401) {
+          alert('이메일 또는 비밀번호가 올바르지 않습니다.');
+          return;
+        }
+        alert(error.response?.data?.message || '로그인 중 오류가 발생했습니다.');
+      } else {
+        alert('알 수 없는 오류가 발생했습니다.');
       }
-      throw new Error('토큰 저장 실패');
-    } catch (error: any) {
-      console.error("로그인 에러:", error.message);
-      alert(`로그인 실패: ${error.message || '알 수 없는 오류'}`);
-      throw error; // react-hook-form에 에러를 전달하여 isSubmitting 상태를 해제
     }
   };
 
@@ -279,11 +306,11 @@ const LoginPage: React.FC = () => {
       <BackButton onClick={() => navigate('/')}>←</BackButton>
       <Title>Welcome Back!</Title>
       
-      <SocialLoginButton $isKakao>
+      <SocialLoginButton $isKakao onClick={handleKakaoLogin}>
         카카오톡으로 로그인하기
       </SocialLoginButton>
       
-      <SocialLoginButton>
+      <SocialLoginButton onClick={() => googleLogin()}>
         구글로 로그인하기
       </SocialLoginButton>
 
@@ -291,20 +318,20 @@ const LoginPage: React.FC = () => {
 
       <Form onSubmit={handleSubmit(onSubmit)}>
         <InputWrapper>
-          <Input
-            type="email"
+        <Input
+          type="email"
             placeholder="이메일을 입력하세요"
-            {...register('email')}
-          />
+          {...register('email')}
+        />
         </InputWrapper>
         {errors.email && <ErrorMessage>{errors.email.message}</ErrorMessage>}
         
         <InputWrapper>
-          <Input
+        <Input
             type={showPassword ? "text" : "password"}
-            placeholder="비밀번호를 입력하세요"
-            {...register('password')}
-          />
+          placeholder="비밀번호를 입력하세요"
+          {...register('password')}
+        />
           <PasswordToggle 
             type="button" 
             onClick={() => setShowPassword(!showPassword)}

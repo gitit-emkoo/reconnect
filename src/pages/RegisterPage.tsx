@@ -7,8 +7,8 @@ import { registerSchema, type RegisterFormData } from '../utils/validationSchema
 import CloseEye from '../assets/Icon_CloseEye.svg?react';
 import OpenEye from '../assets/Icon_OpenEye.svg?react';
 import { useGoogleLogin } from '@react-oauth/google';
-import { getKakaoLoginUrl } from '../utils/socialAuth';
-import axios from 'axios';
+import { getKakaoRegisterUrl } from '../utils/socialAuth';
+import axios, { AxiosError } from 'axios';
 
 const Container = styled.div`
   display: flex;
@@ -250,7 +250,20 @@ const RegisterPage: React.FC = () => {
         navigate('/login');
       } catch (error) {
         console.error('구글 회원가입 에러:', error);
-        alert('구글 회원가입 중 오류가 발생했습니다.');
+        
+        if (error instanceof AxiosError) {
+          // 409 Conflict - 이미 가입된 사용자
+          if (error.response?.status === 409) {
+            alert('이미 가입된 이메일입니다. 로그인 페이지로 이동합니다.');
+            navigate('/login');
+            return;
+          }
+
+          // 기타 에러
+          alert(error.response?.data?.message || '구글 회원가입 중 오류가 발생했습니다.');
+        } else {
+          alert('알 수 없는 오류가 발생했습니다.');
+        }
       }
     },
     onError: () => {
@@ -258,8 +271,8 @@ const RegisterPage: React.FC = () => {
     }
   });
 
-  const handleKakaoLogin = () => {
-    window.location.href = getKakaoLoginUrl();
+  const handleKakaoRegister = () => {
+    window.location.href = getKakaoRegisterUrl();
   };
 
   const onSubmit = async (data: RegisterFormData) => {
@@ -276,30 +289,32 @@ const RegisterPage: React.FC = () => {
       const fullUrl = `${backendUrl}/auth/register`;
       console.log('전체 요청 URL:', fullUrl);
 
-      const response = await fetch(fullUrl, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(registerData),
-      });
+      const response = await axios.post(
+        fullUrl,
+        registerData,
+        {
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          withCredentials: true
+        }
+      );
 
-      console.log('서버 응답 상태:', response.status);
-      console.log('서버 응답 헤더:', Object.fromEntries(response.headers.entries()));
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        console.log('에러 응답 데이터:', errorData);
-        throw new Error(errorData.message || '회원가입 실패');
-      }
-
-      const result = await response.json();
-      console.log("회원가입 성공:", result);
+      console.log("회원가입 성공:", response.data);
       alert('회원가입 성공! 로그인 페이지로 이동합니다.');
       navigate('/login');
-    } catch (error: any) {
-      console.error("회원가입 에러:", error.message);
-      alert(`회원가입 실패: ${error.message || '알 수 없는 오류'}`);
+    } catch (error) {
+      console.error("회원가입 에러:", error);
+      
+      if (error instanceof AxiosError) {
+        if (error.response?.status === 409) {
+          alert('이미 가입된 이메일입니다.');
+          return;
+        }
+        alert(`회원가입 실패: ${error.response?.data?.message || '알 수 없는 오류가 발생했습니다.'}`);
+      } else {
+        alert('알 수 없는 오류가 발생했습니다.');
+      }
     }
   };
 
@@ -308,7 +323,7 @@ const RegisterPage: React.FC = () => {
       <BackButton onClick={() => navigate('/')}>←</BackButton>
       <Title>Welcome!</Title>
       
-      <SocialLoginButton $isKakao onClick={handleKakaoLogin}>
+      <SocialLoginButton $isKakao onClick={handleKakaoRegister}>
         카카오톡으로 회원가입
       </SocialLoginButton>
       
@@ -372,7 +387,7 @@ const RegisterPage: React.FC = () => {
         </CheckboxWrapper>
 
         <RegisterButton type="submit" disabled={isSubmitting}>
-          {isSubmitting ? '가입중.....' : 'GET STARTED'}
+          {isSubmitting ? '가입중.....' : '회원 가입하기'}
         </RegisterButton>
         </Form>
     </Container>
