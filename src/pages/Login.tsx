@@ -11,6 +11,7 @@ import { getKakaoLoginUrl } from '../utils/socialAuth';
 import CloseEye from '../assets/Icon_CloseEye.svg?react';
 import OpenEye from '../assets/Icon_OpenEye.svg?react';
 import axios, { AxiosError } from 'axios';
+import axiosInstance from '../api/axios';
 
 const Container = styled.div`
   display: flex;
@@ -264,39 +265,41 @@ const LoginPage: React.FC = () => {
 
   const onSubmit = async (data: LoginFormData) => {
     try {
-      const backendUrl = import.meta.env.VITE_APP_API_URL;
-      const response = await axios.post(
-        `${backendUrl}/auth/login`,
-        data,
-        {
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          withCredentials: true
-        }
-      );
-
+      console.log('로그인 시도:', data.email);
+      const response = await axiosInstance.post('/auth/login', data);
       const { data: responseData } = response;
-      if (responseData.accessToken) {
-        localStorage.setItem('accessToken', responseData.accessToken);
-      }
-      if (responseData.userNickname) {
-        localStorage.setItem('userNickname', responseData.userNickname);
-      }
-
-      console.log("로그인 성공:", responseData);
-      navigate('/dashboard', { replace: true });
-    } catch (error) {
-      console.error("로그인 에러:", error);
       
+      if (responseData.accessToken) {
+        console.log('=== 로그인 성공 정보 ===');
+        console.log('📧 이메일:', data.email);
+        console.log('🔑 액세스 토큰:', responseData.accessToken.substring(0, 20) + '...');
+        console.log('👤 닉네임:', responseData.userNickname);
+        console.log('⏰ 로그인 시간:', new Date().toLocaleString());
+        console.log('=====================');
+
+        localStorage.setItem('accessToken', responseData.accessToken);
+        localStorage.setItem('userEmail', data.email);
+        if (responseData.userNickname) {
+          localStorage.setItem('userNickname', responseData.userNickname);
+        }
+        navigate('/dashboard', { replace: true });
+      } else {
+        console.error('❌ 로그인 응답에 토큰이 없습니다:', responseData);
+        alert('로그인 처리 중 오류가 발생했습니다.');
+      }
+    } catch (error) {
+      console.error('❌ 로그인 에러:', error);
       if (error instanceof AxiosError) {
+        console.error('응답 상태:', error.response?.status);
+        console.error('에러 메시지:', error.response?.data?.message);
+        
         if (error.response?.status === 401) {
           alert('이메일 또는 비밀번호가 올바르지 않습니다.');
-          return;
+        } else {
+          alert(error.response?.data?.message || '로그인 중 오류가 발생했습니다.');
         }
-        alert(error.response?.data?.message || '로그인 중 오류가 발생했습니다.');
       } else {
-        alert('알 수 없는 오류가 발생했습니다.');
+        alert('서버 연결 중 오류가 발생했습니다.');
       }
     }
   };

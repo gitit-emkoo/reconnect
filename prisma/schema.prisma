@@ -1,0 +1,35 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mongodb"
+  url      = env("DATABASE_URL")
+}
+
+enum Provider {
+  EMAIL
+  KAKAO
+  GOOGLE
+}
+
+model User {
+  id              String    @id @default(auto()) @map("_id") @db.ObjectId
+  email           String    @unique
+  password        String
+  nickname        String
+  provider        Provider  @default(EMAIL)
+  socialId        String?   // 소셜 로그인(카카오/구글)에서 제공하는 고유 ID (카카오의 id 또는 구글의 sub)
+  partnerId       String?   @db.ObjectId
+  partner         User?     @relation("Partners", fields: [partnerId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  partnerOf       User[]    @relation("Partners")
+  resetToken      String?   // 비밀번호 재설정 토큰
+  resetTokenExpiry DateTime? // 토큰 만료 시간
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  @@map("users")
+} 
