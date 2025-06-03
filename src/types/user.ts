@@ -1,7 +1,14 @@
 export interface User {
-  id: number;
+  id: string;
   email: string;
   nickname: string;
+  partner?: {
+    id: string;
+    nickname: string;
+    email: string;
+  };
+  provider: 'EMAIL' | 'KAKAO' | 'GOOGLE';
+  socialId?: string;
   createdAt: string;
   updatedAt: string;
 }

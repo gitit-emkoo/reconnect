@@ -1,9 +1,12 @@
 // src/pages/MyPage.tsx
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useContext } from "react";
 import styled from "styled-components";
 import { useNavigate } from "react-router-dom";
 import { logout } from "../utils/auth";
-import axios from 'axios';
+import { AuthContext } from "../contexts/AuthContext";
+import { ProfileEditModal } from "../components/Profile/ProfileEditModal";
+import type { User } from "../types/user";
+import NavigationBar from "../components/NavigationBar";
 
 const Container = styled.div`
   background-color: #FFF8F3; /* 웰컴 이미지와 어울리는 밝은 베이지 */
@@ -60,90 +63,77 @@ const Button = styled.button`
 
 const MyPage: React.FC = () => {
   const navigate = useNavigate();
-  const [userInfo, setUserInfo] = useState({
-    nickname: localStorage.getItem('userNickname') || '사용자',
-    email: localStorage.getItem('userEmail') || '-',
-    partnerName: '-',
-    subscriptionStatus: '일반 회원'
-  });
+  const { user, setUser } = useContext(AuthContext);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
 
   useEffect(() => {
-    // 로그인 체크
     const token = localStorage.getItem('accessToken');
     if (!token) {
       navigate('/login');
-      return;
     }
-
-    // 사용자 정보 가져오기
-    const fetchUserInfo = async () => {
-      try {
-        const response = await axios.get(`${import.meta.env.VITE_API_URL}/api/users/me`, {
-          headers: { Authorization: `Bearer ${token}` }
-        });
-        
-        setUserInfo(prevInfo => ({
-          ...prevInfo,
-          nickname: response.data.nickname || prevInfo.nickname,
-          email: response.data.email || prevInfo.email,
-          partnerName: response.data.partner?.nickname || '-',
-          subscriptionStatus: response.data.subscriptionStatus || '일반 회원'
-        }));
-      } catch (error) {
-        console.error('사용자 정보 조회 실패:', error);
-      }
-    };
-
-    fetchUserInfo();
   }, [navigate]);
 
   const handleLogout = async () => {
     const success = await logout(navigate);
     if (!success) {
       alert('로그아웃 중 오류가 발생했습니다. 다시 시도해주세요.');
+    } else {
+      alert('로그아웃 되었습니다.');
     }
   };
 
   const handleEditProfile = () => {
-    navigate('/profile/edit');
+    setIsEditModalOpen(true);
   };
 
-  const handlePasswordChange = () => {
-    navigate('/profile/password');
+  const handleUpdateSuccess = (updatedUser: User) => {
+    setUser(updatedUser);
   };
+
+  if (!user) {
+    return null;
+  }
 
   return (
-    <Container>
-      <Title>마이 페이지 👤</Title>
-      <Section>
-        <SectionTitle>내 정보</SectionTitle>
-        <InfoItem>
-          <strong>닉네임:</strong> {userInfo.nickname}
-        </InfoItem>
-        <InfoItem>
-          <strong>이메일:</strong> {userInfo.email}
-        </InfoItem>
-        <InfoItem>
-          <strong>연결된 파트너:</strong> {userInfo.partnerName}
-        </InfoItem>
-        <InfoItem>
-          <strong>구독 상태:</strong> {userInfo.subscriptionStatus}
-        </InfoItem>
-        <Button onClick={handleEditProfile}>정보 수정</Button>
-      </Section>
+    <>
+      <Container>
+        <Title>마이 페이지 👤</Title>
+        <Section>
+          <SectionTitle>내 정보</SectionTitle>
+          <InfoItem>
+            <strong>닉네임:</strong> {user.nickname}
+          </InfoItem>
+          <InfoItem>
+            <strong>이메일:</strong> {user.email}
+          </InfoItem>
+          <InfoItem>
+            <strong>연결된 파트너:</strong> {user.partner?.nickname || '-'}
+          </InfoItem>
+          <Button onClick={handleEditProfile}>정보 수정</Button>
+        </Section>
 
-      <Section>
-        <SectionTitle>설정</SectionTitle>
-        <Button style={{ marginRight: '1rem' }}>알림 설정</Button>
-        <Button onClick={handlePasswordChange}>비밀번호 변경</Button>
-      </Section>
+        <Section>
+          <SectionTitle>설정</SectionTitle>
+          <Button style={{ marginRight: '1rem' }}>알림 설정</Button>
+          <Button onClick={() => navigate('/profile/password')}>비밀번호 변경</Button>
+        </Section>
 
-      <Section>
-        <SectionTitle>기타</SectionTitle>
-        <Button style={{ marginRight: '1rem' }}>자주 묻는 질문</Button>
-        <Button onClick={handleLogout}>로그아웃</Button>
-      </Section>
-    </Container>
+        <Section>
+          <SectionTitle>기타</SectionTitle>
+          <Button style={{ marginRight: '1rem' }}>자주 묻는 질문</Button>
+          <Button onClick={handleLogout}>로그아웃</Button>
+        </Section>
+
+        {isEditModalOpen && (
+          <ProfileEditModal
+            user={user}
+            onClose={() => setIsEditModalOpen(false)}
+            onUpdateSuccess={handleUpdateSuccess}
+          />
+        )}
+      </Container>
+      <NavigationBar />
+    </>
   );
 };
 

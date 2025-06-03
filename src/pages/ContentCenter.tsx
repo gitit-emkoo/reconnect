@@ -1,5 +1,6 @@
 import React from "react";
 import styled from "styled-components";
+import NavigationBar from "../components/NavigationBar";
 
 const Container = styled.div`
   background-color: #fff7ed;
@@ -82,19 +83,22 @@ const ContentCenter: React.FC = () => {
   ];
 
   return (
-    <Container>
-      <Title>맞춤 콘텐츠 추천 📚</Title>
-      <Grid>
-        {contents.map((item, index) => (
-          <Card key={index}>
-            <Category>{item.category}</Category>
-            <ContentTitle>{item.title}</ContentTitle>
-            <Description>{item.description}</Description>
-            {item.locked && <Locked>🔒 구독 후 열람 가능</Locked>}
-          </Card>
-        ))}
-      </Grid>
-    </Container>
+    <>
+      <Container>
+        <Title>맞춤 콘텐츠 추천 📚</Title>
+        <Grid>
+          {contents.map((item, index) => (
+            <Card key={index}>
+              <Category>{item.category}</Category>
+              <ContentTitle>{item.title}</ContentTitle>
+              <Description>{item.description}</Description>
+              {item.locked && <Locked>🔒 구독 후 열람 가능</Locked>}
+            </Card>
+          ))}
+        </Grid>
+      </Container>
+      <NavigationBar />
+    </>
   );
 };
 

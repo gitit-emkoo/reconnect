@@ -50,20 +50,20 @@ const CardsContainer = styled.div`
   }
 `;
 
-const CardWrapper = styled.div<{ index: number; currentIndex: number; total: number }>`
+const CardWrapper = styled.div<{ $index: number; $currentIndex: number; $total: number }>`
   position: absolute;
   width: 280px;
   height: 400px;
   left: 50%;
   transition: all 0.5s ease;
-  z-index: ${({ index, currentIndex }) => 
-    index === currentIndex ? 3 : 
-    Math.abs(index - currentIndex) === 1 ? 2 : 1
+  z-index: ${({ $index, $currentIndex }) => 
+    $index === $currentIndex ? 3 : 
+    Math.abs($index - $currentIndex) === 1 ? 2 : 1
   };
 
   @media (max-width: 767px) {
-    transform: ${({ index, currentIndex }) => {
-      const diff = index - currentIndex;
+    transform: ${({ $index, $currentIndex }) => {
+      const diff = $index - $currentIndex;
       if (diff === 0) return 'translateX(-50%) scale(1)';
       if (Math.abs(diff) === 1) {
         const direction = diff > 0 ? 1 : -1;
@@ -71,13 +71,13 @@ const CardWrapper = styled.div<{ index: number; currentIndex: number; total: num
       }
       return 'translateX(-50%) scale(0.8) translateY(40px)';
     }};
-    opacity: ${({ index, currentIndex }) => 
-      Math.abs(index - currentIndex) > 1 ? 0 : 1};
+    opacity: ${({ $index, $currentIndex }) => 
+      Math.abs($index - $currentIndex) > 1 ? 0 : 1};
   }
 
   @media (min-width: 768px) {
-    transform: ${({ index, currentIndex }) => {
-      const diff = index - currentIndex;
+    transform: ${({ $index, $currentIndex }) => {
+      const diff = $index - $currentIndex;
       if (diff === 0) return 'translateX(-50%) scale(1)';
       if (Math.abs(diff) === 1) {
         const direction = diff > 0 ? 1 : -1;
@@ -88,10 +88,10 @@ const CardWrapper = styled.div<{ index: number; currentIndex: number; total: num
   }
 `;
 
-const Card = styled.div<{ index: number }>`
+const Card = styled.div<{ $index: number }>`
   width: 100%;
   height: 100%;
-  background: ${({ index }) => {
+  background: ${({ $index }) => {
     const colors = [
       'linear-gradient(135deg, #FF9A9E, #FAD0C4)',
       'linear-gradient(135deg, #A8EDEA, #FED6E3)',
@@ -99,7 +99,7 @@ const Card = styled.div<{ index: number }>`
       'linear-gradient(135deg, #E2B0FF, #9F44D3)',
       'linear-gradient(135deg, #FFE985, #FA742B)'
     ];
-    return colors[index];
+    return colors[$index];
   }};
   border-radius: 20px;
   display: flex;
@@ -188,12 +188,12 @@ const Onboarding: React.FC = () => {
         {[...Array(totalCards)].map((_, index) => (
           <CardWrapper
             key={index}
-            index={index}
-            currentIndex={currentIndex}
-            total={totalCards}
+            $index={index}
+            $currentIndex={currentIndex}
+            $total={totalCards}
             onClick={() => handleCardClick(index > currentIndex ? 'right' : 'left')}
           >
-            <Card index={index}>
+            <Card $index={index}>
               이미지{index + 1}
             </Card>
           </CardWrapper>

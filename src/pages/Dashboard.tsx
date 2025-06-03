@@ -1,9 +1,10 @@
 // src/pages/Dashboard.tsx (업데이트된 부분)
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useContext } from "react";
 import styled from "styled-components";
 import { useNavigate } from "react-router-dom";
 import NavigationBar from "../components/NavigationBar";
-import { isAuthenticated } from "../utils/auth";
+import { AuthContext } from "../contexts/AuthContext";
+import { InviteModal } from "../components/Invite/InviteModal";
 
 const Container = styled.div`
   padding: 1.5rem;
@@ -12,12 +13,47 @@ const Container = styled.div`
   padding-bottom: 80px;
 `;
 
-const WelcomeSection = styled.div`
+const Header = styled.div`
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
   margin-bottom: 2rem;
 `;
 
-const WelcomeTitle = styled.h1`
+const Logo = styled.img`
+  width: 120px;
+  height: auto;
+`;
+
+const MyPageButton = styled.button`
+  background: none;
+  border: none;
+  color: #333;
   font-size: 1.5rem;
+  cursor: pointer;
+  padding: 0.5rem;
+  display: flex;
+  align-items: center;
+`;
+
+const TopRowContainer = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+
+  @media (max-width: 768px) {
+    flex-direction: row;
+    align-items: flex-start;
+  }
+`;
+
+const WelcomeSection = styled.div`
+  flex: 1;
+`;
+
+const WelcomeTitle = styled.h1`
+  font-size: 1.8rem;
   font-weight: 700;
   margin-bottom: 0.5rem;
 `;
@@ -27,19 +63,50 @@ const WelcomeSubtitle = styled.p`
   font-size: 1rem;
 `;
 
-const PartnerCard = styled.div<{ bgColor?: string }>`
-  background-color: ${props => props.bgColor || '#FFB6C1'};
+const PartnerCard = styled.div`
+  position: relative;
   border-radius: 1rem;
-  padding: 1.5rem;
+  width: 100%;
+  min-height: 160px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  color: white;
+  overflow: hidden;
+  background-color: #FFC0CB;
   display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 1.5rem;
-  cursor: pointer;
+
+  @media (max-width: 768px) {
+    width: 280px;
+  }
 `;
 
 const PartnerInfo = styled.div`
+  position: relative;
+  z-index: 2;
   flex: 1;
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  height: 100%;
+`;
+
+const PartnerImageArea = styled.div<{ imageUrl: string }>`
+  position: absolute;
+  right: 0;
+  top: 0;
+  height: 100%;
+  width: 65%;
+  background-image: url(${props => props.imageUrl});
+  background-size: cover;
+  background-position: center;
+  mask-image: linear-gradient(to left, black 55%, transparent 85%);
+  -webkit-mask-image: linear-gradient(to left, black 55%, transparent 85%);
+`;
+
+const PartnerCardTitle = styled.h2`
+  font-size: 1.3rem;
+  font-weight: bold;
+  margin-bottom: 0.75rem;
 `;
 
 const PartnerName = styled.div`
@@ -49,19 +116,23 @@ const PartnerName = styled.div`
 
 const PartnerTime = styled.div`
   font-size: 0.875rem;
-  color: #666;
+  margin-bottom: 1rem;
 `;
 
-const PartnerImageWrapper = styled.div`
-  width: 60px;
-  height: 60px;
+const InviteButton = styled.button`
+  background-color: rgba(255, 255, 255, 0.9);
+  color: #E64A8D;
+  padding: 0.6rem 1rem;
+  border: none;
   border-radius: 0.5rem;
-  overflow: hidden;
-  
-  img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  margin-top: auto;
+  align-self: flex-start;
+
+  &:hover {
+    background-color: rgba(255, 255, 255, 1);
   }
 `;
 
@@ -128,59 +199,70 @@ const RecommendedTime = styled.div`
   margin-top: 0.25rem;
 `;
 
-const Header = styled.div`
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 2rem;
+// 테스트용 버튼을 위한 스타일 (옵션, 간단하게 인라인으로도 가능)
+const TestButtonContainer = styled.div`
+  text-align: center;
+  margin-top: 2rem;
+  padding-bottom: 1rem; // 네비게이션 바와의 간격 확보
 `;
 
-const Logo = styled.img`
-  width: 120px;
-  height: auto;
-`;
-
-const MyPageButton = styled.button`
-  background: none;
+const TestButton = styled.button`
+  background-color: #777;
+  color: white;
+  padding: 0.75rem 1.5rem;
   border: none;
-  color: #333;
-  font-size: 1.5rem;
+  border-radius: 0.5rem;
+  font-weight: 500;
   cursor: pointer;
-  padding: 0.5rem;
-  display: flex;
-  align-items: center;
+  &:hover {
+    background-color: #555;
+  }
 `;
 
 const Dashboard: React.FC = () => {
   const navigate = useNavigate();
-  const [isSolo, setIsSolo] = useState(true);
-  const [userNickname, setUserNickname] = useState<string>("");
+  const { user, setUser, isLoading } = useContext(AuthContext);
+  const [isInviteModalOpen, setIsInviteModalOpen] = useState(false);
 
   useEffect(() => {
-    // 인증 상태 확인
-    if (!isAuthenticated()) {
+    if (!isLoading && !user) {
       navigate('/login');
-      return;
     }
-
-    // 사용자 닉네임 가져오기
-    const nickname = localStorage.getItem('userNickname');
-    if (nickname) {
-      setUserNickname(nickname);
-    }
-  }, [navigate]);
+  }, [navigate, user, isLoading]);
 
   const handleFeatureClick = (path: string, requiresPartner: boolean = false) => {
-    if (!isAuthenticated()) {
+    if (!user) {
       navigate('/login');
       return;
     }
 
-    if (requiresPartner && isSolo) {
+    if (requiresPartner && !user.partner) {
       alert("파트너와 연결 후 이용 가능한 기능입니다. 파트너를 초대해보세요!");
       navigate("/invite");
     } else {
       navigate(path);
+    }
+  };
+
+  const handleToggleTestPartner = () => {
+    if (!user) return; // 사용자가 없으면 아무것도 안 함
+
+    if (user.partner) {
+      // 파트너가 있으면 제거 (partner 속성을 undefined로 설정하여 제거 효과)
+      const { partner, ...userWithoutPartner } = user;
+      setUser(userWithoutPartner as any); // 'partner'가 없는 User 타입으로 간주 (실제 타입에 맞게 조정 필요)
+                                       // 또는 setUser({ ...user, partner: undefined }); 와 같이 명시적 제거
+    } else {
+      // 파트너가 없으면 추가
+      setUser({
+        ...user,
+        partner: {
+          id: 'test-partner-001',
+          nickname: '임시 배우자',
+          email: 'test.partner@example.com',
+          // User['partner'] 타입에 필요한 다른 필드가 있다면 추가
+        },
+      });
     }
   };
 
@@ -191,29 +273,54 @@ const Dashboard: React.FC = () => {
           <Logo src="/images/reconnect.png" alt="Reconnect Logo" />
           <MyPageButton onClick={() => navigate('/my')}>👤</MyPageButton>
         </Header>
-        <WelcomeSection>
-          <WelcomeTitle>{userNickname}님, 반가워요!</WelcomeTitle>
-          <WelcomeSubtitle>We Wish you have a good day</WelcomeSubtitle>
-        </WelcomeSection>
 
-        {!isSolo && (
-          <PartnerCard bgColor="#FFE4B5">
+        <TopRowContainer>
+          <WelcomeSection>
+            {isLoading ? (
+              <WelcomeTitle>로딩 중...</WelcomeTitle>
+            ) : user ? (
+              <WelcomeTitle>{user.nickname}님, 반가워요!</WelcomeTitle>
+            ) : (
+              <WelcomeTitle>로그인이 필요합니다.</WelcomeTitle>
+            )}
+            <WelcomeSubtitle>We Wish you have a good day</WelcomeSubtitle>
+          </WelcomeSection>
+
+          <PartnerCard>
             <PartnerInfo>
-              <PartnerName>배우자</PartnerName>
-              <PartnerTime>3-10 MIN</PartnerTime>
+              <div>
+                <PartnerCardTitle style={{ color: '#333' }}>배우자</PartnerCardTitle>
+                {user && user.partner ? (
+                  <>
+                    <PartnerName style={{ color: '#555' }}>{user.partner.nickname}</PartnerName>
+                    <PartnerTime style={{ color: '#777' }}>3-10 MIN</PartnerTime>
+                  </>
+                ) : (
+                  <PartnerName style={{ color: '#555', marginBottom: '0.75rem', lineHeight: '1.4' }}>
+                    파트너와 연결하고<br/>더 깊은 관계를 만들어가세요!
+                  </PartnerName>
+                )}
+              </div>
+              {!user?.partner && (
+                <InviteButton onClick={() => setIsInviteModalOpen(true)}>파트너 초대하기</InviteButton>
+              )}
             </PartnerInfo>
-            <PartnerImageWrapper>
-              <img src="/images/husband.jpg" alt="Partner" />
-            </PartnerImageWrapper>
+            <PartnerImageArea 
+              imageUrl={
+                user?.partner 
+                  ? '/images/husband.jpg' 
+                  : '/images/couple-placeholder.png'
+              }
+            />
           </PartnerCard>
-        )}
+        </TopRowContainer>
 
-        <MenuCard disabled={isSolo} onClick={() => handleFeatureClick("/calendar", true)}>
+        <MenuCard disabled={!user?.partner} onClick={() => handleFeatureClick("/calendar", true)}>
           <MenuTitle>Daily Thought</MenuTitle>
           <MenuText>MEDITATION • 3-10 MIN</MenuText>
         </MenuCard>
 
-        <MenuCard disabled={isSolo} onClick={() => handleFeatureClick("/emotion-card", true)}>
+        <MenuCard disabled={!user?.partner} onClick={() => handleFeatureClick("/emotion-card", true)}>
           <MenuTitle>감정카드</MenuTitle>
           <MenuText>오늘의 감정을 카드에 담아보세요</MenuText>
         </MenuCard>
@@ -237,24 +344,26 @@ const Dashboard: React.FC = () => {
           </RecommendedGrid>
         </RecommendedSection>
 
-        {/* 테스트용 버튼 */}
-        <div style={{ textAlign: "center", marginTop: "2rem" }}>
-          <button
-            onClick={() => setIsSolo(!isSolo)}
-            style={{
-              background: "#60a5fa",
-              color: "white",
-              padding: "0.5rem 1rem",
-              borderRadius: "0.5rem",
-              border: "none",
-              cursor: "pointer",
-            }}
-          >
-            {isSolo ? "파트너 모드로 전환" : "혼자 사용 모드로 전환"} (테스트용)
-          </button>
-        </div>
+        {/* 테스트용 파트너 토글 버튼 추가 */}
+        {!isLoading && user && (
+          <TestButtonContainer>
+            <TestButton onClick={handleToggleTestPartner}>
+              {user.partner ? "임시 배우자 연결 해제" : "임시 배우자 연결"}
+            </TestButton>
+          </TestButtonContainer>
+        )}
       </Container>
       <NavigationBar />
+
+      {isInviteModalOpen && (
+        <InviteModal 
+          onClose={() => setIsInviteModalOpen(false)} 
+          onInviteSuccess={() => {
+            alert("파트너 초대 절차가 시작되었습니다! 상대방의 수락을 기다려주세요.");
+            setIsInviteModalOpen(false);
+          }}
+        />
+      )}
     </>
   );
 };

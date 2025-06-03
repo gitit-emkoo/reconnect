@@ -6,9 +6,8 @@ import svgr from 'vite-plugin-svgr';
 export default defineConfig({
   plugins: [
     react(), 
-    svgr()   
+    svgr()
   ],
-  define: {
-    'import.meta.env.VITE_APP_API_URL': JSON.stringify('https://reconnect-backend.onrender.com')
-  }
+  // server.proxy 섹션 제거 (항상 배포된 백엔드 사용)
+  // define 섹션도 불필요 (axiosInstance에 직접 URL 설정)
 });

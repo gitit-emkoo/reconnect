@@ -1,6 +1,7 @@
 // src/pages/Community.tsx
 import React from "react";
 import styled from "styled-components";
+import NavigationBar from "../components/NavigationBar";
 
 const Container = styled.div`
   background-color: #f7f3f0; /* 따뜻한 회색 계열 */
@@ -51,28 +52,31 @@ const Button = styled.button`
 
 const Community: React.FC = () => {
   return (
-    <Container>
-      <Title>커뮤니티 👥</Title>
-      <Card>
-        <SectionTitle>따뜻한 교류의 장</SectionTitle>
-        <Text>
-          비슷한 고민을 가진 다른 사용자들과 경험을 공유하고, 서로에게 힘이 되어줄 수 있는 공간입니다. 익명으로 안전하게 소통해보세요.
-        </Text>
-        <Button>게시글 작성</Button>
-      </Card>
-      <Card>
-        <SectionTitle>최신 게시글</SectionTitle>
-        <Text style={{ marginBottom: '0.5rem' }}>
-          - [고민] "요즘 배우자와 대화가 줄었어요..."
-        </Text>
-        <Text style={{ marginBottom: '0.5rem' }}>
-          - [팁] "저희 부부의 챌린지 성공 비법!"
-        </Text>
-        <Text>
-          - [질문] "감정카드, 어떻게 활용하면 좋을까요?"
-        </Text>
-      </Card>
-    </Container>
+    <>
+      <Container>
+        <Title>커뮤니티 👥</Title>
+        <Card>
+          <SectionTitle>따뜻한 교류의 장</SectionTitle>
+          <Text>
+            비슷한 고민을 가진 다른 사용자들과 경험을 공유하고, 서로에게 힘이 되어줄 수 있는 공간입니다. 익명으로 안전하게 소통해보세요.
+          </Text>
+          <Button>게시글 작성</Button>
+        </Card>
+        <Card>
+          <SectionTitle>최신 게시글</SectionTitle>
+          <Text style={{ marginBottom: '0.5rem' }}>
+            - [고민] "요즘 배우자와 대화가 줄었어요..."
+          </Text>
+          <Text style={{ marginBottom: '0.5rem' }}>
+            - [팁] "저희 부부의 챌린지 성공 비법!"
+          </Text>
+          <Text>
+            - [질문] "감정카드, 어떻게 활용하면 좋을까요?"
+          </Text>
+        </Card>
+      </Container>
+      <NavigationBar />
+    </>
   );
 };
 
