@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState } from 'react';
+import React, { useState, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
 import { useForm } from 'react-hook-form';
@@ -10,7 +10,9 @@ import { loginSchema, type LoginFormData } from '../utils/validationSchemas';
 import { getKakaoLoginUrl } from '../utils/socialAuth';
 import CloseEye from '../assets/Icon_CloseEye.svg?react';
 import OpenEye from '../assets/Icon_OpenEye.svg?react';
-import axios, { AxiosError } from 'axios';
+import { AxiosError } from 'axios';
+import axiosInstance from '../api/axios';
+import { AuthContext } from '../contexts/AuthContext';
 
 const Container = styled.div`
   display: flex;
@@ -215,46 +217,51 @@ const SignUpText = styled.p`
 const LoginPage: React.FC = () => {
   const navigate = useNavigate();
   const [showPassword, setShowPassword] = useState(false);
-  const { register, handleSubmit, formState: { errors, isSubmitting } } = useForm<LoginFormData>({
-    resolver: zodResolver(loginSchema),
+  const [error, setError] = useState<string>('');
+  const [googleError, setGoogleError] = useState<string>('');
+  const { setUser } = useContext(AuthContext);
+
+  const {
+    register,
+    handleSubmit,
+    formState: { errors, isSubmitting }
+  } = useForm<LoginFormData>({
+    resolver: zodResolver(loginSchema)
   });
 
   const googleLogin = useGoogleLogin({
     onSuccess: async (tokenResponse) => {
       try {
-        const backendUrl = import.meta.env.VITE_APP_API_URL || 'http://localhost:3000';
-        const response = await axios.post(
-          `${backendUrl}/auth/google/login`,
-          { access_token: tokenResponse.access_token },
-          {
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            withCredentials: true
-          }
+        setGoogleError('');
+        const response = await axiosInstance.post(
+          '/auth/google/login',
+          { access_token: tokenResponse.access_token }
         );
+        if (response.data.accessToken) {
+          localStorage.setItem('accessToken', response.data.accessToken);
+          if (response.data.user) {
+            setUser(response.data.user);
+          }
+          navigate('/dashboard', { replace: true });
+        }
+      } catch (error: any) {
+        console.error('구글 로그인 에러 전체:', error);
+        console.log('error.response:', error?.response);
+        console.log('error.response.data:', error?.response?.data);
+        console.log('error.response.data.message:', error?.response?.data?.message);
+        console.log('error.message:', error?.message);
 
-        const { data } = response;
-        if (data.accessToken) {
-          localStorage.setItem('accessToken', data.accessToken);
-        }
-        if (data.userNickname) {
-          localStorage.setItem('userNickname', data.userNickname);
-        }
-
-        navigate('/dashboard', { replace: true });
-      } catch (error) {
-        console.error('구글 로그인 에러:', error);
-        
-        if (error instanceof AxiosError) {
-          alert(error.response?.data?.message || '구글 로그인 중 오류가 발생했습니다.');
-        } else {
-          alert('구글 로그인 중 오류가 발생했습니다.');
-        }
+        // 가능한 모든 경로에서 메시지를 우선적으로 찾기
+        const backendMsg =
+          error?.response?.data?.message ||
+          error?.response?.data?.error ||
+          error?.message ||
+          '구글 로그인 중 오류가 발생했습니다.';
+        setGoogleError(backendMsg);
       }
     },
     onError: () => {
-      alert('구글 로그인 중 오류가 발생했습니다.');
+      setGoogleError('구글 로그인 중 오류가 발생했습니다.');
     }
   });
 
@@ -264,39 +271,24 @@ const LoginPage: React.FC = () => {
 
   const onSubmit = async (data: LoginFormData) => {
     try {
-      const backendUrl = import.meta.env.VITE_APP_API_URL;
-      const response = await axios.post(
-        `${backendUrl}/auth/login`,
-        data,
-        {
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          withCredentials: true
-        }
-      );
-
-      const { data: responseData } = response;
-      if (responseData.accessToken) {
-        localStorage.setItem('accessToken', responseData.accessToken);
-      }
-      if (responseData.userNickname) {
-        localStorage.setItem('userNickname', responseData.userNickname);
-      }
-
-      console.log("로그인 성공:", responseData);
-      navigate('/dashboard', { replace: true });
-    } catch (error) {
-      console.error("로그인 에러:", error);
+      const response = await axiosInstance.post('/auth/login', data);
       
-      if (error instanceof AxiosError) {
-        if (error.response?.status === 401) {
-          alert('이메일 또는 비밀번호가 올바르지 않습니다.');
-          return;
+      if (response.data.accessToken) {
+        localStorage.setItem('accessToken', response.data.accessToken);
+        
+        // 응답에서 직접 사용자 정보를 받아와서 저장
+        if (response.data.user) {
+          setUser(response.data.user);
+          console.log('로그인 성공:', response.data.user);
         }
-        alert(error.response?.data?.message || '로그인 중 오류가 발생했습니다.');
+        
+        navigate('/dashboard');
+      }
+    } catch (error) {
+      if (error instanceof AxiosError) {
+        setError(error.response?.data?.message || '로그인에 실패했습니다.');
       } else {
-        alert('알 수 없는 오류가 발생했습니다.');
+        setError('로그인 중 오류가 발생했습니다.');
       }
     }
   };
@@ -313,25 +305,26 @@ const LoginPage: React.FC = () => {
       <SocialLoginButton onClick={() => googleLogin()}>
         구글로 로그인하기
       </SocialLoginButton>
+      {googleError && <ErrorMessage style={{ textAlign: 'center', margin: '0.5rem 0' }}>{googleError}</ErrorMessage>}
 
       <Divider>이메일로 로그인하기</Divider>
 
       <Form onSubmit={handleSubmit(onSubmit)}>
         <InputWrapper>
-        <Input
-          type="email"
+          <Input
+            type="email"
             placeholder="이메일을 입력하세요"
-          {...register('email')}
-        />
+            {...register('email')}
+          />
         </InputWrapper>
         {errors.email && <ErrorMessage>{errors.email.message}</ErrorMessage>}
         
         <InputWrapper>
-        <Input
+          <Input
             type={showPassword ? "text" : "password"}
-          placeholder="비밀번호를 입력하세요"
-          {...register('password')}
-        />
+            placeholder="비밀번호를 입력하세요"
+            {...register('password')}
+          />
           <PasswordToggle 
             type="button" 
             onClick={() => setShowPassword(!showPassword)}
@@ -340,6 +333,7 @@ const LoginPage: React.FC = () => {
           </PasswordToggle>
         </InputWrapper>
         {errors.password && <ErrorMessage>{errors.password.message}</ErrorMessage>}
+        {error && <ErrorMessage>{error}</ErrorMessage>}
 
         <LoginButton type="submit" disabled={isSubmitting}>
           {isSubmitting ? '로그인 중...' : '로그인'}

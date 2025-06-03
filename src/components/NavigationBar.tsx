@@ -36,22 +36,49 @@ const NavButton = styled.button<NavButtonProps>`
   flex: 1;
   background: none;
   border: none;
-  color: ${props => (props.disabled ? '#ccc' : props.$isActive ? '#14b8a6' : '#6b7280')}; /* 활성/비활성 색상 */
   font-size: 0.75rem;
   font-weight: ${props => (props.$isActive ? '600' : '500')};
   cursor: ${props => (props.disabled ? 'not-allowed' : 'pointer')};
-  transition: color 0.2s ease-in-out;
-  padding: 0.2rem 0; /* 내부 여백 조정 */
+  padding: 0.2rem 0;
   opacity: ${props => (props.disabled ? 0.5 : 1)};
+  transition: color 0.2s ease-in-out, stroke 0.2s ease-in-out;
 
-  &:hover {
-    color: ${props => (props.disabled ? '#ccc' : '#0d9488')};
-  }
-
+  color: ${props => (props.disabled ? '#ccc' : props.$isActive ? '#4169E1' : '#6b7280')};
+  
   svg {
     width: 20px;
     height: 20px;
     margin-bottom: 4px;
+    fill: none;
+    stroke: ${props => 
+      props.disabled 
+        ? '#ccc' 
+        : props.$isActive 
+          ? '#4169E1'
+          : '#6b7280'};
+    transition: stroke 0.2s ease-in-out;
+  }
+
+  ${props => 
+    props.$isActive && !props.disabled 
+    ? `
+        background-image: linear-gradient(to right, #FF69B4, #4169E1);
+        background-clip: text;
+        -webkit-background-clip: text;
+      ` 
+    : ``}
+
+  &:hover {
+    ${props => 
+      !props.$isActive && !props.disabled 
+      ? `
+          color: #FF69B4; 
+          svg {
+            stroke: rgb(245, 119, 241);
+            fill: none;
+          }
+        ` 
+      : ''}
   }
 `;
 
