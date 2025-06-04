@@ -5,11 +5,11 @@ export const logout = async (navigate: NavigateFunction) => {
     console.log('=== 로그아웃 시도 ===');
     console.log('📧 현재 로그인된 사용자:', localStorage.getItem('userNickname'));
     
-    const backendUrl = import.meta.env.VITE_APP_API_URL || 'http://localhost:3000';
+    const backendBaseUrl = import.meta.env.VITE_APP_API_URL || 'http://localhost:3000';
     const token = localStorage.getItem('accessToken');
     
-    // 백엔드에 로그아웃 요청
-    await fetch(`${backendUrl}/auth/logout`, {
+    // 백엔드에 로그아웃 요청 (경로에 '/api' 추가)
+    await fetch(`${backendBaseUrl}/api/auth/logout`, {
       method: 'POST',
       credentials: 'include',
       headers: {
