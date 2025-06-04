@@ -1,11 +1,13 @@
 import axios from 'axios';
 
 const instance = axios.create({
-  baseURL: 'https://reconnect-backend.onrender.com', // 항상 배포된 백엔드 사용
+  baseURL: 'https://reconnect-backend.onrender.com/api', // baseURL에 '/api' 추가
   withCredentials: true,
   headers: {
     'Content-Type': 'application/json',
   },
 });
+
+console.log('[axiosInstance] baseURL:', instance.defaults.baseURL); // baseURL 확인 로그 추가
 
 export default instance; 

@@ -271,12 +271,15 @@ const LoginPage: React.FC = () => {
 
   const onSubmit = async (data: LoginFormData) => {
     try {
+      const requestUrl = `${axiosInstance.defaults.baseURL}/auth/login`;
+      console.log('[Login onSubmit] Requesting URL:', requestUrl);
+      console.log('[Login onSubmit] Request data:', data);
+
       const response = await axiosInstance.post('/auth/login', data);
       
       if (response.data.accessToken) {
         localStorage.setItem('accessToken', response.data.accessToken);
         
-        // 응답에서 직접 사용자 정보를 받아와서 저장
         if (response.data.user) {
           setUser(response.data.user);
           console.log('로그인 성공:', response.data.user);
@@ -285,7 +288,9 @@ const LoginPage: React.FC = () => {
         navigate('/dashboard');
       }
     } catch (error) {
+      console.error('[Login onSubmit] Full error object:', error);
       if (error instanceof AxiosError) {
+        console.error('[Login onSubmit] Axios error response:', error.response);
         setError(error.response?.data?.message || '로그인에 실패했습니다.');
       } else {
         setError('로그인 중 오류가 발생했습니다.');
