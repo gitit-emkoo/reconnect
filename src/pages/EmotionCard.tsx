@@ -25,6 +25,8 @@ const PageContainer = styled.div`
   flex-direction: column;
   align-items: center; // 자식 요소들을 가로축 중앙 정렬 (PageHeaderContainer, ContentWrapper)
   // justify-content: center; // 전체 페이지 세로 중앙 정렬은 일단 보류 (타이틀/백버튼 묶음을 상단에 가깝게)
+  box-sizing: border-box; // 패딩과 테두리가 min-height에 포함되도록 설정
+  overflow-y: auto; // 내용이 길어질 경우 세로 스크롤 허용
 `;
 
 // 뒤로가기 버튼과 페이지 타이틀을 묶는 컨테이너
@@ -264,12 +266,17 @@ const EmotionCard: React.FC = () => {
       setError(null);
       try {
         // 실제로는 인증 토큰 등을 헤더에 포함해야 함
-        const response = await fetch(`${API_BASE_URL}/emotion-cards`); 
+        const response = await fetch(`${API_BASE_URL}/emotion-cards`);
         if (!response.ok) {
-          throw new Error('감정 카드 목록을 불러오는데 실패했습니다.');
+          if (response.status === 404) { // 404 Not Found의 경우, 카드가 없는 것으로 간주
+            setSentMessages([]);
+          } else {
+            throw new Error('감정 카드 목록을 불러오는데 실패했습니다.');
+          }
+        } else {
+          const data: SentMessage[] = await response.json();
+          setSentMessages(data.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())); // 최신순 정렬
         }
-        const data: SentMessage[] = await response.json();
-        setSentMessages(data.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())); // 최신순 정렬
       } catch (err) {
         if (err instanceof Error) {
           setError(err.message);
