@@ -1,16 +1,21 @@
-// src/pages/Dashboard.tsx (업데이트된 부분)
+// src/pages/Dashboard.tsx (최종 수정)
 import React, { useState, useEffect, useContext } from "react";
 import styled from "styled-components";
 import { useNavigate } from "react-router-dom";
+// import Calendar, { type CalendarProps } from 'react-calendar'; // DashboardCalendar로 이동
+import 'react-calendar/dist/Calendar.css'; // DashboardCalendar 내부에서 import
 import NavigationBar from "../components/NavigationBar";
 import { AuthContext } from "../contexts/AuthContext";
 import { InviteModal } from "../components/Invite/InviteModal";
+import DashboardCalendar from "../components/Dashboard/DashboardCalendar"; // 새로 추가된 캘린더 컴포넌트
+import WelcomeUserSection from "../components/Dashboard/WelcomeUserSection"; // 새로 추가
+import PartnerConnectionCard from "../components/Dashboard/PartnerConnectionCard"; // 새로 추가
 
 const Container = styled.div`
   padding: 1.5rem;
   min-height: calc(100vh - 60px);
   background-color: #ffffff;
-  padding-bottom: 80px;
+  padding-bottom: 80px; 
 `;
 
 const Header = styled.div`
@@ -40,109 +45,58 @@ const TopRowContainer = styled.div`
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
-  margin-bottom: 2rem;
+  margin-bottom: 1.5rem; 
 
   @media (max-width: 768px) {
-    flex-direction: row;
+    flex-direction: row; 
     align-items: flex-start;
   }
 `;
 
-const WelcomeSection = styled.div`
-  flex: 1;
-`;
+// WelcomeSection, WelcomeTitle, WelcomeSubtitle, ReportButton styled-components는 WelcomeUserSection.tsx로 이동
+// PartnerCard, PartnerInfo, PartnerImageArea, PartnerCardTitle, PartnerName, PartnerTime, InviteButton styled-components는 PartnerConnectionCard.tsx로 이동
 
-const WelcomeTitle = styled.h1`
-  font-size: 1.8rem;
-  font-weight: 700;
-  margin-bottom: 0.5rem;
-`;
-
-const WelcomeSubtitle = styled.p`
-  color: #666;
-  font-size: 1rem;
-`;
-
-const PartnerCard = styled.div`
-  position: relative;
-  border-radius: 1rem;
-  width: 100%;
-  min-height: 160px;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-  color: white;
-  overflow: hidden;
-  background-color: #FFC0CB;
+const MainContentLayout = styled.div`
   display: flex;
+  gap: 1.5rem;
+  margin-top: 1.5rem; 
+  align-items: flex-start; 
 
-  @media (max-width: 768px) {
-    width: 280px;
+  @media (max-width: 992px) { 
+    flex-direction: column;
   }
 `;
 
-const PartnerInfo = styled.div`
-  position: relative;
-  z-index: 2;
-  flex: 1;
-  padding: 1.5rem;
+const CalendarColumn = styled.div`
+  flex: 1; 
+  min-width: 300px; 
+  max-width: 50%; 
+  
+  @media (max-width: 992px) {
+    max-width: 100%; 
+    width: 100%;
+  }
+`;
+
+const MenuCardsColumn = styled.div`
+  flex: 0 0 280px; 
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
-  height: 100%;
-`;
+  gap: 1rem;
 
-const PartnerImageArea = styled.div<{ imageUrl: string }>`
-  position: absolute;
-  right: 0;
-  top: 0;
-  height: 100%;
-  width: 65%;
-  background-image: url(${props => props.imageUrl});
-  background-size: cover;
-  background-position: center;
-  mask-image: linear-gradient(to left, black 55%, transparent 85%);
-  -webkit-mask-image: linear-gradient(to left, black 55%, transparent 85%);
-`;
-
-const PartnerCardTitle = styled.h2`
-  font-size: 1.3rem;
-  font-weight: bold;
-  margin-bottom: 0.75rem;
-`;
-
-const PartnerName = styled.div`
-  font-size: 1rem;
-  margin-bottom: 0.25rem;
-`;
-
-const PartnerTime = styled.div`
-  font-size: 0.875rem;
-  margin-bottom: 1rem;
-`;
-
-const InviteButton = styled.button`
-  background-color: rgba(255, 255, 255, 0.9);
-  color: #E64A8D;
-  padding: 0.6rem 1rem;
-  border: none;
-  border-radius: 0.5rem;
-  font-weight: bold;
-  cursor: pointer;
-  transition: background-color 0.2s;
-  margin-top: auto;
-  align-self: flex-start;
-
-  &:hover {
-    background-color: rgba(255, 255, 255, 1);
+  @media (max-width: 992px) {
+    width: 100%;
+    flex: 1; 
   }
 `;
 
 const MenuCard = styled.div<{ disabled?: boolean }>`
   background-color: ${props => props.disabled ? '#f1f3f7' : '#2f3542'};
   border-radius: 1rem;
-  padding: 1.5rem;
-  margin-bottom: 1rem;
+  padding: 1.2rem; 
   cursor: ${props => props.disabled ? 'not-allowed' : 'pointer'};
   color: ${props => props.disabled ? '#666' : '#fff'};
+  transition: background-color 0.2s;
 
   &:hover {
     background-color: ${props => props.disabled ? '#f1f3f7' : '#3d4453'};
@@ -150,24 +104,27 @@ const MenuCard = styled.div<{ disabled?: boolean }>`
 `;
 
 const MenuTitle = styled.h2`
-  font-size: 1.25rem;
-  margin-bottom: 0.5rem;
+  font-size: 1.1rem; 
+  margin-bottom: 0.4rem;
 `;
 
 const MenuText = styled.p`
-  font-size: 0.875rem;
+  font-size: 0.8rem; 
   opacity: 0.8;
 `;
+
+// CalendarContainer, DotsContainer, Dot 등 캘린더 관련 Styled Components는 DashboardCalendar.tsx로 이동
+// ModalBackdrop, ModalContent, ModalTitle, ModalInfoItem, CloseButton 등 모달 관련 Styled Components도 이동
+
+// EventData interface 및 dummyEvents 데이터는 DashboardCalendar.tsx로 이동
 
 const RecommendedSection = styled.div`
   margin-top: 2rem;
 `;
-
 const RecommendedTitle = styled.h2`
   font-size: 1.25rem;
   margin-bottom: 1rem;
 `;
-
 const RecommendedGrid = styled.div`
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
@@ -175,7 +132,6 @@ const RecommendedGrid = styled.div`
   overflow-x: auto;
   padding-bottom: 1rem;
 `;
-
 const RecommendedCard = styled.div`
   background-color: #e8f5e9;
   border-radius: 1rem;
@@ -187,25 +143,20 @@ const RecommendedCard = styled.div`
   align-items: center;
   cursor: pointer;
 `;
-
 const RecommendedName = styled.div`
   font-size: 0.875rem;
   text-align: center;
 `;
-
 const RecommendedTime = styled.div`
   font-size: 0.75rem;
   color: #666;
   margin-top: 0.25rem;
 `;
-
-// 테스트용 버튼을 위한 스타일 (옵션, 간단하게 인라인으로도 가능)
 const TestButtonContainer = styled.div`
   text-align: center;
   margin-top: 2rem;
-  padding-bottom: 1rem; // 네비게이션 바와의 간격 확보
+  padding-bottom: 1rem; 
 `;
-
 const TestButton = styled.button`
   background-color: #777;
   color: white;
@@ -219,23 +170,26 @@ const TestButton = styled.button`
   }
 `;
 
+// CalendarValue 타입은 DashboardCalendar.tsx로 이동
+
 const Dashboard: React.FC = () => {
   const navigate = useNavigate();
   const { user, setUser, isLoading } = useContext(AuthContext);
   const [isInviteModalOpen, setIsInviteModalOpen] = useState(false);
+  // calendarDate, selectedDateData, isDateModalOpen, monthlyEvents state는 DashboardCalendar.tsx로 이동
+  // calendarDate 관련 useEffect도 이동
 
   useEffect(() => {
     if (!isLoading && !user) {
       navigate('/login');
     }
   }, [navigate, user, isLoading]);
-
+  
   const handleFeatureClick = (path: string, requiresPartner: boolean = false) => {
     if (!user) {
       navigate('/login');
       return;
     }
-
     if (requiresPartner && !user.partner) {
       alert("파트너와 연결 후 이용 가능한 기능입니다. 파트너를 초대해보세요!");
       navigate("/invite");
@@ -245,125 +199,109 @@ const Dashboard: React.FC = () => {
   };
 
   const handleToggleTestPartner = () => {
-    if (!user) return; // 사용자가 없으면 아무것도 안 함
-
+    if (!user) return;
     if (user.partner) {
-      // 파트너가 있으면 제거 (partner 속성을 undefined로 설정하여 제거 효과)
-      const { partner, ...userWithoutPartner } = user;
-      setUser(userWithoutPartner as any); // 'partner'가 없는 User 타입으로 간주 (실제 타입에 맞게 조정 필요)
-                                       // 또는 setUser({ ...user, partner: undefined }); 와 같이 명시적 제거
+      setUser({ ...user, partner: undefined }); 
     } else {
-      // 파트너가 없으면 추가
-      setUser({
-        ...user,
-        partner: {
-          id: 'test-partner-001',
-          nickname: '임시 배우자',
-          email: 'test.partner@example.com',
-          // User['partner'] 타입에 필요한 다른 필드가 있다면 추가
-        },
-      });
+      const testPartner = {
+        id: "partner123",
+        nickname: "TestPartner",
+        email: "partner@example.com",
+        imageUrl: "https://cdn.dailyvet.co.kr/wp-content/uploads/2024/05/15231647/20240515ceva_experts4.jpg", // 사용자가 새로 제공한 이미지 URL로 수정
+      };
+      setUser({ ...user, partner: testPartner as any });
     }
   };
+  
+  // formatDate, tileContent, handleCalendarChange, handleDayClick, handleMonthChange 함수는 DashboardCalendar.tsx로 이동
+
+  if (isLoading) return <Container>로딩 중...</Container>;
+  if (!user) return <Container>로그인이 필요합니다.</Container>;
+  
+  const logoUrl = '/logo.png';
+
+  // 파트너 이미지 URL 결정 로직 수정
+  let partnerDisplayImageUrl: string | null = null;
+  if (user.partner && user.partner.imageUrl) {
+    partnerDisplayImageUrl = user.partner.imageUrl;
+  }
 
   return (
     <>
       <Container>
         <Header>
-          <Logo src="/images/reconnect.png" alt="Reconnect Logo" />
-          <MyPageButton onClick={() => navigate('/my')}>👤</MyPageButton>
+          <Logo src={logoUrl} alt="ReConnect Logo" onError={(e) => (e.currentTarget.style.display = 'none')} />
+          <MyPageButton onClick={() => navigate("/mypage")}>
+            <span role="img" aria-label="mypage">👤</span>
+          </MyPageButton>
         </Header>
 
         <TopRowContainer>
-          <WelcomeSection>
-            {isLoading ? (
-              <WelcomeTitle>로딩 중...</WelcomeTitle>
-            ) : user ? (
-              <WelcomeTitle>{user.nickname}님, 반가워요!</WelcomeTitle>
-            ) : (
-              <WelcomeTitle>로그인이 필요합니다.</WelcomeTitle>
-            )}
-            <WelcomeSubtitle>We Wish you have a good day</WelcomeSubtitle>
-          </WelcomeSection>
-
-          <PartnerCard>
-            <PartnerInfo>
-              <div>
-                <PartnerCardTitle style={{ color: '#333' }}>배우자</PartnerCardTitle>
-                {user && user.partner ? (
-                  <>
-                    <PartnerName style={{ color: '#555' }}>{user.partner.nickname}</PartnerName>
-                    <PartnerTime style={{ color: '#777' }}>3-10 MIN</PartnerTime>
-                  </>
-                ) : (
-                  <PartnerName style={{ color: '#555', marginBottom: '0.75rem', lineHeight: '1.4' }}>
-                    파트너와 연결하고<br/>더 깊은 관계를 만들어가세요!
-                  </PartnerName>
-                )}
-              </div>
-              {!user?.partner && (
-                <InviteButton onClick={() => setIsInviteModalOpen(true)}>파트너 초대하기</InviteButton>
-              )}
-            </PartnerInfo>
-            <PartnerImageArea 
-              imageUrl={
-                user?.partner 
-                  ? '/images/husband.jpg' 
-                  : '/images/couple-placeholder.png'
-              }
-            />
-          </PartnerCard>
+          <WelcomeUserSection user={user} />
+          <PartnerConnectionCard 
+            user={user} 
+            partnerDisplayImageUrl={partnerDisplayImageUrl} 
+            onOpenInviteModal={() => setIsInviteModalOpen(true)} 
+          />
         </TopRowContainer>
-
-        <MenuCard disabled={!user?.partner} onClick={() => handleFeatureClick("/calendar", true)}>
-          <MenuTitle>Daily Thought</MenuTitle>
-          <MenuText>MEDITATION • 3-10 MIN</MenuText>
-        </MenuCard>
-
-        <MenuCard disabled={!user?.partner} onClick={() => handleFeatureClick("/emotion-card", true)}>
-          <MenuTitle>감정카드</MenuTitle>
-          <MenuText>오늘의 감정을 카드에 담아보세요</MenuText>
-        </MenuCard>
-
-        <MenuCard onClick={() => handleFeatureClick("/emotion-diary")}>
-          <MenuTitle>감정일기</MenuTitle>
-          <MenuText>오늘의 감정을 기록해보세요</MenuText>
-        </MenuCard>
-
+        
+        <MainContentLayout>
+          <CalendarColumn>
+            <DashboardCalendar />
+          </CalendarColumn>
+          <MenuCardsColumn>
+            <MenuCard onClick={() => handleFeatureClick("/emotion-diary")}>
+              <MenuTitle>오늘의 감정일기 쓰러가기 📝</MenuTitle>
+              <MenuText>솔직한 감정을 기록하고 서로를 더 깊이 이해해 보세요.</MenuText>
+            </MenuCard>
+            <MenuCard onClick={() => handleFeatureClick("/emotion-card")}>
+              <MenuTitle>파트너에게 감정카드 보내기 🃏</MenuTitle> 
+              <MenuText>오늘 나의 감정을 표현하고 따뜻한 마음을 전달해보세요.</MenuText> 
+            </MenuCard>
+            <MenuCard onClick={() => handleFeatureClick("/challenge")}>
+              <MenuTitle>오늘의 미션 도전하기 🔥</MenuTitle>
+              <MenuText>함께 미션을 수행하며 즐거운 추억을 만들어보세요.</MenuText>
+            </MenuCard>
+            <MenuCard onClick={() => handleFeatureClick("/calendar-page")} disabled>
+              <MenuTitle>전체 일정 보기 📅 (준비중)</MenuTitle>
+              <MenuText>모든 기록을 한눈에 확인하는 상세 페이지입니다.</MenuText>
+            </MenuCard>
+          </MenuCardsColumn>
+        </MainContentLayout>
+        
         <RecommendedSection>
-          <RecommendedTitle>Recommended for you</RecommendedTitle>
+          <RecommendedTitle>이런 활동은 어때요? ✨</RecommendedTitle>
           <RecommendedGrid>
-            <RecommendedCard>
-              <RecommendedName>Focus</RecommendedName>
-              <RecommendedTime>MEDITATION • 3-10 MIN</RecommendedTime>
+            <RecommendedCard onClick={() => alert('콘텐츠 준비중입니다.')}>
+              <span role="img" aria-label="couple emoji" style={{fontSize: '2rem', marginBottom: '0.5rem'}}>👩‍❤️‍👨</span>
+              <RecommendedName>갈등 해결 가이드</RecommendedName>
+              <RecommendedTime>15분 소요</RecommendedTime>
             </RecommendedCard>
-            <RecommendedCard>
-              <RecommendedName>Happiness</RecommendedName>
-              <RecommendedTime>MEDITATION • 3-10 MIN</RecommendedTime>
+            <RecommendedCard onClick={() => alert('콘텐츠 준비중입니다.')}>
+              <span role="img" aria-label="conversation emoji" style={{fontSize: '2rem', marginBottom: '0.5rem'}}>💬</span>
+              <RecommendedName>깊은 대화 주제</RecommendedName>
+              <RecommendedTime>주제별 상이</RecommendedTime>
+            </RecommendedCard>
+            <RecommendedCard onClick={() => alert('콘텐츠 준비중입니다.')}>
+              <span role="img" aria-label="gift emoji" style={{fontSize: '2rem', marginBottom: '0.5rem'}}>🎁</span>
+              <RecommendedName>서프라이즈 이벤트</RecommendedName>
+              <RecommendedTime>계획하기 나름!</RecommendedTime>
             </RecommendedCard>
           </RecommendedGrid>
         </RecommendedSection>
 
-        {/* 테스트용 파트너 토글 버튼 추가 */}
-        {!isLoading && user && (
-          <TestButtonContainer>
-            <TestButton onClick={handleToggleTestPartner}>
-              {user.partner ? "임시 배우자 연결 해제" : "임시 배우자 연결"}
-            </TestButton>
-          </TestButtonContainer>
-        )}
+        <TestButtonContainer>
+          <TestButton onClick={handleToggleTestPartner}>
+            {user.partner ? "테스트 파트너 연결 해제" : "테스트 파트너 연결"}
+          </TestButton>
+        </TestButtonContainer>
+
       </Container>
       <NavigationBar />
 
-      {isInviteModalOpen && (
-        <InviteModal 
-          onClose={() => setIsInviteModalOpen(false)} 
-          onInviteSuccess={() => {
-            alert("파트너 초대 절차가 시작되었습니다! 상대방의 수락을 기다려주세요.");
-            setIsInviteModalOpen(false);
-          }}
-        />
-      )}
+      {isInviteModalOpen && <InviteModal onClose={() => setIsInviteModalOpen(false)} />}
+
+      {/* 날짜 클릭 시 나타나는 모달은 DashboardCalendar 내부로 이동 */}
     </>
   );
 };

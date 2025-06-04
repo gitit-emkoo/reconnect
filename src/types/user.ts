@@ -6,6 +6,7 @@ export interface User {
     id: string;
     nickname: string;
     email: string;
+    imageUrl?: string;
   };
   provider: 'EMAIL' | 'KAKAO' | 'GOOGLE';
   socialId?: string;
