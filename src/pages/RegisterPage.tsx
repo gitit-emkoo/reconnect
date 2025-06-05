@@ -255,7 +255,7 @@ const RegisterPage: React.FC = () => {
           // 409 Conflict - 이미 가입된 사용자
           if (error.response?.status === 409) {
             alert('이미 가입된 이메일입니다. 로그인 페이지로 이동합니다.');
-            navigate('/login');
+            navigate('/welcome');
             return;
           }
 
@@ -277,51 +277,45 @@ const RegisterPage: React.FC = () => {
 
   const onSubmit = async (data: RegisterFormData) => {
     if (!isChecked) {
-      alert('약관에 동의해주세요.');
+      alert("모든 약관에 동의해주세요.");
       return;
     }
-
     try {
-      const { confirmPassword, ...registerData } = data;
-      const backendUrl = import.meta.env.VITE_APP_API_URL;
-      console.log('백엔드 URL:', backendUrl);
-      console.log('전송할 데이터:', registerData);
-      const fullUrl = `${backendUrl}/auth/register`;
-      console.log('전체 요청 URL:', fullUrl);
+      const backendUrl = import.meta.env.VITE_APP_API_URL || 'http://localhost:3000';
+      console.log("백엔드 URL:", backendUrl);
+      console.log("전송할 데이터:", { email: data.email, nickname: data.nickname, password: data.password });
+      
+      const requestUrl = `${backendUrl}/api/auth/register`;
+      console.log("전체 요청 URL:", requestUrl);
 
-      const response = await axios.post(
-        fullUrl,
-        registerData,
-        {
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          withCredentials: true
-        }
-      );
+      const response = await axios.post(requestUrl, {
+        email: data.email,
+        nickname: data.nickname,
+        password: data.password,
+      }, {
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        withCredentials: true,
+      });
 
       console.log("회원가입 성공:", response.data);
-      alert('회원가입 성공! 로그인 페이지로 이동합니다.');
-      navigate('/login');
+      alert("회원가입이 완료되었습니다!");
+      navigate('/');
     } catch (error) {
       console.error("회원가입 에러:", error);
-      
       if (error instanceof AxiosError) {
-        if (error.response?.status === 409) {
-          alert('이미 가입된 이메일입니다.');
-          return;
-        }
-        alert(`회원가입 실패: ${error.response?.data?.message || '알 수 없는 오류가 발생했습니다.'}`);
+        alert(`회원가입 실패: ${error.response?.data?.message || error.message}`);
       } else {
-        alert('알 수 없는 오류가 발생했습니다.');
+        alert("알 수 없는 오류가 발생했습니다.");
       }
     }
   };
 
   return (
     <Container>
-      <BackButton onClick={() => navigate('/')}>←</BackButton>
-      <Title>Welcome!</Title>
+      <BackButton onClick={() => navigate(-1)}>←</BackButton>
+      <Title>회원가입</Title>
       
       <SocialLoginButton $isKakao onClick={handleKakaoRegister}>
         카카오톡으로 회원가입

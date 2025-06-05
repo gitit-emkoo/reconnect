@@ -68,7 +68,7 @@ const Challenge: React.FC = () => {
     <Container>
       <Title>이번 주 connect 약속</Title>
       <Card>
-        <Description>함께 저녁 준비하기 🍽️</Description>
+        <Description>함께 아침밥 준비하기 🍽️</Description>
         <Progress>
           <ProgressBar percent={progress} />
         </Progress>

@@ -7,6 +7,7 @@ import { ProfileEditModal } from "../components/Profile/ProfileEditModal";
 import { PasswordChangeModal } from "../components/Profile/PasswordChangeModal";
 import type { User } from "../types/user";
 import NavigationBar from "../components/NavigationBar";
+import ConfirmationModal from "../components/common/ConfirmationModal";
 
 const Container = styled.div`
   background-color: white; /* 배경 흰색으로 변경 */
@@ -107,6 +108,7 @@ const MyPage: React.FC = () => {
   const { user, setUser } = useContext(AuthContext);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false);
+  const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
 
   useEffect(() => {
     const token = localStorage.getItem('accessToken');
@@ -115,13 +117,12 @@ const MyPage: React.FC = () => {
     }
   }, [navigate]);
 
-  const handleLogout = async () => {
+  const confirmLogout = async () => {
     const success = await logout(navigate);
     if (!success) {
       alert('로그아웃 중 오류가 발생했습니다. 다시 시도해주세요.');
-    } else {
-      alert('로그아웃 되었습니다.');
     }
+    setIsLogoutModalOpen(false); // 모달 닫기
   };
 
   const handleUpdateSuccess = (updatedUser: User) => {
@@ -132,22 +133,14 @@ const MyPage: React.FC = () => {
     return null;
   }
 
-  // 프로필 설정 모달 열기 함수 (기존 handleEditProfile 재사용)
   const openProfileEditModal = () => {
     setIsEditModalOpen(true);
   };
 
-  // 비밀번호 변경 모달 열기 함수
   const openPasswordChangeModal = () => {
     setIsPasswordModalOpen(true);
   };
 
-  // 알림 설정 페이지로 이동 (임시) -> 알림으로 대체
-  // const goToNotificationSettings = () => {
-  //   navigate('/settings/notifications'); // 추후 실제 경로로 수정
-  // };
-
-  // 회원 탈퇴 페이지로 이동 (임시)
   const goToDeleteAccountPage = () => {
     navigate('/delete-account'); // 추후 실제 경로로 수정
   };
@@ -188,7 +181,7 @@ const MyPage: React.FC = () => {
               알림 설정
               <span>▸</span>
             </SettingItem>
-            <SettingItem onClick={handleLogout}>
+            <SettingItem onClick={() => setIsLogoutModalOpen(true)}>
               로그아웃
               <span>▸</span>
             </SettingItem>
@@ -245,6 +238,14 @@ const MyPage: React.FC = () => {
           onClose={() => setIsPasswordModalOpen(false)}
         />
       )}
+
+      <ConfirmationModal
+        isOpen={isLogoutModalOpen}
+        onRequestClose={() => setIsLogoutModalOpen(false)}
+        onConfirm={confirmLogout}
+        message="정말로 로그아웃 하시겠습니까?"
+        confirmButtonText="로그아웃"
+      />
     </>
   );
 };

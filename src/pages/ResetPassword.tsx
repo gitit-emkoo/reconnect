@@ -16,6 +16,20 @@ const Container = styled.div`
   padding: 2rem;
 `;
 
+const BackButton = styled.button`
+  position: absolute;
+  top: 1.5rem;
+  left: 1.5rem;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0.5rem;
+  display: flex;
+  align-items: center;
+  color: #333;
+  font-size: 1.5rem;
+`;
+
 const Title = styled.h1`
   font-size: 2rem;
   font-weight: 600;
@@ -149,7 +163,7 @@ const ResetPassword: React.FC = () => {
   const onSubmit = async (data: ResetPasswordFormData) => {
     if (!token) {
       alert('유효하지 않은 접근입니다.');
-      navigate('/login');
+      navigate('/');
       return;
     }
 
@@ -172,7 +186,7 @@ const ResetPassword: React.FC = () => {
       }
 
       alert('비밀번호가 성공적으로 변경되었습니다.');
-      navigate('/login');
+      navigate('/');
     } catch (error: any) {
       console.error("비밀번호 재설정 에러:", error.message);
       alert(error.message || '알 수 없는 오류가 발생했습니다.');
@@ -181,6 +195,7 @@ const ResetPassword: React.FC = () => {
 
   return (
     <Container>
+      <BackButton onClick={() => navigate(-1)}>←</BackButton>
       <Title>새 비밀번호 설정</Title>
       <Description>
         새로운 비밀번호를 입력해주세요.
