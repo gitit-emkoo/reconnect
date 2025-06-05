@@ -266,17 +266,12 @@ const EmotionCard: React.FC = () => {
       setError(null);
       try {
         // 실제로는 인증 토큰 등을 헤더에 포함해야 함
-        const response = await fetch(`${API_BASE_URL}/emotion-cards`);
+        const response = await fetch(`${API_BASE_URL}/emotion-cards`); 
         if (!response.ok) {
-          if (response.status === 404) { // 404 Not Found의 경우, 카드가 없는 것으로 간주
-            setSentMessages([]);
-          } else {
-            throw new Error('감정 카드 목록을 불러오는데 실패했습니다.');
-          }
-        } else {
-          const data: SentMessage[] = await response.json();
-          setSentMessages(data.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())); // 최신순 정렬
+          throw new Error('감정 카드 목록을 불러오는데 실패했습니다.');
         }
+        const data: SentMessage[] = await response.json();
+        setSentMessages(data.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())); // 최신순 정렬
       } catch (err) {
         if (err instanceof Error) {
           setError(err.message);
@@ -457,4 +452,6 @@ const EmotionCard: React.FC = () => {
   );
 };
 
+
+// 토글로 보낸카드, 받은카드 리스트업 할수있게 하기. 
 export default EmotionCard;

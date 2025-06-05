@@ -66,7 +66,7 @@ const Challenge: React.FC = () => {
 
   return (
     <Container>
-      <Title>이번 주 연결 미션</Title>
+      <Title>이번 주 connect 약속</Title>
       <Card>
         <Description>함께 저녁 준비하기 🍽️</Description>
         <Progress>
@@ -82,4 +82,8 @@ const Challenge: React.FC = () => {
   );
 };
 
+//이번주 약속, 미션완료누르면 완료처리되고 온도가 상승함. 
+//이런약속 어때요? 각 테마버튼 4개정도. 1번:여행,데이트 2번:스킨쉽 3번:선물(사이트 이동) 4번:일상(존댓말쓰기, 시댁에 전화하기)
+//테마버튼 선택하면 모달로 리스트 나오고 선택할수 있음. 확인모달한번더 뜨고 확인누르면 상단에 이번주 미션으로 표시됨
+//미션완료버튼 누르면 사진과 코멘트등록하고 사진을 익명으로 공개하시겠습니까? 에 선택가능하게하게 
 export default Challenge;

@@ -1,59 +1,37 @@
 import React from 'react';
-import { useNavigate } from 'react-router-dom';
+// import { useNavigate } from 'react-router-dom'; // PageLayout에서 처리
 import styled from 'styled-components';
+import PageLayout from '../components/Layout/PageLayout'; // PageLayout 임포트
 
-const Container = styled.div`
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  min-height: 100vh;
-  background: white;
-  padding: 2rem;
-`;
-
-const BackButton = styled.button`
-  position: absolute;
-  top: 1.5rem;
-  left: 1.5rem;
-  background: none;
-  border: none;
-  cursor: pointer;
-  padding: 0.5rem;
-  display: flex;
-  align-items: center;
-  color: #333;
-  font-size: 1.5rem;
-`;
-
-const Title = styled.h1`
-  font-size: 2rem;
-  font-weight: 600;
-  color: #333;
-  margin: 3rem 0 2rem;
-  text-align: center;
-`;
+// Container, BackButton, Title 스타일 컴포넌트는 PageLayout으로 대체되므로 제거
+/*
+const Container = styled.div` ... `;
+const BackButton = styled.button` ... `;
+const Title = styled.h1` ... `;
+*/
 
 const Content = styled.div`
   width: 100%;
   max-width: 800px;
-  padding: 2rem;
+  padding: 1rem; /* PageLayout 내부 ContentArea의 패딩과 중복될 수 있으므로 조정 */
   background: #fff;
   border-radius: 15px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  margin: 0 auto; /* 중앙 정렬을 위해 추가 */
 `;
 
 const Section = styled.section`
   margin-bottom: 2rem;
 
   h2 {
-    font-size: 1.5rem;
+    font-size: 0.8rem;
     font-weight: 600;
     color: #333;
     margin-bottom: 1rem;
   }
 
   p {
-    font-size: 1rem;
+    font-size: 0.7rem;
     color: #666;
     line-height: 1.6;
     margin-bottom: 1rem;
@@ -65,6 +43,7 @@ const Section = styled.section`
     margin-bottom: 1rem;
 
     li {
+    font-size: 0.7rem;
       color: #666;
       margin-bottom: 0.5rem;
     }
@@ -72,13 +51,10 @@ const Section = styled.section`
 `;
 
 const TermsPage: React.FC = () => {
-  const navigate = useNavigate();
+  // const navigate = useNavigate(); // PageLayout에서 처리
 
   return (
-    <Container>
-      <BackButton onClick={() => navigate(-1)}>←</BackButton>
-      <Title>이용약관</Title>
-      
+    <PageLayout title="이용약관" showBackButton={true}>
       <Content>
         <Section>
           <h2>1. 약관의 목적</h2>
@@ -124,7 +100,7 @@ const TermsPage: React.FC = () => {
           </p>
         </Section>
       </Content>
-    </Container>
+    </PageLayout>
   );
 };
 

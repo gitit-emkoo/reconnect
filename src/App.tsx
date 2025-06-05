@@ -32,7 +32,11 @@ import Community from "./pages/Community";
 import MyPage from "./pages/MyPage";
 import ExpertPage from "./pages/ExpertPage";
 import { ProfileEditPage } from './pages/ProfileEditPage';
-import { PasswordChange } from './components/Profile/PasswordChange';
+import PlaceholderPage from './pages/PlaceholderPage';
+import PrivacyPolicyPage from './pages/PrivacyPolicyPage';
+import ThirdPartyConsentPage from './pages/ThirdPartyConsentPage';
+import FaqPage from './pages/FaqPage';
+import AnnouncementsPage from './pages/AnnouncementsPage';
 
 const App = () => {
   const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
@@ -72,7 +76,15 @@ const App = () => {
             <Route path="/my" element={<ProtectedRoute><MyPage /></ProtectedRoute>} />
             <Route path="/expert" element={<ProtectedRoute><ExpertPage /></ProtectedRoute>} />
             <Route path="/profile/edit" element={<ProtectedRoute><ProfileEditPage /></ProtectedRoute>} />
-            <Route path="/profile/password" element={<ProtectedRoute><PasswordChange /></ProtectedRoute>} />
+
+            {/* Placeholder Pages (보호된 라우트) - 일부는 실제 페이지로 교체 */}
+            <Route path="/support/faq" element={<ProtectedRoute><FaqPage /></ProtectedRoute>} />
+            <Route path="/support/contact" element={<ProtectedRoute><PlaceholderPage title="고객센터" /></ProtectedRoute>} />
+            <Route path="/legal/privacy" element={<ProtectedRoute><PrivacyPolicyPage /></ProtectedRoute>} />
+            <Route path="/legal/third-party-consent" element={<ProtectedRoute><ThirdPartyConsentPage /></ProtectedRoute>} />
+            <Route path="/announcements" element={<ProtectedRoute><AnnouncementsPage /></ProtectedRoute>} />
+            <Route path="/settings/notifications" element={<ProtectedRoute><PlaceholderPage title="알림 설정" /></ProtectedRoute>} />
+            <Route path="/delete-account" element={<ProtectedRoute><PlaceholderPage title="회원탈퇴" /></ProtectedRoute>} />
             
             {/* 404 페이지 - 항상 마지막에 위치해야 함 */}
             <Route path="*" element={<NotFound />} />

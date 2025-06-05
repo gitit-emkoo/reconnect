@@ -67,9 +67,11 @@ const ExpertPage: React.FC = () => {
           * 관계 코칭 프로그램
           <br />
           * 맞춤형 관계 개선 로드맵
+          <br />
+          지금 준비중입니다.
         </Text>
         <CTAButton style={{ marginTop: '2.5rem' }} onClick={() => alert("전문가 상담 예약 페이지로 이동")}>
-          전문가 상담 신청하기
+          홈으로 돌아가기기
         </CTAButton>
       </Container>
       <NavigationBar />

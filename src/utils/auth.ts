@@ -35,7 +35,7 @@ export const logout = async (navigate: NavigateFunction) => {
     delete (window as any).fetch;
 
     // 홈페이지로 리다이렉트
-    navigate('/');
+    navigate('/login');
 
     return true;
   } catch (error) {

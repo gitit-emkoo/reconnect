@@ -1,70 +1,112 @@
-// src/pages/MyPage.tsx
 import React, { useEffect, useState, useContext } from "react";
 import styled from "styled-components";
 import { useNavigate } from "react-router-dom";
 import { logout } from "../utils/auth";
 import { AuthContext } from "../contexts/AuthContext";
 import { ProfileEditModal } from "../components/Profile/ProfileEditModal";
+import { PasswordChangeModal } from "../components/Profile/PasswordChangeModal";
 import type { User } from "../types/user";
 import NavigationBar from "../components/NavigationBar";
 
 const Container = styled.div`
-  background-color: #FFF8F3; /* 웰컴 이미지와 어울리는 밝은 베이지 */
+  background-color: white; /* 배경 흰색으로 변경 */
   min-height: 100vh;
   padding: 2rem;
+  padding-bottom: 70px; /* NavigationBar 높이만큼 패딩 추가 */
 `;
 
 const Title = styled.h2`
   font-size: 1.8rem;
-  color: #FF69B4; /* 핑크 계열 */
+  color: #4A4A4A;
   margin-bottom: 1.5rem;
   text-align: center;
 `;
 
 const Section = styled.div`
-  background-color: white;
-  border-radius: 1rem;
+  background-color: transparent; /* 섹션 배경 투명하게 변경 */
+  border-radius: 0; /* 모서리 둥글기 제거 */
   padding: 1.5rem;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  /* box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05); */ /* 그림자 제거 */
   margin-bottom: 1.5rem;
+  text-align: center; /* 이미지와 텍스트 중앙 정렬을 위해 추가 */
+`;
+
+const ProfileImageContainer = styled.div`
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  overflow: hidden;
+  margin: 0 auto 1rem auto; /* 상하 마진 및 좌우 중앙 정렬 */
+  border: 3px solid #FF69B4; /* 핑크색 테두리 */
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+`;
+
+const Nickname = styled.h3`
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 0.5rem;
+`;
+
+const UserInfoText = styled.p`
+  font-size: 0.9rem;
+  color: #555;
+  margin-bottom: 0.3rem;
+  strong {
+    font-weight: 500;
+    color: #FF69B4; /* 핑크 포인트 */
+  }
 `;
 
 const SectionTitle = styled.h3`
   font-size: 1.25rem;
-  color: #4169E1; /* 로얄 블루 */
+  color: #4A4A4A; /* 진한 회색으로 변경 */
+  font-weight: 600; /* 폰트 두께 추가 (이미 있을 수 있지만 명시) */
   margin-bottom: 1rem;
+  /* text-align: left; MyPage 컴포넌트 내에서 Section에 직접 style prop으로 적용 중 */
 `;
 
-const InfoItem = styled.p`
-  font-size: 1rem;
-  color: #333;
-  margin-bottom: 0.5rem;
-  strong {
-    font-weight: 600;
-    color: #666;
-  }
-`;
-
-const Button = styled.button`
-  background: linear-gradient(to right, #FF69B4, #4169E1);
-  color: white;
-  padding: 0.75rem 1.5rem;
-  font-weight: 500;
-  border: none;
-  border-radius: 0.75rem;
-  cursor: pointer;
+const SettingsListContainer = styled.div`
   margin-top: 1rem;
-  transition: opacity 0.2s ease-in-out;
-  
+`;
+
+const SettingItem = styled.div< { disabled?: boolean } >`
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 0.5rem; /* 상하 패딩, 좌우 약간의 패딩 */
+  font-size: 1rem;
+  color: ${(props) => (props.disabled ? '#bbb' : '#777')}; /* 비활성화 시 더 연한 회색, 기본은 연한 회색으로 변경 */
+  border-bottom: 1px solid #eee; /* 항목 간 구분선 */
+  cursor: ${(props) => (props.disabled ? 'default' : 'pointer')};
+  transition: background-color 0.2s ease-in-out;
+
   &:hover {
-    opacity: 0.9;
+    background-color: ${(props) => (props.disabled ? 'transparent' : '#f9f9f9')};
   }
+
+  &:last-child {
+    border-bottom: none;
+  }
+
+  span { /* 오른쪽 '>' 아이콘을 위한 공간 (실제 아이콘은 ::after로 추가) */
+    color: #aaa;
+    font-weight: bold;
+  }
+
+  /* 실제 아이콘을 사용하려면 라이브러리(예: react-icons)를 사용하거나 SVG를 직접 넣는 것이 좋습니다. */
+  /* 여기서는 간단히 텍스트로 처리합니다. */
 `;
 
 const MyPage: React.FC = () => {
   const navigate = useNavigate();
   const { user, setUser } = useContext(AuthContext);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false);
 
   useEffect(() => {
     const token = localStorage.getItem('accessToken');
@@ -82,10 +124,6 @@ const MyPage: React.FC = () => {
     }
   };
 
-  const handleEditProfile = () => {
-    setIsEditModalOpen(true);
-  };
-
   const handleUpdateSuccess = (updatedUser: User) => {
     setUser(updatedUser);
   };
@@ -94,45 +132,119 @@ const MyPage: React.FC = () => {
     return null;
   }
 
+  // 프로필 설정 모달 열기 함수 (기존 handleEditProfile 재사용)
+  const openProfileEditModal = () => {
+    setIsEditModalOpen(true);
+  };
+
+  // 비밀번호 변경 모달 열기 함수
+  const openPasswordChangeModal = () => {
+    setIsPasswordModalOpen(true);
+  };
+
+  // 알림 설정 페이지로 이동 (임시) -> 알림으로 대체
+  // const goToNotificationSettings = () => {
+  //   navigate('/settings/notifications'); // 추후 실제 경로로 수정
+  // };
+
+  // 회원 탈퇴 페이지로 이동 (임시)
+  const goToDeleteAccountPage = () => {
+    navigate('/delete-account'); // 추후 실제 경로로 수정
+  };
+
   return (
     <>
       <Container>
-        <Title>마이 페이지 👤</Title>
+        <Title>마이 페이지</Title>
         <Section>
-          <SectionTitle>내 정보</SectionTitle>
-          <InfoItem>
-            <strong>닉네임:</strong> {user.nickname}
-          </InfoItem>
-          <InfoItem>
-            <strong>이메일:</strong> {user.email}
-          </InfoItem>
-          <InfoItem>
-            <strong>연결된 파트너:</strong> {user.partner?.nickname || '-'}
-          </InfoItem>
-          <Button onClick={handleEditProfile}>정보 수정</Button>
+          <ProfileImageContainer>
+            <img src={user.profileImageUrl || "https://via.placeholder.com/150"} alt={user.nickname} />
+          </ProfileImageContainer>
+          <Nickname>{user.nickname}</Nickname>
+          <UserInfoText>{user.email}</UserInfoText>
+          <UserInfoText>
+            <strong>연결된 파트너:</strong> {user.partner?.nickname || '없음'}
+          </UserInfoText>
+          <UserInfoText>
+            <strong>결혼기념일:</strong> {user.anniversary || '미설정'}
+          </UserInfoText>
+          <UserInfoText>
+            <strong>생일:</strong> {user.birthdate || '미설정'}
+          </UserInfoText>
         </Section>
 
-        <Section>
+        <Section style={{ textAlign: 'left' }}> {/* 설정 섹션은 내부 텍스트 왼쪽 정렬 */}
           <SectionTitle>설정</SectionTitle>
-          <Button style={{ marginRight: '1rem' }}>알림 설정</Button>
-          <Button onClick={() => navigate('/profile/password')}>비밀번호 변경</Button>
+          <SettingsListContainer>
+            <SettingItem onClick={openProfileEditModal}>
+              프로필 설정
+              <span>▸</span>
+            </SettingItem>
+            <SettingItem onClick={openPasswordChangeModal}>
+              비밀번호 변경
+              <span>▸</span>
+            </SettingItem>
+            <SettingItem onClick={() => alert("아직 준비 중인 기능입니다.")}>
+              알림 설정
+              <span>▸</span>
+            </SettingItem>
+            <SettingItem onClick={handleLogout}>
+              로그아웃
+              <span>▸</span>
+            </SettingItem>
+            <SettingItem onClick={goToDeleteAccountPage}>
+              회원탈퇴
+              <span>▸</span>
+            </SettingItem>
+          </SettingsListContainer>
         </Section>
 
-        <Section>
-          <SectionTitle>기타</SectionTitle>
-          <Button style={{ marginRight: '1rem' }}>자주 묻는 질문</Button>
-          <Button onClick={handleLogout}>로그아웃</Button>
+        <Section style={{ textAlign: 'left' }}> {/* 고객지원 섹션도 내부 텍스트 왼쪽 정렬 */}
+          <SectionTitle>고객지원</SectionTitle>
+          <SettingsListContainer>
+            <SettingItem onClick={() => navigate('/support/faq')}>
+              자주하는 질문
+              <span>▸</span>
+            </SettingItem>
+            <SettingItem onClick={() => navigate('/support/contact')}>
+              고객센터
+              <span>▸</span>
+            </SettingItem>
+            <SettingItem onClick={() => navigate('/terms')}>
+              서비스 이용약관
+              <span>▸</span>
+            </SettingItem>
+            <SettingItem onClick={() => navigate('/legal/privacy')}>
+              개인정보처리방침
+              <span>▸</span>
+            </SettingItem>
+            <SettingItem onClick={() => navigate('/legal/third-party-consent')}>
+              개인정보 제 3자 제공 동의
+              <span>▸</span>
+            </SettingItem>
+            <SettingItem onClick={() => navigate('/announcements')}>
+              공지사항
+              <span>▸</span>
+            </SettingItem>
+          </SettingsListContainer>
         </Section>
 
-        {isEditModalOpen && (
-          <ProfileEditModal
-            user={user}
-            onClose={() => setIsEditModalOpen(false)}
-            onUpdateSuccess={handleUpdateSuccess}
-          />
-        )}
       </Container>
       <NavigationBar />
+      {isEditModalOpen && (
+        <ProfileEditModal
+          user={user}
+          onClose={() => setIsEditModalOpen(false)}
+          onUpdateSuccess={handleUpdateSuccess}
+        />
+      )}
+
+      {isPasswordModalOpen && (
+        <PasswordChangeModal 
+          isOpen={isPasswordModalOpen}
+          onClose={() => setIsPasswordModalOpen(false)}
+        />
+      )}
     </>
   );
 };
