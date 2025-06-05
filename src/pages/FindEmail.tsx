@@ -170,7 +170,7 @@ const FindEmail: React.FC = () => {
 
       const result = await response.json();
       alert(`찾은 이메일: ${result.email}`);
-      navigate('/login');
+      navigate('/');
     } catch (error: any) {
       console.error("이메일 찾기 에러:", error.message);
       alert(error.message || '알 수 없는 오류가 발생했습니다.');
@@ -195,7 +195,7 @@ const FindEmail: React.FC = () => {
 
       const result = await response.json();
       alert(`찾은 이메일: ${result.email}`);
-      navigate('/login');
+      navigate('/');
     } catch (error: any) {
       console.error("이메일 찾기 에러:", error.message);
       alert(error.message || '알 수 없는 오류가 발생했습니다.');
@@ -204,7 +204,7 @@ const FindEmail: React.FC = () => {
 
   return (
     <Container>
-      <BackButton onClick={() => navigate('/login')}>←</BackButton>
+      <BackButton onClick={() => navigate(-1)}>←</BackButton>
       <Title>이메일 찾기</Title>
       <Description>
         가입 시 등록한 정보로 이메일을 찾을 수 있습니다.

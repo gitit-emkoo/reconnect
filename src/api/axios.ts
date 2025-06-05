@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 const instance = axios.create({
-  baseURL: 'https://reconnect-backend.onrender.com/api', // baseURL에 '/api' 추가
+  baseURL: 'https://reconnect-backend.onrender.com/api',
   withCredentials: true,
   headers: {
     'Content-Type': 'application/json',

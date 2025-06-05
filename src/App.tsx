@@ -8,13 +8,12 @@ import 'react-toastify/dist/ReactToastify.css';
 import { AuthProvider } from "./contexts/AuthContext";
 
 // 페이지 컴포넌트 임포트
-import RootPage from "./pages/RootPage";
+import WelcomePage from "./pages/WelcomePage";
 import Onboarding from "./pages/Onboarding";
 import Diagnosis from "./pages/Diagnosis";
 import DiagnosisResult from "./pages/DiagnosisResult";
 import Invite from "./pages/Invite";
 import NotFound from "./pages/NotFound";
-import Login from "./pages/Login";
 import RegisterPage from "./pages/RegisterPage";
 import ForgotPassword from "./pages/ForgotPassword";
 import ResetPassword from "./pages/ResetPassword";
@@ -47,15 +46,16 @@ const App = () => {
         <Router>
           <GlobalStyle />
           <Routes>
-            {/* 루트 경로를 온보딩으로 변경 */}
-            <Route path="/" element={<Onboarding />} />
-            <Route path="/welcome" element={<RootPage />} />
+            {/* 루트 경로를 웰컴 페이지로 변경 */}
+            <Route path="/" element={<WelcomePage />} />
+            <Route path="/welcome" element={<WelcomePage />} />
+            <Route path="/onboarding" element={<Onboarding />} />
 
             {/* 공개 라우트 */}
             <Route path="/diagnosis" element={<Diagnosis />} />
             <Route path="/diagnosis/result" element={<DiagnosisResult />} />
             <Route path="/register" element={<RegisterPage />} />
-            <Route path="/login" element={<Login />} />
+            <Route path="/login" element={<WelcomePage />} />
             <Route path="/forgot-password" element={<ForgotPassword />} />
             <Route path="/reset-password" element={<ResetPassword />} />
             <Route path="/find-email" element={<FindEmail />} />
