@@ -2,6 +2,9 @@ export interface User {
   id: string;
   email: string;
   nickname: string;
+  profileImageUrl?: string;
+  anniversary?: string;
+  birthdate?: string;
   partner?: {
     id: string;
     nickname: string;

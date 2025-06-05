@@ -220,7 +220,7 @@ const DiagnosisResult: React.FC = () => {
         <Description>{description}</Description>
 
         <InviteButton onClick={() => navigate("/welcome")}>
-          로그인
+          확인
         </InviteButton>
       </ContentSection>
     </Container>

@@ -262,7 +262,9 @@ const Dashboard: React.FC = () => {
               <MenuTitle>오늘의 미션 도전하기 🔥</MenuTitle>
               <MenuText>함께 미션을 수행하며 즐거운 추억을 만들어보세요.</MenuText>
             </MenuCard>
-            <MenuCard onClick={() => handleFeatureClick("/calendar-page")} disabled>
+
+            {/* 광고넣기 */}
+            <MenuCard onClick={() => handleFeatureClick("/")} disabled>
               <MenuTitle>전체 일정 보기 📅 (준비중)</MenuTitle>
               <MenuText>모든 기록을 한눈에 확인하는 상세 페이지입니다.</MenuText>
             </MenuCard>
@@ -274,8 +276,8 @@ const Dashboard: React.FC = () => {
           <RecommendedGrid>
             <RecommendedCard onClick={() => alert('콘텐츠 준비중입니다.')}>
               <span role="img" aria-label="couple emoji" style={{fontSize: '2rem', marginBottom: '0.5rem'}}>👩‍❤️‍👨</span>
-              <RecommendedName>갈등 해결 가이드</RecommendedName>
-              <RecommendedTime>15분 소요</RecommendedTime>
+              <RecommendedName>우리의 약속</RecommendedName>
+              <RecommendedTime>서로 약속을 하고 싶은 것을 적어보세요.</RecommendedTime>
             </RecommendedCard>
             <RecommendedCard onClick={() => alert('콘텐츠 준비중입니다.')}>
               <span role="img" aria-label="conversation emoji" style={{fontSize: '2rem', marginBottom: '0.5rem'}}>💬</span>

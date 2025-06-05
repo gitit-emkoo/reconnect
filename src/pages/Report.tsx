@@ -70,6 +70,8 @@ const Report: React.FC = () => {
       </Section>
     </Container>
   );
-};
+}; 
+
+//전문가 상담을 위한 심리검사를 하시겠씁니까? 예-> 심리검사 페이지로 이동
 
 export default Report;
