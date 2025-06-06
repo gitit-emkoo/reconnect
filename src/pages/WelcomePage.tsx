@@ -118,13 +118,24 @@ const SocialLoginButtonStyled = styled.button<{ $isKakao?: boolean }>`
 
 
 const DividerTextStyled = styled.p`
-  font-size: 0.85rem;
-  color: #888;
+  font-size: 0.9rem;
+  color: #999;
   text-align: center;
   margin-top: 1.5rem;
   margin-bottom: 1.5rem;
   width: 100%;
   max-width: 340px;
+  display: flex;
+  align-items: center;
+
+  &::before,
+  &::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: #999;
+    margin: 0 1rem;
+  }
 `;
 
 const FormWrapper = styled.form`
@@ -302,15 +313,11 @@ const WelcomePage: React.FC = () => {
     setGoogleError('');
     try {
       const response = await axiosInstance.post('/auth/login', data);
-      
-      if (response.data.accessToken && response.data.user) {
-        console.log('--- 로그인 성공 ---');
-        console.log('사용자 정보:', response.data.user);
-        console.log('액세스 토큰:', response.data.accessToken);
-        console.log('--------------------');
-        
+      if (response.data.accessToken) {
         localStorage.setItem('accessToken', response.data.accessToken);
-        setUser(response.data.user);
+        if (response.data.user) {
+          setUser(response.data.user);
+        }
         reset();
         navigate('/dashboard', { replace: true });
       } else {
@@ -388,12 +395,12 @@ const WelcomePage: React.FC = () => {
       <Subtitle>당신의 관계, 리커넥트가 도와줄게요</Subtitle>
 
       <SocialLoginButtonContainer>
+        <SocialLoginButton isKakao onClick={handleKakaoLogin}>
+          카카오로 로그인
+        </SocialLoginButton>
         <SocialLoginButton onClick={() => googleLogin()}>
           <FontAwesomeIcon icon={faGoogle} className="fa-google" />
           구글로 로그인
-        </SocialLoginButton>
-        <SocialLoginButton onClick={handleKakaoLogin} isKakao>
-          카카오로 로그인
         </SocialLoginButton>
       </SocialLoginButtonContainer>
 
@@ -406,7 +413,7 @@ const WelcomePage: React.FC = () => {
         </GeneralErrorMessage>
       }
 
-      <DividerTextStyled>- 이메일로 로그인하기 -</DividerTextStyled>
+      <DividerTextStyled>이메일로 로그인하기</DividerTextStyled>
 
       <FormWrapper onSubmit={handleSubmit(onSubmitEmailLogin)}>
         <InputWrapper>
