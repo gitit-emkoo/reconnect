@@ -10,10 +10,14 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@fortawesome/fontawesome-svg-core": "^6.7.2",
+    "@fortawesome/free-brands-svg-icons": "^6.7.2",
+    "@fortawesome/react-fontawesome": "^0.2.2",
     "@hookform/resolvers": "^5.0.1",
     "@prisma/client": "^6.8.2",
     "@react-oauth/google": "^0.12.2",
     "@types/react-calendar": "^3.9.0",
+    "@types/react-modal": "^3.16.3",
     "@types/react-toastify": "^4.0.2",
     "axios": "^1.9.0",
     "bcrypt": "^6.0.0",
@@ -25,6 +29,7 @@
     "react-calendar": "^6.0.0",
     "react-dom": "^19.1.0",
     "react-hook-form": "^7.56.4",
+    "react-modal": "^3.16.3",
     "react-router-dom": "^7.6.1",
     "react-swipeable": "^7.0.2",
     "react-toastify": "^11.0.5",
