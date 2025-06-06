@@ -47,7 +47,7 @@ const App = () => {
           <GlobalStyle />
           <Routes>
             {/* 루트 경로를 웰컴 페이지로 변경 */}
-            <Route path="/" element={<WelcomePage />} />
+            <Route path="/" element={<Onboarding />} />
             <Route path="/welcome" element={<WelcomePage />} />
             <Route path="/onboarding" element={<Onboarding />} />
 
