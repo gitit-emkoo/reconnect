@@ -264,9 +264,9 @@ const Dashboard: React.FC = () => {
             </MenuCard>
 
             {/* 광고넣기 */}
-            <MenuCard onClick={() => handleFeatureClick("/")} disabled>
-              <MenuTitle>전체 일정 보기 📅 (준비중)</MenuTitle>
-              <MenuText>모든 기록을 한눈에 확인하는 상세 페이지입니다.</MenuText>
+            <MenuCard onClick={() => handleFeatureClick("/onboarding")} disabled>
+              <MenuTitle>광고입니다다</MenuTitle>
+              <MenuText>광고 넣을 페이지 입니다. </MenuText>
             </MenuCard>
           </MenuCardsColumn>
         </MainContentLayout>

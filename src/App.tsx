@@ -1,4 +1,5 @@
 // src/App.tsx (업데이트된 부분)
+
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import { GoogleOAuthProvider } from '@react-oauth/google';
 import GlobalStyle from "./styles/GlobalStyle";
@@ -36,6 +37,8 @@ import PrivacyPolicyPage from './pages/PrivacyPolicyPage';
 import ThirdPartyConsentPage from './pages/ThirdPartyConsentPage';
 import FaqPage from './pages/FaqPage';
 import AnnouncementsPage from './pages/AnnouncementsPage';
+import PostWritePage from './pages/PostWritePage';
+import PostDetailPage from './pages/PostDetailPage';
 
 const App = () => {
   const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
@@ -47,7 +50,7 @@ const App = () => {
           <GlobalStyle />
           <Routes>
             {/* 루트 경로를 웰컴 페이지로 변경 */}
-            <Route path="/" element={<WelcomePage />} />
+            <Route path="/" element={<Onboarding />} />
             <Route path="/welcome" element={<WelcomePage />} />
             <Route path="/onboarding" element={<Onboarding />} />
 
@@ -76,6 +79,10 @@ const App = () => {
             <Route path="/my" element={<ProtectedRoute><MyPage /></ProtectedRoute>} />
             <Route path="/expert" element={<ProtectedRoute><ExpertPage /></ProtectedRoute>} />
             <Route path="/profile/edit" element={<ProtectedRoute><ProfileEditPage /></ProtectedRoute>} />
+            {/* 커뮤니티 관련 라우트 */}
+//         <Route path="/community" element={<Community />} />
+//         <Route path="/community/new" element={<PostWritePage />} />
+//         <Route path="/community/:id" element={<PostDetailPage />} />
 
             {/* Placeholder Pages (보호된 라우트) - 일부는 실제 페이지로 교체 */}
             <Route path="/support/faq" element={<ProtectedRoute><FaqPage /></ProtectedRoute>} />
@@ -108,3 +115,52 @@ const App = () => {
 };
 
 export default App;
+
+// import React from 'react';
+// import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+// import WelcomePage from './pages/WelcomePage';
+// import RegisterPage from './pages/RegisterPage';
+// import FindEmail from './pages/FindEmail';
+// import ForgotPassword from './pages/ForgotPassword'; // 이 줄이 빠져있을 수 있습니다.
+// import ResetPassword from './pages/ResetPassword';
+// import TermsPage from './pages/TermsPage';
+// import ThirdPartyConsentPage from './pages/ThirdPartyConsentPage';
+// import MainPage from './pages/WelcomePage';
+// import MyPage from './pages/MyPage';
+// import FaqPage from './pages/FaqPage';
+// import ExpertPage from './pages/ExpertPage'; // 이 줄도 확인해주세요.
+// import AnnouncementsPage from './pages/AnnouncementsPage';
+// import KakaoCallback from './pages/KakaoCallback';
+// import Community from './pages/Community';
+// import PostWritePage from './pages/PostWritePage';
+// import PostDetailPage from './pages/PostDetailPage';
+
+// const App: React.FC = () => {
+//   return (
+//     <Router>
+//       <Routes>
+//         <Route path="/" element={<WelcomePage />} />
+        
+//         <Route path="/register" element={<RegisterPage />} />
+//         <Route path="/find-email" element={<FindEmail />} />
+//         <Route path="/forgot-password" element={<ForgotPassword />} />
+//         <Route path="/reset-password" element={<ResetPassword />} />
+//         <Route path="/terms" element={<TermsPage />} />
+//         <Route path="/consent" element={<ThirdPartyConsentPage />} />
+//         <Route path="/main" element={<MainPage />} />
+//         <Route path="/mypage" element={<MyPage />} />
+//         <Route path="/faq" element={<FaqPage />} />
+//         <Route path="/expert" element={<ExpertPage />} />
+//         <Route path="/announcements" element={<AnnouncementsPage />} />
+//         <Route path="/auth/kakao/callback" element={<KakaoCallback />} />
+        
+//         {/* 커뮤니티 관련 라우트 */}
+//         <Route path="/community" element={<Community />} />
+//         <Route path="/community/new" element={<PostWritePage />} />
+//         <Route path="/community/:id" element={<PostDetailPage />} />
+//       </Routes>
+//     </Router>
+//   );
+// };
+
+// export default App;
