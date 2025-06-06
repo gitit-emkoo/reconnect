@@ -79,7 +79,7 @@ const Divider = styled.div`
     content: '';
     flex: 1;
     height: 1px;
-    background: #eee;
+    background: #999;
     margin: 0 1rem;
   }
 `;
