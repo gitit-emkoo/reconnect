@@ -1,6 +1,6 @@
 import React from 'react';
 import { Swiper, SwiperSlide } from 'swiper/react';
-import 'swiper/swiper.css';
+import 'swiper/css';
 import { mockContents } from '../../mocks/mockContents';
 import { ContentCard } from './ContentCard';
 
