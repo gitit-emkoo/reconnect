@@ -5,6 +5,7 @@ import NavigationBar from '../components/NavigationBar';
 import axiosInstance from '../api/axios';
 import axios from 'axios'; // Axios 에러 타입 확인을 위해 import
 import { AuthContext } from '../contexts/AuthContext';
+import BackButton from '../components/common/BackButton';
 
 // === 타입 정의 ===
 interface PostAuthor {
@@ -191,20 +192,6 @@ const CommentContent = styled.p`
   line-height: 1.6;
 `;
 
-const BackButton = styled.button`
-  background: none;
-  border: 1px solid #8d6e63;
-  color: #8d6e63;
-  padding: 0.5rem 1rem;
-  border-radius: 0.5rem;
-  cursor: pointer;
-  margin-bottom: 1.5rem;
-
-  &:hover {
-    background-color: #efebe9;
-  }
-`;
-
 const TagBadge = styled.span`
   display: inline-block;
   background: #ffe0f0;
@@ -364,8 +351,8 @@ const PostDetailPage: React.FC = () => {
 
   return (
     <>
-      <Container>
-        <BackButton onClick={() => navigate(-1)}>← 목록</BackButton>
+      <Container style={{ position: 'relative' }}>
+        <BackButton />
         <PostContainer>
           <PostHeader>
             {post.category && <CategoryTag>{post.category.name}</CategoryTag>}

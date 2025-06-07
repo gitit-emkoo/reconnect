@@ -132,9 +132,25 @@ const PostHeader = styled.div`
   margin-bottom: 0.5rem;
 `;
 
-const CategoryTag = styled.span`
-  background-color: #f1f3f5;
-  color: #868e96;
+// 카테고리별 색상 매핑 함수
+const getCategoryColor = (name: string) => {
+  switch (name) {
+    case '부부관계':
+      return '#FF69B4'; // 분홍
+    case '결혼생활':
+      return '#4F8CFF'; // 파랑
+    case '챌린지인증':
+      return '#FFA940'; // 주황
+    case '찬반토론':
+      return '#52C41A'; // 초록
+    default:
+      return '#f1f3f5'; // 회색
+  }
+};
+
+const CategoryTag = styled.span<{ $bgcolor: string }>`
+  background-color: ${props => props.$bgcolor};
+  color: white;
   padding: 0.2rem 0.5rem;
   border-radius: 0.25rem;
   font-size: 0.75rem;
@@ -300,7 +316,7 @@ const Community: React.FC = () => {
             posts.length > 0 ? posts.map(post => (
               <PostListItem key={post.id}>
                 <PostHeader>
-                  <CategoryTag>{post.category.name}</CategoryTag>
+                  <CategoryTag $bgcolor={getCategoryColor(post.category.name)}>{post.category.name}</CategoryTag>
                   <PostTitle to={`/community/${post.id}`}>{post.title}</PostTitle>
                 </PostHeader>
                 <PostMeta>
