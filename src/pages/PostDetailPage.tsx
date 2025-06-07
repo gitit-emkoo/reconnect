@@ -1,11 +1,16 @@
 import React, { useEffect, useState, useContext } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, Link } from 'react-router-dom';
 import styled from 'styled-components';
 import NavigationBar from '../components/NavigationBar';
 import axiosInstance from '../api/axios';
 import axios from 'axios'; // Axios 에러 타입 확인을 위해 import
 import { AuthContext } from '../contexts/AuthContext';
 import BackButton from '../components/common/BackButton';
+import LeftActive from '../assets/direction=left, status=active, Mirror=True, size=large-3.svg';
+import LeftInactive from '../assets/direction=left, status=inactive, Mirror=False, size=large-3.svg';
+import RightActive from '../assets/direction=right, status=active, Mirror=True, size=large-3.svg';
+import RightInactive from '../assets/direction=right, status=inactive, Mirror=False, size=large-3.svg';
+import LoadingSpinner from '../components/common/LoadingSpinner';
 
 // === 타입 정의 ===
 interface PostAuthor {
@@ -57,30 +62,28 @@ const PostHeader = styled.div`
 `;
 
 const CategoryTag = styled.span`
-  display: inline-block;
-  margin-bottom: 1rem;
-  background-color: #f1f3f5;
-  color: #868e96;
-  padding: 0.3rem 0.6rem;
-  border-radius: 0.25rem;
-  font-size: 0.9rem;
+  font-size: 0.97rem;
   font-weight: 600;
+  padding: 0.18rem 0.6rem;
+  background: #f1f3f5;
+  color: #868e96;
+  border-radius: 0.25rem;
+  margin-right: 0.5rem;
 `;
 
 const PostTitle = styled.h1`
-  font-size: 2rem;
-  color: #212529;
+  font-size: 1.15rem;
   font-weight: 700;
-  line-height: 1.5;
-  margin-bottom: 1rem;
+  color: #212529;
+  margin-bottom: 0.5rem;
 `;
 
 const AuthorInfo = styled.div`
   display: flex;
   align-items: center;
   gap: 0.75rem;
-  font-size: 0.9rem;
-  color: #495057;
+  font-size: 0.97rem;
+  color: #868e96;
 `;
 
 const AuthorName = styled.span`
@@ -88,7 +91,8 @@ const AuthorName = styled.span`
 `;
 
 const PostMeta = styled.span`
-  color: #868e96;
+  font-size: 0.95rem;
+  color: #adb5bd;
 `;
 
 const PostContent = styled.div`
@@ -217,6 +221,32 @@ const ReplyBox = styled.div`
   border-left: 2px solid #f1f3f5;
 `;
 
+const PaginationButton = styled.button<{ $active: boolean }>`
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: ${({ $active }) => ($active ? 'pointer' : 'not-allowed')};
+  display: flex;
+  align-items: center;
+`;
+
+const PaginationNum = styled.span`
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: #868e96;
+  margin: 0 0.7rem;
+`;
+
+const PaginationTop = styled.div`
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 0.7rem;
+  margin-bottom: 1rem;
+  font-size: 1rem;
+  color: #868e96;
+`;
+
 const PostDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
@@ -227,6 +257,10 @@ const PostDetailPage: React.FC = () => {
   const [replyOpen, setReplyOpen] = useState<{ [commentId: string]: boolean }>({});
   const [replyContent, setReplyContent] = useState<{ [commentId: string]: string }>({});
   const { user } = useContext(AuthContext);
+  const [latestPosts, setLatestPosts] = useState<Post[]>([]);
+  const [latestPage, setLatestPage] = useState(1);
+  const [latestTotal, setLatestTotal] = useState(0);
+  const LATEST_LIMIT = 20;
 
   const fetchPost = async () => {
     try {
@@ -251,6 +285,23 @@ const PostDetailPage: React.FC = () => {
       fetchPost();
     }
   }, [id]);
+
+  // 최신글 목록 불러오기
+  useEffect(() => {
+    const fetchLatestPosts = async () => {
+      try {
+        const res = await axiosInstance.get(`/community/posts?limit=${LATEST_LIMIT}&page=${latestPage}`);
+        setLatestPosts(res.data.posts || res.data);
+        setLatestTotal(res.data.total || 0);
+      } catch (e) {
+        setLatestPosts([]);
+        setLatestTotal(0);
+      }
+    };
+    fetchLatestPosts();
+  }, [latestPage]);
+
+  const totalPages = Math.max(1, Math.ceil(latestTotal / LATEST_LIMIT));
 
   const handleCommentSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -304,7 +355,7 @@ const PostDetailPage: React.FC = () => {
     navigate(`/community/${id}/edit`);
   };
 
-  if (loading) return <Container><p>로딩 중...</p></Container>;
+  if (loading) return <Container><LoadingSpinner size={48} /></Container>;
   if (error) return <Container><p style={{ color: 'red' }}>{error}</p></Container>;
   if (!post) return <Container><p>게시글을 찾을 수 없습니다.</p></Container>;
 
@@ -397,6 +448,36 @@ const PostDetailPage: React.FC = () => {
             </CommentList>
         </CommentsSection>
 
+        {/* 최신글 목록 */}
+        <div style={{ marginTop: '3rem', background: '#fff', borderRadius: '0.5rem', boxShadow: '0 2px 8px rgba(0,0,0,0.04)', padding: '2rem' }}>
+          {/* 상단 페이지네이션(오른쪽 정렬, 1/20 형식) */}
+          <PaginationTop>
+            <span>{latestPage} / {totalPages}</span>
+          </PaginationTop>
+          <h2 style={{ fontSize: '1.2rem', fontWeight: 700, marginBottom: '1.2rem', color: '#343a40' }}>최신글</h2>
+          <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
+            {latestPosts.filter(p => p.id !== id).map(post => (
+              <li key={post.id} style={{ borderBottom: '1px solid #f1f3f5', padding: '0.7rem 0' }}>
+                <Link to={`/community/${post.id}`} style={{ textDecoration: 'none', color: '#212529', display: 'flex', alignItems: 'center', gap: '0.7rem' }}>
+                  {post.category && <span style={{ background: '#f1f3f5', color: '#868e96', padding: '0.2rem 0.7rem', borderRadius: '0.25rem', fontSize: '0.9rem', fontWeight: 600 }}>{post.category.name}</span>}
+                  <span style={{ fontWeight: 600, flex: 1 }}>{post.title}</span>
+                  <span style={{ color: '#868e96', fontSize: '0.95rem' }}>{post.author?.nickname}</span>
+                  <span style={{ color: '#adb5bd', fontSize: '0.95rem' }}>{new Date(post.createdAt).toLocaleDateString()}</span>
+                </Link>
+              </li>
+            ))}
+          </ul>
+          {/* 페이지네이션 */}
+          <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '0.5rem', marginTop: '1.5rem' }}>
+            <PaginationButton $active={latestPage > 1} onClick={() => latestPage > 1 && setLatestPage(p => Math.max(1, p - 1))}>
+              {latestPage > 1 ? <img src={LeftActive} alt="이전" width={36} /> : <img src={LeftInactive} alt="이전" width={36} />}
+            </PaginationButton>
+            <PaginationNum>{latestPage}</PaginationNum>
+            <PaginationButton $active={latestPage < totalPages} onClick={() => latestPage < totalPages && setLatestPage(p => Math.min(totalPages, p + 1))}>
+              {latestPage < totalPages ? <img src={RightActive} alt="다음" width={36} /> : <img src={RightInactive} alt="다음" width={36} />}
+            </PaginationButton>
+          </div>
+        </div>
       </Container>
       <NavigationBar />
     </>

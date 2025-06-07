@@ -1,15 +1,20 @@
-import React from 'react';
+import React, { useContext } from 'react';
 import { Navigate } from 'react-router-dom';
+import { AuthContext } from '../contexts/AuthContext';
+import LoadingSpinner from './common/LoadingSpinner';
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
 }
 
 const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
-  // TODO: 실제 인증 상태 관리 로직으로 대체
-  const isAuthenticated = localStorage.getItem('accessToken') !== null;
+  const { user, isLoading } = useContext(AuthContext);
 
-  if (!isAuthenticated) {
+  if (isLoading) {
+    return <LoadingSpinner size={48} />;
+  }
+
+  if (!user) {
     return <Navigate to="/login" replace />;
   }
 
