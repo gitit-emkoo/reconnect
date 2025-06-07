@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import styled from "styled-components";
 import { useNavigate } from "react-router-dom";
 import NavigationBar from "../components/NavigationBar";
@@ -125,6 +125,12 @@ const PostWritePage: React.FC = () => {
     // 커스텀 에디터 상태
     const [editorTitle, setEditorTitle] = useState('');
     const [editorContent, setEditorContent] = useState('');
+    // 찬반토론 투표 상태
+    const [pollQuestion, setPollQuestion] = useState('');
+    const [pollOptions, setPollOptions] = useState([
+      { option: '찬성', votes: 0 },
+      { option: '반대', votes: 0 },
+    ]);
 
     // 카테고리 목록 불러오기
     useEffect(() => {
@@ -140,18 +146,30 @@ const PostWritePage: React.FC = () => {
         fetchCategories();
     }, []);
 
+    // 카테고리 id로 이름 찾기
+    const selectedCategoryName = useMemo(() => {
+      return categories.find(cat => cat.id === categoryId)?.name || '';
+    }, [categories, categoryId]);
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setIsSubmitting(true);
         setError(null);
         try {
             const safeTags = Array.isArray(tags) ? tags : [];
-            await axiosInstance.post('/community/posts', {
-                title: editorTitle,
-                content: editorContent,
-                categoryId,
-                tags: safeTags,
-            });
+            const postData: any = {
+              title: editorTitle,
+              content: editorContent,
+              categoryId,
+              tags: safeTags,
+            };
+            if (selectedCategoryName === '찬반토론') {
+              postData.poll = {
+                question: pollQuestion,
+                options: pollOptions.map(opt => opt.option),
+              };
+            }
+            await axiosInstance.post('/community/posts', postData);
             // 글 등록 성공 시 임시저장 삭제
             localStorage.removeItem('custom_rich_text_editor_draft_new');
             navigate('/community');
@@ -160,6 +178,11 @@ const PostWritePage: React.FC = () => {
         } finally {
             setIsSubmitting(false);
         }
+    };
+
+    // react-polls용 투표 옵션 변경 핸들러
+    const handlePollOptionChange = (idx: number, value: string) => {
+      setPollOptions(opts => opts.map((opt, i) => i === idx ? { ...opt, option: value } : opt));
     };
 
     return (
@@ -217,6 +240,33 @@ const PostWritePage: React.FC = () => {
                     />
                     {error && <p style={{ color: 'red', textAlign: 'right', marginTop: '0.5rem' }}>{error}</p>}
                     <EditorDivider />
+                    {/* 찬반토론 카테고리일 때만 투표 입력 UI */}
+                    {selectedCategoryName === '찬반토론' && (
+                      <div style={{ margin: '1.2rem 0 1.5rem 0', padding: '1rem', background: '#f8f9fa', borderRadius: '0.5rem' }}>
+                        <div style={{ fontWeight: 600, fontSize: '1.05rem', marginBottom: '0.7rem', color: '#8A2BE2' }}>투표 항목 (찬반토론)</div>
+                        <input
+                          type="text"
+                          value={pollQuestion}
+                          onChange={e => setPollQuestion(e.target.value)}
+                          placeholder="투표 질문을 입력하세요 (예: 이 정책에 찬성하십니까?)"
+                          style={{ width: '100%', fontSize: '1rem', padding: '0.6rem', borderRadius: '0.4rem', border: '1px solid #eee', marginBottom: '0.7rem' }}
+                        />
+                        <div style={{ display: 'flex', gap: '0.7rem' }}>
+                          {pollOptions.map((opt, idx) => (
+                            <input
+                              key={idx}
+                              type="text"
+                              value={opt.option}
+                              onChange={e => handlePollOptionChange(idx, e.target.value)}
+                              style={{ flex: 1, fontSize: '1rem', padding: '0.5rem', borderRadius: '0.4rem', border: '1px solid #eee' }}
+                            />
+                          ))}
+                        </div>
+                        <div style={{ fontSize: '0.85rem', color: '#888', marginTop: '0.5rem' }}>
+                          (기본: 찬성/반대, 선택지명 수정 가능)
+                        </div>
+                      </div>
+                    )}
                     <ButtonContainer>
                       <SubmitButton type="submit" disabled={isSubmitting}>
                           {isSubmitting ? '등록 중...' : '등록하기'}
