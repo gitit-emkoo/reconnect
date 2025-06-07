@@ -150,12 +150,12 @@ const PostWritePage: React.FC = () => {
                     <div style={{ margin: '1rem 0' }}>
                         <Tagify
                             settings={{
-                                whitelist: [],
-                                maxTags: 5,
-                                dropdown: {
-                                    enabled: 0
-                                },
-                                placeholder: '태그를 입력하세요 (예: #소통, #공감)'
+                              whitelist: [],
+                              maxTags: 5,
+                              dropdown: { enabled: 0 }
+                            }}
+                            inputProps={{
+                              placeholder: '태그를 입력하세요 (예: #소통, #공감)'
                             }}
                             value={tags}
                             onChange={(e: CustomEvent) => {
