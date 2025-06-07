@@ -6,6 +6,11 @@ import { Link, useNavigate } from "react-router-dom";
 import NavigationBar from "../components/NavigationBar";
 import axiosInstance from "../api/axios"; // 우리 백엔드용 axios 인스턴스
 import axios from "axios"; // Axios 에러 타입 확인을 위해 import
+import LeftActive from '../assets/direction=left, status=active, Mirror=True, size=large-3.svg';
+import LeftInactive from '../assets/direction=left, status=inactive, Mirror=False, size=large-3.svg';
+import RightActive from '../assets/direction=right, status=active, Mirror=True, size=large-3.svg';
+import RightInactive from '../assets/direction=right, status=inactive, Mirror=False, size=large-3.svg';
+import LoadingSpinner from '../components/common/LoadingSpinner';
 
 // === 타입 정의 ===
 // (나중에 src/types/community.ts 같은 파일로 분리하면 좋습니다)
@@ -27,6 +32,7 @@ interface Post {
   _count: {
     comments: number;
   };
+  tags?: string[];
   // views, likes는 나중에 추가될 수 있습니다.
   // views: number;
   // likes: number;
@@ -150,25 +156,36 @@ const getCategoryColor = (name: string) => {
 const CategoryTag = styled.span<{ $bgcolor: string }>`
   background-color: ${props => props.$bgcolor};
   color: white;
-  padding: 0.2rem 0.5rem;
-  border-radius: 0.25rem;
-  font-size: 0.75rem;
-  font-weight: 600;
+  padding: 0.08rem 0.45rem;
+  border-radius: 0.7rem;
+  font-size: 0.82rem;
+  font-weight: 500;
+  line-height: 1.2;
+  margin-right: 0.3rem;
 `;
 
 const PostTitle = styled(Link)`
-  font-size: 1.1rem;
-  font-weight: 600;
+  font-size: 1.01rem;
+  font-weight: 700;
   color: #212529;
   text-decoration: none;
+  margin-bottom: 0.2rem;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  word-break: break-all;
+  max-height: 2.7em;
+  line-height: 1.35;
   &:hover {
     text-decoration: underline;
   }
 `;
 
 const PostMeta = styled.div`
-  font-size: 0.85rem;
-  color: #868e96;
+  font-size: 0.95rem;
+  color: #adb5bd;
   display: flex;
   align-items: center;
   gap: 0.75rem; /* 아이템 간 간격 */
@@ -182,7 +199,7 @@ const CommentCount = styled.span`
 const FABContainer = styled.div`
   position: fixed;
   right: 1.5rem;
-  bottom: 5rem;
+  bottom: 8rem;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -191,32 +208,67 @@ const FABContainer = styled.div`
 `;
 
 const FABButton = styled.div`
-  background-color: #FF69B4; /* 분홍색 */
+  background: linear-gradient(90deg, #FF69B4 0%, #8A2BE2 100%);
   color: white;
   width: 56px;
   height: 56px;
   border-radius: 50%;
   display: flex;
+  flex-direction: column;
   justify-content: center;
   align-items: center;
   font-size: 2rem;
   font-weight: 500;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-  transition: background-color 0.2s;
-  
+  transition: background 0.2s;
+  position: relative;
   &:hover {
-    background-color: #f55aab;
+    background: linear-gradient(90deg, #f55aab 0%, #7c1fa0 100%);
   }
 `;
 
 const FABLabel = styled.span`
-  margin-top: 0.25rem;
-  font-size: 0.8rem;
+  display: block;
+  margin-top: 0.01rem;
+  font-size: 0.82rem;
   font-weight: 600;
-  color: #555;
-  background-color: rgba(255, 255, 255, 0.8);
-  padding: 2px 8px;
-  border-radius: 5px;
+  color: #fff;
+  background: none;
+  text-align: center;
+  letter-spacing: -0.5px;
+`;
+
+const PaginationTop = styled.div`
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 0.7rem;
+  margin-bottom: 0.7rem;
+  font-size: 1rem;
+  color: #868e96;
+`;
+
+const PaginationBottom = styled.div`
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 1.5rem;
+`;
+
+const PaginationButton = styled.button<{ $active: boolean }>`
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: ${({ $active }) => ($active ? 'pointer' : 'not-allowed')};
+  display: flex;
+  align-items: center;
+`;
+
+const PaginationText = styled.span`
+  font-size: 1.08rem;
+  color: #868e96;
+  font-weight: 600;
+  margin: 0 0.3rem;
 `;
 
 const Community: React.FC = () => {
@@ -228,6 +280,9 @@ const Community: React.FC = () => {
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState(''); // 검색어 입력을 위한 상태
   const [activeSearch, setActiveSearch] = useState(''); // 실제 검색 트리거를 위한 상태
+  const [page, setPage] = useState(1);
+  const [total, setTotal] = useState(0);
+  const limit = 20;
 
   // 임시 카테고리 데이터. 나중에 API에서 불러와야 합니다.
   useEffect(() => {
@@ -246,14 +301,12 @@ const Community: React.FC = () => {
     const fetchPosts = async () => {
       try {
         setLoading(true);
-        const params: { categoryId?: string; search?: string } = {};
+        const params: { categoryId?: string; search?: string; page?: number; limit?: number } = { page, limit };
         if (selectedCategory) params.categoryId = selectedCategory;
         if (activeSearch) params.search = activeSearch;
-
-        console.log("게시글 목록 요청. params:", params);
         const response = await axiosInstance.get('/community/posts', { params });
-        console.log("게시글 목록 응답 데이터:", response.data);
-        setPosts(response.data);
+        setPosts(response.data.posts || response.data);
+        setTotal(response.data.total || 0);
       } catch (err) {
         setError("게시글을 불러오는 중 오류가 발생했습니다.");
         console.error("게시글 목록 로딩 실패 에러:", err);
@@ -265,7 +318,7 @@ const Community: React.FC = () => {
       }
     };
     fetchPosts();
-  }, [selectedCategory, activeSearch]); // activeSearch가 바뀔 때마다 실행
+  }, [selectedCategory, activeSearch, page]);
 
   const handleSearch = () => {
     setActiveSearch(searchTerm);
@@ -277,13 +330,14 @@ const Community: React.FC = () => {
     }
   };
 
+  const totalPages = Math.max(1, Math.ceil(total / limit));
+
   return (
     <>
       <Container>
         <Header>
           <Title>커뮤니티</Title>
         </Header>
-
         <CategoryTabs>
           <TabButton $isActive={!selectedCategory} onClick={() => setSelectedCategory(null)}>전체</TabButton>
           {categories.map(cat => (
@@ -296,7 +350,6 @@ const Community: React.FC = () => {
             </TabButton>
           ))}
         </CategoryTabs>
-
         <SearchBarContainer>
           <SearchInput 
             type="text"
@@ -307,9 +360,17 @@ const Community: React.FC = () => {
           />
           <SearchButton onClick={handleSearch}>검색</SearchButton>
         </SearchBarContainer>
-        
+        <PaginationTop>
+          <span>{page} / {totalPages}</span>
+          <PaginationButton $active={page > 1} onClick={() => page > 1 && setPage(page - 1)}>
+            {page > 1 ? <img src={LeftActive} alt="이전" width={36} /> : <img src={LeftInactive} alt="이전" width={36} />}
+          </PaginationButton>
+          <PaginationButton $active={page < totalPages} onClick={() => page < totalPages && setPage(page + 1)}>
+            {page < totalPages ? <img src={RightActive} alt="다음" width={36} /> : <img src={RightInactive} alt="다음" width={36} />}
+          </PaginationButton>
+        </PaginationTop>
         <PostListContainer>
-          {loading && <p>게시글을 불러오는 중...</p>}
+          {loading && <LoadingSpinner size={48} />}
           {error && <p style={{ color: 'red' }}>{error}</p>}
           {!loading && !error && (
             posts.length > 0 ? posts.map(post => (
@@ -318,6 +379,34 @@ const Community: React.FC = () => {
                   <CategoryTag $bgcolor={getCategoryColor(post.category.name)}>{post.category.name}</CategoryTag>
                   <PostTitle to={`/community/${post.id}`}>{post.title}</PostTitle>
                 </PostHeader>
+                {/* 태그 표시 */}
+                {post.tags && post.tags.length > 0 && (
+                  <div style={{
+                    margin: '0.18rem 0 0.08rem 0',
+                    display: 'block',
+                    overflow: 'hidden',
+                    whiteSpace: 'nowrap',
+                    textOverflow: 'ellipsis',
+                    maxWidth: '100%',
+                  }}>
+                    {post.tags.map(tag => (
+                      <span key={tag} style={{
+                        display: 'inline-block',
+                        background: '#f8f0fa',
+                        color: '#b197fc',
+                        fontSize: '0.82rem',
+                        fontWeight: 400,
+                        borderRadius: '0.7rem',
+                        padding: '0.08rem 0.45rem',
+                        marginRight: '0.18rem',
+                        maxWidth: '120px',
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis',
+                        verticalAlign: 'middle',
+                      }}>#{tag}</span>
+                    ))}
+                  </div>
+                )}
                 <PostMeta>
                   <span>{post.author.nickname}</span>
                   <span>·</span>
@@ -332,9 +421,23 @@ const Community: React.FC = () => {
           )}
         </PostListContainer>
         
+        <PaginationBottom>
+          <PaginationButton $active={page > 1} onClick={() => page > 1 && setPage(page - 1)}>
+            {page > 1 ? <img src={LeftActive} alt="이전" width={36} /> : <img src={LeftInactive} alt="이전" width={36} />}
+            <PaginationText>이전</PaginationText>
+          </PaginationButton>
+          <div />
+          <PaginationButton $active={page < totalPages} onClick={() => page < totalPages && setPage(page + 1)}>
+            <PaginationText>다음</PaginationText>
+            {page < totalPages ? <img src={RightActive} alt="다음" width={36} /> : <img src={RightInactive} alt="다음" width={36} />}
+          </PaginationButton>
+        </PaginationBottom>
+
         <FABContainer onClick={() => navigate('/community/new')}>
-          <FABButton>+</FABButton>
-          <FABLabel>글쓰기</FABLabel>
+          <FABButton>
+            +
+            <FABLabel>글쓰기</FABLabel>
+          </FABButton>
         </FABContainer>
 
       </Container>

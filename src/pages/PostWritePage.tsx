@@ -84,6 +84,37 @@ const SubmitButton = styled.button`
   }
 `;
 
+const TagInputWrapper = styled.div`
+  margin: 1rem 0;
+  width: 100%;
+  .tagify {
+    width: 100%;
+    min-width: 0;
+    border-radius: 0.5rem;
+    border: 1px solid #eee;
+    background: #fafbfc;
+    font-size: 1rem;
+    box-shadow: none;
+    padding: 0.5rem 0.7rem;
+  }
+  .tagify__input {
+    min-width: 0;
+    width: 100%;
+    font-size: 1rem;
+    color: #495057;
+  }
+  .tagify__input::placeholder {
+    color: #adb5bd;
+    opacity: 1;
+  }
+`;
+
+const EditorDivider = styled.hr`
+  border: none;
+  border-top: 1px solid #eee;
+  margin: 2rem 0 1.2rem 0;
+`;
+
 const PostWritePage: React.FC = () => {
     const navigate = useNavigate();
     const [categoryId, setCategoryId] = useState('');
@@ -121,6 +152,8 @@ const PostWritePage: React.FC = () => {
                 categoryId,
                 tags: safeTags,
             });
+            // 글 등록 성공 시 임시저장 삭제
+            localStorage.removeItem('custom_rich_text_editor_draft_new');
             navigate('/community');
         } catch (err: any) {
             setError('글 등록에 실패했습니다.');
@@ -147,15 +180,14 @@ const PostWritePage: React.FC = () => {
                           ))}
                       </Select>
                     </FormRow>
-                    <div style={{ margin: '1rem 0' }}>
+                    <TagInputWrapper>
                         <Tagify
                             settings={{
                               whitelist: [],
                               maxTags: 5,
-                              dropdown: { enabled: 0 }
-                            }}
-                            inputProps={{
-                              placeholder: '태그를 입력하세요 (예: #소통, #공감)'
+                              dropdown: { enabled: 0 },
+                              placeholder: '태그를 입력하세요 (예: #소통, #공감)',
+                              enforceWhitelist: false,
                             }}
                             value={tags}
                             onChange={(e: CustomEvent) => {
@@ -175,13 +207,16 @@ const PostWritePage: React.FC = () => {
                         <div style={{ fontSize: '0.8rem', color: '#888', marginTop: '0.3rem' }}>
                             태그는 최대 5개까지 입력할 수 있습니다.
                         </div>
-                    </div>
+                    </TagInputWrapper>
+                    
                     {/* 커스텀 리치 텍스트 에디터 */}
                     <CustomRichTextEditor
                         onTitleChange={setEditorTitle}
                         onContentChange={setEditorContent}
+                        draftKey="custom_rich_text_editor_draft_new"
                     />
                     {error && <p style={{ color: 'red', textAlign: 'right', marginTop: '0.5rem' }}>{error}</p>}
+                    <EditorDivider />
                     <ButtonContainer>
                       <SubmitButton type="submit" disabled={isSubmitting}>
                           {isSubmitting ? '등록 중...' : '등록하기'}

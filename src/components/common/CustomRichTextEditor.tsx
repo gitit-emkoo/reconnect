@@ -1,12 +1,18 @@
 import React, { useRef, useState, useEffect } from 'react';
 import styled from 'styled-components';
 import ConfirmationModal from './ConfirmationModal';
+import IconBold from '../../assets/icon_bold.svg';
+import IconItalic from '../../assets/icon_italic.svg';
+import IconUnderline from '../../assets/icon_underline.svg';
+import IconAlignLeft from '../../assets/icon_alignment_left.svg';
+import IconAlignCenter from '../../assets/icon_alignment_center.svg';
+import IconAlignRight from '../../assets/icon_alignment_right.svg';
 
 // Styled Components (화이트톤, 기존 폼과 통일)
 const EditorWrapper = styled.div`
   background: #fff;
   border-radius: 8px;
-  border: 1px solid #dee2e6;
+  border: none;
   padding: 20px 16px 12px 16px;
   max-width: 100%;
   box-shadow: none;
@@ -32,6 +38,8 @@ const Toolbar = styled.div`
   align-items: center;
   gap: 8px;
   margin-bottom: 8px;
+  overflow-x: auto;
+  white-space: nowrap;
 `;
 const ToolButton = styled.button<{active?: boolean}>`
   background: ${({active}) => active ? '#e9ecef' : 'transparent'};
@@ -49,7 +57,7 @@ const EditorArea = styled.div`
   background: #fff;
   color: #212529;
   border-radius: 6px;
-  border: 1px solid #dee2e6;
+  border: none;
   padding: 12px;
   font-size: 1rem;
   outline: none;
@@ -57,10 +65,6 @@ const EditorArea = styled.div`
   white-space: pre-wrap;
   position: relative;
   transition: border 0.15s;
-  &:focus {
-    border-color: #FF69B4;
-    box-shadow: 0 0 0 2px rgba(255, 105, 180, 0.08);
-  }
 `;
 const Placeholder = styled.div`
   position: absolute;
@@ -81,9 +85,6 @@ const format = (command: string, value?: string) => {
   document.execCommand(command, false, value);
 };
 
-// 임시저장 키
-const STORAGE_KEY = 'custom_rich_text_editor_draft';
-
 interface Draft {
   title: string;
   content: string;
@@ -92,13 +93,16 @@ interface Draft {
 interface CustomRichTextEditorProps {
   onTitleChange?: (title: string) => void;
   onContentChange?: (content: string) => void;
+  initialTitle?: string;
+  initialContent?: string;
+  draftKey?: string;
 }
 
-const CustomRichTextEditor: React.FC<CustomRichTextEditorProps> = ({ onTitleChange, onContentChange }) => {
+const CustomRichTextEditor: React.FC<CustomRichTextEditorProps> = ({ onTitleChange, onContentChange, initialTitle = '', initialContent = '', draftKey = 'custom_rich_text_editor_draft_new' }) => {
   const editorRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const [title, setTitle] = useState('');
-  const [content, setContent] = useState('');
+  const [title, setTitle] = useState(initialTitle);
+  const [content, setContent] = useState(initialContent);
   const [showDraftModal, setShowDraftModal] = useState(false);
   const [draftToLoad, setDraftToLoad] = useState<Draft | null>(null);
 
@@ -106,23 +110,35 @@ const CustomRichTextEditor: React.FC<CustomRichTextEditorProps> = ({ onTitleChan
   useEffect(() => {
     const interval = setInterval(() => {
       const html = editorRef.current?.innerHTML || '';
-      setContent(html);
-      localStorage.setItem(STORAGE_KEY, JSON.stringify({ title, content: html }));
+      localStorage.setItem(draftKey, JSON.stringify({ title, content: html }));
     }, 3000);
     return () => clearInterval(interval);
-  }, [title]);
+  }, [title, content, draftKey]);
 
-  // 페이지 진입 시 임시저장 데이터 있으면 모달 띄우기
+  // 최초 마운트 1회만 초기값 세팅
+  const didMount = useRef(false);
   useEffect(() => {
-    const draft = localStorage.getItem(STORAGE_KEY);
-    if (draft) {
-      const { title, content } = JSON.parse(draft);
-      if (title || content) {
-        setDraftToLoad({ title, content });
-        setShowDraftModal(true);
-      }
+    if (!didMount.current) {
+      setTitle(initialTitle);
+      setContent(initialContent);
+      if (editorRef.current) editorRef.current.innerHTML = initialContent;
+      didMount.current = true;
     }
   }, []);
+
+  // 새글쓰기에서만 임시저장 불러오기 모달 띄우기
+  useEffect(() => {
+    if (draftKey === 'custom_rich_text_editor_draft_new') {
+      const draft = localStorage.getItem(draftKey);
+      if (draft) {
+        const { title, content } = JSON.parse(draft);
+        if (title || content) {
+          setDraftToLoad({ title, content });
+          setShowDraftModal(true);
+        }
+      }
+    }
+  }, [draftKey]);
 
   // 모달에서 '예' 누르면 임시저장 불러오기
   const handleLoadDraft = () => {
@@ -191,15 +207,27 @@ const CustomRichTextEditor: React.FC<CustomRichTextEditorProps> = ({ onTitleChan
           maxLength={60}
         />
         <Toolbar>
-          <ToolButton onClick={() => handleFormat('bold')} title="굵게"><b>B</b></ToolButton>
-          <ToolButton onClick={() => handleFormat('italic')} title="이탤릭"><i>I</i></ToolButton>
-          <ToolButton onClick={() => handleFormat('underline')} title="밑줄"><u>U</u></ToolButton>
-          <ToolButton onClick={() => handleAlign('left')} title="왼쪽 정렬">좌</ToolButton>
-          <ToolButton onClick={() => handleAlign('center')} title="가운데 정렬">중</ToolButton>
-          <ToolButton onClick={() => handleAlign('right')} title="오른쪽 정렬">우</ToolButton>
-          <ToolButton onClick={() => fileInputRef.current?.click()} title="이미지 업로드">🖼️</ToolButton>
-          <ToolButton onClick={handleImageUrl} title="이미지 URL">🌐</ToolButton>
-          <ToolButton onClick={handleLink} title="링크">🔗</ToolButton>
+          <ToolButton type="button" onClick={() => handleFormat('bold')} title="굵게">
+            <img src={IconBold} alt="굵게" width={20} />
+          </ToolButton>
+          <ToolButton type="button" onClick={() => handleFormat('italic')} title="이탤릭">
+            <img src={IconItalic} alt="이탤릭" width={20} />
+          </ToolButton>
+          <ToolButton type="button" onClick={() => handleFormat('underline')} title="밑줄">
+            <img src={IconUnderline} alt="밑줄" width={20} />
+          </ToolButton>
+          <ToolButton type="button" onClick={() => handleAlign('left')} title="왼쪽 정렬">
+            <img src={IconAlignLeft} alt="왼쪽 정렬" width={20} />
+          </ToolButton>
+          <ToolButton type="button" onClick={() => handleAlign('center')} title="가운데 정렬">
+            <img src={IconAlignCenter} alt="가운데 정렬" width={20} />
+          </ToolButton>
+          <ToolButton type="button" onClick={() => handleAlign('right')} title="오른쪽 정렬">
+            <img src={IconAlignRight} alt="오른쪽 정렬" width={20} />
+          </ToolButton>
+          <ToolButton type="button" onClick={() => fileInputRef.current?.click()} title="이미지 업로드">🖼️</ToolButton>
+          <ToolButton type="button" onClick={handleImageUrl} title="이미지 URL">🌐</ToolButton>
+          <ToolButton type="button" onClick={handleLink} title="링크">🔗</ToolButton>
           <HiddenInput
             ref={fileInputRef}
             type="file"

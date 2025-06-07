@@ -39,6 +39,7 @@ import FaqPage from './pages/FaqPage';
 import AnnouncementsPage from './pages/AnnouncementsPage';
 import PostWritePage from './pages/PostWritePage';
 import PostDetailPage from './pages/PostDetailPage';
+import PostEditPage from './pages/PostEditPage';
 
 const App = () => {
   const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
@@ -76,13 +77,12 @@ const App = () => {
             <Route path="/invite" element={<ProtectedRoute><Invite /></ProtectedRoute>} />
             <Route path="/calendar" element={<ProtectedRoute><Calendar /></ProtectedRoute>} />
             <Route path="/community" element={<ProtectedRoute><Community /></ProtectedRoute>} />
+            <Route path="/community/new" element={<ProtectedRoute><PostWritePage /></ProtectedRoute>} />
+            <Route path="/community/:id" element={<ProtectedRoute><PostDetailPage /></ProtectedRoute>} />
+            <Route path="/community/:id/edit" element={<ProtectedRoute><PostEditPage /></ProtectedRoute>} />
             <Route path="/my" element={<ProtectedRoute><MyPage /></ProtectedRoute>} />
             <Route path="/expert" element={<ProtectedRoute><ExpertPage /></ProtectedRoute>} />
             <Route path="/profile/edit" element={<ProtectedRoute><ProfileEditPage /></ProtectedRoute>} />
-            {/* 커뮤니티 관련 라우트 */}
-//         <Route path="/community" element={<Community />} />
-//         <Route path="/community/new" element={<PostWritePage />} />
-//         <Route path="/community/:id" element={<PostDetailPage />} />
 
             {/* Placeholder Pages (보호된 라우트) - 일부는 실제 페이지로 교체 */}
             <Route path="/support/faq" element={<ProtectedRoute><FaqPage /></ProtectedRoute>} />
