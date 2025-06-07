@@ -27,8 +27,6 @@ interface Post {
   _count: {
     comments: number;
   };
-  tags?: string[];
-  viewCount?: number;
   // views, likes는 나중에 추가될 수 있습니다.
   // views: number;
   // likes: number;
@@ -166,12 +164,6 @@ const CommentCount = styled.span`
   font-weight: 600;
 `;
 
-const ViewCount = styled.span`
-  color: #868e96;
-  font-size: 0.95rem;
-  margin-left: 0.5rem;
-`;
-
 const FABContainer = styled.div`
   position: fixed;
   right: 1.5rem;
@@ -212,18 +204,6 @@ const FABLabel = styled.span`
   border-radius: 5px;
 `;
 
-const TagBadge = styled.span`
-  display: inline-block;
-  background: #ffe0f0;
-  color: #d63384;
-  font-size: 0.8rem;
-  font-weight: 600;
-  border-radius: 0.75rem;
-  padding: 0.15rem 0.7rem;
-  margin-right: 0.3rem;
-  margin-top: 0.3rem;
-`;
-
 const Community: React.FC = () => {
   const navigate = useNavigate();
   const [posts, setPosts] = useState<Post[]>([]);
@@ -234,6 +214,7 @@ const Community: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState(''); // 검색어 입력을 위한 상태
   const [activeSearch, setActiveSearch] = useState(''); // 실제 검색 트리거를 위한 상태
 
+  // 임시 카테고리 데이터. 나중에 API에서 불러와야 합니다.
   useEffect(() => {
     const fetchCategories = async () => {
       try {
@@ -328,21 +309,11 @@ const Community: React.FC = () => {
                   <span>{new Date(post.createdAt).toLocaleDateString()}</span>
                   <span>·</span>
                   <span>댓글 <CommentCount>{post._count.comments}</CommentCount></span>
-                  {/* 조회수 표시 */}
-                  {typeof post.viewCount === 'number' && (
-                    <ViewCount>조회수 {post.viewCount}</ViewCount>
-                  )}
                 </PostMeta>
-                {/* 태그 뱃지 표시 */}
-                {post.tags && post.tags.length > 0 && (
-                  <div style={{ marginTop: '0.5rem' }}>
-                    {post.tags.map((tag, idx) => (
-                      <TagBadge key={idx}>#{tag}</TagBadge>
-                    ))}
-                  </div>
-                )}
               </PostListItem>
-            )) : <p>아직 작성된 글이 없습니다.</p>
+            )) : (
+              activeSearch ? <p>검색결과가 없습니다.</p> : <p>아직 작성된 글이 없습니다.</p>
+            )
           )}
         </PostListContainer>
         

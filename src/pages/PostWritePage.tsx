@@ -212,7 +212,7 @@ const PostWritePage: React.FC = () => {
                                 }
                             }}
                         />
-                        <div style={{ fontSize: '0.4rem', color: '#888', marginTop: '0.3rem' }}>
+                        <div style={{ fontSize: '0.8rem', color: '#888', marginTop: '0.3rem' }}>
                             태그는 최대 5개까지 입력할 수 있습니다.
                         </div>
                     </div>
