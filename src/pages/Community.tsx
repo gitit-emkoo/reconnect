@@ -110,9 +110,8 @@ const SearchButton = styled.button`
 `;
 
 const PostListContainer = styled.div`
-  background: white;
-  border-radius: 0.5rem;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  
+  
 `;
 
 const PostListItem = styled.div`
@@ -301,7 +300,7 @@ const Community: React.FC = () => {
         <SearchBarContainer>
           <SearchInput 
             type="text"
-            placeholder="제목, 내용으로 검색"
+            placeholder="제목, 내용, 태그로 검색"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             onKeyDown={handleKeyDown}
