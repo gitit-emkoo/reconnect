@@ -1,9 +1,11 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useContext } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
 import NavigationBar from '../components/NavigationBar';
 import axiosInstance from '../api/axios';
 import axios from 'axios'; // Axios 에러 타입 확인을 위해 import
+import { AuthContext } from '../contexts/AuthContext';
+import BackButton from '../components/common/BackButton';
 
 // === 타입 정의 ===
 interface PostAuthor {
@@ -190,20 +192,6 @@ const CommentContent = styled.p`
   line-height: 1.6;
 `;
 
-const BackButton = styled.button`
-  background: none;
-  border: 1px solid #8d6e63;
-  color: #8d6e63;
-  padding: 0.5rem 1rem;
-  border-radius: 0.5rem;
-  cursor: pointer;
-  margin-bottom: 1.5rem;
-
-  &:hover {
-    background-color: #efebe9;
-  }
-`;
-
 const TagBadge = styled.span`
   display: inline-block;
   background: #ffe0f0;
@@ -238,6 +226,7 @@ const PostDetailPage: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [replyOpen, setReplyOpen] = useState<{ [commentId: string]: boolean }>({});
   const [replyContent, setReplyContent] = useState<{ [commentId: string]: string }>({});
+  const { user } = useContext(AuthContext);
 
   const fetchPost = async () => {
     try {
@@ -298,6 +287,23 @@ const PostDetailPage: React.FC = () => {
     }
   };
 
+  // 글 삭제 핸들러
+  const handleDelete = async () => {
+    if (!window.confirm('정말 이 글을 삭제하시겠습니까?')) return;
+    try {
+      await axiosInstance.delete(`/community/posts/${id}`);
+      alert('글이 삭제되었습니다.');
+      navigate('/community');
+    } catch (err) {
+      alert('글 삭제에 실패했습니다.');
+    }
+  };
+
+  // 글 수정 핸들러(페이지 이동)
+  const handleEdit = () => {
+    navigate(`/community/${id}/edit`);
+  };
+
   if (loading) return <Container><p>로딩 중...</p></Container>;
   if (error) return <Container><p style={{ color: 'red' }}>{error}</p></Container>;
   if (!post) return <Container><p>게시글을 찾을 수 없습니다.</p></Container>;
@@ -345,8 +351,8 @@ const PostDetailPage: React.FC = () => {
 
   return (
     <>
-      <Container>
-        <BackButton onClick={() => navigate(-1)}>← 목록</BackButton>
+      <Container style={{ position: 'relative' }}>
+        <BackButton />
         <PostContainer>
           <PostHeader>
             {post.category && <CategoryTag>{post.category.name}</CategoryTag>}
@@ -365,6 +371,13 @@ const PostDetailPage: React.FC = () => {
                 <ViewCount>조회수 {post.viewCount}</ViewCount>
               )}
             </AuthorInfo>
+            {/* 본인 글일 때만 수정/삭제 버튼 노출 */}
+            {user && post && (user.id === (post as any).authorId) && (
+              <div style={{ marginTop: '1rem', display: 'flex', gap: '0.5rem' }}>
+                <button onClick={handleEdit} style={{ background: '#ffe0e0', color: '#d63384', border: 'none', borderRadius: '0.5rem', padding: '0.4rem 1.2rem', fontWeight: 600, cursor: 'pointer' }}>수정</button>
+                <button onClick={handleDelete} style={{ background: '#f8d7da', color: '#721c24', border: 'none', borderRadius: '0.5rem', padding: '0.4rem 1.2rem', fontWeight: 600, cursor: 'pointer' }}>삭제</button>
+              </div>
+            )}
           </PostHeader>
           <PostContent dangerouslySetInnerHTML={{ __html: post.content }} />
         </PostContainer>
