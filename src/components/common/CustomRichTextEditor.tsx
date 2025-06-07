@@ -1,5 +1,6 @@
 import React, { useRef, useState, useEffect } from 'react';
 import styled from 'styled-components';
+import ConfirmationModal from './ConfirmationModal';
 
 // Styled Components (화이트톤, 기존 폼과 통일)
 const EditorWrapper = styled.div`
@@ -69,29 +70,8 @@ const Placeholder = styled.div`
   pointer-events: none;
   font-size: 1rem;
 `;
-const SaveNotice = styled.div`
-  background: #f8f9fa;
-  color: #495057;
-  font-size: 0.95rem;
-  border-radius: 6px;
-  border: 1px solid #dee2e6;
-  padding: 8px 12px;
-  margin-top: 10px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-`;
-const LoadButton = styled.button`
-  background: #e9ecef;
-  color: #495057;
-  border: none;
-  border-radius: 4px;
-  padding: 4px 10px;
-  font-size: 0.95rem;
-  cursor: pointer;
-  margin-left: 8px;
-  &:hover { background: #dee2e6; }
-`;
+
+
 const HiddenInput = styled.input`
   display: none;
 `;
@@ -118,9 +98,9 @@ const CustomRichTextEditor: React.FC<CustomRichTextEditorProps> = ({ onTitleChan
   const editorRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [title, setTitle] = useState('');
-  const [showSaved, setShowSaved] = useState(false);
-  const [hasDraft, setHasDraft] = useState(false);
   const [content, setContent] = useState('');
+  const [showDraftModal, setShowDraftModal] = useState(false);
+  const [draftToLoad, setDraftToLoad] = useState<Draft | null>(null);
 
   // 임시저장: 3초마다
   useEffect(() => {
@@ -128,41 +108,34 @@ const CustomRichTextEditor: React.FC<CustomRichTextEditorProps> = ({ onTitleChan
       const html = editorRef.current?.innerHTML || '';
       setContent(html);
       localStorage.setItem(STORAGE_KEY, JSON.stringify({ title, content: html }));
-      // 제목/내용이 모두 비어있지 않을 때만 안내
-      if (title || html) setShowSaved(true);
-      setHasDraft(!!(title || html));
     }, 3000);
     return () => clearInterval(interval);
   }, [title]);
 
-  // 임시저장 불러오기 안내 (처음 진입 시)
+  // 페이지 진입 시 임시저장 데이터 있으면 모달 띄우기
   useEffect(() => {
     const draft = localStorage.getItem(STORAGE_KEY);
     if (draft) {
       const { title, content } = JSON.parse(draft);
-      if (title || content) setHasDraft(true);
-      else setHasDraft(false);
-    } else {
-      setHasDraft(false);
+      if (title || content) {
+        setDraftToLoad({ title, content });
+        setShowDraftModal(true);
+      }
     }
   }, []);
 
-  // 임시저장 완료 안내 UX 개선 (1.2초간만 노출)
-  useEffect(() => {
-    if (!showSaved) return;
-    const timer = setTimeout(() => setShowSaved(false), 1200);
-    return () => clearTimeout(timer);
-  }, [showSaved]);
-
-  // 임시저장 불러오기
+  // 모달에서 '예' 누르면 임시저장 불러오기
   const handleLoadDraft = () => {
-    const draft = localStorage.getItem(STORAGE_KEY);
-    if (draft) {
-      const { title, content } = JSON.parse(draft) as Draft;
-      setTitle(title);
-      setContent(content);
-      if (editorRef.current) editorRef.current.innerHTML = content;
+    if (draftToLoad) {
+      setTitle(draftToLoad.title);
+      setContent(draftToLoad.content);
+      if (editorRef.current) editorRef.current.innerHTML = draftToLoad.content;
     }
+    setShowDraftModal(false);
+  };
+  // 모달에서 '아니오' 누르면 닫기
+  const handleIgnoreDraft = () => {
+    setShowDraftModal(false);
   };
 
   // 툴바 핸들러
@@ -200,63 +173,63 @@ const CustomRichTextEditor: React.FC<CustomRichTextEditorProps> = ({ onTitleChan
     handleFormat('justify' + align.charAt(0).toUpperCase() + align.slice(1));
   };
 
-  // 제목 변경 시 부모로 전달
+  // 제목/내용 변경 시 부모로 전달
   useEffect(() => {
     if (onTitleChange) onTitleChange(title);
   }, [title, onTitleChange]);
-
-  // 내용 변경 시 부모로 전달
   useEffect(() => {
     if (onContentChange) onContentChange(content);
   }, [content, onContentChange]);
 
   return (
-    <EditorWrapper>
-      <TitleInput
-        placeholder="제목을 입력하세요"
-        value={title}
-        onChange={e => setTitle(e.target.value)}
-        maxLength={60}
+    <>
+      <EditorWrapper>
+        <TitleInput
+          placeholder="제목을 입력하세요"
+          value={title}
+          onChange={e => setTitle(e.target.value)}
+          maxLength={60}
+        />
+        <Toolbar>
+          <ToolButton onClick={() => handleFormat('bold')} title="굵게"><b>B</b></ToolButton>
+          <ToolButton onClick={() => handleFormat('italic')} title="이탤릭"><i>I</i></ToolButton>
+          <ToolButton onClick={() => handleFormat('underline')} title="밑줄"><u>U</u></ToolButton>
+          <ToolButton onClick={() => handleAlign('left')} title="왼쪽 정렬">좌</ToolButton>
+          <ToolButton onClick={() => handleAlign('center')} title="가운데 정렬">중</ToolButton>
+          <ToolButton onClick={() => handleAlign('right')} title="오른쪽 정렬">우</ToolButton>
+          <ToolButton onClick={() => fileInputRef.current?.click()} title="이미지 업로드">🖼️</ToolButton>
+          <ToolButton onClick={handleImageUrl} title="이미지 URL">🌐</ToolButton>
+          <ToolButton onClick={handleLink} title="링크">🔗</ToolButton>
+          <HiddenInput
+            ref={fileInputRef}
+            type="file"
+            accept="image/*"
+            onChange={handleImageUpload}
+          />
+        </Toolbar>
+        <div style={{position: 'relative'}}>
+          <EditorArea
+            ref={editorRef}
+            contentEditable
+            spellCheck={false}
+            onInput={e => setContent((e.target as HTMLDivElement).innerHTML)}
+            style={{minHeight: 160}}
+          />
+          {(!content || content === '<br>') && (
+            <Placeholder>내용을 적어주세요</Placeholder>
+          )}
+        </div>
+      </EditorWrapper>
+      <ConfirmationModal
+        isOpen={showDraftModal}
+        onRequestClose={handleIgnoreDraft}
+        onConfirm={handleLoadDraft}
+        title="임시저장 불러오기"
+        message="임시저장된 글이 있습니다. 불러올까요?"
+        confirmButtonText="예"
+        cancelButtonText="아니오"
       />
-      <Toolbar>
-        <ToolButton onClick={() => handleFormat('bold')} title="굵게"><b>B</b></ToolButton>
-        <ToolButton onClick={() => handleFormat('italic')} title="이탤릭"><i>I</i></ToolButton>
-        <ToolButton onClick={() => handleFormat('underline')} title="밑줄"><u>U</u></ToolButton>
-        <ToolButton onClick={() => handleAlign('left')} title="왼쪽 정렬">좌</ToolButton>
-        <ToolButton onClick={() => handleAlign('center')} title="가운데 정렬">중</ToolButton>
-        <ToolButton onClick={() => handleAlign('right')} title="오른쪽 정렬">우</ToolButton>
-        <ToolButton onClick={() => fileInputRef.current?.click()} title="이미지 업로드">🖼️</ToolButton>
-        <ToolButton onClick={handleImageUrl} title="이미지 URL">🌐</ToolButton>
-        <ToolButton onClick={handleLink} title="링크">🔗</ToolButton>
-        <HiddenInput
-          ref={fileInputRef}
-          type="file"
-          accept="image/*"
-          onChange={handleImageUpload}
-        />
-      </Toolbar>
-      <div style={{position: 'relative'}}>
-        <EditorArea
-          ref={editorRef}
-          contentEditable
-          spellCheck={false}
-          onInput={e => setContent((e.target as HTMLDivElement).innerHTML)}
-          style={{minHeight: 160}}
-        />
-        {(!content || content === '<br>') && (
-          <Placeholder>내용을 적어주세요</Placeholder>
-        )}
-      </div>
-      {showSaved && (
-        <SaveNotice>임시저장 완료!</SaveNotice>
-      )}
-      {hasDraft && (
-        <SaveNotice>
-          임시저장된 작업물이 있어요.
-          <LoadButton onClick={handleLoadDraft}>불러오기</LoadButton>
-        </SaveNotice>
-      )}
-    </EditorWrapper>
+    </>
   );
 };
 
