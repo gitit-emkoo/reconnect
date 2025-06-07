@@ -128,18 +128,31 @@ const CustomRichTextEditor: React.FC<CustomRichTextEditorProps> = ({ onTitleChan
       const html = editorRef.current?.innerHTML || '';
       setContent(html);
       localStorage.setItem(STORAGE_KEY, JSON.stringify({ title, content: html }));
-      setShowSaved(true);
-      setTimeout(() => setShowSaved(false), 1200);
-      setHasDraft(true);
+      // 제목/내용이 모두 비어있지 않을 때만 안내
+      if (title || html) setShowSaved(true);
+      setHasDraft(!!(title || html));
     }, 3000);
     return () => clearInterval(interval);
   }, [title]);
 
-  // 임시저장 불러오기 안내
+  // 임시저장 불러오기 안내 (처음 진입 시)
   useEffect(() => {
     const draft = localStorage.getItem(STORAGE_KEY);
-    if (draft) setHasDraft(true);
+    if (draft) {
+      const { title, content } = JSON.parse(draft);
+      if (title || content) setHasDraft(true);
+      else setHasDraft(false);
+    } else {
+      setHasDraft(false);
+    }
   }, []);
+
+  // 임시저장 완료 안내 UX 개선 (1.2초간만 노출)
+  useEffect(() => {
+    if (!showSaved) return;
+    const timer = setTimeout(() => setShowSaved(false), 1200);
+    return () => clearTimeout(timer);
+  }, [showSaved]);
 
   // 임시저장 불러오기
   const handleLoadDraft = () => {
