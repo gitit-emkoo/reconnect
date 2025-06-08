@@ -12,9 +12,9 @@ import WelcomeUserSection from "../components/Dashboard/WelcomeUserSection"; // 
 import PartnerConnectionCard from "../components/Dashboard/PartnerConnectionCard"; // 새로 추가
 import IcToggleUp from '../assets/ic_toggle_up.svg?react';
 import IcToggleDown from '../assets/ic_toggle_down.svg?react';
-import iconCard from '../assets/Icon_card.png';
-import iconDiary from '../assets/Icon_diary.png';
-import iconChallenge from '../assets/Icon_challange.png';
+import iconCard from '../assets/love-letter_14299289.png';
+import iconDiary from '../assets/travel-journal_16997872.png';
+import iconChallenge from '../assets/finish_11741557.png';
 
 const Container = styled.div`
   padding: 1.5rem;

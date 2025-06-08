@@ -277,7 +277,13 @@ const Community: React.FC = () => {
     const fetchCategories = async () => {
       try {
         const res = await axiosInstance.get('/community/categories');
-        setCategories(res.data);
+        // '찬반토론'을 맨 앞으로, 나머지는 기존 순서대로
+        const sorted = [...res.data].sort((a, b) => {
+          if (a.name === '찬반토론') return -1;
+          if (b.name === '찬반토론') return 1;
+          return 0;
+        });
+        setCategories(sorted);
       } catch (e) {
         setCategories([]);
       }
