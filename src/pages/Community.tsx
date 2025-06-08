@@ -11,6 +11,7 @@ import LeftInactive from '../assets/direction=left, status=inactive, Mirror=Fals
 import RightActive from '../assets/direction=right, status=active, Mirror=True, size=large-3.svg';
 import RightInactive from '../assets/direction=right, status=inactive, Mirror=False, size=large-3.svg';
 import LoadingSpinner from '../components/common/LoadingSpinner';
+import Header from '../components/common/Header';
 
 // === 타입 정의 ===
 // (나중에 src/types/community.ts 같은 파일로 분리하면 좋습니다)
@@ -43,19 +44,6 @@ const Container = styled.div`
   background-color: #f8f9fa; /* 밝은 회색 배경 */
   min-height: 100vh;
   padding: 1rem 1rem 5rem 1rem;
-`;
-
-const Header = styled.div`
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 1.5rem;
-`;
-
-const Title = styled.h2`
-  font-size: 1.8rem;
-  color: #343a40;
-  font-weight: 700;
 `;
 
 const CategoryTabs = styled.div`
@@ -334,10 +322,9 @@ const Community: React.FC = () => {
 
   return (
     <>
+      <Header title="커뮤니티" />
       <Container>
-        <Header>
-          <Title>커뮤니티</Title>
-        </Header>
+        
         <CategoryTabs>
           <TabButton $isActive={!selectedCategory} onClick={() => setSelectedCategory(null)}>전체</TabButton>
           {categories.map(cat => (

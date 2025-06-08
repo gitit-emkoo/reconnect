@@ -4,6 +4,8 @@ import { ContentList } from '../components/contents/ContentList';
 import { ContentDetail } from '../components/contents/ContentDetail';
 import '../components/contents/ContentCard.css';
 import '../components/contents/ContentDetail.css';
+import NavigationBar from '../components/NavigationBar';
+import Header from '../components/common/Header';
 
 interface Content {
   id: string;
@@ -16,6 +18,7 @@ const ContentCenter: React.FC = () => {
 
   return (
     <div>
+      <Header title="콘텐츠" />
       {!selected ? (
         <ContentList onCardClick={setSelectedId} />
       ) : (
@@ -26,6 +29,7 @@ const ContentCenter: React.FC = () => {
           <ContentDetail {...selected} />
         </div>
       )}
+      <NavigationBar />
     </div>
   );
 };
