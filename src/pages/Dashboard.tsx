@@ -10,6 +10,11 @@ import { InviteModal } from "../components/Invite/InviteModal";
 import DashboardCalendar from "../components/Dashboard/DashboardCalendar"; // 새로 추가된 캘린더 컴포넌트
 import WelcomeUserSection from "../components/Dashboard/WelcomeUserSection"; // 새로 추가
 import PartnerConnectionCard from "../components/Dashboard/PartnerConnectionCard"; // 새로 추가
+import IcToggleUp from '../assets/ic_toggle_up.svg?react';
+import IcToggleDown from '../assets/ic_toggle_down.svg?react';
+import iconCard from '../assets/Icon_card.png';
+import iconDiary from '../assets/Icon_diary.png';
+import iconChallenge from '../assets/Icon_challange.png';
 
 const Container = styled.div`
   padding: 1.5rem;
@@ -30,26 +35,14 @@ const Logo = styled.img`
   height: auto;
 `;
 
-const MyPageButton = styled.button`
-  background: none;
-  border: none;
-  color: #333;
-  font-size: 1.5rem;
-  cursor: pointer;
-  padding: 0.5rem;
-  display: flex;
-  align-items: center;
-`;
-
 const TopRowContainer = styled.div`
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
   gap: 1.5rem;
-  margin-bottom: 1.5rem; 
+  margin-bottom: 1.5rem;
 
   @media (max-width: 768px) {
-    flex-direction: row; 
-    align-items: flex-start;
+    
   }
 `;
 
@@ -60,7 +53,7 @@ const MainContentLayout = styled.div`
   display: flex;
   gap: 1.5rem;
   margin-top: 1.5rem; 
-  align-items: flex-start; 
+   
 
   @media (max-width: 992px) { 
     flex-direction: column;
@@ -132,7 +125,7 @@ const RecommendedGrid = styled.div`
   overflow-x: auto;
   padding-bottom: 1rem;
 `;
-const RecommendedCard = styled.div`
+const PartnerCard = styled.div`
   background-color: #e8f5e9;
   border-radius: 1rem;
   padding: 1rem;
@@ -143,18 +136,10 @@ const RecommendedCard = styled.div`
   align-items: center;
   cursor: pointer;
 `;
-const RecommendedName = styled.div`
-  font-size: 0.875rem;
-  text-align: center;
-`;
-const RecommendedTime = styled.div`
-  font-size: 0.75rem;
-  color: #666;
-  margin-top: 0.25rem;
-`;
+
 const TestButtonContainer = styled.div`
   text-align: center;
-  margin-top: 2rem;
+  margin-top: 1rem;
   padding-bottom: 1rem; 
 `;
 const TestButton = styled.button`
@@ -172,10 +157,46 @@ const TestButton = styled.button`
 
 // CalendarValue 타입은 DashboardCalendar.tsx로 이동
 
+// 메인 아이콘 메뉴 스타일 컴포넌트
+const MainMenuRow = styled.div`
+  display: flex;
+  flex-direction: row;
+  gap: 1.5rem;
+  justify-content: center;
+`;
+
+const MainMenuItem = styled.div`
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 70px;
+  cursor: pointer;
+`;
+
+const MainMenuIcon = styled.img`
+  width: 40px;
+  height: 40px;
+  margin-bottom: 6px;
+`;
+
+const MainMenuText = styled.span`
+  font-weight: 500;
+  font-size: 13px;
+  color: #7C3AED;
+  text-align: center;
+`;
+
 const Dashboard: React.FC = () => {
   const navigate = useNavigate();
   const { user, setUser, isLoading } = useContext(AuthContext);
   const [isInviteModalOpen, setIsInviteModalOpen] = useState(false);
+  const [showCalendar, setShowCalendar] = useState(false);
+  const today = new Date();
+  // 임시 일정 및 상태 데이터
+  const schedules: { text: string }[] = [];
+  const hasSentEmotionCard = true;
+  const hasReceivedEmotionCard = false;
+  const hasEmotionDiary = true;
   // calendarDate, selectedDateData, isDateModalOpen, monthlyEvents state는 DashboardCalendar.tsx로 이동
   // calendarDate 관련 useEffect도 이동
 
@@ -218,7 +239,7 @@ const Dashboard: React.FC = () => {
   if (isLoading) return <Container>로딩 중...</Container>;
   if (!user) return <Container>로그인이 필요합니다.</Container>;
   
-  const logoUrl = '/logo.png';
+  const logoUrl = '/images/reconnect.png';
 
   // 파트너 이미지 URL 결정 로직 수정
   let partnerDisplayImageUrl: string | null = null;
@@ -231,9 +252,7 @@ const Dashboard: React.FC = () => {
       <Container>
         <Header>
           <Logo src={logoUrl} alt="ReConnect Logo" onError={(e) => (e.currentTarget.style.display = 'none')} />
-          <MyPageButton onClick={() => navigate("/mypage")}>
-            <span role="img" aria-label="mypage">👤</span>
-          </MyPageButton>
+        
         </Header>
 
         <TopRowContainer>
@@ -246,22 +265,68 @@ const Dashboard: React.FC = () => {
         </TopRowContainer>
         
         <MainContentLayout>
-          <CalendarColumn>
-            <DashboardCalendar />
-          </CalendarColumn>
+          <MainMenuRow>
+            <MainMenuItem onClick={() => navigate('/emotion-diary')}>
+              <MainMenuIcon src={iconDiary} alt="감정일기 아이콘" />
+              <MainMenuText>감정일기</MainMenuText>
+            </MainMenuItem>
+            <MainMenuItem onClick={() => navigate('/emotion-card')}>
+              <MainMenuIcon src={iconCard} alt="감정카드 아이콘" />
+              <MainMenuText>감정카드</MainMenuText>
+            </MainMenuItem>
+            <MainMenuItem onClick={() => navigate('/challenge')}>
+              <MainMenuIcon src={iconChallenge} alt="챌린지 아이콘" />
+              <MainMenuText>챌린지</MainMenuText>
+            </MainMenuItem>
+          </MainMenuRow>
+          
           <MenuCardsColumn>
-            <MenuCard onClick={() => handleFeatureClick("/emotion-diary")}>
-              <MenuTitle>오늘의 감정일기 쓰러가기 📝</MenuTitle>
-              <MenuText>솔직한 감정을 기록하고 서로를 더 깊이 이해해 보세요.</MenuText>
+            
+            {/* 오늘 날짜만 보이는 캘린더 토글 버튼 - UI 개선 */}
+            <MenuCard as="div" style={{ padding: 0, background: 'none', boxShadow: 'none' }}>
+              <button
+                style={{
+                  width: '100%',
+                  padding: '1.2rem',
+                  borderRadius: '1rem',
+                  border: '1px solid #E64A8D',
+                  background: '#fff',
+                  color: '#E64A8D',
+                  fontWeight: 600,
+                  fontSize: '1.1rem',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'flex-start',
+                  justifyContent: 'space-between',
+                  minHeight: 80
+                }}
+                onClick={() => setShowCalendar(v => !v)}
+              >
+                <div style={{ textAlign: 'left', flex: 1 }}>
+                  <div style={{ fontSize: 20, fontWeight: 700, marginBottom: 4 }}>
+                    {today.getFullYear()}-{String(today.getMonth() + 1).padStart(2, '0')}-{String(today.getDate()).padStart(2, '0')}
+                  </div>
+                  <div style={{ fontSize: 14, color: '#666' }}>
+                    {schedules.length === 0
+                      ? "일정이 없습니다"
+                      : schedules.map((s, i) => <div key={i}>{s.text}</div>)}
+                  </div>
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', gap: 8, minWidth: 24 }}>
+                  {hasSentEmotionCard && <span style={{ width: 12, height: 12, borderRadius: '50%', background: '#FFA500', display: 'inline-block' }} title="감정카드 보냄"></span>}
+                  {hasReceivedEmotionCard && <span style={{ width: 12, height: 12, borderRadius: '50%', background: '#32CD32', display: 'inline-block' }} title="감정카드 받음"></span>}
+                  {hasEmotionDiary && <span style={{ width: 12, height: 12, borderRadius: '50%', background: '#FF69B4', display: 'inline-block' }} title="감정일기 작성"></span>}
+                  <span style={{ display: 'flex', alignItems: 'center', marginLeft: 8 }}>
+                    {showCalendar ? <IcToggleUp width={24} height={24} /> : <IcToggleDown width={24} height={24} />}
+                  </span>
+                </div>
+              </button>
             </MenuCard>
-            <MenuCard onClick={() => handleFeatureClick("/emotion-card")}>
-              <MenuTitle>파트너에게 감정카드 보내기 🃏</MenuTitle> 
-              <MenuText>오늘 나의 감정을 표현하고 따뜻한 마음을 전달해보세요.</MenuText> 
-            </MenuCard>
-            <MenuCard onClick={() => handleFeatureClick("/challenge")}>
-              <MenuTitle>오늘의 미션 도전하기 🔥</MenuTitle>
-              <MenuText>함께 미션을 수행하며 즐거운 추억을 만들어보세요.</MenuText>
-            </MenuCard>
+            {showCalendar && (
+              <CalendarColumn>
+                <DashboardCalendar />
+              </CalendarColumn>
+            )}
 
             {/* 광고넣기 */}
             <MenuCard onClick={() => handleFeatureClick("/onboarding")} disabled>
@@ -272,23 +337,20 @@ const Dashboard: React.FC = () => {
         </MainContentLayout>
         
         <RecommendedSection>
-          <RecommendedTitle>이런 활동은 어때요? ✨</RecommendedTitle>
+          <RecommendedTitle>PARTNER ✨</RecommendedTitle>
           <RecommendedGrid>
-            <RecommendedCard onClick={() => alert('콘텐츠 준비중입니다.')}>
+            <PartnerCard onClick={() => alert('콘텐츠 준비중입니다.')}>
               <span role="img" aria-label="couple emoji" style={{fontSize: '2rem', marginBottom: '0.5rem'}}>👩‍❤️‍👨</span>
-              <RecommendedName>우리의 약속</RecommendedName>
-              <RecommendedTime>서로 약속을 하고 싶은 것을 적어보세요.</RecommendedTime>
-            </RecommendedCard>
-            <RecommendedCard onClick={() => alert('콘텐츠 준비중입니다.')}>
+              
+            </PartnerCard>
+            <PartnerCard onClick={() => alert('콘텐츠 준비중입니다.')}>
               <span role="img" aria-label="conversation emoji" style={{fontSize: '2rem', marginBottom: '0.5rem'}}>💬</span>
-              <RecommendedName>깊은 대화 주제</RecommendedName>
-              <RecommendedTime>주제별 상이</RecommendedTime>
-            </RecommendedCard>
-            <RecommendedCard onClick={() => alert('콘텐츠 준비중입니다.')}>
+              
+            </PartnerCard>
+            <PartnerCard onClick={() => alert('콘텐츠 준비중입니다.')}>
               <span role="img" aria-label="gift emoji" style={{fontSize: '2rem', marginBottom: '0.5rem'}}>🎁</span>
-              <RecommendedName>서프라이즈 이벤트</RecommendedName>
-              <RecommendedTime>계획하기 나름!</RecommendedTime>
-            </RecommendedCard>
+              
+            </PartnerCard>
           </RecommendedGrid>
         </RecommendedSection>
 

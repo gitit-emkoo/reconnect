@@ -11,11 +11,14 @@ const PartnerCardContainer = styled.div`
   box-shadow: 0 4px 12px rgba(0,0,0,0.1);
   color: white;
   overflow: hidden;
-  /* background-color은 props로 받아 동적으로 설정 */
   display: flex;
+  flex: 1 1 0;
+  min-width: 0;
+  width: 50%;
 
   @media (max-width: 768px) {
-    width: 200px; 
+    width: 50%;
+    flex: unset;
   }
 `;
 

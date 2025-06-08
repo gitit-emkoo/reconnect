@@ -18,7 +18,7 @@ export const ContentList: React.FC<ContentListProps> = ({ onCardClick }) => {
 
   return (
     <div>
-      <h2>AI 콘텐츠</h2>
+      <h3>AI가 추천하는 콘텐츠</h3>
       <div className="content-list">
         {rows.map((row, i) => (
           <Swiper

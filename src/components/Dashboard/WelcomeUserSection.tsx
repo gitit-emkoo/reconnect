@@ -5,8 +5,14 @@ import type { User } from '../../types/user';
 
 // Styled Components (Dashboard.tsx에서 이동)
 const WelcomeSectionContainer = styled.div`
-  flex: 1;
-  margin-bottom: 1rem; 
+  flex: 1 1 0;
+  min-width: 0;
+  width: 50%;
+  display: flex;
+  flex-direction: column;
+  @media (max-width: 768px) {
+    width: 50%;
+  }
 `;
 
 const WelcomeTitle = styled.h1`
@@ -37,6 +43,7 @@ const ReportButton = styled.button`
   cursor: pointer;
   transition: background-color 0.2s;
   font-size: 0.9rem;
+  margin-top: auto;
   &:hover {
     background-color: #c33764;
   }
