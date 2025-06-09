@@ -4,9 +4,10 @@ import styled from 'styled-components';
 import { useNavigate, useLocation } from 'react-router-dom';
 import HomeIcon from '../assets/Icon_Home.svg?react';
 import ExpertIcon from '../assets/Icon_Expert.svg?react';
-import ContentIcon from '../assets/Icon_Content.svg?react';
+import ContentsIcon from '../assets/Icon_Contents.svg?react';
 import CommunityIcon from '../assets/Icon_Community.svg?react';
 import MyIcon from '../assets/Icon_My.svg?react';
+
 
 const NavContainer = styled.nav`
   position: fixed;
@@ -46,16 +47,16 @@ const NavButton = styled.button<NavButtonProps>`
   color: ${props => (props.disabled ? '#ccc' : props.$isActive ? '#4169E1' : '#6b7280')};
   
   svg {
-    width: 20px;
-    height: 20px;
+    width: 24px;
+    height: 24px;
     margin-bottom: 4px;
-    fill: none;
-    stroke: ${props => 
+    fill: ${props => 
       props.disabled 
         ? '#ccc' 
         : props.$isActive 
           ? '#4169E1'
           : '#6b7280'};
+    stroke: none;
     transition: stroke 0.2s ease-in-out;
   }
 
@@ -114,7 +115,7 @@ const NavigationBar: React.FC<NavigationBarProps> = () => {
         onClick={() => handleNavClick("/content-center")}
         $isActive={location.pathname === '/content-center'}
       >
-        <ContentIcon />
+        <ContentsIcon />
         콘텐츠센터
       </NavButton>
       <NavButton
@@ -131,6 +132,7 @@ const NavigationBar: React.FC<NavigationBarProps> = () => {
         <MyIcon />
         MY
       </NavButton>
+      
     </NavContainer>
   );
 };

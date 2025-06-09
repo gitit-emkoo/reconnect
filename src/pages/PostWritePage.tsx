@@ -86,20 +86,6 @@ const SubmitButton = styled.button`
   }
 `;
 
-const ImageAttachButton = styled.button`
-  background-color: #e9ecef;
-  color: #495057;
-  padding: 0.8rem 1.5rem;
-  font-weight: 600;
-  border: none;
-  border-radius: 0.5rem;
-  cursor: pointer;
-  font-size: 1rem;
-  transition: background-color 0.2s;
-  &:hover {
-    background-color: #dee2e6;
-  }
-`;
 
 const TagInputWrapper = styled.div`
   margin: 1rem 0;
@@ -324,9 +310,7 @@ const PostWritePage: React.FC = () => {
                       </div>
                     )}
                     <ButtonContainer>
-                      <ImageAttachButton type="button" onClick={() => imageInputRef.current?.click()}>
-                        이미지 첨부
-                      </ImageAttachButton>
+                      
                       <input 
                         type="file" 
                         ref={imageInputRef} 

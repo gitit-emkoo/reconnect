@@ -17,6 +17,7 @@ import IcToggleDown from '../assets/ic_toggle_down.svg?react';
 import iconCard from '../assets/love-letter_14299289.png';
 import iconDiary from '../assets/travel-journal_16997872.png';
 import iconChallenge from '../assets/finish_11741557.png';
+import iconReport from '../assets/chart_11709638.png';
 
 const Container = styled.div`
   padding: 1.5rem;
@@ -42,6 +43,9 @@ const Logo = styled.img`
 // PartnerCard, PartnerInfo, PartnerImageArea, PartnerCardTitle, PartnerName, PartnerTime, InviteButton styled-components는 PartnerConnectionCard.tsx로 이동
 
 const TopRowContainer = styled.div`
+  background-color: #f1f3f7;
+  border-radius: 1rem;
+  padding: 1.5rem;  
   display: flex;
   flex-direction: row;
   gap: 1.5rem;
@@ -325,6 +329,10 @@ const Dashboard: React.FC = () => {
           <MainMenuItem onClick={() => handleFeatureClick('/challenge')}>
             <MainMenuIcon src={iconChallenge} alt="챌린지 아이콘" />
             <MainMenuText>챌린지</MainMenuText>
+          </MainMenuItem>
+          <MainMenuItem onClick={() => handleFeatureClick('/report')}>
+            <MainMenuIcon src={iconReport} alt="리포트 아이콘콘" />
+            <MainMenuText>리포트</MainMenuText>
           </MainMenuItem>
         </MainMenuRow>
 
