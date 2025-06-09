@@ -1,5 +1,5 @@
 // src/pages/EmotionCard.tsx (백엔드 연동 수정)
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import styled from "styled-components";
 import NavigationBar from "../components/NavigationBar";
 import BackButton from "../components/common/BackButton";
@@ -7,6 +7,17 @@ import SubmitButton from "../components/common/SubmitButton";
 import ConfirmationModal from '../components/common/ConfirmationModal';
 import LoadingSpinner from '../components/common/LoadingSpinner';
 import EmojiPicker, { EmojiStyle } from 'emoji-picker-react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { produce } from 'immer';
+
+// 배열을 행 단위로 나누는 chunkCards 함수 추가
+function chunkCards<T>(array: T[], size: number): T[][] {
+  const result: T[][] = [];
+  for (let i = 0; i < array.length; i += size) {
+    result.push(array.slice(i, i + size));
+  }
+  return result;
+}
 
 // 아이콘 (SVG 등 사용 가능, 여기서는 텍스트로 대체)
 const SparkleIcon = () => <span style={{ marginRight: "0.5rem" }}>✨</span>;
@@ -241,32 +252,7 @@ const CardDate = styled.span`
   font-size: 0.85rem;
   color: #888;
 `;
-const PaginationWrapper = styled.div`
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  gap: 0.5rem;
-  margin: 1.5rem 0 0.5rem 0;
-`;
-const PaginationButton = styled.button`
-  background: #f3f4f6;
-  border: none;
-  border-radius: 6px;
-  padding: 0.4rem 0.9rem;
-  font-size: 1rem;
-  color: #7C3AED;
-  font-weight: 600;
-  cursor: pointer;
-  transition: background 0.15s;
-  &:hover {
-    background: #e0e7ff;
-  }
-  &:disabled {
-    color: #bbb;
-    background: #f3f4f6;
-    cursor: not-allowed;
-  }
-`;
+
 
 const ModalBackground = styled.div`
   position: fixed;
@@ -319,17 +305,30 @@ const CloseButton = styled.button`
   }
 `;
 
-// API Base URL (환경 변수 등에서 관리하는 것이 좋음)
-const API_BASE_URL = "https://reconnect-backend.onrender.com/api"; 
+const API_BASE_URL = "https://reconnect-backend.onrender.com/api";
 
-// 카드 리스트를 7개씩 2차원 배열로 나누는 함수
-function chunkCards<T>(cards: T[], chunkSize: number) {
-  const result: T[][] = [];
-  for (let i = 0; i < cards.length; i += chunkSize) {
-    result.push(cards.slice(i, i + chunkSize));
-  }
-  return result;
-}
+// 감정카드 목록 fetch 함수
+const fetchSentMessages = async () => {
+  const response = await fetch(`${API_BASE_URL}/emotion-cards`, {
+    headers: {
+      'Authorization': `Bearer ${localStorage.getItem('accessToken') || ''}`
+    }
+  });
+  if (!response.ok) throw new Error('감정카드 목록을 불러오지 못했습니다.');
+  const data = await response.json();
+  return data.map((card: any) => ({ ...card, text: card.text || card.message || '' }));
+};
+
+const fetchReceivedMessages = async () => {
+  const response = await fetch(`${API_BASE_URL}/emotion-cards/received`, {
+    headers: {
+      'Authorization': `Bearer ${localStorage.getItem('accessToken') || ''}`
+    }
+  });
+  if (!response.ok) throw new Error('받은 감정카드 목록을 불러오지 못했습니다.');
+  const data = await response.json();
+  return data.map((card: any) => ({ ...card, text: card.text || card.message || '' }));
+};
 
 // 카드 아이템 컴포넌트 분리 (map 내부 useState 제거)
 const CardItem = ({ msg, onClick, showNewBadge = false }: { msg: SentMessage, onClick: () => void, showNewBadge?: boolean }) => {
@@ -349,106 +348,96 @@ const CardItem = ({ msg, onClick, showNewBadge = false }: { msg: SentMessage, on
   );
 };
 
+const postEmotionCard = async ({ text, emoji }: { text: string, emoji: string }) => {
+  const response = await fetch(`${API_BASE_URL}/emotion-cards`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${localStorage.getItem('accessToken') || ''}`
+    },
+    body: JSON.stringify({ text, emoji })
+  });
+  if (!response.ok) throw new Error('감정카드 전송에 실패했습니다.');
+  return response.json();
+};
+
 const EmotionCard: React.FC = () => {
+  const queryClient = useQueryClient();
   const [message, setMessage] = useState("");
+  const [selectedEmoji, setSelectedEmoji] = useState("");
   const [suggestion, setSuggestion] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(false); // AI 제안 로딩
-  const [isSubmitting, setIsSubmitting] = useState(false); // 카드 전송 로딩
-  const [error, setError] = useState<string | null>(null);
+  const [suggestionError, setSuggestionError] = useState('');
+  const [isSuggesting, setIsSuggesting] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // 보낸 메시지 쿼리
+  const { 
+    data: sentMessages = [], 
+    isLoading: isLoadingSent, 
+    error: sentError 
+  } = useQuery({
+    queryKey: ['sentMessages'],
+    queryFn: fetchSentMessages,
+  });
+
+  // 받은 메시지 쿼리
+  const { 
+    data: receivedMessages = [], 
+    isLoading: isLoadingReceived, 
+    error: receivedError 
+  } = useQuery({
+    queryKey: ['receivedMessages'],
+    queryFn: fetchReceivedMessages,
+  });
   
-  const [sentMessages, setSentMessages] = useState<SentMessage[]>([]);
-  const [isLoadingCards, setIsLoadingCards] = useState(false); // 카드 목록 로딩
-  const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedMessage, setSelectedMessage] = useState<SentMessage | null>(null);
-  const [isConfirmOpen, setIsConfirmOpen] = useState(false);
-  const [selectedEmoji, setSelectedEmoji] = useState<string>('❤️');
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const [tab, setTab] = useState<'sent' | 'received'>('sent');
-  const [receivedMessages, setReceivedMessages] = useState<SentMessage[]>([]);
-  const [isLoadingReceived, setIsLoadingReceived] = useState(false);
-  const [sentPage, setSentPage] = useState(1);
-  const [receivedPage, setReceivedPage] = useState(1);
-  const CARDS_PER_ROW = 7;
-  const ROWS_PER_PAGE = 5;
-  const CARDS_PER_PAGE = CARDS_PER_ROW * ROWS_PER_PAGE;
+  const CARDS_PER_PAGE = 20;
+  const CARDS_PER_ROW = 5;
 
-  // 카드 목록 불러오기
-  useEffect(() => {
-    const fetchSentMessages = async () => {
-      setIsLoadingCards(true);
-      setError(null);
-      try {
-        const token = localStorage.getItem('accessToken');
-        console.log('[EmotionCard] GET /emotion-cards 요청', {
-          url: `${API_BASE_URL}/emotion-cards`,
-          headers: token ? { 'Authorization': `Bearer ${token}` } : {},
-        });
-        const response = await fetch(`${API_BASE_URL}/emotion-cards`, {
-          headers: token ? { 'Authorization': `Bearer ${token}` } : {},
-        });
-        console.log('[EmotionCard] 응답 status:', response.status);
-        const text = await response.text();
-        try {
-          const data: SentMessage[] = JSON.parse(text);
-          console.log('[EmotionCard] 응답 데이터:', data);
-          // message 필드를 text로 매핑 (백엔드 호환)
-          const mapped = data.map(card => ({
-            ...card,
-            text: card.text || card.message || '',
-          }));
-          setSentMessages(mapped.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())); // 최신순 정렬
-        } catch (parseError) {
-          console.error('[EmotionCard] JSON 파싱 에러:', parseError, text);
-          throw new Error('감정 카드 목록 응답 파싱 실패');
-        }
-      } catch (err) {
-        if (err instanceof Error) {
-          setError(err.message);
-        } else {
-          setError("알 수 없는 오류로 카드 목록을 불러오지 못했습니다.");
-        }
-      } finally {
-        setIsLoadingCards(false);
+  const sendCardMutation = useMutation({
+    mutationFn: ({ text, emoji }: { text: string, emoji: string }) => postEmotionCard({ text, emoji }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['sentMessages'] });
+      setMessage("");
+      setSelectedEmoji('❤️');
+    },
+    // optimistic update 예시 (immer 활용)
+    onMutate: async ({ text, emoji }) => {
+      await queryClient.cancelQueries({ queryKey: ['sentMessages'] });
+      const previous = queryClient.getQueryData(['sentMessages']);
+      queryClient.setQueryData(['sentMessages'], (old: SentMessage[] | undefined) =>
+        produce(old || [], (draft: SentMessage[]) => {
+          draft.unshift({
+            id: 'temp-' + Date.now(),
+            text,
+            emoji,
+            createdAt: new Date().toISOString(),
+            isRead: false
+          });
+        })
+      );
+      return { previous };
+    },
+    onError: (_err: unknown, _variables: any, context: any) => {
+      if (context?.previous) {
+        queryClient.setQueryData(['sentMessages'], context.previous);
       }
-    };
-    fetchSentMessages();
-  }, []);
-
-  // 받은 카드 불러오기
-  const fetchReceivedMessages = async () => {
-    setIsLoadingReceived(true);
-    setError(null);
-    try {
-      const token = localStorage.getItem('accessToken');
-      const userId = localStorage.getItem('userId'); // 실제 로그인 유저 id로 교체 필요
-      if (!userId) throw new Error('userId가 필요합니다.');
-      const response = await fetch(`${API_BASE_URL}/emotion-cards/received?userId=${userId}`, {
-        headers: token ? { 'Authorization': `Bearer ${token}` } : {},
-      });
-      const text = await response.text();
-      const data: SentMessage[] = JSON.parse(text);
-      const mapped = data.map(card => ({ ...card, text: card.text || card.message || '' }));
-      setReceivedMessages(mapped.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()));
-    } catch (err) {
-      setError('받은 카드 목록을 불러오지 못했습니다.');
-    } finally {
-      setIsLoadingReceived(false);
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: ['sentMessages'] });
     }
-  };
-
-  // 탭 변경 시 받은카드 fetch
-  useEffect(() => {
-    if (tab === 'received') fetchReceivedMessages();
-  }, [tab]);
+  });
 
   const handleSuggest = async () => {
     if (message.trim().length === 0) {
-      setError("감정을 입력한 후 제안을 받아보세요.");
+      setSuggestionError("감정을 입력한 후 제안을 받아보세요.");
       setSuggestion(null);
       return;
     }
-    setIsLoading(true); // AI 제안 로딩 시작
-    setError(null);
+    setIsSuggesting(true);
+    setSuggestionError('');
     setSuggestion(null);
     try {
       const token = localStorage.getItem('accessToken');
@@ -468,10 +457,10 @@ const EmotionCard: React.FC = () => {
       const data = await response.json();
       setSuggestion(data.refinedText);
     } catch (err) {
-      if (err instanceof Error) { setError(err.message); } else { setError("AI 제안 중 알 수 없는 오류 발생"); }
+      if (err instanceof Error) { setSuggestionError(err.message); } else { setSuggestionError("AI 제안 중 알 수 없는 오류 발생"); }
       setSuggestion(null);
     } finally {
-      setIsLoading(false); // AI 제안 로딩 종료
+      setIsSuggesting(false);
     }
   };
 
@@ -479,63 +468,38 @@ const EmotionCard: React.FC = () => {
     if (suggestion) setMessage(suggestion);
   };
 
-  // handleSubmit 분리: 실제 전송 로직
-  const doSubmit = async () => {
-    if (message.trim().length === 0) {
-      setError("보낼 메시지를 입력해주세요.");
-      return;
-    }
-    if (!selectedEmoji) {
-      setError("이모지를 선택해주세요.");
-      return;
-    }
-    setIsSubmitting(true);
-    setError(null);
-    try {
-      const token = localStorage.getItem('accessToken');
-      const response = await fetch(`${API_BASE_URL}/emotion-cards`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          ...(token ? { 'Authorization': `Bearer ${token}` } : {})
-        },
-        body: JSON.stringify({ text: message, emoji: selectedEmoji }),
-      });
-      if (!response.ok) {
-        let errorData;
-        try { errorData = await response.json(); } catch(e){}
-        throw new Error(errorData?.message || '감정 카드 전송에 실패했습니다.');
-      }
-      const newCard: SentMessage = await response.json();
-      setSentMessages(prevMessages => [newCard, ...prevMessages].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()));
-      setMessage("");
-      setSuggestion(null);
-      setSelectedEmoji('❤️');
-    } catch (err) {
-      if (err instanceof Error) { setError(err.message); } else { setError("카드 전송 중 알 수 없는 오류 발생"); }
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
-  // 보내기 버튼 클릭 시 컨펌 모달 오픈
   const handleSubmit = () => {
-    if (message.trim().length === 0) {
-      setError("보낼 메시지를 입력해주세요.");
-      return;
-    }
-    setIsConfirmOpen(true);
+    if (!message.trim()) return;
+    sendCardMutation.mutate({ text: message, emoji: selectedEmoji });
   };
 
   const openModal = (msg: SentMessage) => {
     setSelectedMessage(msg);
-    setIsModalOpen(true);
   };
 
   const closeModal = () => {
-    setIsModalOpen(false);
     setSelectedMessage(null);
   };
+
+  if (isLoadingSent || isLoadingReceived) {
+    return (
+      <PageContainer style={{ justifyContent: 'center' }}>
+        <LoadingSpinner size={48} />
+      </PageContainer>
+    );
+  }
+
+  if (sentError || receivedError) {
+    return (
+      <PageContainer style={{ textAlign: 'center', paddingTop: '4rem' }}>
+        <PageTitle>오류 발생</PageTitle>
+        <ErrorMessage>
+          데이터를 불러오는 중 오류가 발생했습니다.
+          {sentError?.message || receivedError?.message}
+        </ErrorMessage>
+      </PageContainer>
+    );
+  }
 
   return (
     <>
@@ -576,10 +540,10 @@ const EmotionCard: React.FC = () => {
             value={message}
             onChange={(e) => setMessage(e.target.value)}
             placeholder="오늘 느낀 감정을 파트너에게 전달해보세요. AI가 따뜻한 말로 다듬어 줄 거예요. 가능한 상황에 대해 자세히 써주시면 AI가 상황을 판단하고 더 자연스럽게 바꿔줄거에요."
-            disabled={isLoading || isSubmitting}
+            disabled={isSuggesting || sendCardMutation.isPending}
           />
 
-          {error && <ErrorMessage>{error}</ErrorMessage>}
+          {suggestionError && <ErrorMessage>{suggestionError}</ErrorMessage>}
 
           {suggestion && (
             <SuggestionContainer>
@@ -589,7 +553,7 @@ const EmotionCard: React.FC = () => {
               <SuggestionText>{suggestion}</SuggestionText>
               <TextButton
                 onClick={applySuggestion}
-                disabled={isLoading || isSubmitting}
+                disabled={isSuggesting || sendCardMutation.isPending}
                 style={{ alignSelf: "flex-start" }} // 왼쪽 정렬
               >
                 이 내용 사용하기
@@ -600,19 +564,19 @@ const EmotionCard: React.FC = () => {
           <ButtonGroup>
             <SubmitButton 
               onClick={handleSuggest} 
-              disabled={isLoading || isSubmitting || message.trim().length === 0}
+              disabled={isSuggesting || sendCardMutation.isPending || message.trim().length === 0}
               size="small"
               width="150px"
             >
-              {isLoading ? "AI가 다듬는 중..." : (suggestion ? "AI 다른 제안 보기" : "AI 말투 다듬기")}
+              {isSuggesting ? "AI가 다듬는 중..." : (suggestion ? "AI 다른 제안 보기" : "AI 말투 다듬기")}
             </SubmitButton>
             <SubmitButton 
               onClick={handleSubmit} 
-              disabled={isSubmitting || isLoading || message.trim().length === 0}
+              disabled={sendCardMutation.isPending || isSuggesting || message.trim().length === 0}
               size="small"
               width="150px"
             >
-              {isSubmitting ? "전송 중..." : "보내기"}
+              {sendCardMutation.isPending ? "전송 중..." : "보내기"}
             </SubmitButton>
           </ButtonGroup>
         </ContentWrapper>
@@ -622,22 +586,22 @@ const EmotionCard: React.FC = () => {
           <TabButton active={tab === 'sent'} onClick={() => setTab('sent')}>보낸 카드</TabButton>
           <TabButton active={tab === 'received'} onClick={() => setTab('received')}>
             받은 카드
-            {tab !== 'received' && receivedMessages.some(msg => msg.isRead === false) && <NewBadge>NEW</NewBadge>}
+            {tab !== 'received' && receivedMessages.some((msg: SentMessage) => msg.isRead === false) && <NewBadge>NEW</NewBadge>}
           </TabButton>
         </TabsContainer>
 
         {/* 카드 목록 로딩 시 스피너 */}
-        {isLoadingCards && <LoadingSpinner size={48} />}
+        {(isLoadingSent || isLoadingReceived) && <LoadingSpinner size={48} />}
         {/* 카드 전송 시 스피너 (ContentWrapper 아래에 중첩 표시) */}
-        {isSubmitting && <LoadingSpinner size={48} />}
+        {sendCardMutation.isPending && <LoadingSpinner size={48} />}
         {/* 카드 목록: 이모지+날짜만 간단히 표시, 클릭 시 모달 */}
-        {tab === 'sent' && !isLoadingCards && sentMessages.length > 0 && (
+        {tab === 'sent' && !isLoadingSent && sentMessages.length > 0 && (
           <SentCardsSection>
             <SentCardsTitle>내가 보낸 감정 카드</SentCardsTitle>
             <CardGridWrapper>
-              {chunkCards(sentMessages.slice((sentPage-1)*CARDS_PER_PAGE, sentPage*CARDS_PER_PAGE), CARDS_PER_ROW).map((row, rowIdx) => (
+              {chunkCards<SentMessage>(sentMessages.slice(0, CARDS_PER_PAGE), CARDS_PER_ROW).map((row, rowIdx) => (
                 <CardRow key={rowIdx}>
-                  {row.map((msg) => (
+                  {(row as SentMessage[]).map((msg: SentMessage) => (
                     <CardItem
                       key={msg.id}
                       msg={msg}
@@ -647,23 +611,15 @@ const EmotionCard: React.FC = () => {
                 </CardRow>
               ))}
             </CardGridWrapper>
-            {/* 페이지네이션 */}
-            {sentMessages.length > CARDS_PER_PAGE && (
-              <PaginationWrapper>
-                <PaginationButton onClick={() => setSentPage(p => Math.max(1, p-1))} disabled={sentPage === 1}>&lt;</PaginationButton>
-                <span>{sentPage} / {Math.ceil(sentMessages.length / CARDS_PER_PAGE)}</span>
-                <PaginationButton onClick={() => setSentPage(p => Math.min(Math.ceil(sentMessages.length / CARDS_PER_PAGE), p+1))} disabled={sentPage === Math.ceil(sentMessages.length / CARDS_PER_PAGE)}>&gt;</PaginationButton>
-              </PaginationWrapper>
-            )}
           </SentCardsSection>
         )}
-        {tab === 'sent' && !isLoadingCards && !error && sentMessages.length === 0 && (
+        {tab === 'sent' && !isLoadingSent && !suggestionError && sentMessages.length === 0 && (
           <SentCardsSection>
             <SentCardsTitle>내가 보낸 감정 카드</SentCardsTitle>
             <p>아직 작성한 카드가 없습니다.</p>
           </SentCardsSection>
         )}
-        {tab === 'received' && !isLoadingReceived && !error && Array.isArray(receivedMessages) && receivedMessages.length === 0 && (
+        {tab === 'received' && !isLoadingReceived && !receivedError && Array.isArray(receivedMessages) && receivedMessages.length === 0 && (
           <SentCardsSection>
             <SentCardsTitle>내가 받은 감정 카드</SentCardsTitle>
             <p>아직 받은 카드가 없습니다.</p>
@@ -673,9 +629,9 @@ const EmotionCard: React.FC = () => {
           <SentCardsSection>
             <SentCardsTitle>내가 받은 감정 카드</SentCardsTitle>
             <CardGridWrapper>
-              {chunkCards(receivedMessages.slice((receivedPage-1)*CARDS_PER_PAGE, receivedPage*CARDS_PER_PAGE), CARDS_PER_ROW).map((row, rowIdx) => (
+              {chunkCards<SentMessage>(receivedMessages.slice(0, CARDS_PER_PAGE), CARDS_PER_ROW).map((row, rowIdx) => (
                 <CardRow key={rowIdx}>
-                  {row.map((msg) => (
+                  {(row as SentMessage[]).map((msg: SentMessage) => (
                     <CardItem
                       key={msg.id}
                       msg={msg}
@@ -686,14 +642,6 @@ const EmotionCard: React.FC = () => {
                 </CardRow>
               ))}
             </CardGridWrapper>
-            {/* 페이지네이션 */}
-            {receivedMessages.length > CARDS_PER_PAGE && (
-              <PaginationWrapper>
-                <PaginationButton onClick={() => setReceivedPage(p => Math.max(1, p-1))} disabled={receivedPage === 1}>&lt;</PaginationButton>
-                <span>{receivedPage} / {Math.ceil(receivedMessages.length / CARDS_PER_PAGE)}</span>
-                <PaginationButton onClick={() => setReceivedPage(p => Math.min(Math.ceil(receivedMessages.length / CARDS_PER_PAGE), p+1))} disabled={receivedPage === Math.ceil(receivedMessages.length / CARDS_PER_PAGE)}>&gt;</PaginationButton>
-              </PaginationWrapper>
-            )}
           </SentCardsSection>
         )}
         {tab === 'received' && isLoadingReceived && <LoadingSpinner size={48} />}
@@ -701,7 +649,7 @@ const EmotionCard: React.FC = () => {
       </PageContainer>
 
       {/* 카드 상세 모달: 이모지+내용 */}
-      {isModalOpen && selectedMessage && (
+      {selectedMessage && (
         <ModalBackground onClick={closeModal}>
           <ModalContent onClick={(e) => e.stopPropagation()}>
             <CloseButton onClick={closeModal}>&times;</CloseButton>
@@ -730,9 +678,9 @@ const EmotionCard: React.FC = () => {
       )}
 
       <ConfirmationModal
-        isOpen={isConfirmOpen}
-        onRequestClose={() => setIsConfirmOpen(false)}
-        onConfirm={() => { setIsConfirmOpen(false); doSubmit(); }}
+        isOpen={isSubmitting}
+        onRequestClose={() => setIsSubmitting(false)}
+        onConfirm={() => { setIsSubmitting(false); handleSubmit(); }}
         title="감정카드 전송 안내"
         message={"감정카드는 한 번 보내면 수정이나 삭제가 불가능합니다. 정말로 보내시겠습니까?"}
         confirmButtonText="네, 보낼래요"

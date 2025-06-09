@@ -1,15 +1,17 @@
-import React, { useEffect, useState, useContext } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
 import NavigationBar from '../components/NavigationBar';
 import axiosInstance from '../api/axios';
-import axios from 'axios'; // Axios 에러 타입 확인을 위해 import
-import { AuthContext } from '../contexts/AuthContext';
+import useAuthStore from '../store/authStore';
 import BackButton from '../components/common/BackButton';
 import LoadingSpinner from '../components/common/LoadingSpinner';
 import PostDetailMain from '../components/community/PostDetailMain';
 import LatestPostList from '../components/community/LatestPostList';
 import PollVoteBox from '../components/community/PollVoteBox';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { produce } from 'immer';
+import type { Draft } from 'immer';
 
 // === 타입 정의 ===
 interface PostAuthor {
@@ -153,48 +155,40 @@ const ReplyBox = styled.div`
   border-left: 2px solid #f1f3f5;
 `;
 
+// 게시글 상세 fetch 함수 추가
+const fetchPostDetail = async (id: string) => {
+  const response = await axiosInstance.get(`/community/posts/${id}`);
+  return response.data;
+};
 
-
-
+const postComment = async ({ postId, content }: { postId: string, content: string }) => {
+  const response = await axiosInstance.post(`/community/posts/${postId}/comments`, { content });
+  return response.data;
+};
 
 const PostDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const [post, setPost] = useState<Post | null>(null);
+  const user = useAuthStore((state) => state.user);
   const [newComment, setNewComment] = useState('');
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
   const [replyOpen, setReplyOpen] = useState<{ [commentId: string]: boolean }>({});
   const [replyContent, setReplyContent] = useState<{ [commentId: string]: string }>({});
-  const { user } = useContext(AuthContext);
   const [latestPosts, setLatestPosts] = useState<Post[]>([]);
   const [latestPage, setLatestPage] = useState(1);
   const [latestTotal, setLatestTotal] = useState(0);
   const LATEST_LIMIT = 20;
+  const queryClient = useQueryClient();
 
-  const fetchPost = async () => {
-    try {
-      setLoading(true);
-      console.log(`상세 게시글 요청. ID: ${id}`);
-      const response = await axiosInstance.get(`/community/posts/${id}`);
-      console.log('상세 게시글 응답 데이터:', response.data);
-      setPost(response.data);
-    } catch (err) {
-      setError("게시글을 불러오는 중 오류가 발생했습니다.");
-      console.error(`상세 게시글(ID: ${id}) 로딩 실패 에러:`, err);
-      if (axios.isAxiosError(err)) {
-        console.error("Axios 에러 상세 응답:", err.response?.data);
-      }
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    if (id) {
-      fetchPost();
-    }
-  }, [id]);
+  // React Query: 게시글 상세
+  const {
+    data: post,
+    isLoading,
+    error
+  } = useQuery({
+    queryKey: ['post', id],
+    queryFn: () => fetchPostDetail(id!),
+    enabled: !!id
+  });
 
   // 최신글 목록 불러오기
   useEffect(() => {
@@ -213,25 +207,48 @@ const PostDetailPage: React.FC = () => {
 
   const totalPages = Math.max(1, Math.ceil(latestTotal / LATEST_LIMIT));
 
+  // 댓글 등록 mutation
+  const commentMutation = useMutation({
+    mutationFn: ({ postId, content }: { postId: string, content: string }) => postComment({ postId, content }),
+    onSuccess: () => {
+      // 게시글 상세 쿼리 invalidate (자동 새로고침)
+      queryClient.invalidateQueries({ queryKey: ['post', id] });
+      setNewComment('');
+    },
+    // optimistic update 예시 (immer 활용)
+    onMutate: async ({ content }) => {
+      await queryClient.cancelQueries({ queryKey: ['post', id] });
+      const previousPost = queryClient.getQueryData(['post', id]);
+      queryClient.setQueryData(['post', id], (old: any) =>
+        produce(old, (draft: Draft<Post>) => {
+          if (draft && draft.comments) {
+            draft.comments.push({
+              id: 'temp-' + Date.now(),
+              content,
+              author: { nickname: user?.nickname || '나' },
+              createdAt: new Date().toISOString(),
+              replies: []
+            });
+          }
+        })
+      );
+      return { previousPost };
+    },
+    onError: (_err, _variables, context) => {
+      if (context?.previousPost) {
+        queryClient.setQueryData(['post', id], context.previousPost);
+      }
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: ['post', id] });
+    }
+  });
+
+  // 댓글 등록 핸들러
   const handleCommentSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newComment.trim()) return;
-    
-    const commentData = { content: newComment };
-    console.log(`댓글 등록 요청. ID: ${id}, 데이터:`, commentData);
-
-    try {
-        await axiosInstance.post(`/community/posts/${id}/comments`, commentData);
-        setNewComment('');
-        console.log('댓글 등록 성공, 게시글 데이터 새로고침');
-        fetchPost(); 
-    } catch (err) {
-        alert("댓글 등록에 실패했습니다. 개발자 콘솔을 확인해주세요.");
-        console.error('댓글 등록 실패 에러:', err);
-        if (axios.isAxiosError(err)) {
-          console.error("Axios 에러 상세 응답:", err.response?.data);
-        }
-    }
+    commentMutation.mutate({ postId: id!, content: newComment });
   };
 
   const handleReplySubmit = async (parentId: string) => {
@@ -242,7 +259,7 @@ const PostDetailPage: React.FC = () => {
       });
       setReplyContent((prev) => ({ ...prev, [parentId]: '' }));
       setReplyOpen((prev) => ({ ...prev, [parentId]: false }));
-      fetchPost();
+      fetchPostDetail(id!);
     } catch (err) {
       alert('대댓글 등록에 실패했습니다.');
     }
@@ -265,9 +282,9 @@ const PostDetailPage: React.FC = () => {
     navigate(`/community/${id}/edit`);
   };
 
-  if (loading) return <Container><LoadingSpinner size={48} /></Container>;
-  if (error) return <Container><p style={{ color: 'red' }}>{error}</p></Container>;
-  if (!post) return <Container><p>게시글을 찾을 수 없습니다.</p></Container>;
+  if (isLoading) return <LoadingSpinner size={48} />;
+  if (error) return <div style={{ color: 'red', textAlign: 'center', margin: '2rem 0' }}>게시글을 불러오는 중 오류가 발생했습니다.</div>;
+  if (!post) return null;
 
   const renderComments = (comments: Comment[], parentId: string | null = null) => {
     return comments
@@ -316,7 +333,7 @@ const PostDetailPage: React.FC = () => {
         <BackButton />
         <PostContainer>
           <PostDetailMain post={post} user={user} onEdit={handleEdit} onDelete={handleDelete} />
-          <PollVoteBox post={post} user={user} fetchPost={fetchPost} />
+          <PollVoteBox post={post} user={user} />
         </PostContainer>
 
         <CommentsSection>

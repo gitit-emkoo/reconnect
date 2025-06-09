@@ -1,12 +1,14 @@
 // src/App.tsx (업데이트된 부분)
 
+import  {useEffect}  from 'react';
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import { GoogleOAuthProvider } from '@react-oauth/google';
 import GlobalStyle from "./styles/GlobalStyle";
 import ProtectedRoute from "./components/ProtectedRoute";
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-import { AuthProvider } from "./contexts/AuthContext";
+import useAuthStore from './store/authStore';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
 // 페이지 컴포넌트 임포트
 import WelcomePage from "./pages/WelcomePage";
@@ -41,12 +43,26 @@ import PostWritePage from './pages/PostWritePage';
 import PostDetailPage from './pages/PostDetailPage';
 import PostEditPage from './pages/PostEditPage';
 
+const queryClient = new QueryClient();
+
 const App = () => {
   const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
+  const checkAuth = useAuthStore((state) => state.checkAuth);
+  const isLoading = useAuthStore((state) => state.isLoading);
 
+  useEffect(() => {
+    console.log("checkAuth");
+    checkAuth();
+  }, [checkAuth]);
+
+  // 인증 상태를 확인하는 동안 아무것도 렌더링하지 않거나 로딩 스피너를 보여줄 수 있습니다.
+  if (isLoading) {
+    return <div>Loading...</div>; // 또는 전역 로딩 스피너 컴포넌트
+  }
+  
   return (
-    <GoogleOAuthProvider clientId={clientId || ''}>
-      <AuthProvider>
+    <QueryClientProvider client={queryClient}>
+      <GoogleOAuthProvider clientId={clientId || ''}>
         <Router>
           <GlobalStyle />
           <Routes>
@@ -109,58 +125,9 @@ const App = () => {
             theme="colored"
           />
         </Router>
-      </AuthProvider>
-    </GoogleOAuthProvider>
+      </GoogleOAuthProvider>
+    </QueryClientProvider>
   );
 };
 
 export default App;
-
-// import React from 'react';
-// import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-// import WelcomePage from './pages/WelcomePage';
-// import RegisterPage from './pages/RegisterPage';
-// import FindEmail from './pages/FindEmail';
-// import ForgotPassword from './pages/ForgotPassword'; // 이 줄이 빠져있을 수 있습니다.
-// import ResetPassword from './pages/ResetPassword';
-// import TermsPage from './pages/TermsPage';
-// import ThirdPartyConsentPage from './pages/ThirdPartyConsentPage';
-// import MainPage from './pages/WelcomePage';
-// import MyPage from './pages/MyPage';
-// import FaqPage from './pages/FaqPage';
-// import ExpertPage from './pages/ExpertPage'; // 이 줄도 확인해주세요.
-// import AnnouncementsPage from './pages/AnnouncementsPage';
-// import KakaoCallback from './pages/KakaoCallback';
-// import Community from './pages/Community';
-// import PostWritePage from './pages/PostWritePage';
-// import PostDetailPage from './pages/PostDetailPage';
-
-// const App: React.FC = () => {
-//   return (
-//     <Router>
-//       <Routes>
-//         <Route path="/" element={<WelcomePage />} />
-        
-//         <Route path="/register" element={<RegisterPage />} />
-//         <Route path="/find-email" element={<FindEmail />} />
-//         <Route path="/forgot-password" element={<ForgotPassword />} />
-//         <Route path="/reset-password" element={<ResetPassword />} />
-//         <Route path="/terms" element={<TermsPage />} />
-//         <Route path="/consent" element={<ThirdPartyConsentPage />} />
-//         <Route path="/main" element={<MainPage />} />
-//         <Route path="/mypage" element={<MyPage />} />
-//         <Route path="/faq" element={<FaqPage />} />
-//         <Route path="/expert" element={<ExpertPage />} />
-//         <Route path="/announcements" element={<AnnouncementsPage />} />
-//         <Route path="/auth/kakao/callback" element={<KakaoCallback />} />
-        
-//         {/* 커뮤니티 관련 라우트 */}
-//         <Route path="/community" element={<Community />} />
-//         <Route path="/community/new" element={<PostWritePage />} />
-//         <Route path="/community/:id" element={<PostDetailPage />} />
-//       </Routes>
-//     </Router>
-//   );
-// };
-
-// export default App;

@@ -1,6 +1,10 @@
 import React from 'react';
 import styled from 'styled-components';
 import axiosInstance from '../../api/axios';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { produce } from 'immer';
+import type { Draft } from 'immer';
+import type { User } from '../../types/user';
 
 interface PollVote {
   userId: string;
@@ -18,8 +22,7 @@ interface Post {
 
 interface PollVoteBoxProps {
   post: Post;
-  user: any;
-  fetchPost: () => void;
+  user: Partial<User> | null;
 }
 
 const PollContainer = styled.div`
@@ -29,30 +32,82 @@ const PollContainer = styled.div`
   border-radius: 0.7rem;
 `;
 
-const PollVoteBox: React.FC<PollVoteBoxProps> = ({ post, user, fetchPost }) => {
+const PollVoteBox: React.FC<PollVoteBoxProps> = ({ post, user }) => {
   if (!(post.category?.name === '찬반토론' && post.poll)) return null;
-  const userId = user?.id || localStorage.getItem('userId') || 'guest';
+  
+  // 로그인한 사용자의 ID만 사용하도록 수정
+  const userId = user?.id;
+  
   const localVotes = post.poll.votes || [];
+  const myVote = userId ? localVotes.find(v => v.userId === userId) : undefined;
+  const queryClient = useQueryClient();
 
-  const handleVote = async (choiceIdx: number) => {
-    const myVote = localVotes.find(v => v.userId === userId);
-    const option = post.poll!.options[choiceIdx];
-    if (myVote && myVote.choice === choiceIdx) {
-      // 같은 선택지 다시 누르면 투표 취소
-      try {
-        await axiosInstance.delete(`/community/posts/${post.id}/vote`);
-        fetchPost();
-      } catch (err: any) {
-        alert('투표 취소에 실패했습니다.');
+  // 투표 mutation
+  const voteMutation = useMutation({
+    mutationFn: async (choiceIdx: number) => {
+      if (!userId) {
+        // 로그인하지 않은 사용자는 투표 불가
+        throw new Error('로그인이 필요합니다.');
       }
+      
+      if (myVote && myVote.choice === choiceIdx) {
+        // 같은 선택지 다시 누르면 투표 취소 (DELETE 요청)
+        await axiosInstance.delete(`/community/posts/${post.id}/vote`);
+        return { cancelled: true, choiceIdx };
+      } else {
+        // 새로운 투표 또는 투표 변경 (POST 요청)
+        await axiosInstance.post(`/community/posts/${post.id}/vote`, { choice: choiceIdx });
+        return { cancelled: false, choiceIdx };
+      }
+    },
+    // onSuccess는 onSettled와 중복되므로 제거 가능
+    onMutate: async (choiceIdx: number) => {
+      if (!userId) return; // 로그인 상태가 아니면 낙관적 업데이트 실행 안 함
+
+      await queryClient.cancelQueries({ queryKey: ['post', post.id] });
+      const previousPost = queryClient.getQueryData(['post', post.id]);
+
+      queryClient.setQueryData(['post', post.id], (old: any) =>
+        produce(old, (draft: Draft<Post>) => {
+          if (!draft.poll) return;
+          
+          let votes = draft.poll.votes || [];
+          const existingVoteIndex = votes.findIndex(v => v.userId === userId);
+
+          if (existingVoteIndex > -1) { // 이미 투표한 경우
+            if (votes[existingVoteIndex].choice === choiceIdx) { // 같은 선택지: 투표 취소
+              votes.splice(existingVoteIndex, 1);
+            } else { // 다른 선택지: 투표 변경
+              votes[existingVoteIndex].choice = choiceIdx;
+            }
+          } else { // 첫 투표
+            votes.push({ userId, choice: choiceIdx });
+          }
+          draft.poll.votes = votes;
+        })
+      );
+      return { previousPost };
+    },
+    onError: (err: Error, _variables, context) => {
+      // 로그인 필요 에러는 사용자에게 알림
+      if (err.message === '로그인이 필요합니다.') {
+        alert(err.message);
+      }
+      if (context?.previousPost) {
+        queryClient.setQueryData(['post', post.id], context.previousPost);
+      }
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: ['post', post.id] });
+    }
+  });
+
+  const handleVote = (choiceIdx: number) => {
+    if (!user) {
+      alert('투표를 하려면 로그인이 필요합니다.');
       return;
     }
-    try {
-      await axiosInstance.post(`/community/posts/${post.id}/vote`, { option });
-      fetchPost();
-    } catch (err: any) {
-      alert('투표에 실패했습니다.');
-    }
+    voteMutation.mutate(choiceIdx);
   };
 
   return (
@@ -65,7 +120,6 @@ const PollVoteBox: React.FC<PollVoteBoxProps> = ({ post, user, fetchPost }) => {
           const totalVotes = localVotes.length;
           const votesForOption = localVotes.filter(v => v.choice === idx).length;
           const percent = totalVotes > 0 ? Math.round((votesForOption / totalVotes) * 100) : 0;
-          const myVote = localVotes.find(v => v.userId === userId);
           const isMyChoice = myVote && myVote.choice === idx;
           return (
             <div key={idx} style={{ flex: 1, textAlign: 'center' }}>

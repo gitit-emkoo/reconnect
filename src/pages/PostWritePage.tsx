@@ -1,11 +1,13 @@
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useMemo, useRef } from "react";
 import styled from "styled-components";
 import { useNavigate } from "react-router-dom";
 import NavigationBar from "../components/NavigationBar";
 import axiosInstance from "../api/axios";
 import Tagify from '@yaireo/tagify/react';
 import '@yaireo/tagify/dist/tagify.css';
-import CustomRichTextEditor from '../components/common/CustomRichTextEditor';
+import CustomRichTextEditor, { type CustomEditorRef } from '../components/common/CustomRichTextEditor';
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import useAuthStore from "../store/authStore";
 
 // === 타입 정의 ===
 interface Category {
@@ -84,6 +86,21 @@ const SubmitButton = styled.button`
   }
 `;
 
+const ImageAttachButton = styled.button`
+  background-color: #e9ecef;
+  color: #495057;
+  padding: 0.8rem 1.5rem;
+  font-weight: 600;
+  border: none;
+  border-radius: 0.5rem;
+  cursor: pointer;
+  font-size: 1rem;
+  transition: background-color 0.2s;
+  &:hover {
+    background-color: #dee2e6;
+  }
+`;
+
 const TagInputWrapper = styled.div`
   margin: 1rem 0;
   width: 100%;
@@ -117,10 +134,13 @@ const EditorDivider = styled.hr`
 
 const PostWritePage: React.FC = () => {
     const navigate = useNavigate();
+    const queryClient = useQueryClient();
+    const token = useAuthStore((state: any) => state.token);
+    const editorRef = useRef<CustomEditorRef>(null);
+    const imageInputRef = useRef<HTMLInputElement>(null);
+
     const [categoryId, setCategoryId] = useState('');
     const [categories, setCategories] = useState<Category[]>([]);
-    const [isSubmitting, setIsSubmitting] = useState(false);
-    const [error, setError] = useState<string | null>(null);
     const [tags, setTags] = useState<string[]>([]);
     // 커스텀 에디터 상태
     const [editorTitle, setEditorTitle] = useState('');
@@ -131,6 +151,21 @@ const PostWritePage: React.FC = () => {
       { option: '찬성', votes: 0 },
       { option: '반대', votes: 0 },
     ]);
+
+    // 글 등록 mutation
+    const { mutate: createPost, isPending: isSubmitting, error } = useMutation({
+      mutationFn: (postData: any) => 
+        axiosInstance.post('/community/posts', postData),
+      onSuccess: () => {
+        queryClient.invalidateQueries({ queryKey: ['posts'] });
+        localStorage.removeItem('custom_rich_text_editor_draft_new');
+        navigate('/community');
+      },
+      onError: (err: any) => {
+        // 에러 처리는 여기서
+        console.error("글 등록 실패:", err);
+      }
+    });
 
     // 카테고리 목록 불러오기
     useEffect(() => {
@@ -153,36 +188,56 @@ const PostWritePage: React.FC = () => {
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        setIsSubmitting(true);
-        setError(null);
-        try {
-            const safeTags = Array.isArray(tags) ? tags : [];
-            const postData: any = {
-              title: editorTitle,
-              content: editorContent,
-              categoryId,
-              tags: safeTags,
-            };
-            if (selectedCategoryName === '찬반토론') {
-              postData.poll = {
-                question: pollQuestion,
-                options: pollOptions.map(opt => opt.option),
-              };
-            }
-            await axiosInstance.post('/community/posts', postData);
-            // 글 등록 성공 시 임시저장 삭제
-            localStorage.removeItem('custom_rich_text_editor_draft_new');
-            navigate('/community');
-        } catch (err: any) {
-            setError('글 등록에 실패했습니다.');
-        } finally {
-            setIsSubmitting(false);
+        
+        const safeTags = Array.isArray(tags) ? tags : [];
+        const postData: any = {
+          title: editorTitle,
+          content: editorContent,
+          categoryId,
+          tags: safeTags,
+        };
+        if (selectedCategoryName === '찬반토론') {
+          postData.poll = {
+            question: pollQuestion,
+            options: pollOptions.map(opt => opt.option),
+          };
         }
+        createPost(postData);
     };
 
     // react-polls용 투표 옵션 변경 핸들러
     const handlePollOptionChange = (idx: number, value: string) => {
       setPollOptions(opts => opts.map((opt, i) => i === idx ? { ...opt, option: value } : opt));
+    };
+
+    // 이미지 업로드 핸들러
+    const handleImageAttach = async (e: React.ChangeEvent<HTMLInputElement>) => {
+      const files = e.target.files;
+      if (!files || files.length === 0) return;
+  
+      const formData = new FormData();
+      for (const file of files) {
+        formData.append('images', file);
+      }
+  
+      try {
+        const res = await axiosInstance.post('/community/posts/upload', formData, {
+          headers: {
+            'Content-Type': 'multipart/form-data',
+            Authorization: `Bearer ${token}`,
+          },
+        });
+        
+        if (editorRef.current && Array.isArray(res.data) && res.data.length > 0) {
+          editorRef.current.insertImages(res.data);
+        }
+      } catch (error) {
+        console.error('이미지 업로드 실패:', error);
+        alert('이미지 업로드에 실패했습니다.');
+      } finally {
+        // 입력 값 초기화
+        if(e.target) e.target.value = '';
+      }
     };
 
     return (
@@ -234,11 +289,12 @@ const PostWritePage: React.FC = () => {
                     
                     {/* 커스텀 리치 텍스트 에디터 */}
                     <CustomRichTextEditor
+                        ref={editorRef}
                         onTitleChange={setEditorTitle}
                         onContentChange={setEditorContent}
                         draftKey="custom_rich_text_editor_draft_new"
                     />
-                    {error && <p style={{ color: 'red', textAlign: 'right', marginTop: '0.5rem' }}>{error}</p>}
+                    {error && <p style={{ color: 'red', textAlign: 'right', marginTop: '0.5rem' }}>글 등록에 실패했습니다.</p>}
                     <EditorDivider />
                     {/* 찬반토론 카테고리일 때만 투표 입력 UI */}
                     {selectedCategoryName === '찬반토론' && (
@@ -268,8 +324,19 @@ const PostWritePage: React.FC = () => {
                       </div>
                     )}
                     <ButtonContainer>
+                      <ImageAttachButton type="button" onClick={() => imageInputRef.current?.click()}>
+                        이미지 첨부
+                      </ImageAttachButton>
+                      <input 
+                        type="file" 
+                        ref={imageInputRef} 
+                        multiple 
+                        accept="image/*" 
+                        style={{ display: 'none' }}
+                        onChange={handleImageAttach}
+                      />
                       <SubmitButton type="submit" disabled={isSubmitting}>
-                          {isSubmitting ? '등록 중...' : '등록하기'}
+                          {isSubmitting ? '등록 중...' : '글 등록'}
                       </SubmitButton>
                     </ButtonContainer>
                 </Form>

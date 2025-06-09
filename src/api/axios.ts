@@ -13,16 +13,20 @@ console.log('[axiosInstance] baseURL:', axiosInstance.defaults.baseURL); // base
 // 요청 인터셉터 추가
 axiosInstance.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem('accessToken');
-    console.log('요청 인터셉터: 로컬 스토리지에서 토큰 가져옴', token); // 로그 추가
-    if (token) {
-      config.headers['Authorization'] = `Bearer ${token}`;
-      console.log('요청 헤더에 토큰 설정 완료:', config.headers['Authorization']); // 로그 추가
+    // Zustand에서 토큰을 동적으로 가져옴
+    try {
+      // eslint-disable-next-line @typescript-eslint/no-var-requires
+      const { useAuthStore } = require('../store/authStore');
+      const token = useAuthStore.getState().token;
+      if (token) {
+        config.headers['Authorization'] = `Bearer ${token}`;
+      }
+    } catch (e) {
+      // Zustand store가 아직 초기화되지 않았을 때는 무시
     }
     return config;
   },
   (error) => {
-    console.error('요청 인터셉터 에러:', error); // 로그 추가
     return Promise.reject(error);
   }
 );

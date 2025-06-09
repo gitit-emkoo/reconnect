@@ -1,15 +1,17 @@
 // src/pages/Dashboard.tsx (최종 수정)
-import React, { useState, useEffect, useContext } from "react";
+import React, { useState, useEffect } from "react";
 import styled from "styled-components";
 import { useNavigate } from "react-router-dom";
 // import Calendar, { type CalendarProps } from 'react-calendar'; // DashboardCalendar로 이동
 import 'react-calendar/dist/Calendar.css'; // DashboardCalendar 내부에서 import
 import NavigationBar from "../components/NavigationBar";
-import { AuthContext } from "../contexts/AuthContext";
+import useAuthStore from "../store/authStore"; // AuthContext 대신 useAuthStore import
 import { InviteModal } from "../components/Invite/InviteModal";
 import DashboardCalendar from "../components/Dashboard/DashboardCalendar"; // 새로 추가된 캘린더 컴포넌트
 import WelcomeUserSection from "../components/Dashboard/WelcomeUserSection"; // 새로 추가
 import PartnerConnectionCard from "../components/Dashboard/PartnerConnectionCard"; // 새로 추가
+import LoadingSpinner from "../components/common/LoadingSpinner"; // LoadingSpinner import
+import type { User } from "../types/user"; // types/user.ts 에서 User 타입 import
 import IcToggleUp from '../assets/ic_toggle_up.svg?react';
 import IcToggleDown from '../assets/ic_toggle_down.svg?react';
 import iconCard from '../assets/love-letter_14299289.png';
@@ -35,32 +37,29 @@ const Logo = styled.img`
   height: auto;
 `;
 
-const TopRowContainer = styled.div`
-  display: flex;
-  flex-direction: row;
-  gap: 1.5rem;
-  margin-bottom: 1.5rem;
-
-  @media (max-width: 768px) {
-    
-  }
-`;
 
 // WelcomeSection, WelcomeTitle, WelcomeSubtitle, ReportButton styled-components는 WelcomeUserSection.tsx로 이동
 // PartnerCard, PartnerInfo, PartnerImageArea, PartnerCardTitle, PartnerName, PartnerTime, InviteButton styled-components는 PartnerConnectionCard.tsx로 이동
 
-const MainContentLayout = styled.div`
+const TopRowContainer = styled.div`
   display: flex;
+  flex-direction: row;
   gap: 1.5rem;
-  margin-top: 1.5rem; 
-   
+  align-items: stretch; /* 자식 요소들의 높이를 통일합니다. */
+  
+  /* 직계 자식 요소들이 공간을 1:1로 나눠갖도록 설정합니다. */
+  & > * {
+    flex: 1;
+    min-width: 0; /* flex item이 부모 너비를 넘어가지 않도록 함 */
+  }
 
-  @media (max-width: 992px) { 
-    flex-direction: column;
+  @media (max-width: 768px) {
+    flex-direction: row;
   }
 `;
 
-const CalendarColumn = styled.div`
+
+const PartnerSection = styled.div`
   flex: 1; 
   min-width: 300px; 
   max-width: 50%; 
@@ -111,31 +110,9 @@ const MenuText = styled.p`
 
 // EventData interface 및 dummyEvents 데이터는 DashboardCalendar.tsx로 이동
 
-const RecommendedSection = styled.div`
-  margin-top: 2rem;
-`;
-const RecommendedTitle = styled.h2`
-  font-size: 1.25rem;
-  margin-bottom: 1rem;
-`;
-const RecommendedGrid = styled.div`
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-  gap: 1rem;
-  overflow-x: auto;
-  padding-bottom: 1rem;
-`;
-const PartnerCard = styled.div`
-  background-color: #e8f5e9;
-  border-radius: 1rem;
-  padding: 1rem;
-  aspect-ratio: 1;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  cursor: pointer;
-`;
+
+
+
 
 const TestButtonContainer = styled.div`
   text-align: center;
@@ -182,13 +159,74 @@ const MainMenuIcon = styled.img`
 const MainMenuText = styled.span`
   font-weight: 500;
   font-size: 13px;
-  color: #7C3AED;
+  color: #666;
   text-align: center;
+`;
+
+const CenteredContainer = styled(Container)`
+  display: flex;
+  justify-content: center;
+  align-items: center;
+`;
+
+// 새로 추가될 Styled Components
+const CalendarToggleButton = styled.button`
+  width: 100%;
+  padding: 1.2rem;
+  border-radius: 1rem;
+  border: 1px solid #E64A8D;
+  background: #fff;
+  color: #E64A8D;
+  font-weight: 600;
+  font-size: 1.1rem;
+  cursor: pointer;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  min-height: 80px;
+  text-align: left;
+`;
+
+const DateInfo = styled.div`
+  flex: 1;
+`;
+
+const DateText = styled.div`
+  font-size: 20px;
+  font-weight: 700;
+  margin-bottom: 4px;
+`;
+
+const ScheduleText = styled.div`
+  font-size: 14px;
+  color: #666;
+`;
+
+const StatusIcons = styled.div`
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 8px;
+  min-width: 24px;
+`;
+
+const StatusDot = styled.span<{ color: string }>`
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: ${props => props.color};
+  display: inline-block;
+`;
+
+const ToggleIconWrapper = styled.span`
+  display: flex;
+  align-items: center;
+  margin-left: 8px;
 `;
 
 const Dashboard: React.FC = () => {
   const navigate = useNavigate();
-  const { user, setUser, isLoading } = useContext(AuthContext);
+  const { user, setUser, isLoggedIn, accessToken } = useAuthStore();
   const [isInviteModalOpen, setIsInviteModalOpen] = useState(false);
   const [showCalendar, setShowCalendar] = useState(false);
   const today = new Date();
@@ -200,7 +238,11 @@ const Dashboard: React.FC = () => {
   // calendarDate, selectedDateData, isDateModalOpen, monthlyEvents state는 DashboardCalendar.tsx로 이동
   // calendarDate 관련 useEffect도 이동
 
+  // 로딩 상태를 isLoggedIn과 user 존재 여부로 판단
+  const isLoading = !isLoggedIn && !user && !!accessToken;
+
   useEffect(() => {
+    // 토큰은 있는데 유저 정보가 없는 초기 로딩 상태가 아니라면, 리디렉션 로직 수행
     if (!isLoading && !user) {
       navigate('/login');
     }
@@ -222,22 +264,30 @@ const Dashboard: React.FC = () => {
   const handleToggleTestPartner = () => {
     if (!user) return;
     if (user.partner) {
-      setUser({ ...user, partner: undefined }); 
+      setUser({ ...user, partner: undefined });
     } else {
       const testPartner = {
         id: "partner123",
         nickname: "TestPartner",
         email: "partner@example.com",
-        imageUrl: "https://cdn.dailyvet.co.kr/wp-content/uploads/2024/05/15231647/20240515ceva_experts4.jpg", // 사용자가 새로 제공한 이미지 URL로 수정
       };
-      setUser({ ...user, partner: testPartner as any });
+      setUser({ ...user, partner: testPartner });
     }
   };
   
   // formatDate, tileContent, handleCalendarChange, handleDayClick, handleMonthChange 함수는 DashboardCalendar.tsx로 이동
 
-  if (isLoading) return <Container>로딩 중...</Container>;
-  if (!user) return <Container>로그인이 필요합니다.</Container>;
+  if (isLoading) return (
+    <CenteredContainer>
+      <LoadingSpinner size={48} />
+    </CenteredContainer>
+  );
+
+  if (!user) return (
+    <CenteredContainer>
+      <p>로그인이 필요합니다.</p>
+    </CenteredContainer>
+  );
   
   const logoUrl = '/images/reconnect.png';
 
@@ -251,109 +301,69 @@ const Dashboard: React.FC = () => {
     <>
       <Container>
         <Header>
-          <Logo src={logoUrl} alt="ReConnect Logo" onError={(e) => (e.currentTarget.style.display = 'none')} />
-        
+          <Logo src={logoUrl} alt="Reconnect Logo" />
         </Header>
 
         <TopRowContainer>
-          <WelcomeUserSection user={user} />
+          <WelcomeUserSection user={user as User} />
           <PartnerConnectionCard 
-            user={user} 
-            partnerDisplayImageUrl={partnerDisplayImageUrl} 
+            user={user as User} 
+            partnerDisplayImageUrl={partnerDisplayImageUrl}
             onOpenInviteModal={() => setIsInviteModalOpen(true)} 
           />
         </TopRowContainer>
-        
-        <MainContentLayout>
-          <MainMenuRow>
-            <MainMenuItem onClick={() => navigate('/emotion-diary')}>
-              <MainMenuIcon src={iconDiary} alt="감정일기 아이콘" />
-              <MainMenuText>감정일기</MainMenuText>
-            </MainMenuItem>
-            <MainMenuItem onClick={() => navigate('/emotion-card')}>
-              <MainMenuIcon src={iconCard} alt="감정카드 아이콘" />
-              <MainMenuText>감정카드</MainMenuText>
-            </MainMenuItem>
-            <MainMenuItem onClick={() => navigate('/challenge')}>
-              <MainMenuIcon src={iconChallenge} alt="챌린지 아이콘" />
-              <MainMenuText>챌린지</MainMenuText>
-            </MainMenuItem>
-          </MainMenuRow>
-          
-          <MenuCardsColumn>
-            
-            {/* 오늘 날짜만 보이는 캘린더 토글 버튼 - UI 개선 */}
-            <MenuCard as="div" style={{ padding: 0, background: 'none', boxShadow: 'none' }}>
-              <button
-                style={{
-                  width: '100%',
-                  padding: '1.2rem',
-                  borderRadius: '1rem',
-                  border: '1px solid #E64A8D',
-                  background: '#fff',
-                  color: '#E64A8D',
-                  fontWeight: 600,
-                  fontSize: '1.1rem',
-                  cursor: 'pointer',
-                  display: 'flex',
-                  alignItems: 'flex-start',
-                  justifyContent: 'space-between',
-                  minHeight: 80
-                }}
-                onClick={() => setShowCalendar(v => !v)}
-              >
-                <div style={{ textAlign: 'left', flex: 1 }}>
-                  <div style={{ fontSize: 20, fontWeight: 700, marginBottom: 4 }}>
-                    {today.getFullYear()}-{String(today.getMonth() + 1).padStart(2, '0')}-{String(today.getDate()).padStart(2, '0')}
-                  </div>
-                  <div style={{ fontSize: 14, color: '#666' }}>
-                    {schedules.length === 0
-                      ? "일정이 없습니다"
-                      : schedules.map((s, i) => <div key={i}>{s.text}</div>)}
-                  </div>
-                </div>
-                <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', gap: 8, minWidth: 24 }}>
-                  {hasSentEmotionCard && <span style={{ width: 12, height: 12, borderRadius: '50%', background: '#FFA500', display: 'inline-block' }} title="감정카드 보냄"></span>}
-                  {hasReceivedEmotionCard && <span style={{ width: 12, height: 12, borderRadius: '50%', background: '#32CD32', display: 'inline-block' }} title="감정카드 받음"></span>}
-                  {hasEmotionDiary && <span style={{ width: 12, height: 12, borderRadius: '50%', background: '#FF69B4', display: 'inline-block' }} title="감정일기 작성"></span>}
-                  <span style={{ display: 'flex', alignItems: 'center', marginLeft: 8 }}>
-                    {showCalendar ? <IcToggleUp width={24} height={24} /> : <IcToggleDown width={24} height={24} />}
-                  </span>
-                </div>
-              </button>
-            </MenuCard>
-            {showCalendar && (
-              <CalendarColumn>
-                <DashboardCalendar />
-              </CalendarColumn>
-            )}
 
-            {/* 광고넣기 */}
-            <MenuCard onClick={() => handleFeatureClick("/onboarding")} disabled>
-              <MenuTitle>광고입니다다</MenuTitle>
-              <MenuText>광고 넣을 페이지 입니다. </MenuText>
-            </MenuCard>
-          </MenuCardsColumn>
-        </MainContentLayout>
-        
-        <RecommendedSection>
-          <RecommendedTitle>PARTNER ✨</RecommendedTitle>
-          <RecommendedGrid>
-            <PartnerCard onClick={() => alert('콘텐츠 준비중입니다.')}>
-              <span role="img" aria-label="couple emoji" style={{fontSize: '2rem', marginBottom: '0.5rem'}}>👩‍❤️‍👨</span>
-              
-            </PartnerCard>
-            <PartnerCard onClick={() => alert('콘텐츠 준비중입니다.')}>
-              <span role="img" aria-label="conversation emoji" style={{fontSize: '2rem', marginBottom: '0.5rem'}}>💬</span>
-              
-            </PartnerCard>
-            <PartnerCard onClick={() => alert('콘텐츠 준비중입니다.')}>
-              <span role="img" aria-label="gift emoji" style={{fontSize: '2rem', marginBottom: '0.5rem'}}>🎁</span>
-              
-            </PartnerCard>
-          </RecommendedGrid>
-        </RecommendedSection>
+        <MainMenuRow style={{ margin: '2.5rem 0' }}>
+          <MainMenuItem onClick={() => handleFeatureClick('/emotion-diary')}>
+            <MainMenuIcon src={iconDiary} alt="감정일기 아이콘" />
+            <MainMenuText>감정일기</MainMenuText>
+          </MainMenuItem>
+          <MainMenuItem onClick={() => handleFeatureClick('/emotion-card', true)}>
+            <MainMenuIcon src={iconCard} alt="감정카드 아이콘" />
+            <MainMenuText>감정카드</MainMenuText>
+          </MainMenuItem>
+          <MainMenuItem onClick={() => handleFeatureClick('/challenge')}>
+            <MainMenuIcon src={iconChallenge} alt="챌린지 아이콘" />
+            <MainMenuText>챌린지</MainMenuText>
+          </MainMenuItem>
+        </MainMenuRow>
 
+        <MenuCardsColumn>
+          <MenuCard as="div" style={{ padding: 0, background: 'none', boxShadow: 'none' }}>
+            <CalendarToggleButton onClick={() => setShowCalendar(v => !v)}>
+              <DateInfo>
+                <DateText>
+                  {today.getFullYear()}-{String(today.getMonth() + 1).padStart(2, '0')}-{String(today.getDate()).padStart(2, '0')}
+                </DateText>
+                <ScheduleText>
+                  {schedules.length === 0
+                    ? "일정이 없습니다"
+                    : schedules.map((s, i) => <div key={i}>{s.text}</div>)}
+                </ScheduleText>
+              </DateInfo>
+              <StatusIcons>
+                {hasSentEmotionCard && <StatusDot color="#FFA500" title="감정카드 보냄" />}
+                {hasReceivedEmotionCard && <StatusDot color="#32CD32" title="감정카드 받음" />}
+                {hasEmotionDiary && <StatusDot color="#FF69B4" title="감정일기 작성" />}
+                <ToggleIconWrapper>
+                  {showCalendar ? <IcToggleUp width={24} height={24} /> : <IcToggleDown width={24} height={24} />}
+                </ToggleIconWrapper>
+              </StatusIcons>
+            </CalendarToggleButton>
+          </MenuCard>
+          {showCalendar && (
+            <PartnerSection>
+              <DashboardCalendar />
+            </PartnerSection>
+          )}
+
+          {/* 광고넣기 */}
+          <MenuCard onClick={() => handleFeatureClick("/onboarding")} disabled>
+            <MenuTitle>광고입니다다</MenuTitle>
+            <MenuText>광고 넣을 페이지 입니다. </MenuText>
+          </MenuCard>
+        </MenuCardsColumn>
+        
         <TestButtonContainer>
           <TestButton onClick={handleToggleTestPartner}>
             {user.partner ? "테스트 파트너 연결 해제" : "테스트 파트너 연결"}
@@ -361,11 +371,8 @@ const Dashboard: React.FC = () => {
         </TestButtonContainer>
 
       </Container>
-      <NavigationBar />
-
+      <NavigationBar isSolo={!user.partner} />
       {isInviteModalOpen && <InviteModal onClose={() => setIsInviteModalOpen(false)} />}
-
-      {/* 날짜 클릭 시 나타나는 모달은 DashboardCalendar 내부로 이동 */}
     </>
   );
 };
