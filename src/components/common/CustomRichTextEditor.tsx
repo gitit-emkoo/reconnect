@@ -1,4 +1,4 @@
-import React, { useRef, useState, useEffect } from 'react';
+import React, { useRef, useState, useEffect, useImperativeHandle, forwardRef } from 'react';
 import styled from 'styled-components';
 import ConfirmationModal from './ConfirmationModal';
 import IconBold from '../../assets/icon_bold.svg';
@@ -7,6 +7,8 @@ import IconUnderline from '../../assets/icon_underline.svg';
 import IconAlignLeft from '../../assets/icon_alignment_left.svg';
 import IconAlignCenter from '../../assets/icon_alignment_center.svg';
 import IconAlignRight from '../../assets/icon_alignment_right.svg';
+import axiosInstance from '../../api/axios';
+import useAuthStore from '../../store/authStore';
 
 // Styled Components (화이트톤, 기존 폼과 통일)
 const EditorWrapper = styled.div`
@@ -98,13 +100,50 @@ interface CustomRichTextEditorProps {
   draftKey?: string;
 }
 
-const CustomRichTextEditor: React.FC<CustomRichTextEditorProps> = ({ onTitleChange, onContentChange, initialTitle = '', initialContent = '', draftKey = 'custom_rich_text_editor_draft_new' }) => {
+export interface CustomEditorRef {
+  insertImages: (urls: string[]) => void;
+}
+
+const CustomRichTextEditor = forwardRef<CustomEditorRef, CustomRichTextEditorProps>(({ onTitleChange, onContentChange, initialTitle = '', initialContent = '', draftKey = 'custom_rich_text_editor_draft_new' }, ref) => {
   const editorRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [title, setTitle] = useState(initialTitle);
   const [content, setContent] = useState(initialContent);
   const [showDraftModal, setShowDraftModal] = useState(false);
   const [draftToLoad, setDraftToLoad] = useState<Draft | null>(null);
+  const token = useAuthStore((state: any) => state.token);
+  const lastSelection = useRef<Range | null>(null);
+
+  // 외부에서 이미지 삽입을 위한 핸들 expose
+  useImperativeHandle(ref, () => ({
+    insertImages: (urls: string[]) => {
+      const editor = editorRef.current;
+      if (!editor) return;
+
+      // 저장된 선택 영역 복원 또는 마지막에 포커스
+      if (lastSelection.current) {
+        const selection = window.getSelection();
+        selection?.removeAllRanges();
+        selection?.addRange(lastSelection.current);
+      } else {
+        editor.focus();
+      }
+      
+      urls.forEach(url => {
+        format('insertImage', url);
+        // 이미지 삽입 후 줄바꿈을 위해 <br> 추가
+        const br = document.createElement('br');
+        const selection = window.getSelection();
+        if (selection?.rangeCount) {
+          const range = selection.getRangeAt(0);
+          range.insertNode(br);
+          range.setStartAfter(br);
+          range.collapse(true);
+        }
+      });
+      setContent(editor.innerHTML);
+    }
+  }));
 
   // 임시저장: 3초마다
   useEffect(() => {
@@ -161,14 +200,37 @@ const CustomRichTextEditor: React.FC<CustomRichTextEditorProps> = ({ onTitleChan
   };
 
   // 이미지 업로드
-  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onload = () => {
-      format('insertImage', reader.result as string);
-    };
-    reader.readAsDataURL(file);
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+  
+    const formData = new FormData();
+    for (let i = 0; i < files.length; i++) {
+      formData.append('images', files[i]);
+    }
+  
+    try {
+      const res = await axiosInstance.post('/community/posts/upload', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      
+      if (Array.isArray(res.data) && res.data.length > 0) {
+        const editor = editorRef.current;
+        if (editor) {
+          editor.focus(); // 에디터에 포커스
+          res.data.forEach((url: string) => format('insertImage', url));
+          setContent(editor.innerHTML); // 내용 업데이트
+        }
+      }
+    } catch (error) {
+      console.error('이미지 업로드 실패:', error);
+      alert('이미지 업로드에 실패했습니다.');
+    }
+  
+    // 입력 값 초기화
     e.target.value = '';
   };
 
@@ -241,6 +303,12 @@ const CustomRichTextEditor: React.FC<CustomRichTextEditorProps> = ({ onTitleChan
             contentEditable
             spellCheck={false}
             onInput={e => setContent((e.target as HTMLDivElement).innerHTML)}
+            onBlur={() => { // 선택 영역 저장
+              const selection = window.getSelection();
+              if (selection?.rangeCount) {
+                lastSelection.current = selection.getRangeAt(0).cloneRange();
+              }
+            }}
             style={{minHeight: 160}}
           />
           {(!content || content === '<br>') && (
@@ -259,6 +327,6 @@ const CustomRichTextEditor: React.FC<CustomRichTextEditorProps> = ({ onTitleChan
       />
     </>
   );
-};
+});
 
 export default CustomRichTextEditor; 

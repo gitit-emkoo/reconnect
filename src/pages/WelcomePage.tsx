@@ -10,8 +10,6 @@ import axiosInstance from '../api/axios';
 import useAuthStore, { type AuthState } from '../store/authStore';
 import { useGoogleLogin } from '@react-oauth/google';
 import { getKakaoLoginUrl } from '../utils/socialAuth';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faGoogle } from '@fortawesome/free-brands-svg-icons';
 
 
 const Container = styled.div`
@@ -109,11 +107,6 @@ const SocialLoginButtonStyled = styled.button<{ $isKakao?: boolean }>`
       box-shadow: 0 2px 4px rgba(0,0,0,0.1);
     }
   `}
-
-  .fa-google {
-    margin-right: 0.7rem;
-    font-size: 1.1rem;
-  }
 `;
 
 
@@ -401,7 +394,6 @@ const WelcomePage: React.FC = () => {
           카카오로 로그인
         </SocialLoginButton>
         <SocialLoginButton onClick={() => googleLogin()}>
-          <FontAwesomeIcon icon={faGoogle} className="fa-google" />
           구글로 로그인
         </SocialLoginButton>
       </SocialLoginButtonContainer>

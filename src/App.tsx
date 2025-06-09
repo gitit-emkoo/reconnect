@@ -1,13 +1,14 @@
 // src/App.tsx (업데이트된 부분)
 
+import  {useEffect}  from 'react';
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import { GoogleOAuthProvider } from '@react-oauth/google';
 import GlobalStyle from "./styles/GlobalStyle";
 import ProtectedRoute from "./components/ProtectedRoute";
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-import { useEffect } from 'react';
 import useAuthStore from './store/authStore';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
 // 페이지 컴포넌트 임포트
 import WelcomePage from "./pages/WelcomePage";
@@ -42,12 +43,15 @@ import PostWritePage from './pages/PostWritePage';
 import PostDetailPage from './pages/PostDetailPage';
 import PostEditPage from './pages/PostEditPage';
 
+const queryClient = new QueryClient();
+
 const App = () => {
   const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
   const checkAuth = useAuthStore((state) => state.checkAuth);
   const isLoading = useAuthStore((state) => state.isLoading);
 
   useEffect(() => {
+    console.log("checkAuth");
     checkAuth();
   }, [checkAuth]);
 
@@ -57,120 +61,73 @@ const App = () => {
   }
   
   return (
-    <GoogleOAuthProvider clientId={clientId || ''}>
-      <Router>
-        <GlobalStyle />
-        <Routes>
-          {/* 루트 경로를 웰컴 페이지로 변경 */}
-          <Route path="/" element={<Onboarding />} />
-          <Route path="/welcome" element={<WelcomePage />} />
-          <Route path="/onboarding" element={<Onboarding />} />
+    <QueryClientProvider client={queryClient}>
+      <GoogleOAuthProvider clientId={clientId || ''}>
+        <Router>
+          <GlobalStyle />
+          <Routes>
+            {/* 루트 경로를 웰컴 페이지로 변경 */}
+            <Route path="/" element={<Onboarding />} />
+            <Route path="/welcome" element={<WelcomePage />} />
+            <Route path="/onboarding" element={<Onboarding />} />
 
-          {/* 공개 라우트 */}
-          <Route path="/diagnosis" element={<Diagnosis />} />
-          <Route path="/diagnosis/result" element={<DiagnosisResult />} />
-          <Route path="/register" element={<RegisterPage />} />
-          <Route path="/login" element={<WelcomePage />} />
-          <Route path="/forgot-password" element={<ForgotPassword />} />
-          <Route path="/reset-password" element={<ResetPassword />} />
-          <Route path="/find-email" element={<FindEmail />} />
-          <Route path="/terms" element={<TermsPage />} />
-          <Route path="/auth/kakao/callback" element={<KakaoCallback />} />
-          <Route path="/auth/kakao/register/callback" element={<KakaoCallback />} />
+            {/* 공개 라우트 */}
+            <Route path="/diagnosis" element={<Diagnosis />} />
+            <Route path="/diagnosis/result" element={<DiagnosisResult />} />
+            <Route path="/register" element={<RegisterPage />} />
+            <Route path="/login" element={<WelcomePage />} />
+            <Route path="/forgot-password" element={<ForgotPassword />} />
+            <Route path="/reset-password" element={<ResetPassword />} />
+            <Route path="/find-email" element={<FindEmail />} />
+            <Route path="/terms" element={<TermsPage />} />
+            <Route path="/auth/kakao/callback" element={<KakaoCallback />} />
+            <Route path="/auth/kakao/register/callback" element={<KakaoCallback />} />
 
-          {/* 보호된 라우트 */}
-          <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
-          <Route path="/emotion-card" element={<ProtectedRoute><EmotionCard /></ProtectedRoute>} />
-          <Route path="/emotion-diary" element={<ProtectedRoute><EmotionDiary /></ProtectedRoute>} />
-          <Route path="/challenge" element={<ProtectedRoute><Challenge /></ProtectedRoute>} />
-          <Route path="/report" element={<ProtectedRoute><Report /></ProtectedRoute>} />
-          <Route path="/content-center" element={<ProtectedRoute><ContentCenter /></ProtectedRoute>} />
-          <Route path="/invite" element={<ProtectedRoute><Invite /></ProtectedRoute>} />
-          <Route path="/calendar" element={<ProtectedRoute><Calendar /></ProtectedRoute>} />
-          <Route path="/community" element={<ProtectedRoute><Community /></ProtectedRoute>} />
-          <Route path="/community/new" element={<ProtectedRoute><PostWritePage /></ProtectedRoute>} />
-          <Route path="/community/:id" element={<ProtectedRoute><PostDetailPage /></ProtectedRoute>} />
-          <Route path="/community/:id/edit" element={<ProtectedRoute><PostEditPage /></ProtectedRoute>} />
-          <Route path="/my" element={<ProtectedRoute><MyPage /></ProtectedRoute>} />
-          <Route path="/expert" element={<ProtectedRoute><ExpertPage /></ProtectedRoute>} />
-          <Route path="/profile/edit" element={<ProtectedRoute><ProfileEditPage /></ProtectedRoute>} />
+            {/* 보호된 라우트 */}
+            <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+            <Route path="/emotion-card" element={<ProtectedRoute><EmotionCard /></ProtectedRoute>} />
+            <Route path="/emotion-diary" element={<ProtectedRoute><EmotionDiary /></ProtectedRoute>} />
+            <Route path="/challenge" element={<ProtectedRoute><Challenge /></ProtectedRoute>} />
+            <Route path="/report" element={<ProtectedRoute><Report /></ProtectedRoute>} />
+            <Route path="/content-center" element={<ProtectedRoute><ContentCenter /></ProtectedRoute>} />
+            <Route path="/invite" element={<ProtectedRoute><Invite /></ProtectedRoute>} />
+            <Route path="/calendar" element={<ProtectedRoute><Calendar /></ProtectedRoute>} />
+            <Route path="/community" element={<ProtectedRoute><Community /></ProtectedRoute>} />
+            <Route path="/community/new" element={<ProtectedRoute><PostWritePage /></ProtectedRoute>} />
+            <Route path="/community/:id" element={<ProtectedRoute><PostDetailPage /></ProtectedRoute>} />
+            <Route path="/community/:id/edit" element={<ProtectedRoute><PostEditPage /></ProtectedRoute>} />
+            <Route path="/my" element={<ProtectedRoute><MyPage /></ProtectedRoute>} />
+            <Route path="/expert" element={<ProtectedRoute><ExpertPage /></ProtectedRoute>} />
+            <Route path="/profile/edit" element={<ProtectedRoute><ProfileEditPage /></ProtectedRoute>} />
 
-          {/* Placeholder Pages (보호된 라우트) - 일부는 실제 페이지로 교체 */}
-          <Route path="/support/faq" element={<ProtectedRoute><FaqPage /></ProtectedRoute>} />
-          <Route path="/support/contact" element={<ProtectedRoute><PlaceholderPage title="고객센터" /></ProtectedRoute>} />
-          <Route path="/legal/privacy" element={<ProtectedRoute><PrivacyPolicyPage /></ProtectedRoute>} />
-          <Route path="/legal/third-party-consent" element={<ProtectedRoute><ThirdPartyConsentPage /></ProtectedRoute>} />
-          <Route path="/announcements" element={<ProtectedRoute><AnnouncementsPage /></ProtectedRoute>} />
-          <Route path="/settings/notifications" element={<ProtectedRoute><PlaceholderPage title="알림 설정" /></ProtectedRoute>} />
-          <Route path="/delete-account" element={<ProtectedRoute><PlaceholderPage title="회원탈퇴" /></ProtectedRoute>} />
-          
-          {/* 404 페이지 - 항상 마지막에 위치해야 함 */}
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-        <ToastContainer
-          position="top-right"
-          autoClose={3000}
-          hideProgressBar={false}
-          newestOnTop
-          closeOnClick
-          rtl={false}
-          pauseOnFocusLoss
-          draggable
-          pauseOnHover
-          theme="colored"
-        />
-      </Router>
-    </GoogleOAuthProvider>
+            {/* Placeholder Pages (보호된 라우트) - 일부는 실제 페이지로 교체 */}
+            <Route path="/support/faq" element={<ProtectedRoute><FaqPage /></ProtectedRoute>} />
+            <Route path="/support/contact" element={<ProtectedRoute><PlaceholderPage title="고객센터" /></ProtectedRoute>} />
+            <Route path="/legal/privacy" element={<ProtectedRoute><PrivacyPolicyPage /></ProtectedRoute>} />
+            <Route path="/legal/third-party-consent" element={<ProtectedRoute><ThirdPartyConsentPage /></ProtectedRoute>} />
+            <Route path="/announcements" element={<ProtectedRoute><AnnouncementsPage /></ProtectedRoute>} />
+            <Route path="/settings/notifications" element={<ProtectedRoute><PlaceholderPage title="알림 설정" /></ProtectedRoute>} />
+            <Route path="/delete-account" element={<ProtectedRoute><PlaceholderPage title="회원탈퇴" /></ProtectedRoute>} />
+            
+            {/* 404 페이지 - 항상 마지막에 위치해야 함 */}
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+          <ToastContainer
+            position="top-right"
+            autoClose={3000}
+            hideProgressBar={false}
+            newestOnTop
+            closeOnClick
+            rtl={false}
+            pauseOnFocusLoss
+            draggable
+            pauseOnHover
+            theme="colored"
+          />
+        </Router>
+      </GoogleOAuthProvider>
+    </QueryClientProvider>
   );
 };
 
 export default App;
-
-// import React from 'react';
-// import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-// import WelcomePage from './pages/WelcomePage';
-// import RegisterPage from './pages/RegisterPage';
-// import FindEmail from './pages/FindEmail';
-// import ForgotPassword from './pages/ForgotPassword'; // 이 줄이 빠져있을 수 있습니다.
-// import ResetPassword from './pages/ResetPassword';
-// import TermsPage from './pages/TermsPage';
-// import ThirdPartyConsentPage from './pages/ThirdPartyConsentPage';
-// import MainPage from './pages/WelcomePage';
-// import MyPage from './pages/MyPage';
-// import FaqPage from './pages/FaqPage';
-// import ExpertPage from './pages/ExpertPage'; // 이 줄도 확인해주세요.
-// import AnnouncementsPage from './pages/AnnouncementsPage';
-// import KakaoCallback from './pages/KakaoCallback';
-// import Community from './pages/Community';
-// import PostWritePage from './pages/PostWritePage';
-// import PostDetailPage from './pages/PostDetailPage';
-
-// const App: React.FC = () => {
-//   return (
-//     <Router>
-//       <Routes>
-//         <Route path="/" element={<WelcomePage />} />
-        
-//         <Route path="/register" element={<RegisterPage />} />
-//         <Route path="/find-email" element={<FindEmail />} />
-//         <Route path="/forgot-password" element={<ForgotPassword />} />
-//         <Route path="/reset-password" element={<ResetPassword />} />
-//         <Route path="/terms" element={<TermsPage />} />
-//         <Route path="/consent" element={<ThirdPartyConsentPage />} />
-//         <Route path="/main" element={<MainPage />} />
-//         <Route path="/mypage" element={<MyPage />} />
-//         <Route path="/faq" element={<FaqPage />} />
-//         <Route path="/expert" element={<ExpertPage />} />
-//         <Route path="/announcements" element={<AnnouncementsPage />} />
-//         <Route path="/auth/kakao/callback" element={<KakaoCallback />} />
-        
-//         {/* 커뮤니티 관련 라우트 */}
-//         <Route path="/community" element={<Community />} />
-//         <Route path="/community/new" element={<PostWritePage />} />
-//         <Route path="/community/:id" element={<PostDetailPage />} />
-//       </Routes>
-//     </Router>
-//   );
-// };
-
-// export default App;
