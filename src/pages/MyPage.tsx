@@ -1,8 +1,8 @@
-import React, { useEffect, useState, useContext } from "react";
+import React, { useEffect, useState } from "react";
 import styled from "styled-components";
 import { useNavigate } from "react-router-dom";
 import { logout } from "../utils/auth";
-import { AuthContext } from "../contexts/AuthContext";
+import useAuthStore from '../store/authStore';
 import { ProfileEditModal } from "../components/Profile/ProfileEditModal";
 import { PasswordChangeModal } from "../components/Profile/PasswordChangeModal";
 import type { User } from "../types/user";
@@ -105,17 +105,19 @@ const SettingItem = styled.div< { disabled?: boolean } >`
 
 const MyPage: React.FC = () => {
   const navigate = useNavigate();
-  const { user, setUser } = useContext(AuthContext);
+  const user = useAuthStore((state) => state.user);
+  const setUser = useAuthStore((state) => state.setUser);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false);
   const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
 
+  // 토큰 체크는 Zustand의 token 사용
+  const token = useAuthStore((state) => state.accessToken);
   useEffect(() => {
-    const token = localStorage.getItem('accessToken');
     if (!token) {
       navigate('/login');
     }
-  }, [navigate]);
+  }, [navigate, token]);
 
   const confirmLogout = async () => {
     const success = await logout(navigate);
@@ -151,18 +153,12 @@ const MyPage: React.FC = () => {
         <Title>마이 페이지</Title>
         <Section>
           <ProfileImageContainer>
-            <img src={user.profileImageUrl || "https://via.placeholder.com/150"} alt={user.nickname} />
+            <img src={user?.profileImageUrl || "https://blog.kakaocdn.net/dn/bCXLP7/btrQuNirLbt/N30EKpk07InXpbReKWzde1/img.png"} alt={user?.nickname} />
           </ProfileImageContainer>
-          <Nickname>{user.nickname}</Nickname>
-          <UserInfoText>{user.email}</UserInfoText>
+          <Nickname>{user?.nickname}</Nickname>
+          <UserInfoText>{user?.email}</UserInfoText>
           <UserInfoText>
-            <strong>연결된 파트너:</strong> {user.partner?.nickname || '없음'}
-          </UserInfoText>
-          <UserInfoText>
-            <strong>결혼기념일:</strong> {user.anniversary || '미설정'}
-          </UserInfoText>
-          <UserInfoText>
-            <strong>생일:</strong> {user.birthdate || '미설정'}
+            <strong>연결된 파트너:</strong> {user?.partner?.nickname || '없음'}
           </UserInfoText>
         </Section>
 
@@ -224,9 +220,9 @@ const MyPage: React.FC = () => {
 
       </Container>
       <NavigationBar />
-      {isEditModalOpen && (
+      {isEditModalOpen && user && (
         <ProfileEditModal
-          user={user}
+          user={user as User}
           onClose={() => setIsEditModalOpen(false)}
           onUpdateSuccess={handleUpdateSuccess}
         />

@@ -86,17 +86,12 @@ interface NavigationBarProps {
   isSolo?: boolean;
 }
 
-const NavigationBar: React.FC<NavigationBarProps> = ({ isSolo = false }) => {
+const NavigationBar: React.FC<NavigationBarProps> = () => {
   const navigate = useNavigate();
   const location = useLocation();
 
-  const handleNavClick = (path: string, requiresPartner: boolean = false) => {
-    if (requiresPartner && isSolo) {
-      alert("파트너와 연결 후 이용 가능한 기능입니다. 파트너를 초대해보세요!");
-      navigate("/invite");
-    } else {
-      navigate(path);
-    }
+  const handleNavClick = (path: string) => {
+    navigate(path);
   };
 
   return (
@@ -116,17 +111,15 @@ const NavigationBar: React.FC<NavigationBarProps> = ({ isSolo = false }) => {
         전문가
       </NavButton>
       <NavButton
-        onClick={() => handleNavClick("/content-center", true)}
+        onClick={() => handleNavClick("/content-center")}
         $isActive={location.pathname === '/content-center'}
-        disabled={isSolo}
       >
         <ContentIcon />
         콘텐츠센터
       </NavButton>
       <NavButton
-        onClick={() => handleNavClick("/community", true)}
+        onClick={() => handleNavClick("/community")}
         $isActive={location.pathname === '/community'}
-        disabled={isSolo}
       >
         <CommunityIcon />
         커뮤니티

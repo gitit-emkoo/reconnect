@@ -1,6 +1,6 @@
-import React, { useContext } from 'react';
+import React from 'react';
 import { Navigate } from 'react-router-dom';
-import { AuthContext } from '../contexts/AuthContext';
+import useAuthStore from '../store/authStore';
 import LoadingSpinner from './common/LoadingSpinner';
 
 interface ProtectedRouteProps {
@@ -8,7 +8,8 @@ interface ProtectedRouteProps {
 }
 
 const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
-  const { user, isLoading } = useContext(AuthContext);
+  const user = useAuthStore((state) => state.user);
+  const isLoading = false;
 
   if (isLoading) {
     return <LoadingSpinner size={48} />;

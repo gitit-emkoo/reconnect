@@ -1,4 +1,4 @@
-import React, { useState, useContext } from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
 import { useForm, type SubmitHandler } from 'react-hook-form';
@@ -7,7 +7,7 @@ import { loginSchema, type LoginFormData } from '../utils/validationSchemas';
 import CloseEye from '../assets/Icon_CloseEye.svg?react';
 import OpenEye from '../assets/Icon_OpenEye.svg?react';
 import axiosInstance from '../api/axios';
-import { AuthContext } from '../contexts/AuthContext';
+import useAuthStore, { type AuthState } from '../store/authStore';
 import { useGoogleLogin } from '@react-oauth/google';
 import { getKakaoLoginUrl } from '../utils/socialAuth';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
@@ -297,7 +297,9 @@ const WelcomePage: React.FC = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState<string>('');
   const [googleError, setGoogleError] = useState<string>('');
-  const { setUser } = useContext(AuthContext);
+  const [rememberMe, setRememberMe] = useState(false);
+  const setToken = useAuthStore((state: AuthState) => state.setToken);
+  const setUser = useAuthStore((state: AuthState) => state.setUser);
 
   const {
     register, 
@@ -314,7 +316,7 @@ const WelcomePage: React.FC = () => {
     try {
       const response = await axiosInstance.post('/auth/login', data);
       if (response.data.accessToken) {
-        localStorage.setItem('accessToken', response.data.accessToken);
+        setToken(response.data.accessToken, rememberMe);
         if (response.data.user) {
           setUser(response.data.user);
         }
@@ -342,7 +344,7 @@ const WelcomePage: React.FC = () => {
           access_token: tokenResponse.access_token,
         });
         if (response.data.accessToken) {
-          localStorage.setItem('accessToken', response.data.accessToken);
+          setToken(response.data.accessToken, rememberMe);
           if (response.data.user) {
             setUser(response.data.user);
           }
@@ -372,7 +374,7 @@ const WelcomePage: React.FC = () => {
   const handleKakaoLogin = () => {
     setError('');
     setGoogleError('');
-    window.location.href = getKakaoLoginUrl();
+    window.location.href = getKakaoLoginUrl() + `&state=${rememberMe ? 'remember' : 'session'}`;
   };
 
   return (
@@ -438,6 +440,19 @@ const WelcomePage: React.FC = () => {
           </PasswordToggle>
           {errors.password && <FieldErrorMessage role="alert">{errors.password.message}</FieldErrorMessage>}
         </InputWrapper>
+
+        <div style={{ width: '100%', maxWidth: 340, margin: '0.5rem 0', display: 'flex', alignItems: 'center' }}>
+          <input
+            type="checkbox"
+            id="rememberMe"
+            checked={rememberMe}
+            onChange={() => setRememberMe((prev) => !prev)}
+            style={{ marginRight: 8 }}
+          />
+          <label htmlFor="rememberMe" style={{ fontSize: '0.9rem', color: '#666', cursor: 'pointer' }}>
+            로그인 정보 저장
+          </label>
+        </div>
 
         {error && <GeneralErrorMessage role="alert">{error}</GeneralErrorMessage>}
 

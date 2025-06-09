@@ -1,76 +1,77 @@
 import React, { useState, useEffect } from "react";
 import styled from "styled-components";
-import Calendar, { type CalendarProps } from 'react-calendar';
+import OriginalCalendar, { type CalendarProps } from 'react-calendar';
 import 'react-calendar/dist/Calendar.css';
 
-// Styled Components (Dashboard.tsx에서 이동)
-const CalendarContainer = styled.div`
+// 캘린더 컴포넌트를 styled-components로 래핑합니다.
+const StyledCalendar = styled(OriginalCalendar)`
+  width: 100%;
+  border: none;
+  border-radius: 0.5rem;
+  font-family: 'Pretendard', sans-serif;
   padding: 1rem;
   background-color: #f9f9f9;
-  border-radius: 0.75rem;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-  width: 100%;
 
-  .react-calendar {
-    width: 100% !important; 
-    border: none;
-    border-radius: 0.5rem;
-    font-family: 'Pretendard', sans-serif;
+  // 네비게이션 (월 이동)
+  .react-calendar__navigation {
+    display: flex;
+    height: 44px;
+    margin-bottom: 1em;
   }
-
   .react-calendar__navigation button {
     color: #E64A8D;
-    min-width: 40px; 
+    min-width: 44px;
     background: none;
-    font-size: 0.9rem; 
-    margin-top: 6px;
+    font-size: 1rem;
+    font-weight: bold;
+    border: none;
+    border-radius: 0.25rem;
+    &:hover {
+      background-color: #f0f0f0;
+    }
   }
-  .react-calendar__navigation button:enabled:hover,
-  .react-calendar__navigation button:enabled:focus {
-    background-color: #f0f0f0;
-  }
+
+  // 요일 표시
   .react-calendar__month-view__weekdays__weekday {
     text-align: center;
-    padding: 0.4em;
+    padding: 0.5em;
     text-decoration: none;
     color: #555;
     font-weight: bold;
-    font-size: 0.8rem; 
+    font-size: 0.85rem;
     abbr {
       text-decoration: none;
     }
   }
+
+  // 날짜 타일
   .react-calendar__tile {
     max-width: 100%;
-    padding: 8px 4px; 
+    padding: 0;
     background: none;
     text-align: center;
-    line-height: 14px; 
-    height: 50px; 
+    height: 60px;
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: flex-start;
-    font-size: 0.85rem; 
+    font-size: 0.9rem;
+    border: none;
+    border-radius: 0.25rem;
   }
   .react-calendar__tile:enabled:hover,
   .react-calendar__tile:enabled:focus {
     background-color: #f0f0f0;
   }
-  .react-calendar__tile--now {
+  .react-calendar__tile--now { // 오늘 날짜
     background: #fff0f5;
+    font-weight: bold;
   }
-  .react-calendar__tile--now:enabled:hover,
-  .react-calendar__tile--now:enabled:focus {
-    background: #ffe0e9;
-  }
-  .react-calendar__tile--active {
+  .react-calendar__tile--active { // 선택된 날짜
     background: #E64A8D;
     color: white;
-  }
-  .react-calendar__tile--active:enabled:hover,
-  .react-calendar__tile--active:enabled:focus {
-    background: #c33764;
+    font-weight: bold;
   }
 `;
 
@@ -239,31 +240,25 @@ const DashboardCalendar: React.FC = () => {
 
   return (
     <>
-      <CalendarContainer>
-        <Calendar
-          onChange={handleCalendarChange} 
-          value={calendarDate}       
-          onActiveStartDateChange={handleMonthChange}
-          tileContent={tileContent}
-          onClickDay={handleDayClick} 
-          formatDay={(_locale, date) => date.getDate().toString()}
-          locale="ko-KR"
-        />
-      </CalendarContainer>
-
-      {isDateModalOpen && selectedDateData && (
+      <StyledCalendar
+        onChange={handleCalendarChange}
+        value={calendarDate}
+        onActiveStartDateChange={handleMonthChange}
+        tileContent={tileContent}
+        onClickDay={handleDayClick}
+        formatDay={(_locale, date) => date.getDate().toString()}
+        locale="ko-KR"
+      />
+      
+      {isDateModalOpen && (
         <ModalBackdrop onClick={() => setIsDateModalOpen(false)}>
           <ModalContent onClick={(e) => e.stopPropagation()}>
-            <ModalTitle>{formatDate(new Date(selectedDateData.date))} 기록</ModalTitle>
-            {selectedDateData.isAnniversary && (
-              <ModalInfoItem><span>💍</span> <strong>기념일:</strong> {selectedDateData.anniversaryName || '기념일'}</ModalInfoItem>
-            )}
-            {selectedDateData.hasEmotionDiary && <ModalInfoItem><span>💖</span> 감정 일기를 작성했어요!</ModalInfoItem>}
-            {selectedDateData.hasSentEmotionCard && <ModalInfoItem><span>📤</span> 감정 카드를 보냈어요!</ModalInfoItem>}
-            {selectedDateData.hasReceivedEmotionCard && <ModalInfoItem><span>📥</span> 감정 카드를 받았어요!</ModalInfoItem>}
-            {!(selectedDateData.isAnniversary || selectedDateData.hasEmotionDiary || selectedDateData.hasSentEmotionCard || selectedDateData.hasReceivedEmotionCard) && (
-              <ModalInfoItem>특별한 기록이 없는 날이에요.</ModalInfoItem>
-            )}
+            <ModalTitle>{selectedDateData.date}</ModalTitle>
+            {selectedDateData.isAnniversary && <ModalInfoItem><span>💍</span> {selectedDateData.anniversaryName}</ModalInfoItem>}
+            {selectedDateData.hasEmotionDiary && <ModalInfoItem><span>📔</span> 감정일기를 작성했어요.</ModalInfoItem>}
+            {selectedDateData.hasSentEmotionCard && <ModalInfoItem><span>💌</span> 감정카드를 보냈어요.</ModalInfoItem>}
+            {selectedDateData.hasReceivedEmotionCard && <ModalInfoItem><span>📨</span> 감정카드를 받았어요.</ModalInfoItem>}
+            {!selectedDateData.isAnniversary && !selectedDateData.hasEmotionDiary && !selectedDateData.hasSentEmotionCard && !selectedDateData.hasReceivedEmotionCard && <p>이벤트가 없습니다.</p>}
             <CloseButton onClick={() => setIsDateModalOpen(false)}>닫기</CloseButton>
           </ModalContent>
         </ModalBackdrop>

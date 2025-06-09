@@ -1,6 +1,10 @@
 import React from 'react';
 import styled from 'styled-components';
 import axiosInstance from '../../api/axios';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { produce } from 'immer';
+import type { Draft } from 'immer';
+import type { User } from '../../types/user';
 
 interface PollVote {
   userId: string;
@@ -18,8 +22,7 @@ interface Post {
 
 interface PollVoteBoxProps {
   post: Post;
-  user: any;
-  fetchPost: () => void;
+  user: Partial<User> | null;
 }
 
 const PollContainer = styled.div`
@@ -29,30 +32,60 @@ const PollContainer = styled.div`
   border-radius: 0.7rem;
 `;
 
-const PollVoteBox: React.FC<PollVoteBoxProps> = ({ post, user, fetchPost }) => {
+const PollVoteBox: React.FC<PollVoteBoxProps> = ({ post, user }) => {
   if (!(post.category?.name === '찬반토론' && post.poll)) return null;
   const userId = user?.id || localStorage.getItem('userId') || 'guest';
   const localVotes = post.poll.votes || [];
+  const myVote = localVotes.find(v => v.userId === userId);
+  const queryClient = useQueryClient();
 
-  const handleVote = async (choiceIdx: number) => {
-    const myVote = localVotes.find(v => v.userId === userId);
-    const option = post.poll!.options[choiceIdx];
-    if (myVote && myVote.choice === choiceIdx) {
-      // 같은 선택지 다시 누르면 투표 취소
-      try {
+  // 투표 mutation
+  const voteMutation = useMutation({
+    mutationFn: async (choiceIdx: number) => {
+      const option = post.poll!.options[choiceIdx];
+      if (myVote && myVote.choice === choiceIdx) {
+        // 같은 선택지 다시 누르면 투표 취소
         await axiosInstance.delete(`/community/posts/${post.id}/vote`);
-        fetchPost();
-      } catch (err: any) {
-        alert('투표 취소에 실패했습니다.');
+        return { cancelled: true, choiceIdx };
+      } else {
+        await axiosInstance.post(`/community/posts/${post.id}/vote`, { option });
+        return { cancelled: false, choiceIdx };
       }
-      return;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['post', post.id] });
+    },
+    // optimistic update 예시 (immer 활용)
+    onMutate: async (choiceIdx: number) => {
+      await queryClient.cancelQueries({ queryKey: ['post', post.id] });
+      const previous = queryClient.getQueryData(['post', post.id]);
+      queryClient.setQueryData(['post', post.id], (old: any) =>
+        produce(old, (draft: Draft<Post>) => {
+          if (!draft?.poll?.votes) return;
+          // 투표 취소
+          if (myVote && myVote.choice === choiceIdx) {
+            draft.poll.votes = draft.poll.votes.filter((v: any) => v.userId !== userId);
+          } else {
+            // 기존 투표 제거 후 새 투표 추가
+            draft.poll.votes = draft.poll.votes.filter((v: any) => v.userId !== userId);
+            draft.poll.votes.push({ userId, choice: choiceIdx });
+          }
+        })
+      );
+      return { previous };
+    },
+    onError: (_err, _variables, context) => {
+      if (context?.previous) {
+        queryClient.setQueryData(['post', post.id], context.previous);
+      }
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: ['post', post.id] });
     }
-    try {
-      await axiosInstance.post(`/community/posts/${post.id}/vote`, { option });
-      fetchPost();
-    } catch (err: any) {
-      alert('투표에 실패했습니다.');
-    }
+  });
+
+  const handleVote = (choiceIdx: number) => {
+    voteMutation.mutate(choiceIdx);
   };
 
   return (
@@ -65,7 +98,6 @@ const PollVoteBox: React.FC<PollVoteBoxProps> = ({ post, user, fetchPost }) => {
           const totalVotes = localVotes.length;
           const votesForOption = localVotes.filter(v => v.choice === idx).length;
           const percent = totalVotes > 0 ? Math.round((votesForOption / totalVotes) * 100) : 0;
-          const myVote = localVotes.find(v => v.userId === userId);
           const isMyChoice = myVote && myVote.choice === idx;
           return (
             <div key={idx} style={{ flex: 1, textAlign: 'center' }}>

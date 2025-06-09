@@ -1,17 +1,17 @@
 // src/pages/Community.tsx
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import type { KeyboardEvent } from "react";
 import styled from "styled-components";
 import { Link, useNavigate } from "react-router-dom";
 import NavigationBar from "../components/NavigationBar";
 import axiosInstance from "../api/axios"; // 우리 백엔드용 axios 인스턴스
-import axios from "axios"; // Axios 에러 타입 확인을 위해 import
 import LeftActive from '../assets/direction=left, status=active, Mirror=True, size=large-3.svg';
 import LeftInactive from '../assets/direction=left, status=inactive, Mirror=False, size=large-3.svg';
 import RightActive from '../assets/direction=right, status=active, Mirror=True, size=large-3.svg';
 import RightInactive from '../assets/direction=right, status=inactive, Mirror=False, size=large-3.svg';
 import LoadingSpinner from '../components/common/LoadingSpinner';
 import Header from '../components/common/Header';
+import { useQuery } from '@tanstack/react-query';
 
 // === 타입 정의 ===
 // (나중에 src/types/community.ts 같은 파일로 분리하면 좋습니다)
@@ -38,6 +38,8 @@ interface Post {
   // views: number;
   // likes: number;
 }
+
+type PostsResponse = { posts: Post[]; total: number };
 
 // === Styled Components (전면 개편) ===
 const Container = styled.div`
@@ -259,64 +261,53 @@ const PaginationText = styled.span`
   margin: 0 0.3rem;
 `;
 
+// 게시글 목록 fetch 함수
+const fetchPosts = async (categoryId: string | null, search: string, page: number, limit: number) => {
+  const params: { categoryId?: string; search?: string; page?: number; limit?: number } = { page, limit };
+  if (categoryId) params.categoryId = categoryId;
+  if (search) params.search = search;
+  const response = await axiosInstance.get('/community/posts', { params });
+  return response.data;
+};
+
+// 카테고리 목록 fetch 함수
+const fetchCategories = async () => {
+  const res = await axiosInstance.get('/community/categories');
+  return [...res.data].sort((a, b) => {
+    if (a.name === '찬반토론') return -1;
+    if (b.name === '찬반토론') return 1;
+    return 0;
+  });
+};
+
 const Community: React.FC = () => {
   const navigate = useNavigate();
-  const [posts, setPosts] = useState<Post[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [categories, setCategories] = useState<PostCategory[]>([]);
-  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
-  const [searchTerm, setSearchTerm] = useState(''); // 검색어 입력을 위한 상태
-  const [activeSearch, setActiveSearch] = useState(''); // 실제 검색 트리거를 위한 상태
-  const [page, setPage] = useState(1);
-  const [total, setTotal] = useState(0);
-  const limit = 20;
+  const [activeCategory, setActiveCategory] = useState<string | null>(null);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [activeSearch, setActiveSearch] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
+  const POSTS_PER_PAGE = 20;
 
-  // 임시 카테고리 데이터. 나중에 API에서 불러와야 합니다.
-  useEffect(() => {
-    const fetchCategories = async () => {
-      try {
-        const res = await axiosInstance.get('/community/categories');
-        // '찬반토론'을 맨 앞으로, 나머지는 기존 순서대로
-        const sorted = [...res.data].sort((a, b) => {
-          if (a.name === '찬반토론') return -1;
-          if (b.name === '찬반토론') return 1;
-          return 0;
-        });
-        setCategories(sorted);
-      } catch (e) {
-        setCategories([]);
-      }
-    };
-    fetchCategories();
-  }, []);
+  const {
+    data: postsData,
+    isLoading: isPostsLoading,
+    error: postsError,
+  } = useQuery<PostsResponse>({
+    queryKey: ['posts', activeCategory, activeSearch, currentPage],
+    queryFn: () => fetchPosts(activeCategory, activeSearch, currentPage, POSTS_PER_PAGE),
+    placeholderData: (previousData) => previousData,
+  });
 
-  useEffect(() => {
-    const fetchPosts = async () => {
-      try {
-        setLoading(true);
-        const params: { categoryId?: string; search?: string; page?: number; limit?: number } = { page, limit };
-        if (selectedCategory) params.categoryId = selectedCategory;
-        if (activeSearch) params.search = activeSearch;
-        const response = await axiosInstance.get('/community/posts', { params });
-        setPosts(response.data.posts || response.data);
-        setTotal(response.data.total || 0);
-      } catch (err) {
-        setError("게시글을 불러오는 중 오류가 발생했습니다.");
-        console.error("게시글 목록 로딩 실패 에러:", err);
-        if (axios.isAxiosError(err)) {
-          console.error("Axios 에러 상세 응답:", err.response?.data);
-        }
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchPosts();
-  }, [selectedCategory, activeSearch, page]);
+  const {
+    data: categories,
+    isLoading: isCategoriesLoading,
+    error: categoriesError,
+  } = useQuery<PostCategory[]>({
+    queryKey: ['categories'],
+    queryFn: fetchCategories,
+  });
 
-  const handleSearch = () => {
-    setActiveSearch(searchTerm);
-  };
+  const handleSearch = () => setActiveSearch(searchTerm);
 
   const handleKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter') {
@@ -324,27 +315,47 @@ const Community: React.FC = () => {
     }
   };
 
-  const totalPages = Math.max(1, Math.ceil(total / limit));
+  if (isPostsLoading || isCategoriesLoading) {
+    return (
+      <Container style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+        <LoadingSpinner size={48} />
+      </Container>
+    );
+  }
+
+  if (postsError || categoriesError) {
+    return (
+      <Container style={{ textAlign: 'center', paddingTop: '4rem' }}>
+        <p>데이터를 불러오는 중 오류가 발생했습니다.</p>
+        <p style={{ color: 'red', marginTop: '1rem' }}>
+          {postsError?.message || categoriesError?.message}
+        </p>
+      </Container>
+    );
+  }
+
+  const posts = postsData?.posts || [];
+  const totalPosts = postsData?.total || 0;
+  const totalPages = Math.max(1, Math.ceil(totalPosts / POSTS_PER_PAGE));
 
   return (
     <>
       <Header title="커뮤니티" />
       <Container>
-        
         <CategoryTabs>
-          <TabButton $isActive={!selectedCategory} onClick={() => setSelectedCategory(null)}>전체</TabButton>
-          {categories.map(cat => (
-            <TabButton 
-              key={cat.id} 
-              $isActive={selectedCategory === cat.id}
-              onClick={() => setSelectedCategory(cat.id)}
+          <TabButton $isActive={!activeCategory} onClick={() => setActiveCategory(null)}>전체</TabButton>
+          {(categories || []).map((cat) => (
+            <TabButton
+              key={cat.id}
+              $isActive={activeCategory === cat.id}
+              onClick={() => setActiveCategory(cat.id)}
             >
               {cat.name}
             </TabButton>
           ))}
         </CategoryTabs>
         <SearchBarContainer>
-          <SearchInput 
+          <SearchInput
             type="text"
             placeholder="제목, 내용, 태그로 검색"
             value={searchTerm}
@@ -354,19 +365,19 @@ const Community: React.FC = () => {
           <SearchButton onClick={handleSearch}>검색</SearchButton>
         </SearchBarContainer>
         <PaginationTop>
-          <span>{page} / {totalPages}</span>
-          <PaginationButton $active={page > 1} onClick={() => page > 1 && setPage(page - 1)}>
-            {page > 1 ? <img src={LeftActive} alt="이전" width={36} /> : <img src={LeftInactive} alt="이전" width={36} />}
+          <span>{currentPage} / {totalPages}</span>
+          <PaginationButton $active={currentPage > 1} onClick={() => currentPage > 1 && setCurrentPage(currentPage - 1)}>
+            {currentPage > 1 ? <img src={LeftActive} alt="이전" width={36} /> : <img src={LeftInactive} alt="이전" width={36} />}
           </PaginationButton>
-          <PaginationButton $active={page < totalPages} onClick={() => page < totalPages && setPage(page + 1)}>
-            {page < totalPages ? <img src={RightActive} alt="다음" width={36} /> : <img src={RightInactive} alt="다음" width={36} />}
+          <PaginationButton $active={currentPage < totalPages} onClick={() => currentPage < totalPages && setCurrentPage(currentPage + 1)}>
+            {currentPage < totalPages ? <img src={RightActive} alt="다음" width={36} /> : <img src={RightInactive} alt="다음" width={36} />}
           </PaginationButton>
         </PaginationTop>
         <PostListContainer>
-          {loading && <LoadingSpinner size={48} />}
-          {error && <p style={{ color: 'red' }}>{error}</p>}
-          {!loading && !error && (
-            posts.length > 0 ? posts.map(post => (
+          {isPostsLoading && <LoadingSpinner size={48} />}
+          {postsError && <p style={{ color: 'red' }}>{String(postsError)}</p>}
+          {!isPostsLoading && !postsError && (
+            posts.length > 0 ? posts.map((post: Post) => (
               <PostListItem key={post.id}>
                 <PostHeader>
                   <CategoryTag $bgcolor={getCategoryColor(post.category.name)}>{post.category.name}</CategoryTag>
@@ -382,7 +393,7 @@ const Community: React.FC = () => {
                     textOverflow: 'ellipsis',
                     maxWidth: '100%',
                   }}>
-                    {post.tags.map(tag => (
+                    {post.tags.map((tag: string) => (
                       <span key={tag} style={{
                         display: 'inline-block',
                         background: '#f8f0fa',
@@ -402,37 +413,26 @@ const Community: React.FC = () => {
                 )}
                 <PostMeta>
                   <span>{post.author.nickname}</span>
-                  <span>·</span>
                   <span>{new Date(post.createdAt).toLocaleDateString()}</span>
-                  <span>·</span>
-                  <span>댓글 <CommentCount>{post._count.comments}</CommentCount></span>
+                  <CommentCount>댓글 {post._count?.comments || 0}</CommentCount>
                 </PostMeta>
               </PostListItem>
-            )) : (
-              activeSearch ? <p>검색결과가 없습니다.</p> : <p>아직 작성된 글이 없습니다.</p>
-            )
+            )) : <p style={{ color: '#888', textAlign: 'center', margin: '2rem 0' }}>게시글이 없습니다.</p>
           )}
         </PostListContainer>
-        
         <PaginationBottom>
-          <PaginationButton $active={page > 1} onClick={() => page > 1 && setPage(page - 1)}>
-            {page > 1 ? <img src={LeftActive} alt="이전" width={36} /> : <img src={LeftInactive} alt="이전" width={36} />}
-            <PaginationText>이전</PaginationText>
+          <PaginationButton $active={currentPage > 1} onClick={() => currentPage > 1 && setCurrentPage(currentPage - 1)}>
+            {currentPage > 1 ? <img src={LeftActive} alt="이전" width={36} /> : <img src={LeftInactive} alt="이전" width={36} />}
           </PaginationButton>
-          <div />
-          <PaginationButton $active={page < totalPages} onClick={() => page < totalPages && setPage(page + 1)}>
-            <PaginationText>다음</PaginationText>
-            {page < totalPages ? <img src={RightActive} alt="다음" width={36} /> : <img src={RightInactive} alt="다음" width={36} />}
+          <PaginationText>{currentPage} / {totalPages}</PaginationText>
+          <PaginationButton $active={currentPage < totalPages} onClick={() => currentPage < totalPages && setCurrentPage(currentPage + 1)}>
+            {currentPage < totalPages ? <img src={RightActive} alt="다음" width={36} /> : <img src={RightInactive} alt="다음" width={36} />}
           </PaginationButton>
         </PaginationBottom>
-
         <FABContainer onClick={() => navigate('/community/new')}>
-          <FABButton>
-            +
-            <FABLabel>글쓰기</FABLabel>
-          </FABButton>
+          <FABButton>+</FABButton>
+          <FABLabel>글쓰기</FABLabel>
         </FABContainer>
-
       </Container>
       <NavigationBar />
     </>

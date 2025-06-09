@@ -9,6 +9,7 @@ import OpenEye from '../assets/Icon_OpenEye.svg?react';
 import { useGoogleLogin } from '@react-oauth/google';
 import { getKakaoRegisterUrl } from '../utils/socialAuth';
 import axios, { AxiosError } from 'axios';
+import useAuthStore from '../store/authStore';
 
 const Container = styled.div`
   display: flex;
@@ -228,6 +229,8 @@ const RegisterPage: React.FC = () => {
   const { register, handleSubmit, formState: { errors, isSubmitting } } = useForm<RegisterFormData>({
     resolver: zodResolver(registerSchema),
   });
+  const setToken = useAuthStore((state) => state.setToken);
+  const setUser = useAuthStore((state) => state.setUser);
 
   const googleLogin = useGoogleLogin({
     onSuccess: async (tokenResponse) => {
@@ -245,6 +248,12 @@ const RegisterPage: React.FC = () => {
         );
 
         const data = response.data;
+        if (data.accessToken) {
+          setToken(data.accessToken, true);
+        }
+        if (data.user) {
+          setUser(data.user);
+        }
         console.log("구글 회원가입 성공! 🎉", data);
         alert('구글 회원가입이 완료되었습니다. 로그인 페이지로 이동합니다.');
         navigate('/login');

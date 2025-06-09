@@ -2,6 +2,7 @@ import React, { useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import axios from 'axios';
 import styled from 'styled-components';
+import useAuthStore from '../store/authStore';
 
 const Container = styled.div`
   display: flex;
@@ -20,11 +21,15 @@ const KakaoCallback: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const isRegister = location.pathname.includes('register');
+  const setToken = useAuthStore((state) => state.setToken);
+  const setUser = useAuthStore((state) => state.setUser);
 
   useEffect(() => {
     const handleKakaoCallback = async () => {
       const params = new URLSearchParams(location.search);
       const code = params.get('code');
+      const state = params.get('state'); // 'remember' or 'session'
+      const rememberMe = state === 'remember';
       
       console.log('현재 경로:', location.pathname);
       console.log('isRegister:', isRegister);
@@ -59,11 +64,11 @@ const KakaoCallback: React.FC = () => {
 
         const { data } = response;
         if (data.accessToken) {
-          localStorage.setItem('accessToken', data.accessToken);
+          setToken(data.accessToken, rememberMe);
           console.log('액세스 토큰 저장됨');
         }
         if (data.userNickname) {
-          localStorage.setItem('userNickname', data.userNickname);
+          setUser({ nickname: data.userNickname });
           console.log('사용자 닉네임 저장됨');
         }
 
@@ -90,7 +95,7 @@ const KakaoCallback: React.FC = () => {
     };
 
     handleKakaoCallback();
-  }, [navigate, location, isRegister]);
+  }, [navigate, location, isRegister, setToken, setUser]);
 
   return (
     <Container>
