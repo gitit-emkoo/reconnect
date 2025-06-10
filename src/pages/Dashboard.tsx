@@ -18,6 +18,7 @@ import iconCard from '../assets/love-letter_14299289.png';
 import iconDiary from '../assets/travel-journal_16997872.png';
 import iconChallenge from '../assets/finish_11741557.png';
 import iconReport from '../assets/chart_11709638.png';
+import HeartGauge from '../components/Dashboard/HeartGauge';
 
 const Container = styled.div`
   padding: 1.5rem;
@@ -48,7 +49,7 @@ const TopRowContainer = styled.div`
   padding: 1.5rem;  
   display: flex;
   flex-direction: row;
-  gap: 1.5rem;
+  gap: 1rem;
   align-items: stretch; /* 자식 요소들의 높이를 통일합니다. */
   
   /* 직계 자식 요소들이 공간을 1:1로 나눠갖도록 설정합니다. */
@@ -277,7 +278,15 @@ const Dashboard: React.FC = () => {
         </Header>
 
         <TopRowContainer>
-          <WelcomeUserSection user={user as User} />
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginBottom: '1.5rem' }}>
+            
+            
+            <div style={{ marginTop: '1.2rem', width: '100%' }}>
+              <WelcomeUserSection user={user as User} />
+            </div>
+            <div style={{ fontWeight: 600, fontSize: '0.6rem', color: '#FF4B4B', marginBottom: '0.5rem' }}>Reconnect 온도계</div>
+            <HeartGauge percentage={32} size={60} />
+          </div>
           <PartnerConnectionCard 
             user={user as User} 
             partnerDisplayImageUrl={partnerDisplayImageUrl}
