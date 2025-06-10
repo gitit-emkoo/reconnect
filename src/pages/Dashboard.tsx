@@ -299,7 +299,7 @@ const Dashboard: React.FC = () => {
             <MainMenuIcon src={iconDiary} alt="감정일기 아이콘" />
             <MainMenuText>감정일기</MainMenuText>
           </MainMenuItem>
-          <MainMenuItem onClick={() => handleFeatureClick('/emotion-card', true)}>
+          <MainMenuItem onClick={() => handleFeatureClick('/emotion-card')}>
             <MainMenuIcon src={iconCard} alt="감정카드 아이콘" />
             <MainMenuText>감정카드</MainMenuText>
           </MainMenuItem>

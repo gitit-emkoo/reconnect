@@ -3,6 +3,7 @@ import styled from 'styled-components';
 import { partnerInvitesApi, type PartnerInvite } from '../../api/partnerInvites';
 import useAuthStore from '../../store/authStore';
 import axiosInstance from '../../api/axios';
+import type { AxiosError } from 'axios';
 
 // 모달 스타일링
 
@@ -142,7 +143,16 @@ export const InviteModal: React.FC<InviteModalProps> = ({ onClose }) => {
         setInvite(newInvite);
       }
     } catch (err) {
-      setError('초대 코드를 불러오는데 실패했습니다.');
+      let errorMsg = '초대 코드를 불러오는데 실패했습니다.';
+      if (typeof err === 'string') {
+        errorMsg = err;
+      } else if (
+        (err as AxiosError<{ message?: string }>).isAxiosError &&
+        (err as AxiosError<{ message?: string }>).response?.data?.message
+      ) {
+        errorMsg = (err as AxiosError<{ message?: string }>).response!.data!.message!;
+      }
+      setError(errorMsg);
       console.error('Failed to load invite:', err);
     } finally {
       setIsLoading(false);

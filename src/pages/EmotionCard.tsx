@@ -9,6 +9,7 @@ import LoadingSpinner from '../components/common/LoadingSpinner';
 import EmojiPicker, { EmojiStyle } from 'emoji-picker-react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { produce } from 'immer';
+import useAuthStore from '../store/authStore';
 
 // 배열을 행 단위로 나누는 chunkCards 함수 추가
 function chunkCards<T>(array: T[], size: number): T[][] {
@@ -64,7 +65,9 @@ interface SentMessage {
   emoji?: string; // 이모지(선택)
   isRead?: boolean; // 읽음 여부(선택)
   message?: string; // 백엔드 호환(선택)
-  // 필요하다면 userId 등 추가 필드 정의 가능
+  senderId: string;
+  receiverId: string;
+  coupleId: string;
 }
 
 const PageContainer = styled.div`
@@ -363,6 +366,9 @@ const postEmotionCard = async ({ text, emoji }: { text: string, emoji: string })
 
 const EmotionCard: React.FC = () => {
   const queryClient = useQueryClient();
+  const user = useAuthStore((state) => state.user);
+  const myId = user?.id;
+  const partnerId = user?.partner?.id;
   const [message, setMessage] = useState("");
   const [selectedEmoji, setSelectedEmoji] = useState("");
   const [suggestion, setSuggestion] = useState<string | null>(null);
@@ -396,6 +402,14 @@ const EmotionCard: React.FC = () => {
   const CARDS_PER_PAGE = 20;
   const CARDS_PER_ROW = 5;
 
+  // === 필터링 추가 ===
+  const filteredSentMessages = sentMessages.filter(
+    (msg: SentMessage) => msg.senderId === myId
+  );
+  const filteredReceivedMessages = receivedMessages.filter(
+    (msg: SentMessage) => msg.senderId === partnerId && msg.receiverId === myId
+  );
+
   const sendCardMutation = useMutation({
     mutationFn: ({ text, emoji }: { text: string, emoji: string }) => postEmotionCard({ text, emoji }),
     onSuccess: () => {
@@ -414,7 +428,10 @@ const EmotionCard: React.FC = () => {
             text,
             emoji,
             createdAt: new Date().toISOString(),
-            isRead: false
+            isRead: false,
+            senderId: myId || '',
+            receiverId: partnerId || '',
+            coupleId: '',
           });
         })
       );
@@ -595,11 +612,11 @@ const EmotionCard: React.FC = () => {
         {/* 카드 전송 시 스피너 (ContentWrapper 아래에 중첩 표시) */}
         {sendCardMutation.isPending && <LoadingSpinner size={48} />}
         {/* 카드 목록: 이모지+날짜만 간단히 표시, 클릭 시 모달 */}
-        {tab === 'sent' && !isLoadingSent && sentMessages.length > 0 && (
+        {tab === 'sent' && !isLoadingSent && filteredSentMessages.length > 0 && (
           <SentCardsSection>
             <SentCardsTitle>내가 보낸 감정 카드</SentCardsTitle>
             <CardGridWrapper>
-              {chunkCards<SentMessage>(sentMessages.slice(0, CARDS_PER_PAGE), CARDS_PER_ROW).map((row, rowIdx) => (
+              {chunkCards<SentMessage>(filteredSentMessages.slice(0, CARDS_PER_PAGE), CARDS_PER_ROW).map((row, rowIdx) => (
                 <CardRow key={rowIdx}>
                   {(row as SentMessage[]).map((msg: SentMessage) => (
                     <CardItem
@@ -613,23 +630,23 @@ const EmotionCard: React.FC = () => {
             </CardGridWrapper>
           </SentCardsSection>
         )}
-        {tab === 'sent' && !isLoadingSent && !suggestionError && sentMessages.length === 0 && (
+        {tab === 'sent' && !isLoadingSent && !suggestionError && filteredSentMessages.length === 0 && (
           <SentCardsSection>
             <SentCardsTitle>내가 보낸 감정 카드</SentCardsTitle>
             <p>아직 작성한 카드가 없습니다.</p>
           </SentCardsSection>
         )}
-        {tab === 'received' && !isLoadingReceived && !receivedError && Array.isArray(receivedMessages) && receivedMessages.length === 0 && (
+        {tab === 'received' && !isLoadingReceived && !receivedError && Array.isArray(filteredReceivedMessages) && filteredReceivedMessages.length === 0 && (
           <SentCardsSection>
             <SentCardsTitle>내가 받은 감정 카드</SentCardsTitle>
             <p>아직 받은 카드가 없습니다.</p>
           </SentCardsSection>
         )}
-        {tab === 'received' && !isLoadingReceived && receivedMessages.length > 0 && (
+        {tab === 'received' && !isLoadingReceived && filteredReceivedMessages.length > 0 && (
           <SentCardsSection>
             <SentCardsTitle>내가 받은 감정 카드</SentCardsTitle>
             <CardGridWrapper>
-              {chunkCards<SentMessage>(receivedMessages.slice(0, CARDS_PER_PAGE), CARDS_PER_ROW).map((row, rowIdx) => (
+              {chunkCards<SentMessage>(filteredReceivedMessages.slice(0, CARDS_PER_PAGE), CARDS_PER_ROW).map((row, rowIdx) => (
                 <CardRow key={rowIdx}>
                   {(row as SentMessage[]).map((msg: SentMessage) => (
                     <CardItem

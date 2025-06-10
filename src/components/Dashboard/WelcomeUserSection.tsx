@@ -40,7 +40,7 @@ const WelcomeUserSection: React.FC<WelcomeUserSectionProps> = ({ user }) => {
 
   return (
     <WelcomeSectionContainer>
-      <WelcomeTitle>{user.nickname}님, <br/>반가워요!</WelcomeTitle>
+      <WelcomeTitle><span style={{ fontSize: '1.5em', fontWeight: 'bold', color: '#ff69b4' }}>{user.nickname}</span>님, <br/>반가워요!</WelcomeTitle>
       <WelcomeSubtitle>오늘, 우리 사이는 어떤가요?</WelcomeSubtitle>
     </WelcomeSectionContainer>
   );
