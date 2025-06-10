@@ -12,6 +12,7 @@ import RightInactive from '../assets/direction=right, status=inactive, Mirror=Fa
 import LoadingSpinner from '../components/common/LoadingSpinner';
 import Header from '../components/common/Header';
 import { useQuery } from '@tanstack/react-query';
+import WriteIcon from '../assets/Icon_Write.svg?react';
 
 // === 타입 정의 ===
 // (나중에 src/types/community.ts 같은 파일로 분리하면 좋습니다)
@@ -215,18 +216,14 @@ const FABButton = styled.div`
   &:hover {
     background: linear-gradient(90deg, #f55aab 0%, #7c1fa0 100%);
   }
+  svg {
+    fill: white;
+    stroke: white;
+    width: 24px;
+    height: 24px;
+  }
 `;
 
-const FABLabel = styled.span`
-  display: block;
-  margin-top: 0.01rem;
-  font-size: 0.82rem;
-  font-weight: 600;
-  color: #fff;
-  background: none;
-  text-align: center;
-  letter-spacing: -0.5px;
-`;
 
 const PaginationTop = styled.div`
   display: flex;
@@ -430,8 +427,7 @@ const Community: React.FC = () => {
           </PaginationButton>
         </PaginationBottom>
         <FABContainer onClick={() => navigate('/community/new')}>
-          <FABButton>+</FABButton>
-          <FABLabel>글쓰기</FABLabel>
+          <FABButton><WriteIcon /></FABButton>
         </FABContainer>
       </Container>
       <NavigationBar />

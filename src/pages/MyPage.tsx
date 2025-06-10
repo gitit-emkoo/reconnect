@@ -8,6 +8,7 @@ import { PasswordChangeModal } from "../components/Profile/PasswordChangeModal";
 import type { User } from "../types/user";
 import NavigationBar from "../components/NavigationBar";
 import ConfirmationModal from "../components/common/ConfirmationModal";
+import { getUserAvatar } from "../utils/avatar";
 
 const Container = styled.div`
   background-color: white; /* 배경 흰색으로 변경 */
@@ -153,7 +154,10 @@ const MyPage: React.FC = () => {
         <Title>마이 페이지</Title>
         <Section>
           <ProfileImageContainer>
-            <img src={user?.profileImageUrl || "https://blog.kakaocdn.net/dn/bCXLP7/btrQuNirLbt/N30EKpk07InXpbReKWzde1/img.png"} alt={user?.nickname} />
+            <img 
+              src={user?.profileImageUrl || getUserAvatar(user)} 
+              alt={user?.nickname} 
+            />
           </ProfileImageContainer>
           <Nickname>{user?.nickname}</Nickname>
           <UserInfoText>{user?.email}</UserInfoText>
