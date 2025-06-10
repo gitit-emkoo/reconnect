@@ -36,12 +36,12 @@ export const partnerInvitesApi = {
   },
 
   // 초대 코드로 응답
-  respondToInvite: async (code: string): Promise<PartnerInvite> => {
+  respondToInvite: async (code: string): Promise<{ couple: any; invite: PartnerInvite }> => {
     const accessToken = useAuthStore.getState().accessToken;
     console.log('[partnerInvitesApi.respondToInvite] accessToken:', accessToken);
     console.log('[partnerInvitesApi.respondToInvite] axiosInstance default headers:', axiosInstance.defaults.headers);
     try {
-      const response = await axiosInstance.post<PartnerInvite>('/partner-invites/respond', { code });
+      const response = await axiosInstance.post<{ couple: any; invite: PartnerInvite }>('/partner-invites/respond', { code });
       console.log('[partnerInvitesApi.respondToInvite] response:', response.data);
       return response.data;
     } catch (err) {

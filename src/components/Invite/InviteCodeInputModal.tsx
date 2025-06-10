@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import styled from 'styled-components';
 import { partnerInvitesApi } from '../../api/partnerInvites';
+import useAuthStore from '../../store/authStore';
 
 const ModalBackdrop = styled.div`
   position: fixed;
@@ -92,6 +93,8 @@ const InviteCodeInputModal: React.FC<InviteCodeInputModalProps> = ({ onClose, on
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
+  const [showConfirmModal, setShowConfirmModal] = useState(false);
+  const checkAuth = useAuthStore((state) => state.checkAuth);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -101,7 +104,7 @@ const InviteCodeInputModal: React.FC<InviteCodeInputModalProps> = ({ onClose, on
     try {
       await partnerInvitesApi.respondToInvite(code.trim());
       setSuccess(true);
-      if (onSuccess) onSuccess();
+      setShowConfirmModal(true);
     } catch (err: any) {
       setError(err?.response?.data?.message || '초대 코드 연결에 실패했습니다.');
     } finally {
@@ -109,29 +112,47 @@ const InviteCodeInputModal: React.FC<InviteCodeInputModalProps> = ({ onClose, on
     }
   };
 
+  const handleConfirm = async () => {
+    setShowConfirmModal(false);
+    if (onSuccess) onSuccess();
+    onClose();
+    await checkAuth();
+  };
+
   return (
-    <ModalBackdrop onClick={onClose}>
-      <ModalContent onClick={e => e.stopPropagation()}>
-        <CloseButton onClick={onClose}>&times;</CloseButton>
-        <Title>초대 코드 입력</Title>
-        <form onSubmit={handleSubmit}>
-          <Input
-            type="text"
-            placeholder="초대 코드를 입력하세요"
-            value={code}
-            onChange={e => setCode(e.target.value)}
-            maxLength={16}
-            required
-            autoFocus
-          />
-          <SubmitButton type="submit" disabled={isLoading || !code.trim()}>
-            {isLoading ? '연결 중...' : '파트너 연결하기'}
-          </SubmitButton>
-        </form>
-        {error && <ErrorMessage>{error}</ErrorMessage>}
-        {success && <StatusMessage style={{ color: '#16a34a' }}>파트너 연결이 완료되었습니다!</StatusMessage>}
-      </ModalContent>
-    </ModalBackdrop>
+    <>
+      <ModalBackdrop onClick={onClose}>
+        <ModalContent onClick={e => e.stopPropagation()}>
+          <CloseButton onClick={onClose}>&times;</CloseButton>
+          <Title>초대 코드 입력</Title>
+          <form onSubmit={handleSubmit}>
+            <Input
+              type="text"
+              placeholder="초대 코드를 입력하세요"
+              value={code}
+              onChange={e => setCode(e.target.value)}
+              maxLength={16}
+              required
+              autoFocus
+            />
+            <SubmitButton type="submit" disabled={isLoading || !code.trim()}>
+              {isLoading ? '연결 중...' : '파트너 연결하기'}
+            </SubmitButton>
+          </form>
+          {error && <ErrorMessage>{error}</ErrorMessage>}
+          {success && <StatusMessage style={{ color: '#16a34a' }}>파트너 연결이 완료되었습니다!</StatusMessage>}
+        </ModalContent>
+      </ModalBackdrop>
+      {showConfirmModal && (
+        <ModalBackdrop>
+          <ModalContent>
+            <Title>파트너 연결 완료</Title>
+            <StatusMessage style={{ color: '#16a34a' }}>파트너와 연결되었습니다!</StatusMessage>
+            <SubmitButton onClick={handleConfirm}>확인</SubmitButton>
+          </ModalContent>
+        </ModalBackdrop>
+      )}
+    </>
   );
 };
 

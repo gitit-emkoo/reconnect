@@ -5,14 +5,14 @@ import styled from "styled-components";
 import { Link, useNavigate } from "react-router-dom";
 import NavigationBar from "../components/NavigationBar";
 import axiosInstance from "../api/axios"; // 우리 백엔드용 axios 인스턴스
-import { ReactComponent as LeftActive } from '../assets/direction=left, status=active, Mirror=True, size=large-3.svg';
-import { ReactComponent as LeftInactive } from '../assets/direction=left, status=inactive, Mirror=False, size=large-3.svg';
-import { ReactComponent as RightActive } from '../assets/direction=right, status=active, Mirror=True, size=large-3.svg';
-import { ReactComponent as RightInactive } from '../assets/direction=right, status=inactive, Mirror=False, size=large-3.svg';
+import { ReactComponent as LeftActive } from '../assets/DirectionLeftActive.svg';
+import { ReactComponent as LeftInactive } from '../assets/DirectionLeftInactive.svg';
+import { ReactComponent as RightActive } from '../assets/DirectionRightActive.svg';
+import { ReactComponent as RightInactive } from '../assets/DirectionRightInactive.svg';
+import WriteIcon from '../assets/Icon_Write.svg?react';
 import LoadingSpinner from '../components/common/LoadingSpinner';
 import Header from '../components/common/Header';
 import { useQuery } from '@tanstack/react-query';
-import WriteIcon from '../assets/Icon_Write.svg?react';
 
 // === 타입 정의 ===
 // (나중에 src/types/community.ts 같은 파일로 분리하면 좋습니다)

@@ -1,10 +1,10 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import styled from 'styled-components';
-import { ReactComponent as LeftActive } from '../../assets/direction=left, status=active, Mirror=True, size=large-3.svg';
-import { ReactComponent as LeftInactive } from '../../assets/direction=left, status=inactive, Mirror=False, size=large-3.svg';
-import { ReactComponent as RightActive } from '../../assets/direction=right, status=active, Mirror=True, size=large-3.svg';
-import { ReactComponent as RightInactive } from '../../assets/direction=right, status=inactive, Mirror=False, size=large-3.svg';
+import { ReactComponent as LeftActive } from '../../assets/DirectionLeftActive.svg';
+import { ReactComponent as LeftInactive } from '../../assets/DirectionLeftInactive.svg';
+import { ReactComponent as RightActive } from '../../assets/DirectionRightActive.svg';
+import { ReactComponent as RightInactive } from '../../assets/DirectionRightInactive.svg';
 
 interface Post {
   id: string;

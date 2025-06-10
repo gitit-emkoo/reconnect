@@ -96,12 +96,11 @@ const EnterInviteCode: React.FC = () => {
       setIsLoading(true);
       setError(null);
       await partnerInvitesApi.respondToInvite(code.trim());
-      setSuccess('초대 요청이 전송되었습니다. 파트너의 수락을 기다려주세요.');
-      
-      // 3초 후 대시보드로 이동
+      setSuccess('파트너 연결이 완료되었습니다!');
+      // 2초 후 대시보드로 이동
       setTimeout(() => {
         navigate('/dashboard');
-      }, 3000);
+      }, 2000);
     } catch (err: any) {
       setError(err.response?.data?.message || '초대 코드 입력에 실패했습니다.');
     } finally {
