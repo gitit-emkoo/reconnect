@@ -30,42 +30,50 @@ const useAuthStore = create<AuthState>()(
       accessToken: null,
       isLoading: true, // 초기 로딩 상태는 true
       login: (user, token) => {
+        console.log('[authStore.login] token:', token, 'user:', user);
         get().setToken(token, true); 
         set({ isLoggedIn: true, user, isLoading: false });
+        console.log('[authStore.login] after set:', get());
       },
       logout: () => {
         localStorage.removeItem('accessToken');
         sessionStorage.removeItem('accessToken');
         set({ isLoggedIn: false, user: null, accessToken: null, isLoading: false });
+        console.log('[authStore.logout] after set:', get());
       },
       setUser: (user) => {
-        console.log('authStore setUser:', user);
+        console.log('[authStore.setUser]', user);
         set((state) => ({ user: { ...state.user, ...user } }));
+        console.log('[authStore.setUser] after set:', get());
       },
       setToken: (token, rememberMe) => {
-        console.log('authStore setToken:', token, rememberMe);
+        console.log('[authStore.setToken] token:', token, 'rememberMe:', rememberMe);
         if (rememberMe) {
           localStorage.setItem('accessToken', token);
         } else {
           sessionStorage.setItem('accessToken', token);
         }
         set({ accessToken: token, isLoggedIn: !!token });
+        console.log('[authStore.setToken] after set:', get());
       },
       checkAuth: async () => {
         const token = localStorage.getItem('accessToken') || sessionStorage.getItem('accessToken');
+        console.log('[authStore.checkAuth] token:', token);
         if (token) {
           set({ accessToken: token, isLoggedIn: true, isLoading: true });
           try {
-            const response = await axiosInstance.get('/auth/me'); // 사용자 정보 요청
+            const response = await axiosInstance.get('/users/me'); // 사용자 정보 요청 경로 수정
             if (response.data) {
               set({ user: response.data, isLoading: false });
+              console.log('[authStore.checkAuth] user set:', response.data);
             }
           } catch (error) {
-            // 토큰이 유효하지 않은 경우 등
             get().logout(); // 상태를 깨끗하게 초기화
+            console.log('[authStore.checkAuth] token invalid, logout');
           }
         } else {
           set({ isLoading: false }); // 토큰이 없으면 로딩 종료
+          console.log('[authStore.checkAuth] no token, isLoading false');
         }
       },
     }),

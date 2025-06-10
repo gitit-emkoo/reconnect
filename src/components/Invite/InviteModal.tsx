@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
 import { partnerInvitesApi, type PartnerInvite } from '../../api/partnerInvites';
+import useAuthStore from '../../store/authStore';
+import axiosInstance from '../../api/axios';
 
 // 모달 스타일링
 
@@ -124,6 +126,12 @@ export const InviteModal: React.FC<InviteModalProps> = ({ onClose }) => {
   const loadInvite = async () => {
     try {
       setIsLoading(true);
+      // 콘솔: accessToken, useAuthStore 상태
+      const accessToken = useAuthStore.getState().accessToken;
+      console.log('[InviteModal] accessToken:', accessToken);
+      console.log('[InviteModal] useAuthStore:', useAuthStore.getState());
+      // 콘솔: axiosInstance Authorization 헤더
+      console.log('[InviteModal] axiosInstance default headers:', axiosInstance.defaults.headers);
       const invites = await partnerInvitesApi.getMyInvites();
       const pendingInvite = invites.find(inv => inv.status === 'PENDING');
       if (pendingInvite) {
