@@ -1,6 +1,10 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import styled from 'styled-components';
+import { ReactComponent as LeftActive } from '../../assets/direction=left, status=active, Mirror=True, size=large-3.svg';
+import { ReactComponent as LeftInactive } from '../../assets/direction=left, status=inactive, Mirror=False, size=large-3.svg';
+import { ReactComponent as RightActive } from '../../assets/direction=right, status=active, Mirror=True, size=large-3.svg';
+import { ReactComponent as RightInactive } from '../../assets/direction=right, status=inactive, Mirror=False, size=large-3.svg';
 
 interface Post {
   id: string;
@@ -104,11 +108,6 @@ function getCategoryColor(name: string) {
   }
 }
 
-import LeftActive from '../../assets/direction=left, status=active, Mirror=True, size=large-3.svg';
-import LeftInactive from '../../assets/direction=left, status=inactive, Mirror=False, size=large-3.svg';
-import RightActive from '../../assets/direction=right, status=active, Mirror=True, size=large-3.svg';
-import RightInactive from '../../assets/direction=right, status=inactive, Mirror=False, size=large-3.svg';
-
 const LatestPostList: React.FC<LatestPostListProps> = ({ posts, currentId, page, totalPages, onPageChange }) => (
   <div>
     {posts.filter(p => p.id !== currentId).length === 0 ? (
@@ -161,11 +160,11 @@ const LatestPostList: React.FC<LatestPostListProps> = ({ posts, currentId, page,
     {/* 페이지네이션 */}
     <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '0.5rem', marginTop: '1.5rem' }}>
       <PaginationButton $active={page > 1} onClick={() => page > 1 && onPageChange(page - 1)}>
-        {page > 1 ? <img src={LeftActive} alt="이전" width={36} /> : <img src={LeftInactive} alt="이전" width={36} />}
+        {page > 1 ? <LeftActive width={36} /> : <LeftInactive width={36} />}
       </PaginationButton>
       <PaginationNum>{page}</PaginationNum>
       <PaginationButton $active={page < totalPages} onClick={() => page < totalPages && onPageChange(page + 1)}>
-        {page < totalPages ? <img src={RightActive} alt="다음" width={36} /> : <img src={RightInactive} alt="다음" width={36} />}
+        {page < totalPages ? <RightActive width={36} /> : <RightInactive width={36} />}
       </PaginationButton>
     </div>
   </div>

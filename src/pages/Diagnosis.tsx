@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
 import { useNavigate } from 'react-router-dom';
 import BackButton from '../components/common/BackButton';
@@ -103,19 +103,24 @@ const Button = styled.button<{ isYes?: boolean }>`
 `;
 
 const Diagnosis: React.FC = () => {
-  const [step, setStep] = useState(0);
-  const [answers, setAnswers] = useState<string[]>([]);
   const navigate = useNavigate();
+  const [currentQuestion, setCurrentQuestion] = useState(0);
+  const [answers, setAnswers] = useState<string[]>([]);
+
+  useEffect(() => {
+    if (localStorage.getItem('hasVisited') === 'true') {
+      navigate('/welcome', { replace: true });
+    }
+  }, [navigate]);
 
   const handleAnswer = (answer: string) => {
-    const updated = [...answers, answer];
-    setAnswers(updated);
-
-    if (step < questions.length - 1) {
-      setStep(step + 1);
+    const newAnswers = [...answers, answer];
+    setAnswers(newAnswers);
+    if (currentQuestion < questions.length - 1) {
+      setCurrentQuestion(currentQuestion + 1);
     } else {
-      // 진단 완료 → 결과 페이지로
-      navigate("/diagnosis/result", { state: { answers: updated } });
+      localStorage.setItem('hasVisited', 'true');
+      navigate('/diagnosis-result', { state: { answers: newAnswers } });
     }
   };
 
@@ -128,13 +133,13 @@ const Diagnosis: React.FC = () => {
       </Header>
 
       <ProgressBar 
-        current={step} 
+        current={currentQuestion} 
         total={questions.length}
       />
 
       <QuestionCard>
         <Question>
-          {questions[step]}
+          {questions[currentQuestion]}
         </Question>
       </QuestionCard>
 

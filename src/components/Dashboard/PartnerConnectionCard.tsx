@@ -1,6 +1,7 @@
 import React from 'react';
 import styled from 'styled-components';
 import type { User } from '../../types/user';
+import InviteCodeInputModal from '../Invite/InviteCodeInputModal';
 
 // Styled Components (Dashboard.tsx에서 이동)
 const PartnerCardContainer = styled.div`
@@ -106,6 +107,7 @@ const PartnerConnectionCard: React.FC<PartnerConnectionCardProps> = ({
   const titleColor = '#333';
   const nameColor = '#555';
   const timeColor = '#777';
+  const [isCodeModalOpen, setIsCodeModalOpen] = React.useState(false);
 
   return (
     <PartnerCardContainer style={{ backgroundColor: cardBackgroundColor }}>
@@ -126,10 +128,16 @@ const PartnerConnectionCard: React.FC<PartnerConnectionCardProps> = ({
           )}
         </div>
         {!user.partner && (
-          <InviteButton onClick={onOpenInviteModal}>파트너 초대하기</InviteButton>
+          <>
+            <InviteButton onClick={onOpenInviteModal}>파트너 초대하기</InviteButton>
+            <InviteButton style={{ marginTop: 8, background: '#f8f8f8', color: '#4169E1' }} onClick={() => setIsCodeModalOpen(true)}>
+              초대코드 받으셨나요?
+            </InviteButton>
+          </>
         )}
       </PartnerInfo>
       {partnerDisplayImageUrl && <PartnerImageArea imageUrl={partnerDisplayImageUrl} />}
+      {isCodeModalOpen && <InviteCodeInputModal onClose={() => setIsCodeModalOpen(false)} />}
     </PartnerCardContainer>
   );
 };

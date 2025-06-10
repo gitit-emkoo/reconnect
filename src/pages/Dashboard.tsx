@@ -12,8 +12,8 @@ import WelcomeUserSection from "../components/Dashboard/WelcomeUserSection"; // 
 import PartnerConnectionCard from "../components/Dashboard/PartnerConnectionCard"; // 새로 추가
 import LoadingSpinner from "../components/common/LoadingSpinner"; // LoadingSpinner import
 import type { User } from "../types/user"; // types/user.ts 에서 User 타입 import
-import IcToggleUp from '../assets/ic_toggle_up.svg?react';
-import IcToggleDown from '../assets/ic_toggle_down.svg?react';
+import { ReactComponent as IcToggleUp } from '../assets/ic_toggle_up.svg';
+import { ReactComponent as IcToggleDown } from '../assets/ic_toggle_down.svg';
 import iconCard from '../assets/love-letter_14299289.png';
 import iconDiary from '../assets/travel-journal_16997872.png';
 import iconChallenge from '../assets/finish_11741557.png';
@@ -118,23 +118,7 @@ const MenuText = styled.p`
 
 
 
-const TestButtonContainer = styled.div`
-  text-align: center;
-  margin-top: 1rem;
-  padding-bottom: 1rem; 
-`;
-const TestButton = styled.button`
-  background-color: #777;
-  color: white;
-  padding: 0.75rem 1.5rem;
-  border: none;
-  border-radius: 0.5rem;
-  font-weight: 500;
-  cursor: pointer;
-  &:hover {
-    background-color: #555;
-  }
-`;
+
 
 // CalendarValue 타입은 DashboardCalendar.tsx로 이동
 
@@ -230,7 +214,7 @@ const ToggleIconWrapper = styled.span`
 
 const Dashboard: React.FC = () => {
   const navigate = useNavigate();
-  const { user, setUser, isLoggedIn, accessToken } = useAuthStore();
+  const { user, isLoggedIn, accessToken } = useAuthStore();
   const [isInviteModalOpen, setIsInviteModalOpen] = useState(false);
   const [showCalendar, setShowCalendar] = useState(false);
   const today = new Date();
@@ -258,28 +242,12 @@ const Dashboard: React.FC = () => {
       return;
     }
     if (requiresPartner && !user.partner) {
-      alert("파트너와 연결 후 이용 가능한 기능입니다. 파트너를 초대해보세요!");
-      navigate("/invite");
-    } else {
-      navigate(path);
+      setIsInviteModalOpen(true);
+      return;
     }
+    navigate(path);
   };
 
-  const handleToggleTestPartner = () => {
-    if (!user) return;
-    if (user.partner) {
-      setUser({ ...user, partner: undefined });
-    } else {
-      const testPartner = {
-        id: "partner123",
-        nickname: "TestPartner",
-        email: "partner@example.com",
-      };
-      setUser({ ...user, partner: testPartner });
-    }
-  };
-  
-  // formatDate, tileContent, handleCalendarChange, handleDayClick, handleMonthChange 함수는 DashboardCalendar.tsx로 이동
 
   if (isLoading) return (
     <CenteredContainer>
@@ -371,12 +339,6 @@ const Dashboard: React.FC = () => {
             <MenuText>광고 넣을 페이지 입니다. </MenuText>
           </MenuCard>
         </MenuCardsColumn>
-        
-        <TestButtonContainer>
-          <TestButton onClick={handleToggleTestPartner}>
-            {user.partner ? "테스트 파트너 연결 해제" : "테스트 파트너 연결"}
-          </TestButton>
-        </TestButtonContainer>
 
       </Container>
       <NavigationBar isSolo={!user.partner} />

@@ -1,12 +1,12 @@
 import React, { useRef, useState, useEffect, useImperativeHandle, forwardRef } from 'react';
 import styled from 'styled-components';
 import ConfirmationModal from './ConfirmationModal';
-import IconBold from '../../assets/icon_bold.svg';
-import IconItalic from '../../assets/icon_italic.svg';
-import IconUnderline from '../../assets/icon_underline.svg';
-import IconAlignLeft from '../../assets/icon_alignment_left.svg';
-import IconAlignCenter from '../../assets/icon_alignment_center.svg';
-import IconAlignRight from '../../assets/icon_alignment_right.svg';
+import { ReactComponent as IconBold } from '../../assets/icon_bold.svg';
+import { ReactComponent as IconItalic } from '../../assets/icon_italic.svg';
+import { ReactComponent as IconUnderline } from '../../assets/icon_underline.svg';
+import { ReactComponent as IconAlignLeft } from '../../assets/icon_alignment_left.svg';
+import { ReactComponent as IconAlignCenter } from '../../assets/icon_alignment_center.svg';
+import { ReactComponent as IconAlignRight } from '../../assets/icon_alignment_right.svg';
 import axiosInstance from '../../api/axios';
 import useAuthStore from '../../store/authStore';
 
@@ -270,22 +270,22 @@ const CustomRichTextEditor = forwardRef<CustomEditorRef, CustomRichTextEditorPro
         />
         <Toolbar>
           <ToolButton type="button" onClick={() => handleFormat('bold')} title="굵게">
-            <img src={IconBold} alt="굵게" width={20} />
+            <IconBold width={20} />
           </ToolButton>
           <ToolButton type="button" onClick={() => handleFormat('italic')} title="이탤릭">
-            <img src={IconItalic} alt="이탤릭" width={20} />
+            <IconItalic width={20} />
           </ToolButton>
           <ToolButton type="button" onClick={() => handleFormat('underline')} title="밑줄">
-            <img src={IconUnderline} alt="밑줄" width={20} />
+            <IconUnderline width={20} />
           </ToolButton>
           <ToolButton type="button" onClick={() => handleAlign('left')} title="왼쪽 정렬">
-            <img src={IconAlignLeft} alt="왼쪽 정렬" width={20} />
+            <IconAlignLeft width={20} />
           </ToolButton>
           <ToolButton type="button" onClick={() => handleAlign('center')} title="가운데 정렬">
-            <img src={IconAlignCenter} alt="가운데 정렬" width={20} />
+            <IconAlignCenter width={20} />
           </ToolButton>
           <ToolButton type="button" onClick={() => handleAlign('right')} title="오른쪽 정렬">
-            <img src={IconAlignRight} alt="오른쪽 정렬" width={20} />
+            <IconAlignRight width={20} />
           </ToolButton>
           <ToolButton type="button" onClick={() => fileInputRef.current?.click()} title="이미지 업로드">🖼️</ToolButton>
           <ToolButton type="button" onClick={handleImageUrl} title="이미지 URL">🌐</ToolButton>
