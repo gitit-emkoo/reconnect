@@ -25,7 +25,7 @@ const WelcomeTitle = styled.h1`
 
 const WelcomeSubtitle = styled.p`
   color: #666;
-  font-size: 1rem;
+  font-size: 0.8rem;
   margin-bottom: 1rem;
   @media (max-width: 768px) {
     font-size: 0.8rem; 
