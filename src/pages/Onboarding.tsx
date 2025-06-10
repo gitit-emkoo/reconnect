@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import styled from "styled-components";
 import { useSwipeable } from "react-swipeable";
@@ -147,6 +147,12 @@ const Onboarding: React.FC = () => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const totalCards = 5;
 
+  useEffect(() => {
+    if (localStorage.getItem('hasVisited') === 'true') {
+      navigate('/welcome', { replace: true });
+    }
+  }, [navigate]);
+
   const handlers = useSwipeable({
     onSwipedLeft: () => {
       if (currentIndex < totalCards - 1) {
@@ -174,6 +180,7 @@ const Onboarding: React.FC = () => {
   };
 
   const handleStart = () => {
+    localStorage.setItem('hasVisited', 'true');
     navigate("/diagnosis");
   };
 

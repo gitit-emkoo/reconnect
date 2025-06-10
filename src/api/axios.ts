@@ -17,7 +17,7 @@ axiosInstance.interceptors.request.use(
     try {
       // eslint-disable-next-line @typescript-eslint/no-var-requires
       const { useAuthStore } = require('../store/authStore');
-      const token = useAuthStore.getState().token;
+      const token = useAuthStore.getState().accessToken;
       if (token) {
         config.headers['Authorization'] = `Bearer ${token}`;
       }

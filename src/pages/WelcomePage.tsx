@@ -4,8 +4,8 @@ import styled from 'styled-components';
 import { useForm, type SubmitHandler } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { loginSchema, type LoginFormData } from '../utils/validationSchemas';
-import CloseEye from '../assets/Icon_CloseEye.svg?react';
-import OpenEye from '../assets/Icon_OpenEye.svg?react';
+import { ReactComponent as CloseEye } from '../assets/Icon_CloseEye.svg';
+import { ReactComponent as OpenEye } from '../assets/Icon_OpenEye.svg';
 import axiosInstance from '../api/axios';
 import useAuthStore, { type AuthState } from '../store/authStore';
 import { useGoogleLogin } from '@react-oauth/google';
@@ -308,9 +308,12 @@ const WelcomePage: React.FC = () => {
     setGoogleError('');
     try {
       const response = await axiosInstance.post('/auth/login', data);
+      console.log('로그인 응답:', response.data);
       if (response.data.accessToken) {
+        console.log('setToken 호출:', response.data.accessToken, rememberMe);
         setToken(response.data.accessToken, rememberMe);
         if (response.data.user) {
+          console.log('setUser 호출:', response.data.user);
           setUser(response.data.user);
         }
         reset();
