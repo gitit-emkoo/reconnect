@@ -13,16 +13,17 @@ console.log('[axiosInstance] baseURL:', axiosInstance.defaults.baseURL); // base
 // 요청 인터셉터 추가
 axiosInstance.interceptors.request.use(
   (config) => {
-    // Zustand에서 토큰을 동적으로 가져옴
+    let token;
     try {
-      // eslint-disable-next-line @typescript-eslint/no-var-requires
       const { useAuthStore } = require('../store/authStore');
-      const token = useAuthStore.getState().accessToken;
-      if (token) {
-        config.headers['Authorization'] = `Bearer ${token}`;
-      }
-    } catch (e) {
-      // Zustand store가 아직 초기화되지 않았을 때는 무시
+      token = useAuthStore.getState().accessToken;
+    } catch (e) {}
+    // fallback: localStorage/sessionStorage에서 직접 읽기
+    if (!token) {
+      token = localStorage.getItem('accessToken') || sessionStorage.getItem('accessToken');
+    }
+    if (token) {
+      config.headers['Authorization'] = `Bearer ${token}`;
     }
     return config;
   },
