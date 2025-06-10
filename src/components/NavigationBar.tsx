@@ -2,11 +2,11 @@
 import React from 'react';
 import styled from 'styled-components';
 import { useNavigate, useLocation } from 'react-router-dom';
-import HomeIcon from '../assets/Icon_Home.svg?react';
-import ExpertIcon from '../assets/Icon_Expert.svg?react';
-import ContentsIcon from '../assets/Icon_Contents.svg?react';
-import CommunityIcon from '../assets/Icon_Community.svg?react';
-import MyIcon from '../assets/Icon_My.svg?react';
+import HomeIcon from '../assets/Icon_Home.svg';
+import ExpertIcon from '../assets/Icon_Expert.svg';
+import ContentsIcon from '../assets/Icon_ContentsCenter.svg';
+import CommunityIcon from '../assets/Icon_Community.svg';
+import MyIcon from '../assets/Icon_My.svg';
 
 
 const NavContainer = styled.nav`
