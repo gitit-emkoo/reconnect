@@ -72,6 +72,7 @@ const useAuthStore = create<AuthState>()(
             console.log('[authStore.checkAuth] token invalid, logout');
           }
         } else {
+          set({ isLoading: false });
           console.log('[authStore.checkAuth] no token');
         }
       },
