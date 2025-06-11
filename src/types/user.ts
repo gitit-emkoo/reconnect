@@ -11,6 +11,12 @@ export interface User {
     email: string;
     imageUrl?: string;
   };
+  couple?: {
+    id: string;
+    status: string;
+    createdAt: string;
+    updatedAt: string;
+  };
   provider: 'EMAIL' | 'KAKAO' | 'GOOGLE';
   socialId?: string;
   createdAt: string;

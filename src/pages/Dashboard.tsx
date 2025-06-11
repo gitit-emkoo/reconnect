@@ -300,7 +300,7 @@ const Dashboard: React.FC = () => {
           </Right>
         </TopSection>
 
-        {partner ? <PartnerCard partner={partner} /> : <PartnerConnectCard onShareClick={() => setIsShareModalOpen(true)} onInputClick={() => setIsInputModalOpen(true)} />}
+        {partner ? <PartnerCard partner={partner} coupleCreatedAt={(user as User).couple?.createdAt} /> : <PartnerConnectCard onShareClick={() => setIsShareModalOpen(true)} onInputClick={() => setIsInputModalOpen(true)} />}
 
         <MainMenuRow style={{ margin: '2.5rem 0' }}>
           <MainMenuItem
