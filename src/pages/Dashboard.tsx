@@ -374,12 +374,12 @@ const Dashboard: React.FC = () => {
       {isInputModalOpen && (
         <InviteCodeInputModal onClose={() => setIsInputModalOpen(false)} />
       )}
-      {showPartnerModal && (
-        <ConfirmationModal
-          message="파트너 연결 후에 사용 가능합니다."
-          onClose={() => setShowPartnerModal(false)}
-        />
-      )}
+      <ConfirmationModal
+        isOpen={showPartnerModal}
+        onRequestClose={() => setShowPartnerModal(false)}
+        onConfirm={() => setShowPartnerModal(false)}
+        message="파트너 연결 후에 사용 가능합니다."
+      />
     </>
   );
 };
