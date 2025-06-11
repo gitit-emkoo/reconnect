@@ -5,11 +5,11 @@ import styled from "styled-components";
 import { Link, useNavigate } from "react-router-dom";
 import NavigationBar from "../components/NavigationBar";
 import axiosInstance from "../api/axios"; // 우리 백엔드용 axios 인스턴스
-import { ReactComponent as LeftActive } from '../assets/DirectionLeftActive.svg';
-import { ReactComponent as LeftInactive } from '../assets/DirectionLeftInactive.svg';
-import { ReactComponent as RightActive } from '../assets/DirectionRightActive.svg';
-import { ReactComponent as RightInactive } from '../assets/DirectionRightInactive.svg';
-import WriteIcon from '../assets/Icon_Write.svg?react';
+import LeftActive from '../assets/DirectionLeftActive.svg?url';
+import LeftInactive from '../assets/DirectionLeftInactive.svg?url';
+import RightActive from '../assets/DirectionRightActive.svg?url';
+import RightInactive from '../assets/DirectionRightInactive.svg?url';
+import WriteIcon from '../assets/Icon_Write.svg?url';
 import LoadingSpinner from '../components/common/LoadingSpinner';
 import Header from '../components/common/Header';
 import { useQuery } from '@tanstack/react-query';
@@ -364,10 +364,10 @@ const Community: React.FC = () => {
         <PaginationTop>
           <span>{currentPage} / {totalPages}</span>
           <PaginationButton $active={currentPage > 1} onClick={() => currentPage > 1 && setCurrentPage(currentPage - 1)}>
-            {currentPage > 1 ? <LeftActive width={36} aria-label="이전" /> : <LeftInactive width={36} aria-label="이전" />}
+            <img src={currentPage > 1 ? LeftActive : LeftInactive} alt="이전" width={36} />
           </PaginationButton>
           <PaginationButton $active={currentPage < totalPages} onClick={() => currentPage < totalPages && setCurrentPage(currentPage + 1)}>
-            {currentPage < totalPages ? <RightActive width={36} aria-label="다음" /> : <RightInactive width={36} aria-label="다음" />}
+            <img src={currentPage < totalPages ? RightActive : RightInactive} alt="다음" width={36} />
           </PaginationButton>
         </PaginationTop>
         <PostListContainer>
@@ -419,15 +419,15 @@ const Community: React.FC = () => {
         </PostListContainer>
         <PaginationBottom>
           <PaginationButton $active={currentPage > 1} onClick={() => currentPage > 1 && setCurrentPage(currentPage - 1)}>
-            {currentPage > 1 ? <LeftActive width={36} aria-label="이전" /> : <LeftInactive width={36} aria-label="이전" />}
+            <img src={currentPage > 1 ? LeftActive : LeftInactive} alt="이전" width={36} />
           </PaginationButton>
           <PaginationText>{currentPage} / {totalPages}</PaginationText>
           <PaginationButton $active={currentPage < totalPages} onClick={() => currentPage < totalPages && setCurrentPage(currentPage + 1)}>
-            {currentPage < totalPages ? <RightActive width={36} aria-label="다음" /> : <RightInactive width={36} aria-label="다음" />}
+            <img src={currentPage < totalPages ? RightActive : RightInactive} alt="다음" width={36} />
           </PaginationButton>
         </PaginationBottom>
         <FABContainer onClick={() => navigate('/community/new')}>
-          <FABButton><WriteIcon /></FABButton>
+          <FABButton><img src={WriteIcon} alt="글쓰기" width={24} /></FABButton>
         </FABContainer>
       </Container>
       <NavigationBar />

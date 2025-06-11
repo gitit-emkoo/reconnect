@@ -64,7 +64,7 @@ const useAuthStore = create<AuthState>()(
           try {
             const response = await axiosInstance.get('/users/me');
             if (response.data) {
-              set({ user: response.data });
+              set({ user: response.data, isLoading: false });
               console.log('[authStore.checkAuth] user set:', response.data);
             }
           } catch (error) {

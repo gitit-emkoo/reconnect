@@ -23,6 +23,7 @@ import PartnerCard from '../components/Dashboard/PartnerCard';
 import InviteCodeInputModal from '../components/Invite/InviteCodeInputModal';
 import NotificationBell from '../components/NotificationBell';
 import { useNotificationStore } from '../store/notificationsStore';
+import ConfirmationModal from '../components/common/ConfirmationModal';
 
 const Container = styled.div`
   padding: 1.5rem;
@@ -255,13 +256,15 @@ const Dashboard: React.FC = () => {
     }
   }, [navigate, user, isLoading]);
   
+  const [showPartnerModal, setShowPartnerModal] = useState(false);
+
   const handleFeatureClick = (path: string, requiresPartner: boolean = false) => {
     if (!user) {
       navigate('/login');
       return;
     }
     if (requiresPartner && !user.partner) {
-      setIsInviteModalOpen(true);
+      setShowPartnerModal(true);
       return;
     }
     navigate(path);
@@ -300,15 +303,23 @@ const Dashboard: React.FC = () => {
         {partner ? <PartnerCard partner={partner} /> : <PartnerConnectCard onShareClick={() => setIsShareModalOpen(true)} onInputClick={() => setIsInputModalOpen(true)} />}
 
         <MainMenuRow style={{ margin: '2.5rem 0' }}>
-          <MainMenuItem onClick={() => handleFeatureClick('/emotion-diary')}>
+          <MainMenuItem
+            onClick={() => handleFeatureClick('/emotion-diary')}
+          >
             <MainMenuIcon src={iconDiary} alt="감정일기 아이콘" />
             <MainMenuText>감정일기</MainMenuText>
           </MainMenuItem>
-          <MainMenuItem onClick={() => handleFeatureClick('/emotion-card')}>
+          <MainMenuItem
+            onClick={() => handleFeatureClick('/emotion-card', true)}
+            style={{ opacity: !user.partner ? 0.5 : 1, cursor: !user.partner ? 'not-allowed' : 'pointer' }}
+          >
             <MainMenuIcon src={iconCard} alt="감정카드 아이콘" />
             <MainMenuText>감정카드</MainMenuText>
           </MainMenuItem>
-          <MainMenuItem onClick={() => handleFeatureClick('/challenge')}>
+          <MainMenuItem
+            onClick={() => handleFeatureClick('/challenge', true)}
+            style={{ opacity: !user.partner ? 0.5 : 1, cursor: !user.partner ? 'not-allowed' : 'pointer' }}
+          >
             <MainMenuIcon src={iconChallenge} alt="챌린지 아이콘" />
             <MainMenuText>챌린지</MainMenuText>
           </MainMenuItem>
@@ -362,6 +373,12 @@ const Dashboard: React.FC = () => {
       )}
       {isInputModalOpen && (
         <InviteCodeInputModal onClose={() => setIsInputModalOpen(false)} />
+      )}
+      {showPartnerModal && (
+        <ConfirmationModal
+          message="파트너 연결 후에 사용 가능합니다."
+          onClose={() => setShowPartnerModal(false)}
+        />
       )}
     </>
   );
