@@ -1,44 +1,79 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import 'swiper/css';
-import { mockContents } from '../../mocks/mockContents';
 import { ContentCard } from './ContentCard';
-
-interface ContentListProps {
-  onCardClick: (id: string) => void;
-}
+import type { Content } from '../../types/content';
 
 const ROWS = 5;
 
-export const ContentList: React.FC<ContentListProps> = ({ onCardClick }) => {
-  // 줄별로 콘텐츠 분할
-  const rows = Array.from({ length: ROWS }, (_, i) =>
-    mockContents.filter((_, idx) => idx % ROWS === i)
+interface ContentListProps {
+  contents: Content[];
+  onCardClick: (id: string) => void;
+}
+
+// Swiper 컴포넌트 메모이제이션
+const MemoizedSwiper = React.memo(({ 
+  row, 
+  index, 
+  onCardClick 
+}: { 
+  row: Content[], 
+  index: number,
+  onCardClick: (id: string) => void 
+}) => (
+  <Swiper
+    key={index}
+    slidesPerView={4}
+    spaceBetween={20}
+    loop
+    speed={20000}
+    autoplay={{ delay: 0, disableOnInteraction: false }}
+    dir={index % 2 === 0 ? 'ltr' : 'rtl'}
+    style={{ marginBottom: 32 }}
+  >
+    {row.map((item, idx) => (
+      <SwiperSlide key={item.id} style={{ minWidth: 200, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <ContentCard {...item} index={index * row.length + idx} onClick={() => onCardClick(item.id)} />
+      </SwiperSlide>
+    ))}
+  </Swiper>
+));
+
+export const ContentList: React.FC<ContentListProps> = React.memo(({ contents, onCardClick }) => {
+  // 줄별로 콘텐츠 분할 - 메모이제이션
+  const rows = useMemo(() => 
+    Array.from({ length: ROWS }, (_, i) =>
+      contents.filter((_, idx) => idx % ROWS === i)
+    ),
+    [contents]
   );
+
+  if (contents.length === 0) {
+    return (
+      <div>
+        <h3>AI가 추천하는 콘텐츠</h3>
+        <p style={{ textAlign: 'center', color: '#666', margin: '2rem 0' }}>
+          아직 추천할 콘텐츠가 없습니다.
+        </p>
+      </div>
+    );
+  }
 
   return (
     <div>
       <h3>AI가 추천하는 콘텐츠</h3>
       <div className="content-list">
         {rows.map((row, i) => (
-          <Swiper
+          <MemoizedSwiper
             key={i}
-            slidesPerView={4}
-            spaceBetween={20}
-            loop
-            speed={20000}
-            autoplay={{ delay: 0, disableOnInteraction: false }}
-            dir={i % 2 === 0 ? 'ltr' : 'rtl'}
-            style={{ marginBottom: 32 }}
-          >
-            {row.map((item, idx) => (
-              <SwiperSlide key={item.id} style={{ minWidth: 200, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <ContentCard {...item} index={i * row.length + idx} onClick={() => onCardClick(item.id)} />
-              </SwiperSlide>
-            ))}
-          </Swiper>
+            row={row}
+            index={i}
+            onCardClick={onCardClick}
+          />
         ))}
       </div>
     </div>
   );
-}; 
+});
+
+export default ContentList; 

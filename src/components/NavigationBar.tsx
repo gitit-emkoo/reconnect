@@ -1,5 +1,5 @@
 // src/components/NavigationBar.tsx
-import React from 'react';
+import React, { useCallback } from 'react';
 import styled from 'styled-components';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { ReactComponent as HomeIcon } from '../assets/Icon_Home.svg';
@@ -87,13 +87,13 @@ interface NavigationBarProps {
   isSolo?: boolean;
 }
 
-const NavigationBar: React.FC<NavigationBarProps> = () => {
+const NavigationBar: React.FC<NavigationBarProps> = React.memo(() => {
   const navigate = useNavigate();
   const location = useLocation();
 
-  const handleNavClick = (path: string) => {
+  const handleNavClick = useCallback((path: string) => {
     navigate(path);
-  };
+  }, [navigate]);
 
   return (
     <NavContainer>
@@ -132,9 +132,8 @@ const NavigationBar: React.FC<NavigationBarProps> = () => {
         <MyIcon />
         MY
       </NavButton>
-      
     </NavContainer>
   );
-};
+});
 
 export default NavigationBar;

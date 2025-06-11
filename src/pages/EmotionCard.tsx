@@ -5,7 +5,6 @@ import NavigationBar from "../components/NavigationBar";
 import BackButton from "../components/common/BackButton";
 import SubmitButton from "../components/common/SubmitButton";
 import ConfirmationModal from '../components/common/ConfirmationModal';
-import LoadingSpinner from '../components/common/LoadingSpinner';
 import EmojiPicker, { EmojiStyle } from 'emoji-picker-react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { produce } from 'immer';
@@ -376,24 +375,40 @@ const EmotionCard: React.FC = () => {
   const [isSuggesting, setIsSuggesting] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // 보낸 메시지 쿼리
+  // 보낸 메시지 쿼리 (폴링 추가, 로딩 중 표시 없이 갱신)
   const { 
     data: sentMessages = [], 
     isLoading: isLoadingSent, 
     error: sentError 
-  } = useQuery({
+  } = useQuery<SentMessage[]>({
     queryKey: ['sentMessages'],
     queryFn: fetchSentMessages,
+    refetchInterval: 5000, // 5초마다 갱신
+    refetchIntervalInBackground: true, // 백그라운드에서도 갱신
+    refetchOnWindowFocus: false, // 윈도우 포커스 시 갱신하지 않음
+    refetchOnMount: false, // 컴포넌트 마운트 시 갱신하지 않음 (초기 로딩은 제외)
+    refetchOnReconnect: false, // 재연결 시 갱신하지 않음
+    enabled: true, // 쿼리 활성화
+    staleTime: 0, // 데이터를 항상 stale로 취급 (즉시 갱신)
+    gcTime: 0 // 캐시 유지 시간 (0으로 설정하여 즉시 GC)
   });
 
-  // 받은 메시지 쿼리
+  // 받은 메시지 쿼리 (폴링 추가, 로딩 중 표시 없이 갱신)
   const { 
     data: receivedMessages = [], 
     isLoading: isLoadingReceived, 
     error: receivedError 
-  } = useQuery({
+  } = useQuery<SentMessage[]>({
     queryKey: ['receivedMessages'],
     queryFn: fetchReceivedMessages,
+    refetchInterval: 5000, // 5초마다 갱신
+    refetchIntervalInBackground: true, // 백그라운드에서도 갱신
+    refetchOnWindowFocus: false, // 윈도우 포커스 시 갱신하지 않음
+    refetchOnMount: false, // 컴포넌트 마운트 시 갱신하지 않음 (초기 로딩은 제외)
+    refetchOnReconnect: false, // 재연결 시 갱신하지 않음
+    enabled: true, // 쿼리 활성화
+    staleTime: 0, // 데이터를 항상 stale로 취급 (즉시 갱신)
+    gcTime: 0 // 캐시 유지 시간 (0으로 설정하여 즉시 GC)
   });
   
   const [selectedMessage, setSelectedMessage] = useState<SentMessage | null>(null);
@@ -403,12 +418,13 @@ const EmotionCard: React.FC = () => {
   const CARDS_PER_ROW = 5;
 
   // === 필터링 추가 ===
-  const filteredSentMessages = sentMessages.filter(
+  const filteredSentMessages = Array.isArray(sentMessages) ? sentMessages.filter(
     (msg: SentMessage) => msg.senderId === myId
-  );
-  const filteredReceivedMessages = receivedMessages.filter(
+  ) : [];
+  
+  const filteredReceivedMessages = Array.isArray(receivedMessages) ? receivedMessages.filter(
     (msg: SentMessage) => msg.senderId === partnerId && msg.receiverId === myId
-  );
+  ) : [];
 
   const sendCardMutation = useMutation({
     mutationFn: ({ text, emoji }: { text: string, emoji: string }) => postEmotionCard({ text, emoji }),
@@ -497,14 +513,6 @@ const EmotionCard: React.FC = () => {
   const closeModal = () => {
     setSelectedMessage(null);
   };
-
-  if (isLoadingSent || isLoadingReceived) {
-    return (
-      <PageContainer style={{ justifyContent: 'center' }}>
-        <LoadingSpinner size={48} />
-      </PageContainer>
-    );
-  }
 
   if (sentError || receivedError) {
     return (
@@ -603,14 +611,10 @@ const EmotionCard: React.FC = () => {
           <TabButton active={tab === 'sent'} onClick={() => setTab('sent')}>보낸 카드</TabButton>
           <TabButton active={tab === 'received'} onClick={() => setTab('received')}>
             받은 카드
-            {tab !== 'received' && receivedMessages.some((msg: SentMessage) => msg.isRead === false) && <NewBadge>NEW</NewBadge>}
+            {tab !== 'received' && Array.isArray(receivedMessages) && receivedMessages.some((msg: SentMessage) => msg.isRead === false) && <NewBadge>NEW</NewBadge>}
           </TabButton>
         </TabsContainer>
 
-        {/* 카드 목록 로딩 시 스피너 */}
-        {(isLoadingSent || isLoadingReceived) && <LoadingSpinner size={48} />}
-        {/* 카드 전송 시 스피너 (ContentWrapper 아래에 중첩 표시) */}
-        {sendCardMutation.isPending && <LoadingSpinner size={48} />}
         {/* 카드 목록: 이모지+날짜만 간단히 표시, 클릭 시 모달 */}
         {tab === 'sent' && !isLoadingSent && filteredSentMessages.length > 0 && (
           <SentCardsSection>
@@ -661,7 +665,6 @@ const EmotionCard: React.FC = () => {
             </CardGridWrapper>
           </SentCardsSection>
         )}
-        {tab === 'received' && isLoadingReceived && <LoadingSpinner size={48} />}
 
       </PageContainer>
 
