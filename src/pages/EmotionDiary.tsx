@@ -5,16 +5,16 @@ import NavigationBar from "../components/NavigationBar";
 import BackButton from "../components/common/BackButton";
 
 // SVG 아이콘 임포트
-import TriggerActivitiesIcon from "../assets/Trigger_Activities.svg?react";
-import TriggerFamilyIcon from "../assets/Trigger_Family.svg?react";
-import TriggerFriendIcon from "../assets/Trigger_Friend.svg?react";
-import TriggerHealthIcon from "../assets/Trigger_Health.svg?react";
-import TriggerIndependenceIcon from "../assets/Trigger_Independence.svg?react";
-import TriggerNewsIcon from "../assets/Trigger_News.svg?react";
-import TriggerParticipationIcon from "../assets/Trigger_Participation.svg?react";
-import TriggerRelationshipsIcon from "../assets/Trigger_Relationships.svg?react";
-import TriggerSelfIcon from "../assets/Trigger_Self.svg?react";
-import TriggerWorkIcon from "../assets/Trigger_Work.svg?react";
+import { ReactComponent as TriggerActivitiesIcon } from "../assets/Trigger_Activities.svg";
+import { ReactComponent as TriggerFamilyIcon } from "../assets/Trigger_Family.svg";
+import { ReactComponent as TriggerFriendIcon } from "../assets/Trigger_Friend.svg";
+import { ReactComponent as TriggerHealthIcon } from "../assets/Trigger_Health.svg";
+import { ReactComponent as TriggerIndependenceIcon } from "../assets/Trigger_Independence.svg";
+import { ReactComponent as TriggerNewsIcon } from "../assets/Trigger_News.svg";
+import { ReactComponent as TriggerParticipationIcon } from "../assets/Trigger_Participation.svg";
+import { ReactComponent as TriggerRelationshipsIcon } from "../assets/Trigger_Relationships.svg";
+import { ReactComponent as TriggerSelfIcon } from "../assets/Trigger_Self.svg";
+import { ReactComponent as TriggerWorkIcon } from "../assets/Trigger_Work.svg";
 
 // 데이터 타입 정의
 interface Emotion {
