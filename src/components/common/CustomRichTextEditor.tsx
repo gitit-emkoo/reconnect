@@ -1,4 +1,4 @@
-import React, { useRef, useState, useEffect, useImperativeHandle, forwardRef } from 'react';
+import React, { useRef, useState, useEffect, useImperativeHandle, forwardRef, useCallback } from 'react';
 import styled from 'styled-components';
 import ConfirmationModal from './ConfirmationModal';
 import { ReactComponent as IconBold } from '../../assets/icon_bold.svg';
@@ -9,6 +9,7 @@ import { ReactComponent as IconAlignCenter } from '../../assets/icon_alignment_c
 import { ReactComponent as IconAlignRight } from '../../assets/icon_alignment_right.svg';
 import axiosInstance from '../../api/axios';
 import useAuthStore from '../../store/authStore';
+import type { CustomEditorRef, CustomRichTextEditorProps, Draft } from '../../types/editor';
 
 // Styled Components (화이트톤, 기존 폼과 통일)
 const EditorWrapper = styled.div`
@@ -87,23 +88,6 @@ const format = (command: string, value?: string) => {
   document.execCommand(command, false, value);
 };
 
-interface Draft {
-  title: string;
-  content: string;
-}
-
-interface CustomRichTextEditorProps {
-  onTitleChange?: (title: string) => void;
-  onContentChange?: (content: string) => void;
-  initialTitle?: string;
-  initialContent?: string;
-  draftKey?: string;
-}
-
-export interface CustomEditorRef {
-  insertImages: (urls: string[]) => void;
-}
-
 const CustomRichTextEditor = forwardRef<CustomEditorRef, CustomRichTextEditorProps>(({ onTitleChange, onContentChange, initialTitle = '', initialContent = '', draftKey = 'custom_rich_text_editor_draft_new' }, ref) => {
   const editorRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -114,45 +98,16 @@ const CustomRichTextEditor = forwardRef<CustomEditorRef, CustomRichTextEditorPro
   const token = useAuthStore((state: any) => state.token);
   const lastSelection = useRef<Range | null>(null);
 
-  // 외부에서 이미지 삽입을 위한 핸들 expose
-  useImperativeHandle(ref, () => ({
-    insertImages: (urls: string[]) => {
-      const editor = editorRef.current;
-      if (!editor) return;
-
-      // 저장된 선택 영역 복원 또는 마지막에 포커스
-      if (lastSelection.current) {
-        const selection = window.getSelection();
-        selection?.removeAllRanges();
-        selection?.addRange(lastSelection.current);
-      } else {
-        editor.focus();
-      }
-      
-      urls.forEach(url => {
-        format('insertImage', url);
-        // 이미지 삽입 후 줄바꿈을 위해 <br> 추가
-        const br = document.createElement('br');
-        const selection = window.getSelection();
-        if (selection?.rangeCount) {
-          const range = selection.getRangeAt(0);
-          range.insertNode(br);
-          range.setStartAfter(br);
-          range.collapse(true);
-        }
-      });
-      setContent(editor.innerHTML);
-    }
-  }));
-
-  // 임시저장: 3초마다
-  useEffect(() => {
-    const interval = setInterval(() => {
-      const html = editorRef.current?.innerHTML || '';
-      localStorage.setItem(draftKey, JSON.stringify({ title, content: html }));
-    }, 3000);
-    return () => clearInterval(interval);
+  // 임시저장 로직 최적화
+  const saveDraft = useCallback(() => {
+    const html = editorRef.current?.innerHTML || '';
+    localStorage.setItem(draftKey, JSON.stringify({ title, content: html }));
   }, [title, content, draftKey]);
+
+  useEffect(() => {
+    const interval = setInterval(saveDraft, 3000);
+    return () => clearInterval(interval);
+  }, [saveDraft]);
 
   // 최초 마운트 1회만 초기값 세팅
   const didMount = useRef(false);
@@ -163,7 +118,7 @@ const CustomRichTextEditor = forwardRef<CustomEditorRef, CustomRichTextEditorPro
       if (editorRef.current) editorRef.current.innerHTML = initialContent;
       didMount.current = true;
     }
-  }, []);
+  }, [initialTitle, initialContent]);
 
   // 새글쓰기에서만 임시저장 불러오기 모달 띄우기
   useEffect(() => {
@@ -179,25 +134,66 @@ const CustomRichTextEditor = forwardRef<CustomEditorRef, CustomRichTextEditorPro
     }
   }, [draftKey]);
 
-  // 모달에서 '예' 누르면 임시저장 불러오기
-  const handleLoadDraft = () => {
+  // 모달 핸들러 메모이제이션
+  const handleLoadDraft = useCallback(() => {
     if (draftToLoad) {
       setTitle(draftToLoad.title);
       setContent(draftToLoad.content);
       if (editorRef.current) editorRef.current.innerHTML = draftToLoad.content;
     }
     setShowDraftModal(false);
-  };
-  // 모달에서 '아니오' 누르면 닫기
-  const handleIgnoreDraft = () => {
-    setShowDraftModal(false);
-  };
+  }, [draftToLoad]);
 
-  // 툴바 핸들러
-  const handleFormat = (cmd: string, value?: string) => {
+  const handleIgnoreDraft = useCallback(() => {
+    setShowDraftModal(false);
+  }, []);
+
+  // 툴바 핸들러 메모이제이션
+  const handleFormat = useCallback((cmd: string, value?: string) => {
     format(cmd, value);
     editorRef.current?.focus();
-  };
+  }, []);
+
+  // 외부에서 이미지 삽입을 위한 핸들 expose
+  useImperativeHandle(ref, () => ({
+    insertImages: useCallback((urls: string[]) => {
+      const editor = editorRef.current;
+      if (!editor) return;
+
+      if (lastSelection.current) {
+        const selection = window.getSelection();
+        selection?.removeAllRanges();
+        selection?.addRange(lastSelection.current);
+      } else {
+        editor.focus();
+      }
+      
+      urls.forEach(url => {
+        format('insertImage', url);
+        const br = document.createElement('br');
+        const selection = window.getSelection();
+        if (selection?.rangeCount) {
+          const range = selection.getRangeAt(0);
+          range.insertNode(br);
+          range.setStartAfter(br);
+          range.collapse(true);
+        }
+      });
+      setContent(editor.innerHTML);
+    }, [])
+  }), []);
+
+  // 에디터 입력 핸들러 메모이제이션
+  const handleInput = useCallback((e: React.FormEvent<HTMLDivElement>) => {
+    setContent((e.target as HTMLDivElement).innerHTML);
+  }, []);
+
+  const handleBlur = useCallback(() => {
+    const selection = window.getSelection();
+    if (selection?.rangeCount) {
+      lastSelection.current = selection.getRangeAt(0).cloneRange();
+    }
+  }, []);
 
   // 이미지 업로드
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -302,13 +298,8 @@ const CustomRichTextEditor = forwardRef<CustomEditorRef, CustomRichTextEditorPro
             ref={editorRef}
             contentEditable
             spellCheck={false}
-            onInput={e => setContent((e.target as HTMLDivElement).innerHTML)}
-            onBlur={() => { // 선택 영역 저장
-              const selection = window.getSelection();
-              if (selection?.rangeCount) {
-                lastSelection.current = selection.getRangeAt(0).cloneRange();
-              }
-            }}
+            onInput={handleInput}
+            onBlur={handleBlur}
             style={{minHeight: 160}}
           />
           {(!content || content === '<br>') && (
@@ -329,4 +320,4 @@ const CustomRichTextEditor = forwardRef<CustomEditorRef, CustomRichTextEditorPro
   );
 });
 
-export default CustomRichTextEditor; 
+export default React.memo(CustomRichTextEditor); 

@@ -1,5 +1,5 @@
 // src/pages/Dashboard.tsx (최종 수정)
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import styled from "styled-components";
 import { useNavigate } from "react-router-dom";
 // import Calendar, { type CalendarProps } from 'react-calendar'; // DashboardCalendar로 이동
@@ -8,9 +8,8 @@ import NavigationBar from "../components/NavigationBar";
 import useAuthStore from "../store/authStore"; // AuthContext 대신 useAuthStore import
 import { InviteModal } from "../components/Invite/InviteModal";
 import DashboardCalendar from "../components/Dashboard/DashboardCalendar"; // 새로 추가된 캘린더 컴포넌트
-import WelcomeUserSection from "../components/Dashboard/WelcomeUserSection"; // 새로 추가
-import PartnerConnectionCard from "../components/Dashboard/PartnerConnectionCard"; // 새로 추가
-import LoadingSpinner from "../components/common/LoadingSpinner"; // LoadingSpinner import
+import WelcomeUserSection from "../components/Dashboard/WelcomeUserSection"; // 새로 추가 // 새로 추가
+
 import type { User } from "../types/user"; // types/user.ts 에서 User 타입 import
 import { ReactComponent as IcToggleUp } from '../assets/ic_toggle_up.svg';
 import { ReactComponent as IcToggleDown } from '../assets/ic_toggle_down.svg';
@@ -19,6 +18,11 @@ import iconDiary from '../assets/travel-journal_16997872.png';
 import iconChallenge from '../assets/finish_11741557.png';
 import iconReport from '../assets/chart_11709638.png';
 import HeartGauge from '../components/Dashboard/HeartGauge';
+import PartnerConnectCard from '../components/Dashboard/PartnerConnectCard';
+import PartnerCard from '../components/Dashboard/PartnerCard';
+import InviteCodeInputModal from '../components/Invite/InviteCodeInputModal';
+import NotificationBell from '../components/NotificationBell';
+import { useNotificationStore } from '../store/notificationsStore';
 
 const Container = styled.div`
   padding: 1.5rem;
@@ -42,26 +46,6 @@ const Logo = styled.img`
 
 // WelcomeSection, WelcomeTitle, WelcomeSubtitle, ReportButton styled-components는 WelcomeUserSection.tsx로 이동
 // PartnerCard, PartnerInfo, PartnerImageArea, PartnerCardTitle, PartnerName, PartnerTime, InviteButton styled-components는 PartnerConnectionCard.tsx로 이동
-
-const TopRowContainer = styled.div`
-  background-color: #f1f3f7;
-  border-radius: 1rem;
-  padding: 1.5rem;  
-  display: flex;
-  flex-direction: row;
-  gap: 1rem;
-  align-items: stretch; /* 자식 요소들의 높이를 통일합니다. */
-  
-  /* 직계 자식 요소들이 공간을 1:1로 나눠갖도록 설정합니다. */
-  & > * {
-    flex: 1;
-    min-width: 0; /* flex item이 부모 너비를 넘어가지 않도록 함 */
-  }
-
-  @media (max-width: 768px) {
-    flex-direction: row;
-  }
-`;
 
 
 const PartnerSection = styled.div`
@@ -213,6 +197,22 @@ const ToggleIconWrapper = styled.span`
   margin-left: 8px;
 `;
 
+const TopSection = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 2rem;
+  margin-bottom: 2rem;
+`;
+
+const Left = styled.div`
+  flex: 0 0 auto;
+`;
+
+const Right = styled.div`
+  flex: 1 1 0;
+`;
+
 const Dashboard: React.FC = () => {
   const navigate = useNavigate();
   const { user, isLoggedIn, accessToken } = useAuthStore();
@@ -229,6 +229,24 @@ const Dashboard: React.FC = () => {
 
   // 로딩 상태를 isLoggedIn과 user 존재 여부로 판단
   const isLoading = !isLoggedIn && !user && !!accessToken;
+
+  const prevPartnerId = useRef(user?.partner?.id);
+
+  // 1. 폴링: 5초마다 user 정보 최신화
+  useEffect(() => {
+    const interval = setInterval(() => {
+      useAuthStore.getState().checkAuth();
+    }, 5000); // 5초마다
+    return () => clearInterval(interval);
+  }, []);
+
+  // 2. 파트너 연결 알림
+  useEffect(() => {
+    if (user?.partner?.id && prevPartnerId.current !== user.partner.id) {
+      useNotificationStore.getState().addNotification('파트너가 연결되었습니다!');
+      prevPartnerId.current = user.partner.id;
+    }
+  }, [user?.partner?.id]);
 
   useEffect(() => {
     // 토큰은 있는데 유저 정보가 없는 초기 로딩 상태가 아니라면, 리디렉션 로직 수행
@@ -249,12 +267,8 @@ const Dashboard: React.FC = () => {
     navigate(path);
   };
 
-
-  if (isLoading) return (
-    <CenteredContainer>
-      <LoadingSpinner size={48} />
-    </CenteredContainer>
-  );
+  const [isShareModalOpen, setIsShareModalOpen] = useState(false);
+  const [isInputModalOpen, setIsInputModalOpen] = useState(false);
 
   if (!user) return (
     <CenteredContainer>
@@ -264,35 +278,26 @@ const Dashboard: React.FC = () => {
   
   const logoUrl = '/images/reconnect.png';
 
-  // 파트너 이미지 URL 결정 로직 수정
-  let partnerDisplayImageUrl: string | null = null;
-  if (user.partner && user.partner.imageUrl) {
-    partnerDisplayImageUrl = user.partner.imageUrl;
-  }
+  const partner = user.partner;
 
   return (
     <>
       <Container>
         <Header>
           <Logo src={logoUrl} alt="Reconnect Logo" />
+          <NotificationBell />
         </Header>
 
-        <TopRowContainer>
-          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginBottom: '1.5rem' }}>
-            
-            
-            <div style={{ marginTop: '1.2rem', width: '100%' }}>
-              <WelcomeUserSection user={user as User} />
-            </div>
-            <div style={{ fontWeight: 600, fontSize: '0.6rem', color: '#FF4B4B', marginBottom: '0.5rem' }}>Reconnect 온도계</div>
-            <HeartGauge percentage={32} size={60} />
-          </div>
-          <PartnerConnectionCard 
-            user={user as User} 
-            partnerDisplayImageUrl={partnerDisplayImageUrl}
-            onOpenInviteModal={() => setIsInviteModalOpen(true)} 
-          />
-        </TopRowContainer>
+        <TopSection>
+          <Left>
+            <HeartGauge percentage={76} size={120} />
+          </Left>
+          <Right>
+            <WelcomeUserSection user={user as User} heartPercent={76} emotion="따뜻함" />
+          </Right>
+        </TopSection>
+
+        {partner ? <PartnerCard partner={partner} /> : <PartnerConnectCard onShareClick={() => setIsShareModalOpen(true)} onInputClick={() => setIsInputModalOpen(true)} />}
 
         <MainMenuRow style={{ margin: '2.5rem 0' }}>
           <MainMenuItem onClick={() => handleFeatureClick('/emotion-diary')}>
@@ -352,6 +357,12 @@ const Dashboard: React.FC = () => {
       </Container>
       <NavigationBar isSolo={!user.partner} />
       {isInviteModalOpen && <InviteModal onClose={() => setIsInviteModalOpen(false)} />}
+      {isShareModalOpen && (
+        <InviteModal onClose={() => setIsShareModalOpen(false)} />
+      )}
+      {isInputModalOpen && (
+        <InviteCodeInputModal onClose={() => setIsInputModalOpen(false)} />
+      )}
     </>
   );
 };

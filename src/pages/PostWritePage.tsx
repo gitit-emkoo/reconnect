@@ -5,7 +5,8 @@ import NavigationBar from "../components/NavigationBar";
 import axiosInstance from "../api/axios";
 import Tagify from '@yaireo/tagify/react';
 import '@yaireo/tagify/dist/tagify.css';
-import CustomRichTextEditor, { type CustomEditorRef } from '../components/common/CustomRichTextEditor';
+import CustomRichTextEditor from '../components/common/CustomRichTextEditor';
+import type { CustomEditorRef } from '../types/editor';
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import useAuthStore from "../store/authStore";
 

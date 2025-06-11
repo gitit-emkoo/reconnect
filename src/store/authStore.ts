@@ -60,20 +60,19 @@ const useAuthStore = create<AuthState>()(
         const token = localStorage.getItem('accessToken') || sessionStorage.getItem('accessToken');
         console.log('[authStore.checkAuth] token:', token);
         if (token) {
-          set({ accessToken: token, isLoggedIn: true, isLoading: true });
+          set({ accessToken: token, isLoggedIn: true });
           try {
-            const response = await axiosInstance.get('/users/me'); // 사용자 정보 요청 경로 수정
+            const response = await axiosInstance.get('/users/me');
             if (response.data) {
-              set({ user: response.data, isLoading: false });
+              set({ user: response.data });
               console.log('[authStore.checkAuth] user set:', response.data);
             }
           } catch (error) {
-            get().logout(); // 상태를 깨끗하게 초기화
+            get().logout();
             console.log('[authStore.checkAuth] token invalid, logout');
           }
         } else {
-          set({ isLoading: false }); // 토큰이 없으면 로딩 종료
-          console.log('[authStore.checkAuth] no token, isLoading false');
+          console.log('[authStore.checkAuth] no token');
         }
       },
     }),

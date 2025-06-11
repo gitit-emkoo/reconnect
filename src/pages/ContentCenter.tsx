@@ -20,7 +20,7 @@ const ContentCenter: React.FC = () => {
     <div>
       <Header title="콘텐츠" />
       {!selected ? (
-        <ContentList onCardClick={setSelectedId} />
+        <ContentList onCardClick={setSelectedId} contents={mockContents} />
       ) : (
         <div>
           <button style={{ margin: '24px 0 0 24px' }} onClick={() => setSelectedId(null)}>

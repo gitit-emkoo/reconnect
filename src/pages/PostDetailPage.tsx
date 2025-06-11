@@ -4,6 +4,7 @@ import styled from 'styled-components';
 import NavigationBar from '../components/NavigationBar';
 import axiosInstance from '../api/axios';
 import useAuthStore from '../store/authStore';
+import type { User } from '../types/user';
 import BackButton from '../components/common/BackButton';
 import LoadingSpinner from '../components/common/LoadingSpinner';
 import PostDetailMain from '../components/community/PostDetailMain';
@@ -332,8 +333,8 @@ const PostDetailPage: React.FC = () => {
       <Container style={{ position: 'relative' }}>
         <BackButton />
         <PostContainer>
-          <PostDetailMain post={post} user={user} onEdit={handleEdit} onDelete={handleDelete} />
-          <PollVoteBox post={post} user={user} />
+          <PostDetailMain post={post} user={user as User} onEdit={handleEdit} onDelete={handleDelete} />
+          <PollVoteBox post={post} user={user as User} />
         </PostContainer>
 
         <CommentsSection>
