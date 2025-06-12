@@ -6,6 +6,7 @@ import '../components/contents/ContentCard.css';
 import '../components/contents/ContentDetail.css';
 import NavigationBar from '../components/NavigationBar';
 import Header from '../components/common/Header';
+import MobileOnlyBanner from '../components/common/MobileOnlyBanner';
 
 interface Content {
   id: string;
@@ -18,6 +19,7 @@ const ContentCenter: React.FC = () => {
 
   return (
     <div>
+      <MobileOnlyBanner />
       <Header title="콘텐츠" />
       {!selected ? (
         <ContentList onCardClick={setSelectedId} contents={mockContents} />

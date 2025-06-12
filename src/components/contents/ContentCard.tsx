@@ -1,4 +1,5 @@
 import React from 'react';
+import styled from 'styled-components';
 
 interface ContentCardProps {
   title: string;
@@ -19,27 +20,54 @@ const CARD_COLORS = [
   '#E2C2B9', // 베이지
 ];
 
+const Card = styled.div<{ bgColor: string }>`
+  width: 90vw;
+  max-width: 340px;
+  height: 140px;
+  border-radius: 16px;
+  background: ${({ bgColor }) => bgColor};
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  overflow: hidden;
+  margin: 12px auto;
+  cursor: pointer;
+  transition: transform 0.1s;
+  &:active {
+    transform: scale(0.97);
+  }
+`;
+
+const Chip = styled.div`
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  background: #ff6fcb;
+  color: #fff;
+  font-size: 13px;
+  padding: 4px 12px;
+  border-radius: 12px;
+  font-weight: bold;
+  z-index: 2;
+`;
+
+const Title = styled.div`
+  margin-top: 32px;
+  font-size: 18px;
+  font-weight: 700;
+  text-align: center;
+  color: #333;
+  word-break: keep-all;
+`;
+
 export const ContentCard: React.FC<ContentCardProps> = ({ title, chip, onClick, index }) => (
-  <div
-    className="content-card"
-    onClick={onClick}
-    style={{
-      cursor: 'pointer',
-      background: CARD_COLORS[index % CARD_COLORS.length],
-      minHeight: 180,
-      display: 'flex',
-      flexDirection: 'column',
-      alignItems: 'center',
-      justifyContent: 'center',
-      borderRadius: 16,
-      boxShadow: '0 2px 8px rgba(0,0,0,0.06)',
-      margin: 8,
-    }}
-  >
-    {/* <img src={thumbnail} alt={title} className="thumbnail" /> */}
-    <div className="chip" style={{ marginBottom: 12, fontWeight: 600 }}>{chip}</div>
-    <div className="title" style={{ fontSize: 18, fontWeight: 700 }}>{title}</div>
-  </div>
+  <Card bgColor={CARD_COLORS[index % CARD_COLORS.length]} onClick={onClick}>
+    <Chip>{chip}</Chip>
+    <Title>{title}</Title>
+  </Card>
 );
 
 // 스타일은 ContentCard.css를 참고하세요. 
