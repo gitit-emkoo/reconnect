@@ -154,34 +154,37 @@ const CustomRichTextEditor = forwardRef<CustomEditorRef, CustomRichTextEditorPro
     editorRef.current?.focus();
   }, []);
 
-  // 외부에서 이미지 삽입을 위한 핸들 expose
-  useImperativeHandle(ref, () => ({
-    insertImages: useCallback((urls: string[]) => {
-      const editor = editorRef.current;
-      if (!editor) return;
+  // insertImages 콜백을 컴포넌트 레벨에서 정의
+  const insertImagesCallback = useCallback((urls: string[]) => {
+    const editor = editorRef.current;
+    if (!editor) return;
 
-      if (lastSelection.current) {
-        const selection = window.getSelection();
-        selection?.removeAllRanges();
-        selection?.addRange(lastSelection.current);
-      } else {
-        editor.focus();
+    if (lastSelection.current) {
+      const selection = window.getSelection();
+      selection?.removeAllRanges();
+      selection?.addRange(lastSelection.current);
+    } else {
+      editor.focus();
+    }
+    
+    urls.forEach(url => {
+      format('insertImage', url);
+      const br = document.createElement('br');
+      const selection = window.getSelection();
+      if (selection?.rangeCount) {
+        const range = selection.getRangeAt(0);
+        range.insertNode(br);
+        range.setStartAfter(br);
+        range.collapse(true);
       }
-      
-      urls.forEach(url => {
-        format('insertImage', url);
-        const br = document.createElement('br');
-        const selection = window.getSelection();
-        if (selection?.rangeCount) {
-          const range = selection.getRangeAt(0);
-          range.insertNode(br);
-          range.setStartAfter(br);
-          range.collapse(true);
-        }
-      });
-      setContent(editor.innerHTML);
-    }, [])
-  }), []);
+    });
+    setContent(editor.innerHTML);
+  }, []);
+
+  // useImperativeHandle에서 미리 정의된 콜백 사용
+  useImperativeHandle(ref, () => ({
+    insertImages: insertImagesCallback
+  }), [insertImagesCallback]);
 
   // 에디터 입력 핸들러 메모이제이션
   const handleInput = useCallback((e: React.FormEvent<HTMLDivElement>) => {

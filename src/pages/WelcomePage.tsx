@@ -10,6 +10,7 @@ import axiosInstance from '../api/axios';
 import useAuthStore, { type AuthState } from '../store/authStore';
 import { useGoogleLogin } from '@react-oauth/google';
 import { getKakaoLoginUrl } from '../utils/socialAuth';
+import MainImg from '../assets/MainImg.png';
 
 
 const Container = styled.div`
@@ -383,7 +384,7 @@ const WelcomePage: React.FC = () => {
       />
       <IllustrationWrapper>
         <img 
-          src="/images/img1.jpg" 
+          src={MainImg} 
           alt="Couple illustration" 
           onLoad={() => setImageLoaded(true)}
           style={{ opacity: imageLoaded ? 1 : 0, transition: 'opacity 0.3s' }}
