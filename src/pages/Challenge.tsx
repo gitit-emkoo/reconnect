@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from "react";
 import styled from "styled-components";
-import { useNavigate } from "react-router-dom";
 import useAuthStore from "../store/authStore";
 import PartnerRequiredModal from "../components/common/PartnerRequiredModal";
 import NavigationBar from "../components/NavigationBar";
