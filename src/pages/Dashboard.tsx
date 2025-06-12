@@ -233,13 +233,15 @@ const Dashboard: React.FC = () => {
 
   const prevPartnerId = useRef(user?.partner?.id);
 
-  // 1. 폴링: 5초마다 user 정보 최신화
+  // 1. 폴링: 5초마다 user 정보 최신화 (파트너가 없을 때만)
   useEffect(() => {
-    const interval = setInterval(() => {
-      useAuthStore.getState().checkAuth();
-    }, 5000); // 5초마다
-    return () => clearInterval(interval);
-  }, []);
+    if (!user?.partner) {
+      const interval = setInterval(() => {
+        useAuthStore.getState().checkAuth();
+      }, 5000); // 5초마다
+      return () => clearInterval(interval);
+    }
+  }, [user?.partner]);
 
   // 2. 파트너 연결 알림
   useEffect(() => {
