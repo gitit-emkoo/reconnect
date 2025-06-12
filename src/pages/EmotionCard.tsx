@@ -321,7 +321,7 @@ const fetchSentMessages = async (user: User) => {
 
 const fetchReceivedMessages = async (user: User) => {
   if (!user.id) throw new Error('유저 정보가 없습니다.');
-  const response = await axiosInstance.get('/emotion-cards/received');
+  const response = await axiosInstance.get('/emotion-cards/received', { params: { userId: user.id } });
   if (!response.data) throw new Error('받은 감정카드 목록을 불러오지 못했습니다.');
   return response.data.map((card: any) => ({ ...card, text: card.text || card.message || '' }));
 };
@@ -518,9 +518,8 @@ const EmotionCard: React.FC = () => {
       <PageContainer style={{ textAlign: 'center', paddingTop: '4rem' }}>
         <PageTitle>오류 발생</PageTitle>
         <ErrorMessage>
-          {sentError?.message || receivedError?.message || '데이터를 불러오는 중 오류가 발생했습니다.'}
-          {(sentError as any)?.response?.data?.error && `\n상세: ${(sentError as any).response.data.error}`}
-          {(receivedError as any)?.response?.data?.error && `\n상세: ${(receivedError as any).response.data.error}`}
+          데이터를 불러오는 중 오류가 발생했습니다.
+          {sentError?.message || receivedError?.message}
         </ErrorMessage>
       </PageContainer>
     );
