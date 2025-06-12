@@ -12,7 +12,7 @@ const WelcomeUserSection: React.FC<WelcomeUserSectionProps> = ({ user, heartPerc
       {user.nickname}님, 반가워요
     </div>
     <div style={{ color: '#888', fontSize: '1.1rem' }}>
-      오늘 감정: {emotion} {heartPercent}%
+      오늘의 우리사이 온도: {emotion} {heartPercent}°C
     </div>
   </div>
 );

@@ -9,6 +9,8 @@ import EmojiPicker, { EmojiStyle } from 'emoji-picker-react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { produce } from 'immer';
 import useAuthStore from '../store/authStore';
+import axiosInstance from '../api/axios';
+import { User } from "../types/user";
 
 // 배열을 행 단위로 나누는 chunkCards 함수 추가
 function chunkCards<T>(array: T[], size: number): T[][] {
@@ -310,26 +312,18 @@ const CloseButton = styled.button`
 const API_BASE_URL = "https://reconnect-backend.onrender.com/api";
 
 // 감정카드 목록 fetch 함수
-const fetchSentMessages = async () => {
-  const response = await fetch(`${API_BASE_URL}/emotion-cards`, {
-    headers: {
-      'Authorization': `Bearer ${localStorage.getItem('accessToken') || ''}`
-    }
-  });
-  if (!response.ok) throw new Error('감정카드 목록을 불러오지 못했습니다.');
-  const data = await response.json();
-  return data.map((card: any) => ({ ...card, text: card.text || card.message || '' }));
+const fetchSentMessages = async (user: User) => {
+  if (!user.partner?.id) throw new Error('파트너가 연결되어야 감정카드를 사용할 수 있습니다.');
+  const response = await axiosInstance.get('/emotion-cards');
+  if (!response.data) throw new Error('감정카드 목록을 불러오지 못했습니다.');
+  return response.data.map((card: any) => ({ ...card, text: card.text || card.message || '' }));
 };
 
-const fetchReceivedMessages = async () => {
-  const response = await fetch(`${API_BASE_URL}/emotion-cards/received`, {
-    headers: {
-      'Authorization': `Bearer ${localStorage.getItem('accessToken') || ''}`
-    }
-  });
-  if (!response.ok) throw new Error('받은 감정카드 목록을 불러오지 못했습니다.');
-  const data = await response.json();
-  return data.map((card: any) => ({ ...card, text: card.text || card.message || '' }));
+const fetchReceivedMessages = async (user: User) => {
+  if (!user.id) throw new Error('유저 정보가 없습니다.');
+  const response = await axiosInstance.get('/emotion-cards/received');
+  if (!response.data) throw new Error('받은 감정카드 목록을 불러오지 못했습니다.');
+  return response.data.map((card: any) => ({ ...card, text: card.text || card.message || '' }));
 };
 
 // 카드 아이템 컴포넌트 분리 (map 내부 useState 제거)
@@ -350,22 +344,9 @@ const CardItem = ({ msg, onClick, showNewBadge = false }: { msg: SentMessage, on
   );
 };
 
-const postEmotionCard = async ({ text, emoji }: { text: string, emoji: string }) => {
-  const response = await fetch(`${API_BASE_URL}/emotion-cards`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${localStorage.getItem('accessToken') || ''}`
-    },
-    body: JSON.stringify({ text, emoji })
-  });
-  if (!response.ok) throw new Error('감정카드 전송에 실패했습니다.');
-  return response.json();
-};
-
 const EmotionCard: React.FC = () => {
   const queryClient = useQueryClient();
-  const user = useAuthStore((state) => state.user);
+  const user = useAuthStore((state) => state.user) as User;
   const myId = user?.id;
   const partnerId = user?.partner?.id;
   const [message, setMessage] = useState("");
@@ -375,40 +356,40 @@ const EmotionCard: React.FC = () => {
   const [isSuggesting, setIsSuggesting] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // 보낸 메시지 쿼리 (폴링 추가, 로딩 중 표시 없이 갱신)
-  const { 
-    data: sentMessages = [], 
-    isLoading: isLoadingSent, 
-    error: sentError 
+  // 보낸 메시지 쿼리 (파트너 없으면 비활성화)
+  const {
+    data: sentMessages = [],
+    isLoading: isLoadingSent,
+    error: sentError
   } = useQuery<SentMessage[]>({
-    queryKey: ['sentMessages'],
-    queryFn: fetchSentMessages,
-    refetchInterval: 5000, // 5초마다 갱신
-    refetchIntervalInBackground: true, // 백그라운드에서도 갱신
-    refetchOnWindowFocus: false, // 윈도우 포커스 시 갱신하지 않음
-    refetchOnMount: false, // 컴포넌트 마운트 시 갱신하지 않음 (초기 로딩은 제외)
-    refetchOnReconnect: false, // 재연결 시 갱신하지 않음
-    enabled: true, // 쿼리 활성화
-    staleTime: 0, // 데이터를 항상 stale로 취급 (즉시 갱신)
-    gcTime: 0 // 캐시 유지 시간 (0으로 설정하여 즉시 GC)
+    queryKey: ['sentMessages', myId, partnerId],
+    queryFn: () => fetchSentMessages(user),
+    enabled: !!partnerId,
+    refetchInterval: !!partnerId ? 5000 : false,
+    refetchIntervalInBackground: true,
+    refetchOnWindowFocus: false,
+    refetchOnMount: false,
+    refetchOnReconnect: false,
+    staleTime: 0,
+    gcTime: 0
   });
 
-  // 받은 메시지 쿼리 (폴링 추가, 로딩 중 표시 없이 갱신)
-  const { 
-    data: receivedMessages = [], 
-    isLoading: isLoadingReceived, 
-    error: receivedError 
+  // 받은 메시지 쿼리 (유저 없으면 비활성화)
+  const {
+    data: receivedMessages = [],
+    isLoading: isLoadingReceived,
+    error: receivedError
   } = useQuery<SentMessage[]>({
-    queryKey: ['receivedMessages'],
-    queryFn: fetchReceivedMessages,
-    refetchInterval: 5000, // 5초마다 갱신
-    refetchIntervalInBackground: true, // 백그라운드에서도 갱신
-    refetchOnWindowFocus: false, // 윈도우 포커스 시 갱신하지 않음
-    refetchOnMount: false, // 컴포넌트 마운트 시 갱신하지 않음 (초기 로딩은 제외)
-    refetchOnReconnect: false, // 재연결 시 갱신하지 않음
-    enabled: true, // 쿼리 활성화
-    staleTime: 0, // 데이터를 항상 stale로 취급 (즉시 갱신)
-    gcTime: 0 // 캐시 유지 시간 (0으로 설정하여 즉시 GC)
+    queryKey: ['receivedMessages', myId],
+    queryFn: () => fetchReceivedMessages(user),
+    enabled: !!myId,
+    refetchInterval: !!myId ? 5000 : false,
+    refetchIntervalInBackground: true,
+    refetchOnWindowFocus: false,
+    refetchOnMount: false,
+    refetchOnReconnect: false,
+    staleTime: 0,
+    gcTime: 0
   });
   
   const [selectedMessage, setSelectedMessage] = useState<SentMessage | null>(null);
@@ -426,8 +407,26 @@ const EmotionCard: React.FC = () => {
     (msg: SentMessage) => msg.senderId === partnerId && msg.receiverId === myId
   ) : [];
 
+  const postEmotionCard = async (data: { 
+    text: string, 
+    emoji: string, 
+    senderId: string, 
+    receiverId: string, 
+    coupleId?: string 
+  }) => {
+    const response = await axiosInstance.post('/emotion-cards', data);
+    if (!response.data) throw new Error('감정카드 전송에 실패했습니다.');
+    return response.data;
+  };
+
   const sendCardMutation = useMutation({
-    mutationFn: ({ text, emoji }: { text: string, emoji: string }) => postEmotionCard({ text, emoji }),
+    mutationFn: (data: { text: string, emoji: string }) => 
+      postEmotionCard({ 
+        ...data,
+        senderId: myId || '', 
+        receiverId: partnerId || '', 
+        coupleId: user.couple?.id 
+      }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['sentMessages'] });
       setMessage("");
@@ -519,9 +518,25 @@ const EmotionCard: React.FC = () => {
       <PageContainer style={{ textAlign: 'center', paddingTop: '4rem' }}>
         <PageTitle>오류 발생</PageTitle>
         <ErrorMessage>
-          데이터를 불러오는 중 오류가 발생했습니다.
-          {sentError?.message || receivedError?.message}
+          {sentError?.message || receivedError?.message || '데이터를 불러오는 중 오류가 발생했습니다.'}
+          {(sentError as any)?.response?.data?.error && `\n상세: ${(sentError as any).response.data.error}`}
+          {(receivedError as any)?.response?.data?.error && `\n상세: ${(receivedError as any).response.data.error}`}
         </ErrorMessage>
+      </PageContainer>
+    );
+  }
+
+  if (!partnerId) {
+    return (
+      <PageContainer>
+        <PageHeaderContainer>
+          <StyledBackButton />
+          <PageTitle>오늘의 감정카드 작성</PageTitle>
+        </PageHeaderContainer>
+        <ContentWrapper>
+          <ErrorMessage>파트너가 연결되어야 감정카드를 사용할 수 있습니다.</ErrorMessage>
+        </ContentWrapper>
+        <NavigationBar />
       </PageContainer>
     );
   }
