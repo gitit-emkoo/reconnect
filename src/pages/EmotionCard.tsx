@@ -11,6 +11,7 @@ import { produce } from 'immer';
 import useAuthStore from '../store/authStore';
 import axiosInstance from '../api/axios';
 import { User } from "../types/user";
+import PartnerRequiredModal from '../components/common/PartnerRequiredModal';
 
 // 배열을 행 단위로 나누는 chunkCards 함수 추가
 function chunkCards<T>(array: T[], size: number): T[][] {
@@ -355,6 +356,7 @@ const EmotionCard: React.FC = () => {
   const [suggestionError, setSuggestionError] = useState('');
   const [isSuggesting, setIsSuggesting] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showPartnerRequiredModal, setShowPartnerRequiredModal] = useState(false);
 
   // 보낸 메시지 쿼리 (파트너 없으면 비활성화)
   const {
@@ -363,7 +365,16 @@ const EmotionCard: React.FC = () => {
     error: sentError
   } = useQuery<SentMessage[]>({
     queryKey: ['sentMessages', myId, partnerId],
-    queryFn: () => fetchSentMessages(user),
+    queryFn: async () => {
+      try {
+        return await fetchSentMessages(user);
+      } catch (error: any) {
+        if (error?.response?.data?.code === 'PARTNER_REQUIRED') {
+          setShowPartnerRequiredModal(true);
+        }
+        throw error;
+      }
+    },
     enabled: !!partnerId,
     refetchInterval: !!partnerId ? 5000 : false,
     refetchIntervalInBackground: true,
@@ -535,6 +546,10 @@ const EmotionCard: React.FC = () => {
         <ContentWrapper>
           <ErrorMessage>파트너가 연결되어야 감정카드를 사용할 수 있습니다.</ErrorMessage>
         </ContentWrapper>
+        <PartnerRequiredModal 
+          open={showPartnerRequiredModal} 
+          onClose={() => setShowPartnerRequiredModal(false)} 
+        />
         <NavigationBar />
       </PageContainer>
     );
@@ -719,6 +734,11 @@ const EmotionCard: React.FC = () => {
         message={"감정카드는 한 번 보내면 수정이나 삭제가 불가능합니다. 정말로 보내시겠습니까?"}
         confirmButtonText="네, 보낼래요"
         cancelButtonText="취소"
+      />
+
+      <PartnerRequiredModal 
+        open={showPartnerRequiredModal} 
+        onClose={() => setShowPartnerRequiredModal(false)} 
       />
 
       <NavigationBar />

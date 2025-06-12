@@ -1,5 +1,9 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import styled from "styled-components";
+import { useNavigate } from "react-router-dom";
+import useAuthStore from "../store/authStore";
+import PartnerRequiredModal from "../components/common/PartnerRequiredModal";
+import NavigationBar from "../components/NavigationBar";
 
 const Container = styled.div`
   background-color: #f0fdf4;
@@ -56,29 +60,66 @@ const Button = styled.button`
 `;
 
 const Challenge: React.FC = () => {
+  const { user } = useAuthStore();
   const [progress, setProgress] = useState(33);
   const [completed, setCompleted] = useState(false);
+  const [showPartnerRequiredModal, setShowPartnerRequiredModal] = useState(false);
+
+  useEffect(() => {
+    if (!user?.partner) {
+      setShowPartnerRequiredModal(true);
+    }
+  }, [user?.partner]);
 
   const handleComplete = () => {
+    if (!user?.partner) {
+      setShowPartnerRequiredModal(true);
+      return;
+    }
     setProgress(100);
     setCompleted(true);
   };
 
+  if (!user?.partner) {
+    return (
+      <>
+        <Container>
+          <Title>이번 주 connect 약속</Title>
+          <Card>
+            <Description>파트너와 연결되어야 챌린지를 사용할 수 있습니다.</Description>
+          </Card>
+        </Container>
+        <PartnerRequiredModal 
+          open={showPartnerRequiredModal} 
+          onClose={() => setShowPartnerRequiredModal(false)} 
+        />
+        <NavigationBar isSolo={true} />
+      </>
+    );
+  }
+
   return (
-    <Container>
-      <Title>이번 주 connect 약속</Title>
-      <Card>
-        <Description>함께 아침밥 준비하기 🍽️</Description>
-        <Progress>
-          <ProgressBar percent={progress} />
-        </Progress>
-        {!completed ? (
-          <Button onClick={handleComplete}>오늘 미션 완료!</Button>
-        ) : (
-          <p style={{ color: '#16a34a', fontWeight: 'bold' }}>미션 완료! 🎉</p>
-        )}
-      </Card>
-    </Container>
+    <>
+      <Container>
+        <Title>이번 주 connect 약속</Title>
+        <Card>
+          <Description>함께 아침밥 준비하기 🍽️</Description>
+          <Progress>
+            <ProgressBar percent={progress} />
+          </Progress>
+          {!completed ? (
+            <Button onClick={handleComplete}>오늘 미션 완료!</Button>
+          ) : (
+            <p style={{ color: '#16a34a', fontWeight: 'bold' }}>미션 완료! 🎉</p>
+          )}
+        </Card>
+      </Container>
+      <PartnerRequiredModal 
+        open={showPartnerRequiredModal} 
+        onClose={() => setShowPartnerRequiredModal(false)} 
+      />
+      <NavigationBar isSolo={false} />
+    </>
   );
 };
 
