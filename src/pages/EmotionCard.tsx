@@ -12,6 +12,7 @@ import useAuthStore from '../store/authStore';
 import axiosInstance from '../api/axios';
 import { User } from "../types/user";
 import PartnerRequiredModal from '../components/common/PartnerRequiredModal';
+import Popup from '../components/common/Popup';
 
 // 배열을 행 단위로 나누는 chunkCards 함수 추가
 function chunkCards<T>(array: T[], size: number): T[][] {
@@ -312,6 +313,7 @@ const CloseButton = styled.button`
 
 const API_BASE_URL = "https://reconnect-backend.onrender.com/api";
 
+const [showPopup, setShowPopup] = useState(true);
 // 감정카드 목록 fetch 함수
 const fetchSentMessages = async (user: User) => {
   if (!user.partner?.id) throw new Error('파트너가 연결되어야 감정카드를 사용할 수 있습니다.');
@@ -557,6 +559,11 @@ const EmotionCard: React.FC = () => {
 
   return (
     <>
+    <Popup isOpen={showPopup} onClose={() => setShowPopup(false)}>
+      <div style={{ whiteSpace: 'pre-line', fontSize: '1rem', fontWeight: 400 }}>
+        {`76%가 \n'관계가 이전보다 회복되었다'고 응답했어요`}
+      </div>
+    </Popup>
       <PageContainer>
         <PageHeaderContainer>
           <StyledBackButton /> {/* 스타일링된 BackButton 사용 */}
@@ -570,7 +577,7 @@ const EmotionCard: React.FC = () => {
               {selectedEmoji ? selectedEmoji : '❤️'}
             </span>
             <button type="button" onClick={() => setShowEmojiPicker(v => !v)} style={{ border: '1px solid #eee', borderRadius: '8px', padding: '0.3rem 0.8rem', background: '#fafafa', cursor: 'pointer' }}>
-              {selectedEmoji ? '마음을 표현할 아이콘을 선택해 보세요' : '오늘의 감정 선택'}
+              {selectedEmoji ? '마음을 표현할 아이콘을 선택해 보세요' : '전하고 싶은 감정을 선택하세요'}
             </button>
           </div>
           {showEmojiPicker && (

@@ -1,3 +1,4 @@
+
 import React from 'react';
 import styled from 'styled-components';
 
@@ -17,6 +18,9 @@ interface PartnerCardProps {
     email: string;
     imageUrl?: string;
   };
+  user: {
+    nickname: string;
+  };
   coupleCreatedAt?: string;
 }
 
@@ -26,10 +30,10 @@ function formatDate(dateString?: string) {
   return `${date.getFullYear()}.${String(date.getMonth() + 1).padStart(2, '0')}.${String(date.getDate()).padStart(2, '0')}`;
 }
 
-const PartnerCard: React.FC<PartnerCardProps> = ({ partner, coupleCreatedAt }) => (
+const PartnerCard: React.FC<PartnerCardProps> = ({ partner, user, coupleCreatedAt }) => (
   <Card>
     <div style={{ fontWeight: 700, fontSize: '1.1rem', marginBottom: '0.5rem' }}>
-      {partner.nickname}님과 연결되어 있어요!
+      {partner.nickname} ❤️ {user.nickname}
     </div>
     {coupleCreatedAt && (
       <div style={{ color: '#E64A8D', fontWeight: 500, marginBottom: '0.5rem' }}>
@@ -37,7 +41,7 @@ const PartnerCard: React.FC<PartnerCardProps> = ({ partner, coupleCreatedAt }) =
       </div>
     )}
     <div style={{ color: '#888' }}>
-      오늘도 좋은 하루 보내세요 :)
+      지금 우리가 좀 더 따뜻해 지는 중!
     </div>
   </Card>
 );

@@ -1,10 +1,11 @@
-import React, { useCallback, useMemo } from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
 import styled from 'styled-components';
 import axiosInstance from '../../api/axios';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { produce, Draft } from 'immer';
 import type { Post, PollVote } from '../../types/post';
 import type { User } from '../../types/user';
+import ErrorModal from '../common/ErrorModal';
 
 interface PollVoteBoxProps {
   post: Post;
@@ -23,6 +24,7 @@ const PollVoteBox: React.FC<PollVoteBoxProps> = React.memo(({ post, user }) => {
   
   const userId = user?.id;
   const queryClient = useQueryClient();
+  const [error, setError] = useState<string | null>(null);
   
   const localVotes = useMemo(() => post.poll?.votes || [], [post.poll?.votes]);
   const myVote = useMemo(() => 
@@ -71,9 +73,7 @@ const PollVoteBox: React.FC<PollVoteBoxProps> = React.memo(({ post, user }) => {
       return { previousPost };
     },
     onError: (err: Error, _variables, context) => {
-      if (err.message === '로그인이 필요합니다.') {
-        alert(err.message);
-      }
+      setError(err.message);
       if (context?.previousPost) {
         queryClient.setQueryData(['post', post.id], context.previousPost);
       }
@@ -132,6 +132,7 @@ const PollVoteBox: React.FC<PollVoteBoxProps> = React.memo(({ post, user }) => {
 
   return (
     <PollContainer>
+      <ErrorModal open={!!error} message={error || ''} onClose={() => setError(null)} />
       <div style={{ fontWeight: 700, fontSize: '1.1rem', marginBottom: '1rem', color: '#52C41A' }}>
         {post.poll.question}
       </div>
