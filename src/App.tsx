@@ -9,6 +9,7 @@ import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import useAuthStore from './store/authStore';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import LoadingSpinner from './components/common/LoadingSpinner';
 
 // 페이지 컴포넌트 임포트
 import WelcomePage from "./pages/WelcomePage";
@@ -57,7 +58,7 @@ const App = () => {
 
   // 인증 상태를 확인하는 동안 아무것도 렌더링하지 않거나 로딩 스피너를 보여줄 수 있습니다.
   if (isLoading) {
-    return <div>Loading...</div>; // 또는 전역 로딩 스피너 컴포넌트
+    return <LoadingSpinner size={60} />;
   }
   
   return (

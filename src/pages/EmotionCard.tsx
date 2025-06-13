@@ -312,15 +312,6 @@ const CloseButton = styled.button`
 
 const API_BASE_URL = "https://reconnect-backend.onrender.com/api";
 
-// 날짜 포맷 함수 추가
-function formatDateYYMMDD(dateString: string) {
-  const d = new Date(dateString);
-  const yy = String(d.getFullYear()).slice(2);
-  const mm = String(d.getMonth() + 1).padStart(2, '0');
-  const dd = String(d.getDate()).padStart(2, '0');
-  return `${yy}.${mm}.${dd}`;
-}
-
 // 감정카드 목록 fetch 함수
 const fetchSentMessages = async (user: User) => {
   if (!user.partner?.id) throw new Error('파트너가 연결되어야 감정카드를 사용할 수 있습니다.');
@@ -348,7 +339,7 @@ const CardItem = ({ msg, onClick, showNewBadge = false }: { msg: SentMessage, on
       onClick={onClick}
     >
       <CardEmoji>{msg.emoji || '❤️'}</CardEmoji>
-      <CardDate>{formatDateYYMMDD(msg.createdAt)}</CardDate>
+      <CardDate>{new Date(msg.createdAt).toLocaleDateString()}</CardDate>
       {showNewBadge && <NewBadge>NEW</NewBadge>}
     </OverlapCard>
   );
@@ -729,7 +720,7 @@ const EmotionCard: React.FC = () => {
               >
                 {selectedMessage.text}
               </div>
-              <span style={{ color: '#888', fontSize: '0.95rem' }}>보낸 시간: {formatDateYYMMDD(selectedMessage.createdAt)}</span>
+              <span style={{ color: '#888', fontSize: '0.95rem' }}>보낸 시간: {new Date(selectedMessage.createdAt).toLocaleString()}</span>
             </div>
           </ModalContent>
         </ModalBackground>
