@@ -313,39 +313,25 @@ const CloseButton = styled.button`
 
 const API_BASE_URL = "https://reconnect-backend.onrender.com/api";
 
-const [showPopup, setShowPopup] = useState(true);
-// 감정카드 목록 fetch 함수
-const fetchSentMessages = async (user: User) => {
-  if (!user.partner?.id) throw new Error('파트너가 연결되어야 감정카드를 사용할 수 있습니다.');
-  const response = await axiosInstance.get('/emotion-cards');
-  if (!response.data) throw new Error('감정카드 목록을 불러오지 못했습니다.');
-  return response.data.map((card: any) => ({ ...card, text: card.text || card.message || '' }));
-};
+// (fetchSentMessages, fetchReceivedMessages 함수 수정)
+async function fetchSentMessages() {
+  const { data } = await axiosInstance.get("/emotion-cards/sent");
+  return data;
+}
 
-const fetchReceivedMessages = async (user: User) => {
-  if (!user.id) throw new Error('유저 정보가 없습니다.');
-  const response = await axiosInstance.get('/emotion-cards/received', { params: { userId: user.id } });
-  if (!response.data) throw new Error('받은 감정카드 목록을 불러오지 못했습니다.');
-  return response.data.map((card: any) => ({ ...card, text: card.text || card.message || '' }));
-};
+async function fetchReceivedMessages() {
+  const { data } = await axiosInstance.get("/emotion-cards/received");
+  return data;
+}
 
-// 카드 아이템 컴포넌트 분리 (map 내부 useState 제거)
-const CardItem = ({ msg, onClick, showNewBadge = false }: { msg: SentMessage, onClick: () => void, showNewBadge?: boolean }) => {
-  const [hovered, setHovered] = useState(false);
-  return (
-    <OverlapCard
-      key={msg.id}
-      isHovered={hovered}
-      onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => setHovered(false)}
-      onClick={onClick}
-    >
-      <CardEmoji>{msg.emoji || '❤️'}</CardEmoji>
-      <CardDate>{new Date(msg.createdAt).toLocaleDateString()}</CardDate>
-      {showNewBadge && <NewBadge>NEW</NewBadge>}
-    </OverlapCard>
-  );
-};
+// (CardItem 컴포넌트 정의 추가)
+const CardItem: React.FC<{ msg: SentMessage; onClick: () => void; showNewBadge?: boolean }> = ({ msg, onClick, showNewBadge }) => (
+  <OverlapCard isHovered={false} onClick={onClick}>
+    {showNewBadge && <NewBadge>NEW</NewBadge>}
+    <CardEmoji>{msg.emoji || "❤️"}</CardEmoji>
+    <CardDate>{new Date(msg.createdAt).toLocaleDateString()}</CardDate>
+  </OverlapCard>
+);
 
 const EmotionCard: React.FC = () => {
   const queryClient = useQueryClient();
@@ -359,6 +345,7 @@ const EmotionCard: React.FC = () => {
   const [isSuggesting, setIsSuggesting] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showPartnerRequiredModal, setShowPartnerRequiredModal] = useState(false);
+  const [showPopup, setShowPopup] = useState(true);
 
   // 보낸 메시지 쿼리 (파트너 없으면 비활성화)
   const {
@@ -369,7 +356,7 @@ const EmotionCard: React.FC = () => {
     queryKey: ['sentMessages', myId, partnerId],
     queryFn: async () => {
       try {
-        return await fetchSentMessages(user);
+        return await fetchSentMessages();
       } catch (error: any) {
         if (error?.response?.data?.code === 'PARTNER_REQUIRED') {
           setShowPartnerRequiredModal(true);
@@ -394,7 +381,7 @@ const EmotionCard: React.FC = () => {
     error: receivedError
   } = useQuery<SentMessage[]>({
     queryKey: ['receivedMessages', myId],
-    queryFn: () => fetchReceivedMessages(user),
+    queryFn: () => fetchReceivedMessages(),
     enabled: !!myId,
     refetchInterval: !!myId ? 5000 : false,
     refetchIntervalInBackground: true,

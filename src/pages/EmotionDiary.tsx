@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import styled from "styled-components";
 import { useNavigate } from "react-router-dom";
 import NavigationBar from "../components/NavigationBar";
@@ -546,7 +546,7 @@ const EmotionDiary: React.FC = () => {
   };
 
   const paletteItems = getPaletteItems();
-  const randomInfo = React.useMemo(() => generateRandomInfo(paletteItems), [JSON.stringify(paletteItems)]);
+  const randomInfo = useMemo(() => generateRandomInfo(paletteItems), [JSON.stringify(paletteItems)]);
 
   return (
     <>
