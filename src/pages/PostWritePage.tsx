@@ -46,6 +46,13 @@ const Form = styled.form`
 const FormRow = styled.div`
   display: flex;
   gap: 1rem;
+  align-items: flex-start;
+  width: 100%;
+
+  @media (max-width: 768px) {
+    flex-direction: column;
+    gap: 0.8rem;
+  }
 `;
 
 const Select = styled.select`
@@ -54,11 +61,30 @@ const Select = styled.select`
   border-radius: 0.5rem;
   font-size: 1rem;
   color: #495057;
-  flex-basis: 30%;
+  flex-basis: 200px;
+  min-width: 200px;
+  max-width: 100%;
+  background-color: white;
+  cursor: pointer;
+  appearance: none;
+  background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+  background-repeat: no-repeat;
+  background-position: right 0.7rem center;
+  background-size: 1em;
+  padding-right: 2.5rem;
+
   &:focus {
     outline: none;
     border-color: #FF69B4;
     box-shadow: 0 0 0 2px rgba(255, 105, 180, 0.2);
+  }
+
+  @media (max-width: 768px) {
+    width: 100%;
+    flex-basis: auto;
+    min-width: 0;
+    font-size: 0.95rem;
+    padding: 0.7rem 2.5rem 0.7rem 0.8rem;
   }
 `;
 
@@ -87,10 +113,16 @@ const SubmitButton = styled.button`
   }
 `;
 
-
 const TagInputWrapper = styled.div`
-  margin: 1rem 0;
+  flex: 1;
+  min-width: 0;
   width: 100%;
+
+  @media (max-width: 768px) {
+    width: 100%;
+    flex: none;
+  }
+
   .tagify {
     width: 100%;
     min-width: 0;
@@ -100,6 +132,12 @@ const TagInputWrapper = styled.div`
     font-size: 1rem;
     box-shadow: none;
     padding: 0.5rem 0.7rem;
+
+    @media (max-width: 768px) {
+      width: 100%;
+      font-size: 0.95rem;
+      padding: 0.4rem 0.6rem;
+    }
   }
   .tagify__input {
     min-width: 0;
@@ -117,6 +155,18 @@ const EditorDivider = styled.hr`
   border: none;
   border-top: 1px solid #eee;
   margin: 2rem 0 1.2rem 0;
+`;
+
+const PollOptionInput = styled.input`
+  width: 90px;
+  min-width: 60px;
+  max-width: 120px;
+  padding: 0.5rem 0.6rem;
+  font-size: 1rem;
+  border-radius: 0.4rem;
+  border: 1px solid #eee;
+  text-align: center;
+  box-sizing: border-box;
 `;
 
 const PostWritePage: React.FC = () => {
@@ -189,6 +239,7 @@ const PostWritePage: React.FC = () => {
             options: pollOptions.map(opt => opt.option),
           };
         }
+        console.log('postData', postData);
         createPost(postData);
     };
 
@@ -235,44 +286,44 @@ const PostWritePage: React.FC = () => {
                 </Header>
                 <Form onSubmit={handleSubmit}>
                     <FormRow>
-                      <Select 
-                          value={categoryId} 
-                          onChange={(e) => setCategoryId(e.target.value)}
-                          required
-                      >
-                          {categories.map(cat => (
-                              <option key={cat.id} value={cat.id}>{cat.name}</option>
-                          ))}
-                      </Select>
-                    </FormRow>
-                    <TagInputWrapper>
-                        <Tagify
-                            settings={{
-                              whitelist: [],
-                              maxTags: 5,
-                              dropdown: { enabled: 0 },
-                              placeholder: '태그를 입력하세요 (예: #소통, #공감)',
-                              enforceWhitelist: false,
-                            }}
-                            value={tags}
-                            onChange={(e: CustomEvent) => {
-                                try {
-                                    const val = JSON.parse((e.detail as any).value);
-                                    if (Array.isArray(val)) {
-                                        const tagArr = val.map((t: any) => t.value);
-                                        setTags(tagArr);
-                                    } else {
+                        <Select 
+                            value={categoryId} 
+                            onChange={(e) => setCategoryId(e.target.value)}
+                            required
+                        >
+                            {categories.map(cat => (
+                                <option key={cat.id} value={cat.id}>{cat.name}</option>
+                            ))}
+                        </Select>
+                        <TagInputWrapper>
+                            <Tagify
+                                settings={{
+                                  whitelist: [],
+                                  maxTags: 5,
+                                  dropdown: { enabled: 0 },
+                                  placeholder: '태그를 입력하세요 (예: #소통, #공감)',
+                                  enforceWhitelist: false,
+                                }}
+                                value={tags}
+                                onChange={(e: CustomEvent) => {
+                                    try {
+                                        const val = JSON.parse((e.detail as any).value);
+                                        if (Array.isArray(val)) {
+                                            const tagArr = val.map((t: any) => t.value);
+                                            setTags(tagArr);
+                                        } else {
+                                            setTags([]);
+                                        }
+                                    } catch (err) {
                                         setTags([]);
                                     }
-                                } catch (err) {
-                                    setTags([]);
-                                }
-                            }}
-                        />
-                        <div style={{ fontSize: '0.8rem', color: '#888', marginTop: '0.3rem' }}>
-                            태그는 최대 5개까지 입력할 수 있습니다.
-                        </div>
-                    </TagInputWrapper>
+                                }}
+                            />
+                            <div style={{ fontSize: '0.8rem', color: '#888', marginTop: '0.3rem' }}>
+                                태그는 최대 5개까지 입력할 수 있습니다.
+                            </div>
+                        </TagInputWrapper>
+                    </FormRow>
                     
                     {/* 커스텀 리치 텍스트 에디터 */}
                     <CustomRichTextEditor
@@ -296,12 +347,11 @@ const PostWritePage: React.FC = () => {
                         />
                         <div style={{ display: 'flex', gap: '0.7rem' }}>
                           {pollOptions.map((opt, idx) => (
-                            <input
+                            <PollOptionInput
                               key={idx}
                               type="text"
                               value={opt.option}
                               onChange={e => handlePollOptionChange(idx, e.target.value)}
-                              style={{ flex: 1, fontSize: '1rem', padding: '0.5rem', borderRadius: '0.4rem', border: '1px solid #eee' }}
                             />
                           ))}
                         </div>

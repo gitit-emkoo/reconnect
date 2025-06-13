@@ -3,6 +3,9 @@ import styled from "styled-components";
 import { useNavigate } from "react-router-dom";
 import NavigationBar from "../components/NavigationBar";
 import BackButton from "../components/common/BackButton";
+import EmotionDiaryCalendar from './EmotionDiaryCalendar';
+import Popup from '../components/common/Popup';
+import EmotionImagePreview, { generateRandomInfo, PaletteItem, convertToPaletteItem } from '../components/EmotionImagePreview';
 
 // SVG 아이콘 임포트
 import { ReactComponent as TriggerActivitiesIcon } from "../assets/Trigger_Activities.svg";
@@ -27,10 +30,6 @@ interface Trigger {
   IconComponent: React.FC<React.SVGProps<SVGSVGElement>>;
 }
 
-type PaletteItem = 
-  | { type: 'emotion'; data: Emotion }
-  | { type: 'trigger'; data: Trigger };
-
 interface EmotionElement extends Emotion {
   type: 'emotion';
 }
@@ -41,10 +40,19 @@ interface TriggerElement extends Trigger {
 
 type Element = EmotionElement | TriggerElement;
 
+interface DiaryEntry {
+  date: string;
+  emotion: any;
+  triggers: any[];
+  comment: string;
+  palette: PaletteItem[];
+  randomInfo: any[];
+}
+
 // 스타일 컴포넌트 정의
 const Container = styled.div`
   padding: 2rem;
-  background-color: #fefce8;
+  background-color: #fff;
   min-height: calc(100vh - 60px);
   max-width: 1200px;
   margin: 0 auto;
@@ -90,15 +98,14 @@ const PreviewSection = styled.div<{ isExpanded: boolean }>`
 
 const StepContainer = styled.div`
   background: white;
-  padding: 2rem;
+  padding: 1rem;
   border-radius: 1rem;
   box-shadow: 0 2px 4px rgba(0,0,0,0.1);
   margin-bottom: 2rem;
 `;
 
 const StepTitle = styled.h3`
-  color: #78350f;
-  margin-bottom: 1.5rem;
+  color:rgb(47, 47, 47);
   font-size: 1.2rem;
 `;
 
@@ -124,13 +131,6 @@ const SelectionGrid = styled.div`
     background: #888;
     border-radius: 4px;
   }
-`;
-
-const ElementSelectGrid = styled.div`
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
-  gap: 1rem;
-  margin: 1rem 0;
 `;
 
 const EmotionSelectWrapper = styled.div`
@@ -159,32 +159,6 @@ const ColorDot = styled.button<{ color: string; selected: boolean }>`
   
   &:hover {
     transform: scale(1.1);
-  }
-`;
-
-const PatternButton = styled.button<{ selected: boolean }>`
-  background: ${({ selected }) => (selected ? "#fef3c7" : "#ffffff")};
-  border: 2px solid ${({ selected }) => (selected ? "#f59e0b" : "#e5e5e5")};
-  border-radius: 0.75rem;
-  padding: 1rem;
-  cursor: pointer;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0.5rem;
-  font-size: 0.9rem;
-  width: 100px;
-  height: 100px;
-  
-  svg {
-    width: 40px;
-    height: 40px;
-    fill: ${({ selected }) => (selected ? "#f59e0b" : "#5a4b40")};
-  }
-
-  &:hover {
-    background: #fef3c7;
-    border-color: #f59e0b;
   }
 `;
 
@@ -222,7 +196,7 @@ const PreviewContainer = styled.div<{ isExpanded: boolean }>`
 `;
 
 const PreviewTitle = styled.h3<{ isExpanded: boolean }>`
-  color: #78350f;
+  color:rgb(45, 45, 45);
   margin-bottom: 1rem;
   font-size: 1rem;
   text-align: center;
@@ -333,156 +307,181 @@ const ModalMessage = styled.p`
   text-align: center;
 `;
 
-const TopBar = styled.div`
-  display: flex;
-  align-items: center;
-  padding: 1rem 0;
-  margin-bottom: 2rem;
-`;
-
-const PageTitle = styled.h1`
-  color: #78350f;
-  font-size: 1.5rem;
-  margin: 0;
-  text-align: center;
-  width: 100%;
-`;
-
 // 감정 데이터 정의
 const emotions: Emotion[] = [
-  { name: "Happy", color: "#FFD700" },       // 노랑
-  { name: "Excited", color: "#FF6B6B" },     // 밝은 빨강
-  { name: "Loved", color: "#FF69B4" },       // 핫핑크
-  { name: "Grateful", color: "#FF9EC3" },    // 연한 분홍
-  { name: "Hopeful", color: "#DA70D6" },     // 오키드
-  { name: "Relaxed", color: "#9370DB" },     // 보라
-  { name: "Calm", color: "#6495ED" },        // 콘플라워블루
-  { name: "Relieved", color: "#4169E1" },    // 로얄블루
-  { name: "Acceptance", color: "#40E0D0" },  // 터콰이즈
-  { name: "Satisfied", color: "#98FF98" },   // 민트
-  { name: "Angry", color: "#FF4500" },       // 선명한 빨강
-  { name: "Stressed", color: "#FF6347" },    // 토마토
-  { name: "Anxious", color: "#FFA07A" },     // 연어색
-  { name: "Worried", color: "#DEB887" },     // 버블우드
-  { name: "Tired", color: "#A0522D" },       // 시에나
-  { name: "Sad", color: "#4682B4" },         // 스틸블루
-  { name: "Helpless", color: "#5F9EA0" },    // 카데트블루
-  { name: "Bored", color: "#708090" },       // 슬레이트그레이
-  { name: "Detached", color: "#778899" },    // 라이트슬레이트그레이
-  { name: "Restless", color: "#696969" }     // 딤그레이
+  { name: "행복", color: "#FFE179" },       // 노랑
+  { name: "사랑", color: "#FFB3C6" },       // 분홍
+  { name: "평온", color: "#A6E3E9" },      // 파랑
+  { name: "슬픔", color: "#B8C9F0" },      // 연한 파랑
+  { name: "화남", color: "#FF8A80" },      // 빨강
+  { name: "불안함", color: "#D7BCE8" },    // 보라
+  { name: "신남", color: "#FFBC8C" },      // 주황
+  { name: "외로움", color: "#a4d1eb" },   // 연한 파랑
+  { name: "감사함", color: "#F7C9B6" },    // 연한 노랑
+  { name: "무감각함함", color: "#DADADA" }, // 회색
+  
 ];
 
 const triggers: Trigger[] = [
-  { name: "Activities", IconComponent: TriggerActivitiesIcon },
-  { name: "Family", IconComponent: TriggerFamilyIcon },
-  { name: "Friend", IconComponent: TriggerFriendIcon },
-  { name: "Health", IconComponent: TriggerHealthIcon },
-  { name: "Independence", IconComponent: TriggerIndependenceIcon },
-  { name: "News", IconComponent: TriggerNewsIcon },
-  { name: "Participation", IconComponent: TriggerParticipationIcon },
-  { name: "Relationships", IconComponent: TriggerRelationshipsIcon },
-  { name: "Self", IconComponent: TriggerSelfIcon },
-  { name: "Work", IconComponent: TriggerWorkIcon },
+  { name: "활동", IconComponent: TriggerActivitiesIcon },
+  { name: "가족", IconComponent: TriggerFamilyIcon },
+  { name: "친구", IconComponent: TriggerFriendIcon },
+  { name: "건강", IconComponent: TriggerHealthIcon },
+  { name: "파트너", IconComponent: TriggerIndependenceIcon },
+  { name: "사회", IconComponent: TriggerNewsIcon },
+  { name: "참여", IconComponent: TriggerParticipationIcon },
+  { name: "관계", IconComponent: TriggerRelationshipsIcon },
+  { name: "정체성", IconComponent: TriggerSelfIcon },
+  { name: "일", IconComponent: TriggerWorkIcon },
 ];
 
-// 미리보기 컴포넌트
-const EmotionImagePreview: React.FC<{
-  containerColor: string;
-  palette: PaletteItem[];
-}> = ({ containerColor, palette }) => {
-  const imageSize = 200;
+// 랜덤 아트 썸네일 컴포넌트
+const palette = [
+  "#90caf9", "#f48fb1", "#ffd54f", "#a5d6a7", "#ce93d8", "#ffb74d", "#b2dfdb", "#e1bee7"
+];
+function getRandomInt(min: number, max: number) {
+  return Math.floor(Math.random() * (max - min + 1)) + min;
+}
 
-  const positionedItems = useMemo(() => {
-    return palette.map((item, index) => {
-      const centerX = imageSize / 2;
-      const centerY = imageSize / 2;
-      
-      // 고정된 각도로 배치 (360도를 요소 개수로 나눔)
-      const angle = (index * (2 * Math.PI / palette.length)) + (Math.PI / 4); // 45도 회전해서 시작
-      const maxRadius = imageSize * 0.4;
-      const radius = maxRadius * 0.8; // 반지름을 좀 더 일정하게
-      
-      const x = centerX + radius * Math.cos(angle);
-      const y = centerY + radius * Math.sin(angle);
-      
-      const size = imageSize * 0.3; // 크기를 좀 더 일정하게
-      
+export const RandomArtCircle: React.FC<{ size?: number; shapeCount?: number }> = ({ size = 120, shapeCount = 4 }) => {
+  // 랜덤 도형 정보 생성
+  const shapes = Array.from({ length: shapeCount }).map((_) => {
+    const type = Math.random() > 0.5 ? "circle" : "line";
+    const color = palette[getRandomInt(0, palette.length - 1)];
+    if (type === "circle") {
       return {
-        ...item,
-        x,
-        y,
-        size,
-        rotation: angle * (180 / Math.PI), // 각도에 따라 회전
-        shapeType: item.type === 'emotion' ? 'circle' : 'rect',
-        opacity: 0.9,
-        zIndex: palette.length - index
+        type,
+        cx: getRandomInt(20, size - 20),
+        cy: getRandomInt(20, size - 20),
+        r: getRandomInt(12, 28),
+        fill: color,
+        opacity: Math.random() * 0.5 + 0.5
       };
-    });
-  }, [palette]);
+    } else {
+      return {
+        type,
+        x1: getRandomInt(10, size - 10),
+        y1: getRandomInt(10, size - 10),
+        x2: getRandomInt(10, size - 10),
+        y2: getRandomInt(10, size - 10),
+        stroke: color,
+        strokeWidth: getRandomInt(2, 6),
+        opacity: Math.random() * 0.5 + 0.5
+      };
+    }
+  });
 
   return (
-    <svg width={imageSize} height={imageSize} viewBox={`0 0 ${imageSize} ${imageSize}`}>
-      <defs>
-        <clipPath id="circle-clip">
-          <circle cx={imageSize / 2} cy={imageSize / 2} r={imageSize / 2} />
-        </clipPath>
-      </defs>
-
-      <circle cx={imageSize/2} cy={imageSize/2} r={imageSize/2} fill={containerColor} />
-
-      <g clipPath="url(#circle-clip)">
-        {positionedItems.map((p, index) => {
-          const transform = `translate(${p.x - p.size/2}, ${p.y - p.size/2}) rotate(${p.rotation}, ${p.size/2}, ${p.size/2})`;
-          const key = `element-${index}`;
-
-          if (p.type === 'emotion') {
-            return (
-              <g key={key} transform={transform} style={{ zIndex: p.zIndex }}>
-                <circle
-                  cx={p.size/2}
-                  cy={p.size/2}
-                  r={p.size/2}
-                  fill={p.data.color}
-                  opacity={p.opacity}
-                />
-              </g>
-            );
-          } else {
-            const Icon = p.data.IconComponent;
-            return (
-              <g key={key} transform={transform} style={{ zIndex: p.zIndex }}>
-                <Icon
-                  width={p.size}
-                  height={p.size}
-                  style={{
-                    fill: "#FFFFFF",
-                    opacity: 0.9
-                  }}
-                />
-              </g>
-            );
-          }
-        })}
-      </g>
+    <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`}>
+      {/* 원형 배경 */}
+      <circle cx={size/2} cy={size/2} r={size/2} fill={palette[getRandomInt(0, palette.length - 1)]} />
+      {/* 랜덤 도형들 */}
+      {shapes.map((shape, i) =>
+        shape.type === "circle" ? (
+          <circle
+            key={i}
+            cx={shape.cx}
+            cy={shape.cy}
+            r={shape.r}
+            fill={shape.fill}
+            opacity={shape.opacity}
+          />
+        ) : (
+          <line
+            key={i}
+            x1={shape.x1}
+            y1={shape.y1}
+            x2={shape.x2}
+            y2={shape.y2}
+            stroke={shape.stroke}
+            strokeWidth={shape.strokeWidth}
+            opacity={shape.opacity}
+            strokeLinecap="round"
+          />
+        )
+      )}
     </svg>
   );
 };
 
-const convertToPaletteItem = (element: Element): PaletteItem => {
-  if (element.type === 'emotion') {
-    const { type, ...data } = element;
-    return {
-      type: 'emotion',
-      data
-    };
-  } else {
-    const { type, ...data } = element;
-    return {
-      type: 'trigger',
-      data
-    };
+// 트리거 선택 그리드 및 칩 스타일 추가
+const TriggerGrid = styled.div`
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1rem;
+  margin: 1rem 0;
+  @media (min-width: 600px) {
+    grid-template-columns: repeat(3, 1fr);
   }
-};
+`;
+
+const TriggerCard = styled.button<{ selected: boolean }>`
+  background: ${({ selected }) => (selected ? '#e9d5ff' : '#dadada')};
+  border: 2px solid ${({ selected }) => (selected ? '#a78bfa' : '#e0e0e0')};
+  border-radius: 1rem;
+  padding: 1.2rem 0.5rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  box-shadow: ${({ selected }) => (selected ? '0 2px 8px #a78bfa33' : 'none')};
+  transition: all 0.2s;
+  cursor: pointer;
+  svg {
+    width: 36px;
+    height: 36px;
+    margin-bottom: 0.5rem;
+  }
+  font-size: 1rem;
+  font-weight: 500;
+`;
+
+const SelectedChips = styled.div`
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+  flex-wrap: wrap;
+`;
+
+const Chip = styled.div`
+  background: #e9d5ff;
+  color: #78350f;
+  border-radius: 1rem;
+  padding: 0.3rem 0.8rem;
+  font-size: 0.95rem;
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  cursor: pointer;
+`;
+
+// 감정카드보내기 스타일 참고: 타이틀+뒤로가기 버튼 헤더
+const PageHeaderContainer = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  max-width: 600px;
+  margin: 0 auto 1.5rem auto;
+  position: relative;
+`;
+
+const StyledBackButton = styled(BackButton)`
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+`;
+
+const PageTitle = styled.h2`
+  font-size: 1.5rem;
+  font-weight: 600;
+  color:rgb(38, 38, 38);
+  text-align: center;
+  margin: 0;
+  @media (max-width: 768px) {
+    font-size: 1.1rem;
+  }
+`;
 
 // 메인 컴포넌트
 const EmotionDiary: React.FC = () => {
@@ -492,6 +491,9 @@ const EmotionDiary: React.FC = () => {
   const [isPreviewExpanded, setIsPreviewExpanded] = useState(false);
   const [message, setMessage] = useState("");
   const [showConfirmModal, setShowConfirmModal] = useState(false);
+  const [selectedDay, setSelectedDay] = useState<string | null>(null);
+  const [diaryList, setDiaryList] = useState<DiaryEntry[]>([]);
+  const [showPopup, setShowPopup] = useState(true);
 
   const handleReset = () => {
     setSelectedEmotion(null);
@@ -504,41 +506,27 @@ const EmotionDiary: React.FC = () => {
   };
 
   const handleConfirm = () => {
-    // TODO: 실제 저장 로직 구현
-    console.log("저장됨:", {
-      emotion: selectedEmotion,
-      elements: selectedElements,
-      message
-    });
+    const today = new Date();
+    const dateStr = today.toISOString().slice(0, 10);
+    const paletteItems = getPaletteItems();
+    const randomInfo = generateRandomInfo(paletteItems);
+    setDiaryList([
+      ...diaryList,
+      {
+        date: dateStr,
+        emotion: selectedEmotion,
+        triggers: selectedElements.filter(e => e.type === 'trigger') as any[],
+        comment: message,
+        palette: paletteItems,
+        randomInfo: randomInfo,
+      }
+    ]);
     setShowConfirmModal(false);
     handleReset();
   };
 
   const togglePreview = () => {
     setIsPreviewExpanded(!isPreviewExpanded);
-  };
-
-  const allElements: Element[] = [
-    ...emotions.map(emotion => ({
-      type: 'emotion' as const,
-      name: emotion.name,
-      color: emotion.color
-    })),
-    ...triggers.map(trigger => ({
-      type: 'trigger' as const,
-      name: trigger.name,
-      IconComponent: trigger.IconComponent
-    }))
-  ];
-
-  const handleElementSelect = (element: Element) => {
-    if (selectedElements.length >= 5 && !selectedElements.some(e => 
-      e.type === element.type && e.name === element.name)) {
-      alert('최대 5개까지만 선택할 수 있습니다.');
-      return;
-    }
-    
-    setSelectedElements([...selectedElements, element]);
   };
 
   const handleBack = () => {
@@ -557,17 +545,24 @@ const EmotionDiary: React.FC = () => {
     return items;
   };
 
+  const paletteItems = getPaletteItems();
+  const randomInfo = useMemo(() => generateRandomInfo(paletteItems), [JSON.stringify(paletteItems)]);
+
   return (
     <>
+    <Popup isOpen={showPopup} onClose={() => setShowPopup(false)}>
+      <div style={{ whiteSpace: 'pre-line', fontSize: '1.1rem', fontWeight: 500 }}>
+        {`매일매일 작성하는 1분 감정다이어리는\n감정 기록과 전문가에 보다 더 정확할 솔루션을 받을 수 있어요`}
+      </div>
+    </Popup>
       <Container>
+        <PageHeaderContainer>
+          <StyledBackButton onClick={handleBack} />
+          <PageTitle>감정 다이어리 작성</PageTitle>
+        </PageHeaderContainer>
         <MainContent>
-          <TopBar>
-            <BackButton onClick={handleBack} />
-            <PageTitle>감정 다이어리 작성</PageTitle>
-          </TopBar>
-
           <StepContainer>
-            <StepTitle>Step 1: 대표 감정 선택하기</StepTitle>
+            <StepTitle>오늘은 어땠나요?</StepTitle>
             <SelectionGrid>
               {emotions.map((emotion) => (
                 <EmotionSelectWrapper key={emotion.name}>
@@ -583,42 +578,47 @@ const EmotionDiary: React.FC = () => {
           </StepContainer>
 
           <StepContainer>
-            <StepTitle>Step 2: 감정 요소 선택하기 (최대 5개)</StepTitle>
-            <ElementSelectGrid>
-              {allElements.map((element, index) => (
-                element.type === 'emotion' ? (
-                  <EmotionSelectWrapper key={`${element.type}-${element.name}-${index}`}>
-                    <ColorDot
-                      color={element.color}
-                      selected={selectedElements.some(e => 
-                        e.type === 'emotion' && e.name === element.name
-                      )}
-                      onClick={() => handleElementSelect(element)}
-                    />
-                    <EmotionLabel>{element.name}</EmotionLabel>
-                  </EmotionSelectWrapper>
-                ) : (
-                  <PatternButton
-                    key={`${element.type}-${element.name}-${index}`}
-                    selected={selectedElements.some(e => 
-                      e.type === 'trigger' && e.name === element.name
-                    )}
-                    onClick={() => handleElementSelect(element)}
-                  >
-                    <element.IconComponent />
-                    <span>{element.name}</span>
-                  </PatternButton>
-                )
+            <StepTitle>오늘의 감정요소들 선택하기 (최대 3개)</StepTitle>
+            {/* 선택된 감정요소 칩 */}
+            <SelectedChips>
+              {selectedElements.filter(e => e.type === 'trigger').map((trigger) => (
+                <Chip key={trigger.name} onClick={() => setSelectedElements(selectedElements.filter(e => !(e.type === 'trigger' && e.name === trigger.name)))}>
+                  {trigger.name} ✕
+                </Chip>
               ))}
-            </ElementSelectGrid>
+            </SelectedChips>
+            {/* 트리거 카드형 그리드 */}
+            <TriggerGrid>
+              {triggers.map((trigger) => (
+                <TriggerCard
+                  key={trigger.name}
+                  selected={selectedElements.some(e => e.type === 'trigger' && e.name === trigger.name)}
+                  onClick={() => {
+                    const already = selectedElements.some(e => e.type === 'trigger' && e.name === trigger.name);
+                    if (already) {
+                      setSelectedElements(selectedElements.filter(e => !(e.type === 'trigger' && e.name === trigger.name)));
+                    } else {
+                      if (selectedElements.filter(e => e.type === 'trigger').length >= 3) {
+                        alert('최대 3개까지만 선택할 수 있습니다.');
+                        return;
+                      }
+                      setSelectedElements([...selectedElements, { type: 'trigger', name: trigger.name, IconComponent: trigger.IconComponent }]);
+                    }
+                  }}
+                >
+                  <trigger.IconComponent />
+                  <span>{trigger.name}</span>
+                </TriggerCard>
+              ))}
+            </TriggerGrid>
           </StepContainer>
 
           <StepContainer>
-            <StepTitle>Step 3: 메시지 작성하기</StepTitle>
+            <StepTitle>한문장으로 오늘을 기록해 주세요</StepTitle>
             <MessageInput
               value={message}
               onChange={(e) => setMessage(e.target.value)}
-              placeholder="오늘의 감정에 대해 자유롭게 작성해주세요..."
+              placeholder="한문장으로 오늘을 기록해 주세요"
             />
             <ButtonContainer>
               <Button variant="primary" onClick={handleSubmit}>
@@ -629,6 +629,32 @@ const EmotionDiary: React.FC = () => {
               </Button>
             </ButtonContainer>
           </StepContainer>
+
+          {/* 선택한 날짜의 다이어리 내용 표시 */}
+          {selectedDay && (
+            <StepContainer>
+              <StepTitle>선택한 날짜: {selectedDay}</StepTitle>
+              {(() => {
+                const diary = diaryList.find(d => d.date === selectedDay);
+                if (!diary) return <div>이 날짜에는 작성된 다이어리가 없습니다.</div>;
+                return (
+                  <>
+                    <EmotionImagePreview
+                      containerColor={diary.emotion?.color || "#f0f0f0"}
+                      palette={diary.randomInfo}
+                    />
+                    <div>감정: {diary.emotion?.name || '-'}</div>
+                    <div>메시지: {diary.comment || '-'}</div>
+                    <div>
+                      트리거: {diary.triggers && diary.triggers.length > 0
+                        ? diary.triggers.map((t: any) => t.name).join(', ')
+                        : '-'}
+                    </div>
+                  </>
+                );
+              })()}
+            </StepContainer>
+          )}
         </MainContent>
 
         <PreviewSection isExpanded={isPreviewExpanded}>
@@ -636,7 +662,7 @@ const EmotionDiary: React.FC = () => {
             <PreviewTitle isExpanded={isPreviewExpanded}>미리보기</PreviewTitle>
             <EmotionImagePreview
               containerColor={selectedEmotion?.color || "#f0f0f0"}
-              palette={getPaletteItems()}
+              palette={randomInfo}
             />
             <ExpandButton onClick={togglePreview}>
               {isPreviewExpanded ? '✕' : '👁️'}
@@ -644,13 +670,15 @@ const EmotionDiary: React.FC = () => {
           </PreviewContainer>
         </PreviewSection>
 
+        <EmotionDiaryCalendar diaryList={diaryList} onDayClick={(date)=> setSelectedDay(date)} />
+
         {showConfirmModal && (
           <Modal onClick={() => setShowConfirmModal(false)}>
             <ModalContent onClick={(e) => e.stopPropagation()}>
               <ModalTitle>작성 완료</ModalTitle>
               <EmotionImagePreview
                 containerColor={selectedEmotion?.color || "#f0f0f0"}
-                palette={getPaletteItems()}
+                palette={randomInfo}
               />
               <ModalMessage>{message}</ModalMessage>
               <ButtonContainer>

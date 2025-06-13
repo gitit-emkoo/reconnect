@@ -10,6 +10,7 @@ import axiosInstance from '../api/axios';
 import useAuthStore, { type AuthState } from '../store/authStore';
 import { useGoogleLogin } from '@react-oauth/google';
 import { getKakaoLoginUrl } from '../utils/socialAuth';
+import MainImg from '../assets/MainImg.png';
 
 
 const Container = styled.div`
@@ -383,14 +384,14 @@ const WelcomePage: React.FC = () => {
       />
       <IllustrationWrapper>
         <img 
-          src="/images/img1.jpg" 
+          src={MainImg} 
           alt="Couple illustration" 
           onLoad={() => setImageLoaded(true)}
           style={{ opacity: imageLoaded ? 1 : 0, transition: 'opacity 0.3s' }}
         />
       </IllustrationWrapper>
-      <Title>다시 관계를 이어보세요</Title>
-      <Subtitle>당신의 관계, 리커넥트가 도와줄게요</Subtitle>
+      <Title>다시한번 따뜻해지는 우리</Title>
+      <Subtitle>마음을 다시 잇는 작은 습관! 리커넥트로 시작하세요</Subtitle>
 
       <SocialLoginButtonContainer>
         <SocialLoginButton isKakao onClick={handleKakaoLogin}>

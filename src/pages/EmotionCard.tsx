@@ -12,6 +12,7 @@ import useAuthStore from '../store/authStore';
 import axiosInstance from '../api/axios';
 import { User } from "../types/user";
 import PartnerRequiredModal from '../components/common/PartnerRequiredModal';
+import Popup from '../components/common/Popup';
 
 // 배열을 행 단위로 나누는 chunkCards 함수 추가
 function chunkCards<T>(array: T[], size: number): T[][] {
@@ -312,47 +313,25 @@ const CloseButton = styled.button`
 
 const API_BASE_URL = "https://reconnect-backend.onrender.com/api";
 
-// 날짜 포맷 함수 추가
-function formatDateYYMMDD(dateString: string) {
-  const d = new Date(dateString);
-  const yy = String(d.getFullYear()).slice(2);
-  const mm = String(d.getMonth() + 1).padStart(2, '0');
-  const dd = String(d.getDate()).padStart(2, '0');
-  return `${yy}.${mm}.${dd}`;
+// (fetchSentMessages, fetchReceivedMessages 함수 수정)
+async function fetchSentMessages() {
+  const { data } = await axiosInstance.get("/emotion-cards/sent");
+  return data;
 }
 
-// 감정카드 목록 fetch 함수
-const fetchSentMessages = async (user: User) => {
-  if (!user.partner?.id) throw new Error('파트너가 연결되어야 감정카드를 사용할 수 있습니다.');
-  const response = await axiosInstance.get('/emotion-cards');
-  if (!response.data) throw new Error('감정카드 목록을 불러오지 못했습니다.');
-  return response.data.map((card: any) => ({ ...card, text: card.text || card.message || '' }));
-};
+async function fetchReceivedMessages() {
+  const { data } = await axiosInstance.get("/emotion-cards/received");
+  return data;
+}
 
-const fetchReceivedMessages = async (user: User) => {
-  if (!user.id) throw new Error('유저 정보가 없습니다.');
-  const response = await axiosInstance.get('/emotion-cards/received', { params: { userId: user.id } });
-  if (!response.data) throw new Error('받은 감정카드 목록을 불러오지 못했습니다.');
-  return response.data.map((card: any) => ({ ...card, text: card.text || card.message || '' }));
-};
-
-// 카드 아이템 컴포넌트 분리 (map 내부 useState 제거)
-const CardItem = ({ msg, onClick, showNewBadge = false }: { msg: SentMessage, onClick: () => void, showNewBadge?: boolean }) => {
-  const [hovered, setHovered] = useState(false);
-  return (
-    <OverlapCard
-      key={msg.id}
-      isHovered={hovered}
-      onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => setHovered(false)}
-      onClick={onClick}
-    >
-      <CardEmoji>{msg.emoji || '❤️'}</CardEmoji>
-      <CardDate>{formatDateYYMMDD(msg.createdAt)}</CardDate>
-      {showNewBadge && <NewBadge>NEW</NewBadge>}
-    </OverlapCard>
-  );
-};
+// (CardItem 컴포넌트 정의 추가)
+const CardItem: React.FC<{ msg: SentMessage; onClick: () => void; showNewBadge?: boolean }> = ({ msg, onClick, showNewBadge }) => (
+  <OverlapCard isHovered={false} onClick={onClick}>
+    {showNewBadge && <NewBadge>NEW</NewBadge>}
+    <CardEmoji>{msg.emoji || "❤️"}</CardEmoji>
+    <CardDate>{new Date(msg.createdAt).toLocaleDateString()}</CardDate>
+  </OverlapCard>
+);
 
 const EmotionCard: React.FC = () => {
   const queryClient = useQueryClient();
@@ -366,6 +345,7 @@ const EmotionCard: React.FC = () => {
   const [isSuggesting, setIsSuggesting] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showPartnerRequiredModal, setShowPartnerRequiredModal] = useState(false);
+  const [showPopup, setShowPopup] = useState(true);
 
   // 보낸 메시지 쿼리 (파트너 없으면 비활성화)
   const {
@@ -376,7 +356,7 @@ const EmotionCard: React.FC = () => {
     queryKey: ['sentMessages', myId, partnerId],
     queryFn: async () => {
       try {
-        return await fetchSentMessages(user);
+        return await fetchSentMessages();
       } catch (error: any) {
         if (error?.response?.data?.code === 'PARTNER_REQUIRED') {
           setShowPartnerRequiredModal(true);
@@ -401,7 +381,7 @@ const EmotionCard: React.FC = () => {
     error: receivedError
   } = useQuery<SentMessage[]>({
     queryKey: ['receivedMessages', myId],
-    queryFn: () => fetchReceivedMessages(user),
+    queryFn: () => fetchReceivedMessages(),
     enabled: !!myId,
     refetchInterval: !!myId ? 5000 : false,
     refetchIntervalInBackground: true,
@@ -566,6 +546,11 @@ const EmotionCard: React.FC = () => {
 
   return (
     <>
+    <Popup isOpen={showPopup} onClose={() => setShowPopup(false)}>
+      <div style={{ whiteSpace: 'pre-line', fontSize: '1rem', fontWeight: 400 }}>
+        {`76%가 \n'관계가 이전보다 회복되었다'고 응답했어요`}
+      </div>
+    </Popup>
       <PageContainer>
         <PageHeaderContainer>
           <StyledBackButton /> {/* 스타일링된 BackButton 사용 */}
@@ -579,7 +564,7 @@ const EmotionCard: React.FC = () => {
               {selectedEmoji ? selectedEmoji : '❤️'}
             </span>
             <button type="button" onClick={() => setShowEmojiPicker(v => !v)} style={{ border: '1px solid #eee', borderRadius: '8px', padding: '0.3rem 0.8rem', background: '#fafafa', cursor: 'pointer' }}>
-              {selectedEmoji ? '마음을 표현할 아이콘을 선택해 보세요' : '오늘의 감정 선택'}
+              {selectedEmoji ? '마음을 표현할 아이콘을 선택해 보세요' : '전하고 싶은 감정을 선택하세요'}
             </button>
           </div>
           {showEmojiPicker && (
@@ -729,7 +714,7 @@ const EmotionCard: React.FC = () => {
               >
                 {selectedMessage.text}
               </div>
-              <span style={{ color: '#888', fontSize: '0.95rem' }}>보낸 시간: {formatDateYYMMDD(selectedMessage.createdAt)}</span>
+              <span style={{ color: '#888', fontSize: '0.95rem' }}>보낸 시간: {new Date(selectedMessage.createdAt).toLocaleString()}</span>
             </div>
           </ModalContent>
         </ModalBackground>

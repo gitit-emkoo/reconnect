@@ -10,8 +10,8 @@ const Banner = styled.div`
     left: 0;
     width: 100vw;
     height: 60px;
-    background: #ffecb3;
-    color: #b26a00;
+    background:rgb(252, 191, 239);
+    color:rgb(71, 0, 82);
     align-items: center;
     justify-content: center;
     font-size: 1.1rem;
@@ -27,4 +27,4 @@ const MobileOnlyBanner: React.FC = () => (
   </Banner>
 );
 
-export default MobileOnlyBanner; 
+export default MobileOnlyBanner;
