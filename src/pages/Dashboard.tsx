@@ -11,8 +11,6 @@ import DashboardCalendar from "../components/Dashboard/DashboardCalendar"; // �
 import WelcomeUserSection from "../components/Dashboard/WelcomeUserSection"; // 새로 추가 // 새로 추가
 
 import type { User } from "../types/user"; // types/user.ts 에서 User 타입 import
-import { ReactComponent as IcToggleUp } from '../assets/ic_toggle_up.svg';
-import { ReactComponent as IcToggleDown } from '../assets/ic_toggle_down.svg';
 import iconCard from '../assets/love-letter_14299289.png';
 import iconDiary from '../assets/travel-journal_16997872.png';
 import iconChallenge from '../assets/finish_11741557.png';
@@ -25,6 +23,9 @@ import NotificationBell from '../components/NotificationBell';
 import { useNotificationStore } from '../store/notificationsStore';
 import ConfirmationModal from '../components/common/ConfirmationModal';
 import Popup from '../components/common/Popup';
+import { useQuery } from '@tanstack/react-query';
+import { fetchDiaries } from '../api/diary';
+import { fetchSentMessages, fetchReceivedMessages } from './EmotionCard';
 
 const Container = styled.div`
   padding: 1.5rem;
@@ -177,14 +178,13 @@ const ScheduleText = styled.div`
   color: #666;
 `;
 
-const StatusIcons = styled.div`
+const StatusIconsContainer = styled.div`
   display: flex;
-  flex-direction: row;
   align-items: center;
-  gap: 8px;
-  min-width: 24px;
+  gap: 4px;
 `;
 
+// StatusDot과 ToggleIconWrapper를 styled-components로 정의
 const StatusDot = styled.span<{ color: string }>`
   width: 12px;
   height: 12px;
@@ -193,11 +193,20 @@ const StatusDot = styled.span<{ color: string }>`
   display: inline-block;
 `;
 
-const ToggleIconWrapper = styled.span`
-  display: flex;
-  align-items: center;
-  margin-left: 8px;
-`;
+// DiaryStatus 타입 정의
+interface DiaryStatus {
+  hasEmotionDiary: boolean;
+  hasSentEmotionCard: boolean;
+  hasReceivedEmotionCard: boolean;
+}
+
+const StatusIcons: React.FC<DiaryStatus> = ({ hasEmotionDiary, hasSentEmotionCard, hasReceivedEmotionCard }) => (
+  <StatusIconsContainer style={{ flexDirection: 'row', alignItems: 'center', minWidth: 24, gap: 3 }}>
+    {hasEmotionDiary && <StatusDot color="#FF69B4" title="감정일기 작성" style={{ width: 7, height: 7 }} />}
+    {hasSentEmotionCard && <StatusDot color="#FFA500" title="감정카드 보냄" style={{ width: 7, height: 7 }} />}
+    {hasReceivedEmotionCard && <StatusDot color="#32CDFF" title="감정카드 받음" style={{ width: 7, height: 7 }} />}
+  </StatusIconsContainer>
+);
 
 const TopSection = styled.div`
   display: flex;
@@ -219,15 +228,12 @@ const Dashboard: React.FC = () => {
   const navigate = useNavigate();
   const { user, isLoggedIn, accessToken } = useAuthStore();
   const [isInviteModalOpen, setIsInviteModalOpen] = useState(false);
-  const [showCalendar, setShowCalendar] = useState(false);
   const today = new Date();
-  // 임시 일정 및 상태 데이터
-  const schedules: { text: string }[] = [];
-  const hasSentEmotionCard = true;
-  const hasReceivedEmotionCard = false;
-  const hasEmotionDiary = true;
-  // calendarDate, selectedDateData, isDateModalOpen, monthlyEvents state는 DashboardCalendar.tsx로 이동
-  // calendarDate 관련 useEffect도 이동
+  const { data: diaryList = [] } = useQuery({
+    queryKey: ['diaries'],
+    queryFn: fetchDiaries
+  });
+  const todayString = new Date().toISOString().slice(0, 10);
 
   // 로딩 상태를 isLoggedIn과 user 존재 여부로 판단
   const isLoading = !isLoggedIn && !user && !!accessToken;
@@ -292,6 +298,53 @@ const Dashboard: React.FC = () => {
 
   const partner = user.partner;
 
+  // 감정카드 데이터 useQuery 추가 (EmotionCard.tsx 참고)
+  const { data: sentMessages = [] } = useQuery({
+    queryKey: ['sentMessages', user?.id, user?.partner?.id],
+    queryFn: async () => {
+      if (!user?.partner?.id) return [];
+      return await fetchSentMessages();
+    },
+    enabled: !!user?.partner?.id
+  });
+  const { data: receivedMessages = [] } = useQuery({
+    queryKey: ['receivedMessages', user?.id],
+    queryFn: async () => {
+      if (!user?.id) return [];
+      return await fetchReceivedMessages();
+    },
+    enabled: !!user?.id
+  });
+
+  // 오늘 날짜의 상태 계산
+  const getDiaryStatus = (dateString: string): DiaryStatus => ({
+    hasEmotionDiary: diaryList.some(d => d.date === dateString),
+    hasSentEmotionCard: sentMessages.some((msg: any) => msg.senderId === user?.id && msg.createdAt.slice(0, 10) === dateString),
+    hasReceivedEmotionCard: receivedMessages.some((msg: any) => msg.receiverId === user?.id && msg.createdAt.slice(0, 10) === dateString),
+  });
+
+  const todayStatus = getDiaryStatus(todayString);
+
+  // Dashboard 컴포넌트 내부에 일정 상태 추가
+  const [schedules, setSchedules] = useState<{ date: string, text: string }[]>([]);
+  const [isScheduleModalOpen, setIsScheduleModalOpen] = useState(false);
+  const [scheduleInput, setScheduleInput] = useState('');
+  const [scheduleDate, setScheduleDate] = useState(todayString);
+
+  // 오늘 일정 찾기
+  const todaySchedule = schedules.find(s => s.date === todayString);
+
+  // 일정 저장 함수
+  const handleSaveSchedule = () => {
+    if (!scheduleInput.trim()) return;
+    setSchedules(prev => [
+      ...prev.filter(s => s.date !== scheduleDate),
+      { date: scheduleDate, text: scheduleInput }
+    ]);
+    setIsScheduleModalOpen(false);
+    setScheduleInput('');
+  };
+
   return (
     <>
       <Container>
@@ -342,37 +395,56 @@ const Dashboard: React.FC = () => {
         </MainMenuRow>
 
         <MenuCardsColumn>
-          <MenuCard as="div" style={{ padding: 0, background: 'none', boxShadow: 'none' }}>
-            <CalendarToggleButton onClick={() => setShowCalendar(v => !v)}>
+          <MenuCard as="div" style={{ padding: 0, background: 'none', boxShadow: 'none', position: 'relative' }}>
+            <CalendarToggleButton disabled style={{ pointerEvents: 'none', position: 'relative' }}>
               <DateInfo>
                 <DateText>
                   {today.getFullYear()}-{String(today.getMonth() + 1).padStart(2, '0')}-{String(today.getDate()).padStart(2, '0')}
                 </DateText>
                 <ScheduleText>
-                  {schedules.length === 0
-                    ? "일정이 없습니다"
-                    : schedules.map((s, i) => <div key={i}>{s.text}</div>)}
+                  {todaySchedule ? todaySchedule.text : '등록된 일정이 없습니다'}
                 </ScheduleText>
               </DateInfo>
-              <StatusIcons>
-                {hasSentEmotionCard && <StatusDot color="#FFA500" title="감정카드 보냄" />}
-                {hasReceivedEmotionCard && <StatusDot color="#32CD32" title="감정카드 받음" />}
-                {hasEmotionDiary && <StatusDot color="#FF69B4" title="감정일기 작성" />}
-                <ToggleIconWrapper>
-                  {showCalendar ? <IcToggleUp width={24} height={24} /> : <IcToggleDown width={24} height={24} />}
-                </ToggleIconWrapper>
-              </StatusIcons>
+              <StatusIcons {...todayStatus} />
+              <button
+                style={{
+                  position: 'absolute',
+                  right: 18,
+                  bottom: 12,
+                  background: '#E64A8D',
+                  border: 'none',
+                  borderRadius: '50%',
+                  width: 32,
+                  height: 32,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  color: '#fff',
+                  fontSize: 20,
+                  fontWeight: 700,
+                  cursor: 'pointer',
+                  boxShadow: '0 2px 8px #e64a8d33',
+                  zIndex: 2
+                }}
+                onClick={() => setIsScheduleModalOpen(true)}
+                tabIndex={-1}
+                type="button"
+              >
+                +
+              </button>
             </CalendarToggleButton>
           </MenuCard>
-          {showCalendar && (
-            <PartnerSection>
-              <DashboardCalendar />
-            </PartnerSection>
-          )}
-
-          {/* 광고넣기 */}
+          <PartnerSection>
+            <DashboardCalendar 
+              diaryList={diaryList} 
+              StatusIcons={StatusIcons}
+              sentMessages={sentMessages}
+              receivedMessages={receivedMessages}
+              userId={user.id ?? ''}
+            />
+          </PartnerSection>
           <MenuCard onClick={() => handleFeatureClick("/onboarding")} disabled>
-            <MenuTitle>광고입니다다</MenuTitle>
+            <MenuTitle>광고입니다</MenuTitle>
             <MenuText>광고 넣을 페이지 입니다. </MenuText>
           </MenuCard>
         </MenuCardsColumn>
@@ -397,6 +469,28 @@ const Dashboard: React.FC = () => {
           {`감정 표현만으로 관계가 달라질 수 있을까요?\n이미 12,000쌍의 부부가 리커넥트를 통해 그 답을 찾고있어요`}
         </div>
       </Popup>
+      {/* 일정 등록 모달 */}
+      {isScheduleModalOpen && (
+        <div style={{
+          position: 'fixed', left: 0, top: 0, width: '100vw', height: '100vh', background: 'rgba(0,0,0,0.3)', zIndex: 10000, display: 'flex', alignItems: 'center', justifyContent: 'center'
+        }} onClick={() => setIsScheduleModalOpen(false)}>
+          <div style={{ background: '#fff', borderRadius: 12, padding: 24, minWidth: 280, maxWidth: 340, boxShadow: '0 4px 16px #0001' }} onClick={e => e.stopPropagation()}>
+            <h3 style={{ margin: 0, marginBottom: 16, fontSize: 18, color: '#E64A8D' }}>일정 등록</h3>
+            <div style={{ marginBottom: 12 }}>
+              <label style={{ fontSize: 14, color: '#555' }}>날짜</label>
+              <input type="date" value={scheduleDate} onChange={e => setScheduleDate(e.target.value)} style={{ width: '100%', padding: 8, borderRadius: 6, border: '1px solid #eee', marginTop: 4 }} />
+            </div>
+            <div style={{ marginBottom: 16 }}>
+              <label style={{ fontSize: 14, color: '#555' }}>일정 내용</label>
+              <input type="text" value={scheduleInput} onChange={e => setScheduleInput(e.target.value)} placeholder="예: 결혼기념일" style={{ width: '100%', padding: 8, borderRadius: 6, border: '1px solid #eee', marginTop: 4 }} />
+            </div>
+            <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
+              <button onClick={() => setIsScheduleModalOpen(false)} style={{ background: '#eee', color: '#555', border: 'none', borderRadius: 6, padding: '8px 16px', cursor: 'pointer' }}>취소</button>
+              <button onClick={handleSaveSchedule} style={{ background: '#E64A8D', color: '#fff', border: 'none', borderRadius: 6, padding: '8px 16px', cursor: 'pointer' }}>저장</button>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 };
