@@ -20,7 +20,7 @@ const ContentCenter: React.FC = () => {
   return (
     <div>
       <MobileOnlyBanner />
-      <Header title="콘텐츠" />
+      <Header title="관계 가이드" />
       {!selected ? (
         <ContentList onCardClick={setSelectedId} contents={mockContents} />
       ) : (

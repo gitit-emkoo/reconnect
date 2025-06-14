@@ -337,7 +337,7 @@ const Community: React.FC = () => {
 
   return (
     <>
-      <Header title="커뮤니티" />
+      <Header title="지금 우리들의 솔직한 이야기" />
       <Container>
         <CategoryTabs>
           <TabButton $isActive={!activeCategory} onClick={() => setActiveCategory(null)}>전체</TabButton>

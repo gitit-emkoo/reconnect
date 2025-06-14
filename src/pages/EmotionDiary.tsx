@@ -5,7 +5,10 @@ import NavigationBar from "../components/NavigationBar";
 import BackButton from "../components/common/BackButton";
 import EmotionDiaryCalendar from './EmotionDiaryCalendar';
 import Popup from '../components/common/Popup';
-import EmotionImagePreview, { generateRandomInfo, PaletteItem, convertToPaletteItem } from '../components/EmotionImagePreview';
+import EmotionImagePreview, { generateRandomInfo, PaletteItem } from '../components/EmotionImagePreview';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { fetchDiaries, fetchDiaryByDate, createDiary, updateDiary, deleteDiary, DiaryEntry } from '../api/diary';
+import useAuthStore from '../store/authStore';
 
 // SVG 아이콘 임포트
 import { ReactComponent as TriggerActivitiesIcon } from "../assets/Trigger_Activities.svg";
@@ -32,21 +35,6 @@ interface Trigger {
 
 interface EmotionElement extends Emotion {
   type: 'emotion';
-}
-
-interface TriggerElement extends Trigger {
-  type: 'trigger';
-}
-
-type Element = EmotionElement | TriggerElement;
-
-interface DiaryEntry {
-  date: string;
-  emotion: any;
-  triggers: any[];
-  comment: string;
-  palette: PaletteItem[];
-  randomInfo: any[];
 }
 
 // 스타일 컴포넌트 정의
@@ -264,7 +252,7 @@ const Modal = styled.div`
   top: 0;
   left: 0;
   right: 0;
-  bottom: 60px;
+  bottom: 0;
   background-color: rgba(0, 0, 0, 0.5);
   display: flex;
   justify-content: center;
@@ -274,37 +262,39 @@ const Modal = styled.div`
 
 const ModalContent = styled.div`
   background: white;
-  padding: 2rem;
+  padding: 1.5rem;
   border-radius: 1rem;
-  max-width: 90%;
-  width: 500px;
-  max-height: calc(100vh - 120px);
+  width: 90%;
+  max-width: 400px;
+  max-height: 80vh;
   overflow-y: auto;
   position: relative;
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
-  text-align: center;
-  gap: 1.5rem;
+  gap: 1rem;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
 
   h2 {
     margin: 0;
+    font-size: 1.2rem;
   }
 `;
 
 const ModalTitle = styled.h2`
   color: #78350f;
-  margin-bottom: 1.5rem;
-  font-size: 1.4rem;
+  margin-bottom: 1rem;
+  font-size: 1.2rem;
+  font-weight: 600;
 `;
 
 const ModalMessage = styled.p`
   margin: 0;
   color: #666;
-  font-size: 1rem;
+  font-size: 0.95rem;
   width: 100%;
   text-align: center;
+  line-height: 1.5;
 `;
 
 // 감정 데이터 정의
@@ -486,73 +476,146 @@ const PageTitle = styled.h2`
 // 메인 컴포넌트
 const EmotionDiary: React.FC = () => {
   const navigate = useNavigate();
-  const [selectedEmotion, setSelectedEmotion] = useState<Emotion | null>(null);
-  const [selectedElements, setSelectedElements] = useState<Element[]>([]);
-  const [isPreviewExpanded, setIsPreviewExpanded] = useState(false);
-  const [message, setMessage] = useState("");
-  const [showConfirmModal, setShowConfirmModal] = useState(false);
-  const [selectedDay, setSelectedDay] = useState<string | null>(null);
-  const [diaryList, setDiaryList] = useState<DiaryEntry[]>([]);
+  const queryClient = useQueryClient();
+  const [selectedDate, setSelectedDate] = useState<string>('');
+  const [showModal, setShowModal] = useState(false);
   const [showPopup, setShowPopup] = useState(true);
+  const [selectedEmotion, setSelectedEmotion] = useState<Emotion | null>(null);
+  const [selectedTriggers, setSelectedTriggers] = useState<Trigger[]>([]);
+  const [comment, setComment] = useState('');
+  const [showPreview, setShowPreview] = useState(false);
+  const [showImageSizeGuide, setShowImageSizeGuide] = useState(false);
+  const [showCalendarModal, setShowCalendarModal] = useState(false);
+  const [selectedDateForModal, setSelectedDateForModal] = useState<string | null>(null);
+  const [showImageSizeGuideModal, setShowImageSizeGuideModal] = useState(false);
+  const [showGuideModal, setShowGuideModal] = useState(true);
+  const user = useAuthStore((state) => state.user);
+
+  // 다이어리 목록 조회
+  const { data: diaryList = [], isLoading } = useQuery({
+    queryKey: ['diaries'],
+    queryFn: fetchDiaries
+  });
+
+  // 특정 날짜의 다이어리 조회
+  const { data: selectedDiary } = useQuery({
+    queryKey: ['diary', selectedDate],
+    queryFn: () => fetchDiaryByDate(selectedDate),
+    enabled: !!selectedDate
+  });
+
+  // 다이어리 생성 mutation
+  const createDiaryMutation = useMutation({
+    mutationFn: createDiary,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['diaries'] });
+      setShowModal(false);
+      setSelectedEmotion(null);
+      setSelectedTriggers([]);
+      setComment('');
+      setShowPreview(false);
+    }
+  });
+
+  // 다이어리 수정 mutation
+  const updateDiaryMutation = useMutation({
+    mutationFn: ({ id, data }: { id: string; data: Partial<DiaryEntry> }) => updateDiary(id, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['diaries'] });
+      setShowModal(false);
+    }
+  });
+
+  // 다이어리 삭제 mutation
+  const deleteDiaryMutation = useMutation({
+    mutationFn: deleteDiary,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['diaries'] });
+      setShowModal(false);
+    }
+  });
 
   const handleReset = () => {
     setSelectedEmotion(null);
-    setSelectedElements([]);
-    setMessage("");
+    setSelectedTriggers([]);
+    setComment('');
   };
 
   const handleSubmit = () => {
-    setShowConfirmModal(true);
+    setShowModal(true);
   };
 
-  const handleConfirm = () => {
-    const today = new Date();
-    const dateStr = today.toISOString().slice(0, 10);
-    const paletteItems = getPaletteItems();
-    const randomInfo = generateRandomInfo(paletteItems);
-    setDiaryList([
-      ...diaryList,
-      {
-        date: dateStr,
-        emotion: selectedEmotion,
-        triggers: selectedElements.filter(e => e.type === 'trigger') as any[],
-        comment: message,
-        palette: paletteItems,
-        randomInfo: randomInfo,
+  const getPaletteItems = (): PaletteItem[] => {
+    const items: PaletteItem[] = [];
+    if (selectedEmotion) {
+      items.push({ type: 'emotion', data: selectedEmotion });
+    }
+    items.push(...selectedTriggers.map(trigger => ({ type: 'trigger' as const, data: trigger })));
+    return items;
+  };
+
+  const previewPalette = useMemo(() => getPaletteItems(), [selectedEmotion, selectedTriggers]);
+  const previewRandomInfo = useMemo(() => generateRandomInfo(previewPalette), [previewPalette]);
+
+  const handleConfirm = async () => {
+    if (!selectedEmotion || selectedTriggers.length === 0) {
+      alert('감정과 트리거를 모두 선택해주세요.');
+      return;
+    }
+
+    if (!user || !user.id) {
+      alert('로그인 정보가 없습니다. 다시 로그인 해주세요.');
+      return;
+    }
+
+    const savePalette: PaletteItem[] = getPaletteItems();
+    const saveRandomInfo = generateRandomInfo(savePalette);
+
+    const diaryData = {
+      date: selectedDate,
+      emotion: {
+        name: selectedEmotion.name,
+        color: selectedEmotion.color
+      },
+      triggers: selectedTriggers.map(trigger => ({
+        name: trigger.name,
+        iconComponent: trigger.IconComponent.displayName || trigger.IconComponent.name || trigger.name
+      })),
+      comment,
+      palette: savePalette,
+      randomInfo: saveRandomInfo,
+      userId: user.id
+    };
+
+    try {
+      if (selectedDiary?.id) {
+        await updateDiaryMutation.mutateAsync({ id: selectedDiary.id, data: diaryData });
+      } else {
+        await createDiaryMutation.mutateAsync(diaryData);
       }
-    ]);
-    setShowConfirmModal(false);
-    handleReset();
+    } catch (error) {
+      console.error('다이어리 저장 실패:', error);
+      alert('다이어리 저장에 실패했습니다. 다시 시도해주세요.');
+    }
   };
 
   const togglePreview = () => {
-    setIsPreviewExpanded(!isPreviewExpanded);
+    setShowPreview(!showPreview);
   };
 
   const handleBack = () => {
     navigate(-1);
   };
 
-  const getPaletteItems = (): PaletteItem[] => {
-    const items: PaletteItem[] = [];
-    if (selectedEmotion) {
-      items.push({
-        type: 'emotion',
-        data: selectedEmotion
-      });
-    }
-    items.push(...selectedElements.map(convertToPaletteItem));
-    return items;
-  };
-
-  const paletteItems = getPaletteItems();
-  const randomInfo = useMemo(() => generateRandomInfo(paletteItems), [JSON.stringify(paletteItems)]);
-
   return (
     <>
     <Popup isOpen={showPopup} onClose={() => setShowPopup(false)}>
-      <div style={{ whiteSpace: 'pre-line', fontSize: '1.1rem', fontWeight: 500 }}>
-        {`매일매일 작성하는 1분 감정다이어리는\n감정 기록과 전문가에 보다 더 정확할 솔루션을 받을 수 있어요`}
+      <div style={{ whiteSpace: 'pre-line', fontSize: '1rem', fontWeight: 500 }}>
+      {`매일매일 작성하는 1분 감정다이어리는`}
+    <br />
+    {`감정 기록과 전문가에 보다 더 정확한`}
+    <br />
+    {`솔루션을 받을 수 있어요`}
       </div>
     </Popup>
       <Container>
@@ -581,8 +644,8 @@ const EmotionDiary: React.FC = () => {
             <StepTitle>오늘의 감정요소들 선택하기 (최대 3개)</StepTitle>
             {/* 선택된 감정요소 칩 */}
             <SelectedChips>
-              {selectedElements.filter(e => e.type === 'trigger').map((trigger) => (
-                <Chip key={trigger.name} onClick={() => setSelectedElements(selectedElements.filter(e => !(e.type === 'trigger' && e.name === trigger.name)))}>
+              {selectedTriggers.map((trigger) => (
+                <Chip key={trigger.name} onClick={() => setSelectedTriggers(selectedTriggers.filter(t => t.name !== trigger.name))}>
                   {trigger.name} ✕
                 </Chip>
               ))}
@@ -592,17 +655,17 @@ const EmotionDiary: React.FC = () => {
               {triggers.map((trigger) => (
                 <TriggerCard
                   key={trigger.name}
-                  selected={selectedElements.some(e => e.type === 'trigger' && e.name === trigger.name)}
+                  selected={selectedTriggers.some(t => t.name === trigger.name)}
                   onClick={() => {
-                    const already = selectedElements.some(e => e.type === 'trigger' && e.name === trigger.name);
+                    const already = selectedTriggers.some(t => t.name === trigger.name);
                     if (already) {
-                      setSelectedElements(selectedElements.filter(e => !(e.type === 'trigger' && e.name === trigger.name)));
+                      setSelectedTriggers(selectedTriggers.filter(t => t.name !== trigger.name));
                     } else {
-                      if (selectedElements.filter(e => e.type === 'trigger').length >= 3) {
+                      if (selectedTriggers.length >= 3) {
                         alert('최대 3개까지만 선택할 수 있습니다.');
                         return;
                       }
-                      setSelectedElements([...selectedElements, { type: 'trigger', name: trigger.name, IconComponent: trigger.IconComponent }]);
+                      setSelectedTriggers([...selectedTriggers, trigger]);
                     }
                   }}
                 >
@@ -616,9 +679,9 @@ const EmotionDiary: React.FC = () => {
           <StepContainer>
             <StepTitle>한문장으로 오늘을 기록해 주세요</StepTitle>
             <MessageInput
-              value={message}
-              onChange={(e) => setMessage(e.target.value)}
-              placeholder="한문장으로 오늘을 기록해 주세요"
+              value={comment}
+              onChange={(e) => setComment(e.target.value)}
+              placeholder="오늘의 감정을 적어주세요"
             />
             <ButtonContainer>
               <Button variant="primary" onClick={handleSubmit}>
@@ -630,62 +693,73 @@ const EmotionDiary: React.FC = () => {
             </ButtonContainer>
           </StepContainer>
 
-          {/* 선택한 날짜의 다이어리 내용 표시 */}
-          {selectedDay && (
-            <StepContainer>
-              <StepTitle>선택한 날짜: {selectedDay}</StepTitle>
-              {(() => {
-                const diary = diaryList.find(d => d.date === selectedDay);
-                if (!diary) return <div>이 날짜에는 작성된 다이어리가 없습니다.</div>;
-                return (
-                  <>
-                    <EmotionImagePreview
-                      containerColor={diary.emotion?.color || "#f0f0f0"}
-                      palette={diary.randomInfo}
-                    />
-                    <div>감정: {diary.emotion?.name || '-'}</div>
-                    <div>메시지: {diary.comment || '-'}</div>
-                    <div>
-                      트리거: {diary.triggers && diary.triggers.length > 0
-                        ? diary.triggers.map((t: any) => t.name).join(', ')
-                        : '-'}
-                    </div>
-                  </>
-                );
-              })()}
-            </StepContainer>
+          {/* 선택한 날짜의 다이어리 내용 표시 모달 */}
+          {selectedDateForModal && (
+            <Modal onClick={() => setSelectedDateForModal(null)}>
+              <ModalContent onClick={(e) => e.stopPropagation()}>
+                <ModalTitle>{selectedDateForModal}</ModalTitle>
+                {(() => {
+                  const diary = diaryList.find(d => d.date === selectedDateForModal);
+                  if (!diary) return <div>이 날짜에는 작성된 다이어리가 없습니다.</div>;
+                  return (
+                    <>
+                      <EmotionImagePreview
+                        containerColor={diary.emotion?.color || "#f0f0f0"}
+                        palette={diary.randomInfo}
+                      />
+                      <div style={{ width: '100%', textAlign: 'left', fontSize: '0.95rem' }}>
+                        <div style={{ marginBottom: '0.5rem' }}>
+                          <strong>감정:</strong> {diary.emotion?.name || '-'}
+                        </div>
+                        <div style={{ marginBottom: '0.5rem' }}>
+                          <strong>메시지:</strong> {diary.comment || '-'}
+                        </div>
+                        <div>
+                          <strong>트리거:</strong> {diary.triggers && diary.triggers.length > 0
+                            ? diary.triggers.map((t: any) => t.name).join(', ')
+                            : '-'}
+                        </div>
+                      </div>
+                      <Button onClick={() => setSelectedDateForModal(null)} style={{ marginTop: '1rem' }}>
+                        닫기
+                      </Button>
+                    </>
+                  );
+                })()}
+              </ModalContent>
+            </Modal>
           )}
         </MainContent>
 
-        <PreviewSection isExpanded={isPreviewExpanded}>
-          <PreviewContainer isExpanded={isPreviewExpanded}>
-            <PreviewTitle isExpanded={isPreviewExpanded}>미리보기</PreviewTitle>
+        <PreviewSection isExpanded={showPreview}>
+          <PreviewContainer isExpanded={showPreview}>
+            <PreviewTitle isExpanded={showPreview}>미리보기</PreviewTitle>
             <EmotionImagePreview
               containerColor={selectedEmotion?.color || "#f0f0f0"}
-              palette={randomInfo}
+              palette={previewRandomInfo}
             />
             <ExpandButton onClick={togglePreview}>
-              {isPreviewExpanded ? '✕' : '👁️'}
+              {showPreview ? '✕' : '👁️'}
             </ExpandButton>
           </PreviewContainer>
         </PreviewSection>
 
-        <EmotionDiaryCalendar diaryList={diaryList} onDayClick={(date)=> setSelectedDay(date)} />
+        <EmotionDiaryCalendar diaryList={diaryList} onDayClick={(date)=> setSelectedDate(date)} />
 
-        {showConfirmModal && (
-          <Modal onClick={() => setShowConfirmModal(false)}>
+        {showModal && (
+          <Modal onClick={() => setShowModal(false)}>
             <ModalContent onClick={(e) => e.stopPropagation()}>
               <ModalTitle>작성 완료</ModalTitle>
               <EmotionImagePreview
                 containerColor={selectedEmotion?.color || "#f0f0f0"}
-                palette={randomInfo}
+                palette={previewRandomInfo}
               />
-              <ModalMessage>{message}</ModalMessage>
+              <ModalMessage>{comment}</ModalMessage>
               <ButtonContainer>
                 <Button variant="primary" onClick={handleConfirm}>
                   확인
                 </Button>
-                <Button onClick={() => setShowConfirmModal(false)}>
+                <Button onClick={() => setShowModal(false)}>
                   취소
                 </Button>
               </ButtonContainer>
