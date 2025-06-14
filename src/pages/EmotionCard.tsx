@@ -13,6 +13,7 @@ import axiosInstance from '../api/axios';
 import { User } from "../types/user";
 import PartnerRequiredModal from '../components/common/PartnerRequiredModal';
 import Popup from '../components/common/Popup';
+import { isTodayKST } from '../utils/date';
 
 // 배열을 행 단위로 나누는 chunkCards 함수 추가
 function chunkCards<T>(array: T[], size: number): T[][] {
@@ -569,17 +570,6 @@ const EmotionCard: React.FC = () => {
     setSelectedMessage(null);
   };
 
-  // 오늘 날짜인지 확인하는 함수
-  const isToday = (dateString: string) => {
-    const today = new Date();
-    const date = new Date(dateString);
-    return (
-      today.getFullYear() === date.getFullYear() &&
-      today.getMonth() === date.getMonth() &&
-      today.getDate() === date.getDate()
-    );
-  };
-
   if (sentError || receivedError) {
     return (
       <PageContainer style={{ textAlign: 'center', paddingTop: '4rem' }}>
@@ -686,7 +676,7 @@ const EmotionCard: React.FC = () => {
               {isSuggesting ? "AI가 다듬는 중..." : (suggestion ? "AI 다른 제안 보기" : "AI 말투 다듬기")}
             </SubmitButton>
             <SubmitButton 
-              onClick={handleSubmit} 
+              onClick={() => setIsSubmitting(true)} 
               disabled={sendCardMutation.isPending || isSuggesting || message.trim().length === 0}
               size="small"
               width="150px"
@@ -799,7 +789,7 @@ const EmotionCard: React.FC = () => {
                       style={{ zIndex: arr.length - idx }}
                       onClick={() => openModal(msg)}
                     >
-                      {isToday(msg.createdAt) && <NewBadge>NEW</NewBadge>}
+                      {isTodayKST(msg.createdAt) && <NewBadge>NEW</NewBadge>}
                       <CardEmoji>{msg.emoji || "❤️"}</CardEmoji>
                       <CardDate>{msg.createdAt.slice(2, 10).replace(/-/g, ".")}</CardDate>
                     </OverlapCard>
