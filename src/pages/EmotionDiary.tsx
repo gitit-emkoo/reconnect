@@ -7,7 +7,7 @@ import EmotionDiaryCalendar from './EmotionDiaryCalendar';
 import Popup from '../components/common/Popup';
 import EmotionImagePreview, { generateRandomInfo, PaletteItem } from '../components/EmotionImagePreview';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { fetchDiaries, fetchDiaryByDate, createDiary, updateDiary, deleteDiary, DiaryEntry } from '../api/diary';
+import { fetchDiaries, fetchDiaryByDate, createDiary, updateDiary, DiaryEntry } from '../api/diary';
 import useAuthStore from '../store/authStore';
 
 // SVG 아이콘 임포트
@@ -31,10 +31,6 @@ interface Emotion {
 interface Trigger {
   name: string;
   IconComponent: React.FC<React.SVGProps<SVGSVGElement>>;
-}
-
-interface EmotionElement extends Emotion {
-  type: 'emotion';
 }
 
 // 스타일 컴포넌트 정의
@@ -484,15 +480,11 @@ const EmotionDiary: React.FC = () => {
   const [selectedTriggers, setSelectedTriggers] = useState<Trigger[]>([]);
   const [comment, setComment] = useState('');
   const [showPreview, setShowPreview] = useState(false);
-  const [showImageSizeGuide, setShowImageSizeGuide] = useState(false);
-  const [showCalendarModal, setShowCalendarModal] = useState(false);
   const [selectedDateForModal, setSelectedDateForModal] = useState<string | null>(null);
-  const [showImageSizeGuideModal, setShowImageSizeGuideModal] = useState(false);
-  const [showGuideModal, setShowGuideModal] = useState(true);
   const user = useAuthStore((state) => state.user);
 
   // 다이어리 목록 조회
-  const { data: diaryList = [], isLoading } = useQuery({
+  const { data: diaryList = [] } = useQuery({
     queryKey: ['diaries'],
     queryFn: fetchDiaries
   });
@@ -520,15 +512,6 @@ const EmotionDiary: React.FC = () => {
   // 다이어리 수정 mutation
   const updateDiaryMutation = useMutation({
     mutationFn: ({ id, data }: { id: string; data: Partial<DiaryEntry> }) => updateDiary(id, data),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['diaries'] });
-      setShowModal(false);
-    }
-  });
-
-  // 다이어리 삭제 mutation
-  const deleteDiaryMutation = useMutation({
-    mutationFn: deleteDiary,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['diaries'] });
       setShowModal(false);
