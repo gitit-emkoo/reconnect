@@ -210,9 +210,6 @@ const DashboardCalendar = ({
     }
   };
 
-  const todayString = new Date().toISOString().slice(0, 10);
-  const todayStatus = getDiaryStatus(todayString);
-
   return (
     <>
       <StyledCalendar
