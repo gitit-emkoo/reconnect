@@ -135,6 +135,7 @@ const ColorDot = styled.button<{ color: string; selected: boolean }>`
 const MessageInput = styled.textarea`
   width: 100%;
   min-height: 100px;
+  margin-top: 1rem;
   padding: 1rem;
   border: 2px solid #e5e5e5;
   border-radius: 0.75rem;
@@ -143,7 +144,7 @@ const MessageInput = styled.textarea`
   
   &:focus {
     outline: none;
-    border-color: #f59e0b;
+    border-color: #ff69b4;
   }
 `;
 
@@ -151,6 +152,7 @@ const ButtonContainer = styled.div`
   display: flex;
   gap: 1rem;
   margin-top: 2rem;
+  justify-content: center;
 `;
 
 const Button = styled.button<{ variant?: 'primary' | 'secondary' }>`
@@ -160,7 +162,7 @@ const Button = styled.button<{ variant?: 'primary' | 'secondary' }>`
   cursor: pointer;
   font-weight: 500;
   background-color: ${({ variant }) => 
-    variant === 'primary' ? '#f59e0b' : '#ef4444'};
+    variant === 'primary' ? '#ff69b4' : '#a4d1eb'};
   color: white;
 
   &:hover {
@@ -204,7 +206,7 @@ const ModalContent = styled.div`
 `;
 
 const ModalTitle = styled.h2`
-  color: #78350f;
+  color:rgb(30, 30, 30);
   margin-bottom: 1rem;
   font-size: 1.2rem;
   font-weight: 600;
@@ -291,7 +293,7 @@ const SelectedChips = styled.div`
 
 const Chip = styled.div`
   background: #e9d5ff;
-  color: #78350f;
+  color:rgb(29, 29, 29);
   border-radius: 1rem;
   padding: 0.3rem 0.8rem;
   font-size: 0.95rem;
