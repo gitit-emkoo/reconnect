@@ -6,34 +6,32 @@ const spin = keyframes`
   100% { transform: rotate(360deg); }
 `;
 
-const Spinner = styled.div<{ size?: number }>`
-  width: ${({ size = 40 }) => size}px;
-  height: ${({ size = 40 }) => size}px;
-  border-radius: 50%;
-  background: conic-gradient(
-    from 0deg,
-    #FF69B4 0%,
-    #8A2BE2 100%
-  );
-  mask: 
-    radial-gradient(farthest-side, transparent calc(100% - ${({ size = 40 }) => size / 8}px), #000 calc(100% - ${({ size = 40 }) => size / 8}px));
-  -webkit-mask: 
-    radial-gradient(farthest-side, transparent calc(100% - ${({ size = 40 }) => size / 8}px), #000 calc(100% - ${({ size = 40 }) => size / 8}px));
-  animation: ${spin} 1s linear infinite;
-  margin: 0 auto;
-`;
-
-const SpinnerWrapper = styled.div`
+const SpinnerWrapper = styled.div<{ fullscreen?: boolean }>`
   display: flex;
   justify-content: center;
   align-items: center;
-  width: 100%;
-  height: 100%;
-  min-height: 120px;
+  ${props => props.fullscreen && `
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(255,255,255,0.5);
+    z-index: 9999;
+  `}
 `;
 
-const LoadingSpinner: React.FC<{ size?: number }>= ({ size = 40 }) => (
-  <SpinnerWrapper>
+const Spinner = styled.div<{ size: number }>`
+  border: 4px solid #f3f3f3;
+  border-top: 4px solid #f59e0b;
+  border-radius: 50%;
+  width: ${({ size }) => size}px;
+  height: ${({ size }) => size}px;
+  animation: ${spin} 1s linear infinite;
+`;
+
+const LoadingSpinner: React.FC<{ size?: number; fullscreen?: boolean }> = ({ size = 40, fullscreen = true }) => (
+  <SpinnerWrapper fullscreen={fullscreen}>
     <Spinner size={size} />
   </SpinnerWrapper>
 );

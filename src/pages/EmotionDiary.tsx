@@ -5,8 +5,7 @@ import NavigationBar from "../components/NavigationBar";
 import BackButton from "../components/common/BackButton";
 import EmotionDiaryCalendar from './EmotionDiaryCalendar';
 import Popup from '../components/common/Popup';
-import EmotionImagePreview from '../components/EmotionImagePreview';
-import { generateRandomInfo, PaletteItem } from '../components/EmotionImagePreview';
+import EmotionImagePreview, { generateRandomInfo, PaletteItem } from '../components/EmotionImagePreview';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { fetchDiaries, fetchDiaryByDate, createDiary, updateDiary, DiaryEntry } from '../api/diary';
 import useAuthStore from '../store/authStore';
@@ -397,6 +396,7 @@ const EmotionDiary: React.FC = () => {
     return items;
   };
 
+  // 미리보기용 팔레트 및 랜덤 정보 (작성 중에만 사용)
   const previewPalette = useMemo(() => getPaletteItems(), [selectedEmotion, selectedTriggers]);
   const previewRandomInfo = useMemo(() => generateRandomInfo(previewPalette, 100), [previewPalette]);
 
@@ -447,9 +447,9 @@ const EmotionDiary: React.FC = () => {
     navigate(-1);
   };
 
-  // 트리거 아이콘 매핑 함수
-  function mapRandomInfoWithIcons(randomInfo: any[]): any[] {
-    return randomInfo.map((item: any) => {
+  // 트리거 아이콘 매핑 함수 (타입 명확히)
+  function mapRandomInfoWithIcons(randomInfo: PaletteItem[]): PaletteItem[] {
+    return randomInfo.map((item) => {
       if (item.type === 'trigger') {
         const found = triggers.find(t => t.name === item.data.name);
         return {
@@ -596,7 +596,7 @@ const EmotionDiary: React.FC = () => {
                     <>
                       <EmotionImagePreview
                         containerColor={diary.emotion?.color || "#f0f0f0"}
-                        palette={diary.randomInfo ? mapRandomInfoWithIcons(diary.randomInfo) : modalRandomInfo}
+                        palette={diary.randomInfo ? mapRandomInfoWithIcons(diary.randomInfo as PaletteItem[]) : modalRandomInfo}
                         size={100}
                       />
                       <div style={{ width: '100%', textAlign: 'left', fontSize: '0.95rem' }}>

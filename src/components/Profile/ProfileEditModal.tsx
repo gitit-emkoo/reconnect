@@ -100,7 +100,7 @@ export const ProfileEditModal: React.FC<ProfileEditModalProps> = ({
     try {
       const token = localStorage.getItem('accessToken');
       const response = await axiosInstance.patch(
-        '/api/users/profile',
+        '/users/profile',
         formData,
         {
           headers: {
