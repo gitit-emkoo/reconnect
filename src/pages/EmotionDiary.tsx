@@ -5,10 +5,12 @@ import NavigationBar from "../components/NavigationBar";
 import BackButton from "../components/common/BackButton";
 import EmotionDiaryCalendar from './EmotionDiaryCalendar';
 import Popup from '../components/common/Popup';
-import EmotionImagePreview, { generateRandomInfo, PaletteItem } from '../components/EmotionImagePreview';
+import EmotionImagePreview from '../components/EmotionImagePreview';
+import { generateRandomInfo, PaletteItem } from '../components/EmotionImagePreview';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { fetchDiaries, fetchDiaryByDate, createDiary, updateDiary, DiaryEntry } from '../api/diary';
 import useAuthStore from '../store/authStore';
+import MobileOnlyBanner from '../components/common/MobileOnlyBanner';
 
 // SVG 아이콘 임포트
 import { ReactComponent as TriggerActivitiesIcon } from "../assets/Trigger_Activities.svg";
@@ -21,6 +23,12 @@ import { ReactComponent as TriggerParticipationIcon } from "../assets/Trigger_Pa
 import { ReactComponent as TriggerRelationshipsIcon } from "../assets/Trigger_Relationships.svg";
 import { ReactComponent as TriggerSelfIcon } from "../assets/Trigger_Self.svg";
 import { ReactComponent as TriggerWorkIcon } from "../assets/Trigger_Work.svg";
+import { ReactComponent as TriggerTravelIcon } from "../assets/Trigger_Activities.svg";      // 여행: 활동 아이콘 임시 사용
+import { ReactComponent as TriggerShowIcon } from "../assets/Trigger_Participation.svg";     // 공연: 참여 아이콘 임시 사용
+import { ReactComponent as TriggerExerciseIcon } from "../assets/Trigger_Health.svg";        // 운동: 건강 아이콘 임시 사용
+import { ReactComponent as TriggerStyleIcon } from "../assets/Trigger_Self.svg";             // 스타일: 정체성 아이콘 임시 사용
+import { ReactComponent as TriggerExamIcon } from "../assets/Trigger_Work.svg";              // 시험: 일 아이콘 임시 사용
+import { ReactComponent as TriggerFoodIcon } from "../assets/Trigger_Family.svg";            // 음식: 가족 아이콘 임시 사용
 
 // 데이터 타입 정의
 interface Emotion {
@@ -57,28 +65,7 @@ const MainContent = styled.div`
   }
 `;
 
-const PreviewSection = styled.div<{ isExpanded: boolean }>`
-  @media (max-width: 1023px) {
-    position: fixed;
-    bottom: ${({ isExpanded }) => isExpanded ? '100px' : '120px'};
-    right: ${({ isExpanded }) => isExpanded ? '0' : '20px'};
-    left: ${({ isExpanded }) => isExpanded ? '0' : 'auto'};
-    width: ${({ isExpanded }) => isExpanded ? '100%' : '100px'};
-    height: ${({ isExpanded }) => isExpanded ? 'calc(100% - 160px)' : '100px'};
-    background: white;
-    border-radius: ${({ isExpanded }) => isExpanded ? '16px 16px 0 0' : '16px'};
-    box-shadow: 0 0 10px rgba(0,0,0,0.1);
-    transition: all 0.3s ease;
-    z-index: 1000;
-  }
 
-  @media (min-width: 1024px) {
-    grid-column: 2;
-    position: sticky;
-    top: 2rem;
-    height: fit-content;
-  }
-`;
 
 const StepContainer = styled.div`
   background: white;
@@ -143,66 +130,6 @@ const ColorDot = styled.button<{ color: string; selected: boolean }>`
   
   &:hover {
     transform: scale(1.1);
-  }
-`;
-
-const PreviewContainer = styled.div<{ isExpanded: boolean }>`
-  background: white;
-  padding: 1rem;
-  border-radius: 1rem;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 1rem;
-  height: 100%;
-  
-  @media (max-width: 1023px) {
-    ${({ isExpanded }) => !isExpanded && `
-      padding: 0.5rem;
-      svg {
-        width: 80px;
-        height: 80px;
-      }
-      h3 {
-        display: none;
-      }
-      button {
-        display: none;
-      }
-    `}
-  }
-
-  svg {
-    max-width: 200px;
-    height: auto;
-  }
-`;
-
-const PreviewTitle = styled.h3<{ isExpanded: boolean }>`
-  color:rgb(45, 45, 45);
-  margin-bottom: 1rem;
-  font-size: 1rem;
-  text-align: center;
-
-  @media (max-width: 1023px) {
-    display: ${({ isExpanded }) => isExpanded ? 'block' : 'none'};
-  }
-`;
-
-const ExpandButton = styled.button`
-  position: absolute;
-  top: 0.5rem;
-  right: 0.5rem;
-  background: none;
-  border: none;
-  font-size: 1.5rem;
-  cursor: pointer;
-  padding: 0.5rem;
-  color: #666;
-
-  @media (min-width: 1024px) {
-    display: none;
   }
 `;
 
@@ -308,7 +235,7 @@ const emotions: Emotion[] = [
   
 ];
 
-const triggers: Trigger[] = [
+export const triggers = [
   { name: "활동", IconComponent: TriggerActivitiesIcon },
   { name: "가족", IconComponent: TriggerFamilyIcon },
   { name: "친구", IconComponent: TriggerFriendIcon },
@@ -319,93 +246,28 @@ const triggers: Trigger[] = [
   { name: "관계", IconComponent: TriggerRelationshipsIcon },
   { name: "정체성", IconComponent: TriggerSelfIcon },
   { name: "일", IconComponent: TriggerWorkIcon },
+  // 추가 트리거 (임시 아이콘 매핑)
+  { name: "여행", IconComponent: TriggerTravelIcon },
+  { name: "공연", IconComponent: TriggerShowIcon },
+  { name: "운동", IconComponent: TriggerExerciseIcon },
+  { name: "스타일", IconComponent: TriggerStyleIcon },
+  { name: "시험", IconComponent: TriggerExamIcon },
+  { name: "음식", IconComponent: TriggerFoodIcon },
 ];
-
-// 랜덤 아트 썸네일 컴포넌트
-const palette = [
-  "#90caf9", "#f48fb1", "#ffd54f", "#a5d6a7", "#ce93d8", "#ffb74d", "#b2dfdb", "#e1bee7"
-];
-function getRandomInt(min: number, max: number) {
-  return Math.floor(Math.random() * (max - min + 1)) + min;
-}
-
-export const RandomArtCircle: React.FC<{ size?: number; shapeCount?: number }> = ({ size = 120, shapeCount = 4 }) => {
-  // 랜덤 도형 정보 생성
-  const shapes = Array.from({ length: shapeCount }).map((_) => {
-    const type = Math.random() > 0.5 ? "circle" : "line";
-    const color = palette[getRandomInt(0, palette.length - 1)];
-    if (type === "circle") {
-      return {
-        type,
-        cx: getRandomInt(20, size - 20),
-        cy: getRandomInt(20, size - 20),
-        r: getRandomInt(12, 28),
-        fill: color,
-        opacity: Math.random() * 0.5 + 0.5
-      };
-    } else {
-      return {
-        type,
-        x1: getRandomInt(10, size - 10),
-        y1: getRandomInt(10, size - 10),
-        x2: getRandomInt(10, size - 10),
-        y2: getRandomInt(10, size - 10),
-        stroke: color,
-        strokeWidth: getRandomInt(2, 6),
-        opacity: Math.random() * 0.5 + 0.5
-      };
-    }
-  });
-
-  return (
-    <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`}>
-      {/* 원형 배경 */}
-      <circle cx={size/2} cy={size/2} r={size/2} fill={palette[getRandomInt(0, palette.length - 1)]} />
-      {/* 랜덤 도형들 */}
-      {shapes.map((shape, i) =>
-        shape.type === "circle" ? (
-          <circle
-            key={i}
-            cx={shape.cx}
-            cy={shape.cy}
-            r={shape.r}
-            fill={shape.fill}
-            opacity={shape.opacity}
-          />
-        ) : (
-          <line
-            key={i}
-            x1={shape.x1}
-            y1={shape.y1}
-            x2={shape.x2}
-            y2={shape.y2}
-            stroke={shape.stroke}
-            strokeWidth={shape.strokeWidth}
-            opacity={shape.opacity}
-            strokeLinecap="round"
-          />
-        )
-      )}
-    </svg>
-  );
-};
 
 // 트리거 선택 그리드 및 칩 스타일 추가
 const TriggerGrid = styled.div`
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 1rem;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0.7rem;
   margin: 1rem 0;
-  @media (min-width: 600px) {
-    grid-template-columns: repeat(3, 1fr);
-  }
 `;
 
 const TriggerCard = styled.button<{ selected: boolean }>`
   background: ${({ selected }) => (selected ? '#e9d5ff' : '#dadada')};
   border: 2px solid ${({ selected }) => (selected ? '#a78bfa' : '#e0e0e0')};
-  border-radius: 1rem;
-  padding: 1.2rem 0.5rem;
+  border-radius: 0.8rem;
+  padding: 0.7rem 0.2rem;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -413,11 +275,11 @@ const TriggerCard = styled.button<{ selected: boolean }>`
   transition: all 0.2s;
   cursor: pointer;
   svg {
-    width: 36px;
-    height: 36px;
-    margin-bottom: 0.5rem;
+    width: 28px;
+    height: 28px;
+    margin-bottom: 0.3rem;
   }
-  font-size: 1rem;
+  font-size: 0.95rem;
   font-weight: 500;
 `;
 
@@ -473,13 +335,11 @@ const PageTitle = styled.h2`
 const EmotionDiary: React.FC = () => {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
-  const [selectedDate, setSelectedDate] = useState<string>('');
   const [showModal, setShowModal] = useState(false);
   const [showPopup, setShowPopup] = useState(true);
   const [selectedEmotion, setSelectedEmotion] = useState<Emotion | null>(null);
   const [selectedTriggers, setSelectedTriggers] = useState<Trigger[]>([]);
   const [comment, setComment] = useState('');
-  const [showPreview, setShowPreview] = useState(false);
   const [selectedDateForModal, setSelectedDateForModal] = useState<string | null>(null);
   const user = useAuthStore((state) => state.user);
 
@@ -489,11 +349,12 @@ const EmotionDiary: React.FC = () => {
     queryFn: fetchDiaries
   });
 
-  // 특정 날짜의 다이어리 조회
+  // 오늘 날짜의 다이어리 조회
+  const today = getToday();
   const { data: selectedDiary } = useQuery({
-    queryKey: ['diary', selectedDate],
-    queryFn: () => fetchDiaryByDate(selectedDate),
-    enabled: !!selectedDate
+    queryKey: ['diary', today],
+    queryFn: () => fetchDiaryByDate(today),
+    enabled: true
   });
 
   // 다이어리 생성 mutation
@@ -505,7 +366,6 @@ const EmotionDiary: React.FC = () => {
       setSelectedEmotion(null);
       setSelectedTriggers([]);
       setComment('');
-      setShowPreview(false);
     }
   });
 
@@ -538,7 +398,7 @@ const EmotionDiary: React.FC = () => {
   };
 
   const previewPalette = useMemo(() => getPaletteItems(), [selectedEmotion, selectedTriggers]);
-  const previewRandomInfo = useMemo(() => generateRandomInfo(previewPalette), [previewPalette]);
+  const previewRandomInfo = useMemo(() => generateRandomInfo(previewPalette, 100), [previewPalette]);
 
   const handleConfirm = async () => {
     if (!selectedEmotion || selectedTriggers.length === 0) {
@@ -552,10 +412,10 @@ const EmotionDiary: React.FC = () => {
     }
 
     const savePalette: PaletteItem[] = getPaletteItems();
-    const saveRandomInfo = generateRandomInfo(savePalette);
+    const saveRandomInfo = generateRandomInfo(savePalette, 100);
 
     const diaryData = {
-      date: selectedDate,
+      date: today,
       emotion: {
         name: selectedEmotion.name,
         color: selectedEmotion.color
@@ -582,16 +442,31 @@ const EmotionDiary: React.FC = () => {
     }
   };
 
-  const togglePreview = () => {
-    setShowPreview(!showPreview);
-  };
 
   const handleBack = () => {
     navigate(-1);
   };
 
+  // 트리거 아이콘 매핑 함수
+  function mapRandomInfoWithIcons(randomInfo: any[]): any[] {
+    return randomInfo.map((item: any) => {
+      if (item.type === 'trigger') {
+        const found = triggers.find(t => t.name === item.data.name);
+        return {
+          ...item,
+          data: {
+            ...item.data,
+            IconComponent: found ? found.IconComponent : (() => null)
+          }
+        };
+      }
+      return item;
+    });
+  }
+
   return (
     <>
+    <MobileOnlyBanner />
     <Popup isOpen={showPopup} onClose={() => setShowPopup(false)}>
       <div style={{ whiteSpace: 'pre-line', fontSize: '1rem', fontWeight: 500 }}>
       {`매일매일 작성하는 1분 감정다이어리는`}
@@ -660,6 +535,16 @@ const EmotionDiary: React.FC = () => {
           </StepContainer>
 
           <StepContainer>
+            {/* 미리보기: 코멘트 입력란 위에 배치 */}
+            <StepTitle>미리보기</StepTitle>
+            <div style={{ width: 100, margin: '0 auto' }}>
+              <EmotionImagePreview
+                containerColor={selectedEmotion?.color || "#f0f0f0"}
+                palette={previewRandomInfo}
+                size={100}
+              />
+            </div>
+            
             <StepTitle>한문장으로 오늘을 기록해 주세요</StepTitle>
             <MessageInput
               value={comment}
@@ -684,11 +569,35 @@ const EmotionDiary: React.FC = () => {
                 {(() => {
                   const diary = diaryList.find(d => d.date === selectedDateForModal);
                   if (!diary) return <div>이 날짜에는 작성된 다이어리가 없습니다.</div>;
+
+                  // 트리거 아이콘 매핑
+                  const mappedTriggers = diary.triggers?.map(trigger => {
+                    const foundTrigger = triggers.find(t => t.name === trigger.name);
+                    return {
+                      type: 'trigger' as const,
+                      data: {
+                        name: trigger.name,
+                        IconComponent: foundTrigger?.IconComponent || (() => null)
+                      }
+                    };
+                  }) || [];
+
+                  // 감정 데이터 매핑
+                  const emotionData = {
+                    type: 'emotion' as const,
+                    data: diary.emotion
+                  };
+
+                  // 전체 팔레트 데이터 생성
+                  const modalPalette = [emotionData, ...mappedTriggers];
+                  const modalRandomInfo = generateRandomInfo(modalPalette, 100);
+
                   return (
                     <>
                       <EmotionImagePreview
                         containerColor={diary.emotion?.color || "#f0f0f0"}
-                        palette={diary.randomInfo}
+                        palette={diary.randomInfo ? mapRandomInfoWithIcons(diary.randomInfo) : modalRandomInfo}
+                        size={100}
                       />
                       <div style={{ width: '100%', textAlign: 'left', fontSize: '0.95rem' }}>
                         <div style={{ marginBottom: '0.5rem' }}>
@@ -714,20 +623,7 @@ const EmotionDiary: React.FC = () => {
           )}
         </MainContent>
 
-        <PreviewSection isExpanded={showPreview}>
-          <PreviewContainer isExpanded={showPreview}>
-            <PreviewTitle isExpanded={showPreview}>미리보기</PreviewTitle>
-            <EmotionImagePreview
-              containerColor={selectedEmotion?.color || "#f0f0f0"}
-              palette={previewRandomInfo}
-            />
-            <ExpandButton onClick={togglePreview}>
-              {showPreview ? '✕' : '👁️'}
-            </ExpandButton>
-          </PreviewContainer>
-        </PreviewSection>
-
-        <EmotionDiaryCalendar diaryList={diaryList} onDayClick={(date)=> setSelectedDate(date)} />
+        <EmotionDiaryCalendar diaryList={diaryList} onDayClick={(date)=> setSelectedDateForModal(date)} />
 
         {showModal && (
           <Modal onClick={() => setShowModal(false)}>
@@ -736,6 +632,7 @@ const EmotionDiary: React.FC = () => {
               <EmotionImagePreview
                 containerColor={selectedEmotion?.color || "#f0f0f0"}
                 palette={previewRandomInfo}
+                size={100}
               />
               <ModalMessage>{comment}</ModalMessage>
               <ButtonContainer>
@@ -753,6 +650,12 @@ const EmotionDiary: React.FC = () => {
       <NavigationBar />
     </>
   );
+};
+
+// 오늘 날짜를 YYYY-MM-DD 형식으로 반환
+const getToday = () => {
+  const now = new Date();
+  return now.toISOString().slice(0, 10);
 };
 
 export default EmotionDiary;

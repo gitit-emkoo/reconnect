@@ -1,11 +1,16 @@
 import React from 'react';
-import { RandomArtCircle } from './EmotionDiary';
+import EmotionImagePreview, { PaletteItem } from '../components/EmotionImagePreview';
+import { triggers } from './EmotionDiary';
 
 interface DiaryEntry {
   date: string;
-  emotion: any;
+  emotion: {
+    name: string;
+    color: string;
+  };
   triggers: any[];
   comment: string;
+  randomInfo: any[];
 }
 
 interface Props {
@@ -18,6 +23,22 @@ const MONTHS = [
   'January', 'February', 'March', 'April', 'May', 'June',
   'July', 'August', 'September', 'October', 'November', 'December'
 ];
+
+function mapRandomInfoWithIcons(randomInfo: PaletteItem[]): PaletteItem[] {
+  return randomInfo.map((item) => {
+    if (item.type === 'trigger') {
+      const found = triggers.find(t => t.name === item.data.name);
+      return {
+        ...item,
+        data: {
+          ...item.data,
+          IconComponent: found ? found.IconComponent : (() => null)
+        }
+      };
+    }
+    return item;
+  });
+}
 
 const EmotionDiaryCalendar: React.FC<Props> = ({ diaryList, onDayClick }) => {
   // 이번 달 정보
@@ -57,12 +78,21 @@ const EmotionDiaryCalendar: React.FC<Props> = ({ diaryList, onDayClick }) => {
           const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
           const entry = diaryList.find(d => d.date === dateStr);
           return (
-            <div key={day} style={{ textAlign: 'center', cursor: entry ? 'pointer' : 'default' }}
+            <div key={dateStr + '-' + idx} style={{ textAlign: 'center', cursor: entry ? 'pointer' : 'default' }}
               onClick={() => entry && onDayClick(dateStr)}>
-              {entry
-                ? <RandomArtCircle size={36} shapeCount={4} />
-                : <svg width={36} height={36}><circle cx={18} cy={18} r={18} fill="#eee" /></svg>
-              }
+              {entry && entry.randomInfo ? (
+                <div style={{ width: 36, height: 36, margin: '0 auto' }}>
+                  <EmotionImagePreview
+                    containerColor={entry.emotion?.color || "#f0f0f0"}
+                    palette={mapRandomInfoWithIcons(entry.randomInfo as PaletteItem[])}
+                    size={36}
+                  />
+                </div>
+              ) : (
+                <svg width={36} height={36}>
+                  <circle cx={18} cy={18} r={18} fill="#eee" />
+                </svg>
+              )}
               <div style={{ fontSize: 11, marginTop: 2, color: '#888' }}>{day}</div>
             </div>
           );

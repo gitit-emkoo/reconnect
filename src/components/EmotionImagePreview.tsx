@@ -14,8 +14,7 @@ export type PaletteItem =
   | { type: 'trigger'; data: Trigger };
 
 // 랜덤 배치 정보 생성 함수
-export function generateRandomInfo(palette: PaletteItem[]) {
-  const imageSize = 600;
+export function generateRandomInfo(palette: PaletteItem[], imageSize = 600) {
   return palette.map((item) => {
     const centerX = imageSize / 2;
     const centerY = imageSize / 2;
@@ -68,11 +67,10 @@ export function convertToPaletteItem(element: any): PaletteItem {
 const EmotionImagePreview: React.FC<{
   containerColor: string;
   palette: any[];
-}> = ({ containerColor, palette }) => {
-  const imageSize = 600;
-  // palette가 이미 랜덤 배치 정보라면 그대로 사용
+  size?: number;
+}> = ({ containerColor, palette, size = 600 }) => {
+  const imageSize = size;
   const randomInfo = palette;
-
   return (
     <svg width={imageSize} height={imageSize} viewBox={`0 0 ${imageSize} ${imageSize}`}>
       <defs>
