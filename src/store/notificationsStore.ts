@@ -5,25 +5,24 @@ export interface Notification {
   message: string;
   createdAt: string;
   read: boolean;
+  link?: string;
 }
 
 interface NotificationState {
   notifications: Notification[];
   hasUnread: boolean;
-  addNotification: (msg: string) => void;
+  addNotification: (msg: string, link?: string) => void;
   markAllRead: () => void;
 }
 
 export const useNotificationStore = create<NotificationState>((set) => ({
   notifications: [],
   hasUnread: false,
-  addNotification: (msg) => set(state => ({
-    notifications: [
-      { id: Date.now().toString(), message: msg, createdAt: new Date().toISOString(), read: false },
-      ...state.notifications
-    ],
-    hasUnread: true
-  })),
+  addNotification: (msg, link) => set(state => {
+    const newNoti = { id: Date.now().toString(), message: msg, createdAt: new Date().toISOString(), read: false, link };
+    const notifications = [newNoti, ...state.notifications].slice(0, 10); // 최대 10개
+    return { notifications, hasUnread: true };
+  }),
   markAllRead: () => set(state => ({
     notifications: state.notifications.map(n => ({ ...n, read: true })),
     hasUnread: false

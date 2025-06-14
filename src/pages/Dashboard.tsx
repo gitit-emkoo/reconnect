@@ -345,6 +345,22 @@ const Dashboard: React.FC = () => {
     setScheduleInput('');
   };
 
+  const prevReceivedIds = useRef<string[] | null>(null);
+  useEffect(() => {
+    if (receivedMessages && receivedMessages.length > 0) {
+      if (prevReceivedIds.current === null) {
+        // 최초 마운트: 알림 추가하지 않고 id만 저장
+        prevReceivedIds.current = receivedMessages.map((msg: any) => msg.id);
+        return;
+      }
+      const newCards = receivedMessages.filter((msg: any) => !prevReceivedIds.current!.includes(msg.id));
+      newCards.forEach(() => {
+        useNotificationStore.getState().addNotification('새 감정카드가 도착했어요!', '/emotion-card?tab=received');
+      });
+      prevReceivedIds.current = receivedMessages.map((msg: any) => msg.id);
+    }
+  }, [receivedMessages]);
+
   return (
     <>
       <Container>
