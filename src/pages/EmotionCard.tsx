@@ -314,12 +314,12 @@ const CloseButton = styled.button`
 const API_BASE_URL = "https://reconnect-backend.onrender.com/api";
 
 // (fetchSentMessages, fetchReceivedMessages 함수 수정)
-async function fetchSentMessages() {
+export async function fetchSentMessages() {
   const { data } = await axiosInstance.get("/emotion-cards");
   return data;
 }
 
-async function fetchReceivedMessages() {
+export async function fetchReceivedMessages() {
   const { data } = await axiosInstance.get("/emotion-cards/received");
   return data;
 }

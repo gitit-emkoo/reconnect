@@ -1,7 +1,8 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import styled from "styled-components";
 import OriginalCalendar, { type CalendarProps } from 'react-calendar';
 import 'react-calendar/dist/Calendar.css';
+import { DiaryEntry } from '../../api/diary';
 
 // 캘린더 컴포넌트를 styled-components로 래핑합니다.
 const StyledCalendar = styled(OriginalCalendar)`
@@ -75,22 +76,7 @@ const StyledCalendar = styled(OriginalCalendar)`
   }
 `;
 
-const DotsContainer = styled.div`
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  margin-top: 3px; 
-  min-height: 8px; 
-`;
 
-const Dot = styled.span<{ color: string }>`
-  height: 7px; 
-  width: 7px;  
-  background-color: ${props => props.color};
-  border-radius: 50%;
-  display: inline-block;
-  margin: 0 1.5px; 
-`;
 
 const ModalBackdrop = styled.div`
   position: fixed;
@@ -149,44 +135,32 @@ const CloseButton = styled.button`
   }
 `;
 
-// Interface (Dashboard.tsx에서 이동)
-interface EventData {
-  date: string; 
-  isAnniversary?: boolean;
-  anniversaryName?: string;
-  hasEmotionDiary?: boolean;
-  hasSentEmotionCard?: boolean; 
-  hasReceivedEmotionCard?: boolean; 
-}
-
-// Dummy Data (Dashboard.tsx에서 이동)
-const dummyEvents: EventData[] = [
-  { date: '2024-07-05', isAnniversary: true, anniversaryName: '첫 만남 ❤️' },
-  { date: '2024-07-10', hasEmotionDiary: true, hasSentEmotionCard: true },
-  { date: '2024-07-12', hasReceivedEmotionCard: true },
-  { date: '2024-07-15', hasSentEmotionCard: true, hasReceivedEmotionCard: true },
-  { date: '2024-07-20', hasEmotionDiary: true, hasReceivedEmotionCard: true },
-  { date: '2024-07-22', isAnniversary: true, anniversaryName: '결혼 기념일 💍', hasEmotionDiary: true, hasSentEmotionCard: true },
-];
-
 type CalendarValue = Date | null | [Date | null, Date | null];
 
-const DashboardCalendar: React.FC = () => {
-  const [calendarDate, setCalendarDate] = useState(new Date()); 
-  const [selectedDateData, setSelectedDateData] = useState<any | null>(null);
-  const [isDateModalOpen, setIsDateModalOpen] = useState(false);
-  const [monthlyEvents, setMonthlyEvents] = useState<any[]>([]);
+// DiaryStatus 타입 정의 (Dashboard.tsx와 동일하게)
+interface DiaryStatus {
+  hasEmotionDiary: boolean;
+  hasSentEmotionCard: boolean;
+  hasReceivedEmotionCard: boolean;
+}
 
-  useEffect(() => {
-    const year = calendarDate.getFullYear();
-    const month = calendarDate.getMonth() + 1;
-    const filteredEvents = (dummyEvents || []).filter((event: any) => {
-      const eventDate = new Date(event.date);
-      return eventDate.getFullYear() === year && eventDate.getMonth() + 1 === month;
-    });
-    setMonthlyEvents(filteredEvents);
-  }, [calendarDate]);
-  
+const DashboardCalendar = ({ 
+  diaryList = [], 
+  StatusIcons,
+  sentMessages = [],
+  receivedMessages = [],
+  userId
+}: { 
+  diaryList: DiaryEntry[], 
+  StatusIcons: React.FC<DiaryStatus>,
+  sentMessages: any[],
+  receivedMessages: any[],
+  userId: string
+}) => {
+  const [calendarDate, setCalendarDate] = useState(new Date()); 
+  const [selectedDateData, setSelectedDateData] = useState<{ date: string } | null>(null);
+  const [isDateModalOpen, setIsDateModalOpen] = useState(false);
+
   const formatDate = (date: Date): string => {
     const year = date.getFullYear();
     const month = (date.getMonth() + 1).toString().padStart(2, '0');
@@ -194,20 +168,19 @@ const DashboardCalendar: React.FC = () => {
     return `${year}-${month}-${day}`;
   };
 
+  // 감정카드 데이터 props로 전달받도록 수정 필요 (또는 useQuery 사용)
+  // tileContent에서 날짜별 상태 계산
+  const getDiaryStatus = (dateString: string): DiaryStatus => ({
+    hasEmotionDiary: diaryList.some(d => d.date === dateString),
+    hasSentEmotionCard: sentMessages.some((msg: any) => msg.senderId === userId && msg.createdAt.slice(0, 10) === dateString),
+    hasReceivedEmotionCard: receivedMessages.some((msg: any) => msg.receiverId === userId && msg.createdAt.slice(0, 10) === dateString),
+  });
+
   const tileContent: CalendarProps['tileContent'] = ({ date, view }) => {
     if (view === 'month') {
       const dateString = formatDate(date);
-      const dayEvent = monthlyEvents.find(event => event.date === dateString);
-      if (dayEvent) {
-        return (
-          <DotsContainer>
-            {dayEvent.isAnniversary && <Dot color="#8A2BE2" />} 
-            {dayEvent.hasEmotionDiary && <Dot color="#FF69B4" />} 
-            {dayEvent.hasSentEmotionCard && <Dot color="#FFA500" />} 
-            {dayEvent.hasReceivedEmotionCard && <Dot color="#32CD32" />} 
-          </DotsContainer>
-        );
-      }
+      const status = getDiaryStatus(dateString);
+      return <StatusIcons {...status} />;
     }
     return null;
   };
@@ -227,8 +200,7 @@ const DashboardCalendar: React.FC = () => {
 
   const handleDayClick: CalendarProps['onClickDay'] = (value: Date, _event: React.MouseEvent<HTMLButtonElement>) => { 
     const dateString = formatDate(value);
-    const eventData = monthlyEvents.find(event => event.date === dateString);
-    setSelectedDateData(eventData ? eventData : { date: dateString });
+    setSelectedDateData({ date: dateString });
     setIsDateModalOpen(true);
   };
   
@@ -253,12 +225,12 @@ const DashboardCalendar: React.FC = () => {
       {isDateModalOpen && (
         <ModalBackdrop onClick={() => setIsDateModalOpen(false)}>
           <ModalContent onClick={(e) => e.stopPropagation()}>
-            <ModalTitle>{selectedDateData.date}</ModalTitle>
-            {selectedDateData.isAnniversary && <ModalInfoItem><span>💍</span> {selectedDateData.anniversaryName}</ModalInfoItem>}
-            {selectedDateData.hasEmotionDiary && <ModalInfoItem><span>📔</span> 감정일기를 작성했어요.</ModalInfoItem>}
-            {selectedDateData.hasSentEmotionCard && <ModalInfoItem><span>💌</span> 감정카드를 보냈어요.</ModalInfoItem>}
-            {selectedDateData.hasReceivedEmotionCard && <ModalInfoItem><span>📨</span> 감정카드를 받았어요.</ModalInfoItem>}
-            {!selectedDateData.isAnniversary && !selectedDateData.hasEmotionDiary && !selectedDateData.hasSentEmotionCard && !selectedDateData.hasReceivedEmotionCard && <p>이벤트가 없습니다.</p>}
+            <ModalTitle>{selectedDateData?.date}</ModalTitle>
+            {diaryList.find(d => d.date === selectedDateData?.date) ? (
+              <ModalInfoItem><span>📔</span> 감정일기를 작성했어요.</ModalInfoItem>
+            ) : (
+              <p>이벤트가 없습니다.</p>
+            )}
             <CloseButton onClick={() => setIsDateModalOpen(false)}>닫기</CloseButton>
           </ModalContent>
         </ModalBackdrop>
@@ -267,4 +239,21 @@ const DashboardCalendar: React.FC = () => {
   );
 };
 
-export default DashboardCalendar; 
+export default DashboardCalendar;
+
+// styled components를 export하도록 수정
+export const StatusDot = styled.span<{ color: string }>`
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: ${props => props.color};
+  display: inline-block;
+`;
+
+export const ToggleIconWrapper = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+`; 

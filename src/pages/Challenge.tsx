@@ -5,62 +5,128 @@ import PartnerRequiredModal from "../components/common/PartnerRequiredModal";
 import NavigationBar from "../components/NavigationBar";
 
 const Container = styled.div`
-  background-color: #f0fdf4;
+  background: #e9f8f6;
   min-height: 100vh;
-  padding: 2rem;
+  padding: 2rem 0 6rem 0;
 `;
 
-const Title = styled.h2`
+const SectionTitle = styled.h2`
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: #1e3a2a;
+  margin: 0 0 1.2rem 0;
+  padding-left: 1.5rem;
+`;
+
+const MissionCard = styled.div`
+  background: #fff;
+  border-radius: 1.2rem;
+  margin: 0 1.5rem 2rem 1.5rem;
+  padding: 1.5rem 1.2rem 1.2rem 1.2rem;
+  box-shadow: 0 4px 16px #0001;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+`;
+
+const MissionTitle = styled.div`
+  display: flex;
+  align-items: center;
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #1e3a2a;
+  margin-bottom: 0.7rem;
+`;
+
+const MissionIcon = styled.span`
   font-size: 1.5rem;
-  margin-bottom: 1rem;
-  color: #065f46;
+  margin-right: 0.7rem;
 `;
 
-const Card = styled.div`
-  background: white;
-  border-radius: 1rem;
-  padding: 1.5rem;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
-  margin-bottom: 1.5rem;
-`;
-
-const Description = styled.p`
-  font-size: 1rem;
-  margin-bottom: 1rem;
-  color: #374151;
-`;
-
-const Progress = styled.div`
-  height: 10px;
-  border-radius: 5px;
-  background-color: #d1fae5;
+const ProgressBarWrap = styled.div`
+  width: 100%;
+  height: 8px;
+  background: #e0f2e9;
+  border-radius: 4px;
+  margin: 0.7rem 0 1.1rem 0;
   overflow: hidden;
-  margin-bottom: 1rem;
 `;
-
 const ProgressBar = styled.div<{ percent: number }>`
   width: ${({ percent }) => percent}%;
   height: 100%;
-  background-color: #10b981;
-  transition: width 0.3s ease;
+  background: #10b981;
+  border-radius: 4px;
+  transition: width 0.3s;
 `;
 
-const Button = styled.button`
-  background-color: #10b981;
-  color: white;
-  padding: 0.75rem 1.5rem;
-  font-weight: 500;
+const MissionButton = styled.button`
+  background: #10b981;
+  color: #fff;
+  font-weight: 600;
   border: none;
-  border-radius: 0.75rem;
+  border-radius: 1.2rem;
+  padding: 0.7rem 1.5rem;
+  font-size: 1rem;
+  margin-top: 0.5rem;
   cursor: pointer;
-  &:hover {
-    background-color: #059669;
-  }
+  box-shadow: 0 2px 8px #10b98122;
+  &:hover { background: #059669; }
 `;
+
+const MissionComplete = styled.div`
+  color: #16a34a;
+  font-weight: bold;
+  margin-top: 0.5rem;
+`;
+
+const ChallengeGridTitle = styled.h3`
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #3b3b3b;
+  margin: 0 0 1rem 1.5rem;
+`;
+
+const ChallengeGrid = styled.div`
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.1rem;
+  margin: 0 1.5rem;
+`;
+
+const ChallengeCard = styled.div<{ bg: string }>`
+  background: ${({ bg }) => bg};
+  border-radius: 1.1rem;
+  padding: 1.1rem 1rem 1rem 1rem;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  box-shadow: 0 2px 8px #0001;
+`;
+const ChallengeIcon = styled.span`
+  font-size: 1.5rem;
+  margin-bottom: 0.5rem;
+`;
+const ChallengeTitle = styled.div`
+  font-size: 1.05rem;
+  font-weight: 600;
+  margin-bottom: 0.2rem;
+`;
+const ChallengeDesc = styled.div`
+  font-size: 0.95rem;
+  color: #444;
+`;
+
+const challengeList = [
+  { icon: "💬", title: "대화 늘리기", desc: "하루 3분 감정 이야기 나누기", bg: "#fffbe7" },
+  { icon: "💗", title: "감정 표현", desc: "감정카드로 오늘 감정 나누기", bg: "#ffe6ea" },
+  { icon: "🐻", title: "소소한 배려", desc: "하루 1번 고마운 행동하기", bg: "#f7f3e8" },
+  { icon: "👫", title: "데이트 리추얼", desc: "매주 한 번 함께 산책하기", bg: "#e6f7fa" },
+  { icon: "🍽️", title: "식사 공유", desc: "한 끼는 같이 차리기 or 먹기", bg: "#f3f6fa" },
+];
 
 const Challenge: React.FC = () => {
   const { user } = useAuthStore();
-  const [progress, setProgress] = useState(33);
+  const [progress, setProgress] = useState(60);
   const [completed, setCompleted] = useState(false);
   const [showPartnerRequiredModal, setShowPartnerRequiredModal] = useState(false);
 
@@ -83,10 +149,16 @@ const Challenge: React.FC = () => {
     return (
       <>
         <Container>
-          <Title>이번 주 connect 약속</Title>
-          <Card>
-            <Description>파트너와 연결되어야 챌린지를 사용할 수 있습니다.</Description>
-          </Card>
+          <SectionTitle>이번 주 Connect 미션</SectionTitle>
+          <MissionCard>
+            <MissionTitle>
+              <MissionIcon>🍽️</MissionIcon>함께 아침밥 준비하기
+            </MissionTitle>
+            <ProgressBarWrap>
+              <ProgressBar percent={progress} />
+            </ProgressBarWrap>
+            <MissionButton disabled>오늘 미션 완료!</MissionButton>
+          </MissionCard>
         </Container>
         <PartnerRequiredModal 
           open={showPartnerRequiredModal} 
@@ -100,18 +172,30 @@ const Challenge: React.FC = () => {
   return (
     <>
       <Container>
-        <Title>이번 주 connect 약속</Title>
-        <Card>
-          <Description>함께 아침밥 준비하기 🍽️</Description>
-          <Progress>
+        <SectionTitle>이번 주 Connect 미션</SectionTitle>
+        <MissionCard>
+          <MissionTitle>
+            <MissionIcon>🍽️</MissionIcon>함께 아침밥 준비하기
+          </MissionTitle>
+          <ProgressBarWrap>
             <ProgressBar percent={progress} />
-          </Progress>
+          </ProgressBarWrap>
           {!completed ? (
-            <Button onClick={handleComplete}>오늘 미션 완료!</Button>
+            <MissionButton onClick={handleComplete}>오늘 미션 완료!</MissionButton>
           ) : (
-            <p style={{ color: '#16a34a', fontWeight: 'bold' }}>미션 완료! 🎉</p>
+            <MissionComplete>미션 완료! 🎉</MissionComplete>
           )}
-        </Card>
+        </MissionCard>
+        <ChallengeGridTitle>챌린지를 골라보세요</ChallengeGridTitle>
+        <ChallengeGrid>
+          {challengeList.map((c, i) => (
+            <ChallengeCard key={i} bg={c.bg}>
+              <ChallengeIcon>{c.icon}</ChallengeIcon>
+              <ChallengeTitle>{c.title}</ChallengeTitle>
+              <ChallengeDesc>{c.desc}</ChallengeDesc>
+            </ChallengeCard>
+          ))}
+        </ChallengeGrid>
       </Container>
       <PartnerRequiredModal 
         open={showPartnerRequiredModal} 
