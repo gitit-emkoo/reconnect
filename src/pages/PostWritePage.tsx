@@ -295,34 +295,7 @@ const PostWritePage: React.FC = () => {
                                 <option key={cat.id} value={cat.id}>{cat.name}</option>
                             ))}
                         </Select>
-                        <TagInputWrapper>
-                            <Tagify
-                                settings={{
-                                  whitelist: [],
-                                  maxTags: 5,
-                                  dropdown: { enabled: 0 },
-                                  placeholder: '태그를 입력하세요 (예: #소통, #공감)',
-                                  enforceWhitelist: false,
-                                }}
-                                value={tags}
-                                onChange={(e: CustomEvent) => {
-                                    try {
-                                        const val = JSON.parse((e.detail as any).value);
-                                        if (Array.isArray(val)) {
-                                            const tagArr = val.map((t: any) => t.value);
-                                            setTags(tagArr);
-                                        } else {
-                                            setTags([]);
-                                        }
-                                    } catch (err) {
-                                        setTags([]);
-                                    }
-                                }}
-                            />
-                            <div style={{ fontSize: '0.8rem', color: '#888', marginTop: '0.3rem' }}>
-                                태그는 최대 5개까지 입력할 수 있습니다.
-                            </div>
-                        </TagInputWrapper>
+
                     </FormRow>
                     
                     {/* 커스텀 리치 텍스트 에디터 */}
@@ -361,7 +334,34 @@ const PostWritePage: React.FC = () => {
                       </div>
                     )}
                     <ButtonContainer>
-                      
+                    <TagInputWrapper>
+                            <Tagify
+                                settings={{
+                                  whitelist: [],
+                                  maxTags: 5,
+                                  dropdown: { enabled: 0 },
+                                  placeholder: '태그를 입력하세요 (예: #소통, #공감)',
+                                  enforceWhitelist: false,
+                                }}
+                                value={tags}
+                                onChange={(e: CustomEvent) => {
+                                    try {
+                                        const val = JSON.parse((e.detail as any).value);
+                                        if (Array.isArray(val)) {
+                                            const tagArr = val.map((t: any) => t.value);
+                                            setTags(tagArr);
+                                        } else {
+                                            setTags([]);
+                                        }
+                                    } catch (err) {
+                                        setTags([]);
+                                    }
+                                }}
+                            />
+                            <div style={{ fontSize: '0.8rem', color: '#888', marginTop: '0.3rem' }}>
+                                태그는 최대 5개까지 입력할 수 있습니다.
+                            </div>
+                        </TagInputWrapper>
                       <input 
                         type="file" 
                         ref={imageInputRef} 

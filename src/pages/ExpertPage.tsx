@@ -3,6 +3,9 @@ import React from 'react';
 import styled from 'styled-components';
 import NavigationBar from "../components/NavigationBar"; // NavigationBar 임포트
 import Header from '../components/common/Header';
+import ImgCounseling from '../assets/Img_counseling.jpg';
+import ImgBeads from '../assets/Img_Beads.jpg';
+import ImgLaw from '../assets/Img_Law.jpg';
 
 const Container = styled.div`
   display: flex;
@@ -16,20 +19,49 @@ const Container = styled.div`
   text-align: center;
 `;
 
-
-const Text = styled.p`
-  font-size: 1.1rem;
-  color: #555;
-  margin-bottom: 2rem;
-  line-height: 1.6;
-  max-width: 600px;
+const CardList = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  width: 100%;
+  max-width: 400px;
 `;
 
-const SectionTitle = styled.h3`
-  font-size: 1.5rem;
-  color: #78350f;
-  margin-top: 2rem;
-  margin-bottom: 1rem;
+const Card = styled.div`
+  display: flex;
+  align-items: center;
+  background: #faf8f6;
+  border-radius: 1.2rem;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+  padding: 1.2rem 1rem;
+  gap: 1.2rem;
+`;
+
+const CardImg = styled.img`
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  object-fit: cover;
+  background: #fff;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.07);
+`;
+
+const CardText = styled.div`
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+`;
+
+const CardTitle = styled.div`
+  font-size: 1.1rem;
+  font-weight: 700;
+  color:rgb(162, 14, 185);
+`;
+
+const CardDesc = styled.div`
+  font-size: 0.98rem;
+  color: #666;
+  margin-top: 0.2rem;
 `;
 
 const CTAButton = styled.button`
@@ -53,20 +85,29 @@ const ExpertPage: React.FC = () => {
     <>
       <Header title="전문가" />
       <Container>
-        <Text>
-          관계 전문가들의 깊이 있는 통찰과 개인 맞춤형 솔루션을 통해
-          당신의 관계를 한 단계 더 발전시키세요.
-        </Text>
-        <SectionTitle>제공 서비스</SectionTitle>
-        <Text>
-          * 1:1 심리 상담
-          <br />
-          * 관계 코칭 프로그램
-          <br />
-          * 맞춤형 관계 개선 로드맵
-          <br />
-          지금 준비중입니다.
-        </Text>
+        <CardList>
+          <Card>
+            <CardImg src={ImgCounseling} alt="감정심리 상담실" />
+            <CardText>
+              <CardTitle>감정심리 상담실</CardTitle>
+              <CardDesc>정서적 회복이 필요한 분</CardDesc>
+            </CardText>
+          </Card>
+          <Card>
+            <CardImg src={ImgBeads} alt="인연궁합 상담실" />
+            <CardText>
+              <CardTitle>인연궁합 상담실</CardTitle>
+              <CardDesc>운명과 타이밍이 궁금한 분</CardDesc>
+            </CardText>
+          </Card>
+          <Card>
+            <CardImg src={ImgLaw} alt="법률 상담소" />
+            <CardText>
+              <CardTitle>법률 상담소</CardTitle>
+              <CardDesc>관계의 현실적 마무리가 고민이라면</CardDesc>
+            </CardText>
+          </Card>
+        </CardList>
         <CTAButton style={{ marginTop: '2.5rem' }} onClick={() => alert("전문가 상담 예약 페이지로 이동")}>홈으로 돌아가기</CTAButton>
       </Container>
       <NavigationBar />

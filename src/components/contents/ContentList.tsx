@@ -134,7 +134,7 @@ export const ContentList: React.FC<ContentListProps> = React.memo(({ contents, o
   if (contents.length === 0) {
     return (
       <div>
-        <h3>AI가 추천하는 콘텐츠</h3>
+        <h3>AI가 추천하는 우리가 더욱 가까워 지는 방법</h3>
         <p style={{ textAlign: 'center', color: '#666', margin: '2rem 0' }}>
           아직 추천할 콘텐츠가 없습니다.
         </p>
@@ -144,7 +144,7 @@ export const ContentList: React.FC<ContentListProps> = React.memo(({ contents, o
 
   return (
     <div>
-      <h3>AI가 추천하는 콘텐츠</h3>
+      <h3>AI가 추천하는 우리가 더욱 가까워 지는 방법</h3>
       <div className="content-list">
         {rows.map((row, i) => (
           <MemoizedSwiper
