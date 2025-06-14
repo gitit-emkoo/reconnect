@@ -354,7 +354,7 @@ const Dashboard: React.FC = () => {
         return;
       }
       const newCards = receivedMessages.filter((msg: any) => !prevReceivedIds.current!.includes(msg.id));
-      newCards.forEach((msg: any) => {
+      newCards.forEach(() => {
         useNotificationStore.getState().addNotification('새 감정카드가 도착했어요!', '/emotion-card?tab=received');
       });
       prevReceivedIds.current = receivedMessages.map((msg: any) => msg.id);

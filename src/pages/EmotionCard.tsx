@@ -1,5 +1,5 @@
 // src/pages/EmotionCard.tsx (백엔드 연동 수정)
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import styled from "styled-components";
 import NavigationBar from "../components/NavigationBar";
 import BackButton from "../components/common/BackButton";
@@ -207,6 +207,7 @@ const TextButton = styled.button`
 const SentCardsSection = styled.section`
   width: 100%;
   max-width: 600px;
+  margin: 0 auto;
   margin-top: 2rem;
 `;
 
@@ -221,15 +222,17 @@ const SentCardsTitle = styled.h3`
 const CardGridWrapper = styled.div`
   display: flex;
   flex-direction: column;
-  gap: 1.2rem;
-  align-items: flex-start;
+  gap: 1rem;
+  align-items: start
   margin-top: 1.5rem;
+  margin-left: 1rem;
+  
 `;
 const CardRow = styled.div`
   display: flex;
-  flex-direction: row;
-  align-items: flex-end;
   min-height: 110px;
+  gap: 1rem;
+  width: 100%;
 `;
 const OverlapCard = styled.div<{ isHovered: boolean }>`
   width: 70px;
@@ -274,8 +277,8 @@ const ModalBackground = styled.div`
 `;
 
 const ModalContent = styled.div`
-  background-color: #ffffff;
-  padding: 2rem;
+  background-color:     #ffffff;
+  padding: 1.5rem;
   border-radius: 0.75rem;
   width: 90%;
   max-width: 500px;
@@ -324,14 +327,47 @@ export async function fetchReceivedMessages() {
   return data;
 }
 
-// (CardItem 컴포넌트 정의 추가)
-const CardItem: React.FC<{ msg: SentMessage; onClick: () => void; showNewBadge?: boolean }> = ({ msg, onClick, showNewBadge }) => (
-  <OverlapCard isHovered={false} onClick={onClick}>
-    {showNewBadge && <NewBadge>NEW</NewBadge>}
-    <CardEmoji>{msg.emoji || "❤️"}</CardEmoji>
-    <CardDate>{new Date(msg.createdAt).toLocaleDateString()}</CardDate>
-  </OverlapCard>
-);
+const FilterContainer = styled.div`
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+  padding: 0 0.5rem;
+  width: 100%;
+`;
+
+const Select = styled.select`
+  padding: 0.4rem 0.8rem;
+  border: 1px solid #e2e8f0;
+  border-radius: 0.5rem;
+  background-color: white;
+  font-size: 0.85rem;
+  color: #4a5568;
+  cursor: pointer;
+  min-width: 100px;
+  appearance: none;
+  background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+  background-repeat: no-repeat;
+  background-position: right 0.5rem center;
+  background-size: 0.8em;
+  padding-right: 2rem;
+  
+  &:focus {
+    outline: none;
+    border-color: #7C3AED;
+    box-shadow: 0 0 0 2px rgba(124, 58, 237, 0.1);
+  }
+
+  &:hover {
+    border-color: #7C3AED;
+  }
+`;
+
+const FilterGroup = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+`;
 
 const EmotionCard: React.FC = () => {
   const queryClient = useQueryClient();
@@ -346,12 +382,16 @@ const EmotionCard: React.FC = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showPartnerRequiredModal, setShowPartnerRequiredModal] = useState(false);
   const [showPopup, setShowPopup] = useState(true);
+  const [selectedMonth, setSelectedMonth] = useState<string>(new Date().toISOString().slice(0, 7));
+  const [sortOrder, setSortOrder] = useState<'newest' | 'oldest'>('newest');
+  const [tab, setTab] = useState<'sent' | 'received'>('sent');
 
   // 보낸 메시지 쿼리 (파트너 없으면 비활성화)
   const {
     data: sentMessages = [],
     isLoading: isLoadingSent,
-    error: sentError
+    error: sentError,
+    refetch: refetchSent,
   } = useQuery<SentMessage[]>({
     queryKey: ['sentMessages', myId, partnerId],
     queryFn: async () => {
@@ -365,36 +405,31 @@ const EmotionCard: React.FC = () => {
       }
     },
     enabled: !!partnerId,
-    refetchInterval: !!partnerId ? 5000 : false,
-    refetchIntervalInBackground: true,
-    refetchOnWindowFocus: false,
-    refetchOnMount: false,
-    refetchOnReconnect: false,
-    staleTime: 0,
-    gcTime: 0
   });
 
   // 받은 메시지 쿼리 (유저 없으면 비활성화)
   const {
     data: receivedMessages = [],
     isLoading: isLoadingReceived,
-    error: receivedError
+    error: receivedError,
+    refetch: refetchReceived,
   } = useQuery<SentMessage[]>({
     queryKey: ['receivedMessages', myId],
     queryFn: () => fetchReceivedMessages(),
     enabled: !!myId,
-    refetchInterval: !!myId ? 5000 : false,
-    refetchIntervalInBackground: true,
-    refetchOnWindowFocus: false,
-    refetchOnMount: false,
-    refetchOnReconnect: false,
-    staleTime: 0,
-    gcTime: 0
   });
+
+  // 탭 전환 시 refetch
+  useEffect(() => {
+    if (tab === 'received') {
+      refetchReceived();
+    } else if (tab === 'sent') {
+      refetchSent();
+    }
+  }, [tab, refetchReceived, refetchSent]);
   
   const [selectedMessage, setSelectedMessage] = useState<SentMessage | null>(null);
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
-  const [tab, setTab] = useState<'sent' | 'received'>('sent');
   const CARDS_PER_PAGE = 20;
   const CARDS_PER_ROW = 5;
 
@@ -406,6 +441,27 @@ const EmotionCard: React.FC = () => {
   const filteredReceivedMessages = Array.isArray(receivedMessages) ? receivedMessages.filter(
     (msg: SentMessage) => msg.senderId === partnerId && msg.receiverId === myId
   ) : [];
+
+  // 월별 필터링과 정렬을 위한 함수
+  const getFilteredAndSortedMessages = (messages: SentMessage[]) => {
+    return messages
+      .filter(msg => msg.createdAt.startsWith(selectedMonth))
+      .sort((a, b) => {
+        const dateA = new Date(a.createdAt).getTime();
+        const dateB = new Date(b.createdAt).getTime();
+        return sortOrder === 'newest' ? dateB - dateA : dateA - dateB;
+      });
+  };
+
+  // 사용 가능한 월 목록 생성 (최신순으로 정렬)
+  const getAvailableMonths = (messages: SentMessage[]) => {
+    const months = new Set(messages.map(msg => msg.createdAt.slice(0, 7)));
+    return Array.from(months).sort().reverse();
+  };
+
+  // 필터링된 메시지
+  const filteredAndSortedSentMessages = getFilteredAndSortedMessages(filteredSentMessages);
+  const filteredAndSortedReceivedMessages = getFilteredAndSortedMessages(filteredReceivedMessages);
 
   const postEmotionCard = async (data: { 
     text: string, 
@@ -511,6 +567,17 @@ const EmotionCard: React.FC = () => {
 
   const closeModal = () => {
     setSelectedMessage(null);
+  };
+
+  // 오늘 날짜인지 확인하는 함수
+  const isToday = (dateString: string) => {
+    const today = new Date();
+    const date = new Date(dateString);
+    return (
+      today.getFullYear() === date.getFullYear() &&
+      today.getMonth() === date.getMonth() &&
+      today.getDate() === date.getDate()
+    );
   };
 
   if (sentError || receivedError) {
@@ -642,15 +709,42 @@ const EmotionCard: React.FC = () => {
         {tab === 'sent' && !isLoadingSent && filteredSentMessages.length > 0 && (
           <SentCardsSection>
             <SentCardsTitle>내가 보낸 감정 카드</SentCardsTitle>
+            <FilterContainer>
+              <FilterGroup>
+                <Select 
+                  value={selectedMonth} 
+                  onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setSelectedMonth(e.target.value)}
+                >
+                  {getAvailableMonths(filteredSentMessages).map(month => (
+                    <option key={month} value={month}>
+                      {month.replace('-', '년 ')}월
+                    </option>
+                  ))}
+                </Select>
+              </FilterGroup>
+              <FilterGroup>
+                <Select 
+                  value={sortOrder} 
+                  onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setSortOrder(e.target.value as 'newest' | 'oldest')}
+                >
+                  <option value="newest">최신순</option>
+                  <option value="oldest">오래된순</option>
+                </Select>
+              </FilterGroup>
+            </FilterContainer>
             <CardGridWrapper>
-              {chunkCards<SentMessage>(filteredSentMessages.slice(0, CARDS_PER_PAGE), CARDS_PER_ROW).map((row, rowIdx) => (
+              {chunkCards<SentMessage>(filteredAndSortedSentMessages.slice(0, CARDS_PER_PAGE), CARDS_PER_ROW).map((row, rowIdx) => (
                 <CardRow key={rowIdx}>
-                  {(row as SentMessage[]).map((msg: SentMessage) => (
-                    <CardItem
+                  {(row as SentMessage[]).map((msg: SentMessage, idx: number, arr) => (
+                    <OverlapCard
                       key={msg.id}
-                      msg={msg}
+                      isHovered={false}
+                      style={{ zIndex: arr.length - idx }}
                       onClick={() => openModal(msg)}
-                    />
+                    >
+                      <CardEmoji>{msg.emoji || "❤️"}</CardEmoji>
+                      <CardDate>{msg.createdAt.slice(2, 10).replace(/-/g, ".")}</CardDate>
+                    </OverlapCard>
                   ))}
                 </CardRow>
               ))}
@@ -672,16 +766,43 @@ const EmotionCard: React.FC = () => {
         {tab === 'received' && !isLoadingReceived && filteredReceivedMessages.length > 0 && (
           <SentCardsSection>
             <SentCardsTitle>내가 받은 감정 카드</SentCardsTitle>
+            <FilterContainer>
+              <FilterGroup>
+                <Select 
+                  value={selectedMonth} 
+                  onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setSelectedMonth(e.target.value)}
+                >
+                  {getAvailableMonths(filteredReceivedMessages).map(month => (
+                    <option key={month} value={month}>
+                      {month.replace('-', '년 ')}월
+                    </option>
+                  ))}
+                </Select>
+              </FilterGroup>
+              <FilterGroup>
+                <Select 
+                  value={sortOrder} 
+                  onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setSortOrder(e.target.value as 'newest' | 'oldest')}
+                >
+                  <option value="newest">최신순</option>
+                  <option value="oldest">오래된순</option>
+                </Select>
+              </FilterGroup>
+            </FilterContainer>
             <CardGridWrapper>
-              {chunkCards<SentMessage>(filteredReceivedMessages.slice(0, CARDS_PER_PAGE), CARDS_PER_ROW).map((row, rowIdx) => (
+              {chunkCards<SentMessage>(filteredAndSortedReceivedMessages.slice(0, CARDS_PER_PAGE), CARDS_PER_ROW).map((row, rowIdx) => (
                 <CardRow key={rowIdx}>
-                  {(row as SentMessage[]).map((msg: SentMessage) => (
-                    <CardItem
+                  {(row as SentMessage[]).map((msg: SentMessage, idx: number, arr) => (
+                    <OverlapCard
                       key={msg.id}
-                      msg={msg}
+                      isHovered={false}
+                      style={{ zIndex: arr.length - idx }}
                       onClick={() => openModal(msg)}
-                      showNewBadge={msg.isRead === false}
-                    />
+                    >
+                      {isToday(msg.createdAt) && <NewBadge>NEW</NewBadge>}
+                      <CardEmoji>{msg.emoji || "❤️"}</CardEmoji>
+                      <CardDate>{msg.createdAt.slice(2, 10).replace(/-/g, ".")}</CardDate>
+                    </OverlapCard>
                   ))}
                 </CardRow>
               ))}
@@ -704,15 +825,15 @@ const EmotionCard: React.FC = () => {
                   maxHeight: '180px',
                   overflowY: 'auto',
                   marginBottom: '0.5rem',
-                  fontWeight: 600,
+                  
                   fontSize: '1.1rem',
-                  padding: '0.5rem 0',
-                  textAlign: 'center',
+                  padding: '0.5rem 1rem 0rem',
+                  
                   wordBreak: 'break-all',
                   lineHeight: 1.6,
                 }}
               >
-                {selectedMessage.text}
+                {selectedMessage.text || selectedMessage.message || '-'}
               </div>
               <span style={{ color: '#888', fontSize: '0.95rem' }}>보낸 시간: {new Date(selectedMessage.createdAt).toLocaleString()}</span>
             </div>
