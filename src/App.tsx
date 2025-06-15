@@ -27,7 +27,7 @@ import KakaoCallback from "./pages/KakaoCallback";
 import Dashboard from "./pages/Dashboard";
 import EmotionCard from "./pages/EmotionCard";
 import EmotionDiary from "./pages/EmotionDiary";
-import Challenge from "./pages/Challenge";
+import ChallengePage from "./pages/ChallengePage";
 import Report from "./pages/Report";
 import ContentCenter from "./pages/ContentCenter";
 import Calendar from "./pages/Calendar";
@@ -43,6 +43,8 @@ import AnnouncementsPage from './pages/AnnouncementsPage';
 import PostWritePage from './pages/PostWritePage';
 import PostDetailPage from './pages/PostDetailPage';
 import PostEditPage from './pages/PostEditPage';
+import MarriageDiagnosis from './pages/MarriageDiagnosis';
+import MarriageDiagnosisResult from './pages/MarriageDiagnosisResult';
 
 const queryClient = new QueryClient();
 
@@ -88,7 +90,7 @@ const App = () => {
             <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
             <Route path="/emotion-card" element={<ProtectedRoute><EmotionCard /></ProtectedRoute>} />
             <Route path="/emotion-diary" element={<ProtectedRoute><EmotionDiary /></ProtectedRoute>} />
-            <Route path="/challenge" element={<ProtectedRoute><Challenge /></ProtectedRoute>} />
+            <Route path="/challenge" element={<ProtectedRoute><ChallengePage /></ProtectedRoute>} />
             <Route path="/report" element={<ProtectedRoute><Report /></ProtectedRoute>} />
             <Route path="/content-center" element={<ProtectedRoute><ContentCenter /></ProtectedRoute>} />
             <Route path="/invite" element={<ProtectedRoute><Invite /></ProtectedRoute>} />
@@ -100,6 +102,8 @@ const App = () => {
             <Route path="/my" element={<ProtectedRoute><MyPage /></ProtectedRoute>} />
             <Route path="/expert" element={<ProtectedRoute><ExpertPage /></ProtectedRoute>} />
             <Route path="/profile/edit" element={<ProtectedRoute><ProfileEditPage /></ProtectedRoute>} />
+            <Route path="/marriage-diagnosis" element={<ProtectedRoute><MarriageDiagnosis /></ProtectedRoute>} />
+            <Route path="/marriage-diagnosis-result" element={<ProtectedRoute><MarriageDiagnosisResult /></ProtectedRoute>} />
 
             {/* Placeholder Pages (보호된 라우트) - 일부는 실제 페이지로 교체 */}
             <Route path="/support/faq" element={<ProtectedRoute><FaqPage /></ProtectedRoute>} />

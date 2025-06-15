@@ -111,7 +111,7 @@ const Report: React.FC = () => {
 
       <DiagnosisSection>
         <Title>결혼생활 심리진단</Title>
-        <DiagnosisButton onClick={() => navigate('/diagnosis')}>심리진단하기</DiagnosisButton>
+        <DiagnosisButton onClick={() => navigate('/marriage-diagnosis')}>심리진단하기</DiagnosisButton>
         <div style={{ margin: '1.5rem 0 0.5rem 0', fontWeight: 500 }}>진단 내역</div>
         {diagnosisList.length === 0 ? (
           <div style={{ color: '#64748b', fontSize: '0.95rem' }}>아직 진단 내역이 없습니다.</div>

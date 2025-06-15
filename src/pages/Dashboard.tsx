@@ -422,7 +422,7 @@ const Dashboard: React.FC = () => {
                 </ScheduleText>
               </DateInfo>
               <StatusIcons {...todayStatus} />
-              <button
+              <div
                 style={{
                   position: 'absolute',
                   right: 18,
@@ -443,11 +443,11 @@ const Dashboard: React.FC = () => {
                   zIndex: 2
                 }}
                 onClick={() => setIsScheduleModalOpen(true)}
-                tabIndex={-1}
-                type="button"
+                role="button"
+                tabIndex={0}
               >
                 +
-              </button>
+              </div>
             </CalendarToggleButton>
           </MenuCard>
           <PartnerSection>
