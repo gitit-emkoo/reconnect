@@ -60,12 +60,9 @@ const ChallengeCard = styled.div`
   background: #f8f9fa;
   border-radius: 0.8rem;
   padding: 1rem;
-  cursor: pointer;
-  transition: transform 0.2s;
-
-  &:hover {
-    transform: translateY(-2px);
-  }
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
 `;
 
 const ChallengeTitle = styled.div`
@@ -81,15 +78,7 @@ const ChallengeDescription = styled.div`
   margin-bottom: 0.8rem;
 `;
 
-const ChallengeInfo = styled.div`
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  font-size: 0.8rem;
-  color: #888;
-`;
-
-const StartButton = styled.button`
+const SelectButton = styled.button`
   background: #4CAF50;
   color: white;
   border: none;
@@ -98,24 +87,31 @@ const StartButton = styled.button`
   font-weight: 600;
   cursor: pointer;
   transition: opacity 0.2s;
+  margin-left: 1rem;
 
   &:hover {
     opacity: 0.9;
   }
-
-  &:disabled {
-    background: #ccc;
-    cursor: not-allowed;
-  }
 `;
 
-const NoPartnerWarning = styled.div`
-  background: #fff3cd;
-  border: 1px solid #ffeeba;
-  color: #856404;
-  padding: 1rem;
-  border-radius: 0.5rem;
-  margin-bottom: 1rem;
+const ConfirmModalOverlay = styled.div`
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.3);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 2000;
+`;
+
+const ConfirmModalContent = styled.div`
+  background: #fff;
+  border-radius: 1rem;
+  padding: 2rem 1.5rem;
+  max-width: 320px;
   text-align: center;
 `;
 
@@ -123,25 +119,19 @@ interface Props {
   isOpen: boolean;
   onClose: () => void;
   category: Challenge['category'];
-  hasPartner: boolean;
-  onChallengeStart: () => void;
+  onSelectChallenge: (challenge: Challenge) => void;
 }
 
-const ChallengeListModal: React.FC<Props> = ({
-  isOpen,
-  onClose,
-  category,
-  hasPartner,
-  onChallengeStart,
-}) => {
+const ChallengeListModal: React.FC<Props> = ({ isOpen, onClose, category, onSelectChallenge }) => {
   const [challenges, setChallenges] = React.useState<Challenge[]>([]);
   const [isLoading, setIsLoading] = React.useState(false);
+  const [confirmChallenge, setConfirmChallenge] = React.useState<Challenge | null>(null);
 
-  // 챌린지 목록 로드
   React.useEffect(() => {
     if (isOpen) {
       loadChallenges();
     }
+    // eslint-disable-next-line
   }, [isOpen, category]);
 
   const loadChallenges = async () => {
@@ -150,31 +140,9 @@ const ChallengeListModal: React.FC<Props> = ({
       const data = await challengeApi.getChallengesByCategory(category);
       setChallenges(data);
     } catch (error) {
-      console.error('챌린지 목록 로드 중 오류 발생:', error);
-      alert('챌린지 목록을 불러오는데 실패했습니다.');
+      setChallenges([]);
     } finally {
       setIsLoading(false);
-    }
-  };
-
-  const handleChallengeStart = async (challenge: Challenge) => {
-    if (!hasPartner) {
-      alert('연결된 파트너가 없습니다. 파트너와 연결 후 챌린지에 도전해 주세요.');
-      return;
-    }
-
-    if (window.confirm('선택한 챌린지를 시작하시겠습니까?')) {
-      try {
-        setIsLoading(true);
-        await challengeApi.startChallenge(challenge.id);
-        onChallengeStart();
-        onClose();
-      } catch (error) {
-        console.error('챌린지 시작 중 오류 발생:', error);
-        alert('챌린지 시작에 실패했습니다.');
-      } finally {
-        setIsLoading(false);
-      }
     }
   };
 
@@ -194,36 +162,33 @@ const ChallengeListModal: React.FC<Props> = ({
           </Title>
           <CloseButton onClick={onClose}>&times;</CloseButton>
         </ModalHeader>
-
-        {!hasPartner && (
-          <NoPartnerWarning>
-            연결된 파트너가 없습니다. 파트너와 연결 후 챌린지에 도전해 주세요.
-          </NoPartnerWarning>
-        )}
-
         <ChallengeList>
+          {isLoading && <div style={{ color: '#aaa', textAlign: 'center' }}>로딩 중...</div>}
+          {!isLoading && challenges.length === 0 && <div style={{ color: '#aaa', textAlign: 'center' }}>챌린지 목록이 없습니다.</div>}
           {challenges.map(challenge => (
-            <ChallengeCard
-              key={challenge.id}
-              onClick={() => handleChallengeStart(challenge)}
-            >
-              <ChallengeTitle>{challenge.title}</ChallengeTitle>
-              <ChallengeDescription>{challenge.description}</ChallengeDescription>
-              <ChallengeInfo>
-                <div>
-                  {challenge.isOneTime ? '1회성' : `주 ${challenge.frequency}회`}
-                </div>
-                <StartButton
-                  onClick={() => handleChallengeStart(challenge)}
-                  disabled={isLoading || !hasPartner}
-                >
-                  시작하기
-                </StartButton>
-              </ChallengeInfo>
+            <ChallengeCard key={challenge.id}>
+              <div>
+                <ChallengeTitle>{challenge.title}</ChallengeTitle>
+                <ChallengeDescription>{challenge.description}</ChallengeDescription>
+              </div>
+              <SelectButton onClick={() => setConfirmChallenge(challenge)}>선택</SelectButton>
             </ChallengeCard>
           ))}
         </ChallengeList>
       </ModalContent>
+      {confirmChallenge && (
+        <ConfirmModalOverlay>
+          <ConfirmModalContent>
+            <div style={{ marginBottom: 18 }}>
+              이 챌린지로 선택하시겠습니까?
+              <br />
+              <b>{confirmChallenge.title}</b>
+            </div>
+            <SelectButton onClick={() => { onSelectChallenge(confirmChallenge); setConfirmChallenge(null); onClose(); }}>예</SelectButton>
+            <button style={{ marginLeft: 12, background: 'none', border: 'none', color: '#888', fontWeight: 600, cursor: 'pointer' }} onClick={() => setConfirmChallenge(null)}>아니오</button>
+          </ConfirmModalContent>
+        </ConfirmModalOverlay>
+      )}
     </ModalOverlay>
   );
 };

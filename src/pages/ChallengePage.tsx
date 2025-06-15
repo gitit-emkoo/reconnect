@@ -6,6 +6,7 @@ import { Challenge } from '../api/challenge';
 import challengeApi from '../api/challenge';
 import NavigationBar from '../components/NavigationBar';
 import TabSwitcher, { Tab } from '../components/common/TabSwitcher';
+import PartnerRequiredModal from '../components/common/PartnerRequiredModal';
 
 const PageContainer = styled.div`
   max-width: 800px;
@@ -168,6 +169,7 @@ const ChallengePage: React.FC = () => {
   const [hasPartner, setHasPartner] = React.useState(false);
   const [historyTab, setHistoryTab] = React.useState<'success' | 'fail'>('success');
   const [challengeHistory, setChallengeHistory] = React.useState<{ completed: Challenge[]; failed: Challenge[] }>({ completed: [], failed: [] });
+  const [showPartnerRequiredModal, setShowPartnerRequiredModal] = React.useState(false);
 
   // 파트너 연결 상태 확인
   React.useEffect(() => {
@@ -212,12 +214,21 @@ const ChallengePage: React.FC = () => {
   };
 
   const handleCategoryClick = (category: Challenge['category']) => {
+    if (!hasPartner) {
+      setShowPartnerRequiredModal(true);
+      return;
+    }
     setSelectedCategory(category);
     setIsModalOpen(true);
   };
 
-  const handleChallengeStart = () => {
-    loadActiveChallenge();
+  const handleSelectChallenge = async (challenge: Challenge) => {
+    try {
+      await challengeApi.startChallenge(challenge.templateId);
+      await loadActiveChallenge();
+    } catch (error) {
+      alert('챌린지 시작에 실패했습니다.');
+    }
   };
 
   const categories: Array<{
@@ -313,8 +324,7 @@ const ChallengePage: React.FC = () => {
           isOpen={isModalOpen}
           onClose={() => setIsModalOpen(false)}
           category={selectedCategory}
-          hasPartner={hasPartner}
-          onChallengeStart={handleChallengeStart}
+          onSelectChallenge={handleSelectChallenge}
         />
       )}
 
@@ -352,6 +362,10 @@ const ChallengePage: React.FC = () => {
         )}
       </HistoryList>
       <NavigationBar />
+      <PartnerRequiredModal
+        open={showPartnerRequiredModal}
+        onClose={() => setShowPartnerRequiredModal(false)}
+      />
     </PageContainer>
   );
 };
