@@ -1,5 +1,5 @@
 // src/pages/EmotionCard.tsx (백엔드 연동 수정)
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import styled from "styled-components";
 import NavigationBar from "../components/NavigationBar";
 import BackButton from "../components/common/BackButton";
@@ -14,6 +14,8 @@ import { User } from "../types/user";
 import PartnerRequiredModal from '../components/common/PartnerRequiredModal';
 import Popup from '../components/common/Popup';
 import { isTodayKST } from '../utils/date';
+import { useNotificationStore } from '../store/notificationsStore';
+import { useEmotionCardNotifications } from '../hooks/useEmotionCardNotifications';
 
 // 배열을 행 단위로 나누는 chunkCards 함수 추가
 function chunkCards<T>(array: T[], size: number): T[][] {
@@ -370,6 +372,13 @@ const FilterGroup = styled.div`
   gap: 0.5rem;
 `;
 
+// 날짜 포맷팅 유틸리티 함수 추가
+const formatDateToKST = (dateString: string) => {
+  const date = new Date(dateString);
+  const kstDate = new Date(date.getTime() + 9 * 60 * 60 * 1000);
+  return kstDate.toISOString().slice(2, 10).replace(/-/g, ".");
+};
+
 const EmotionCard: React.FC = () => {
   const queryClient = useQueryClient();
   const user = useAuthStore((state) => state.user) as User;
@@ -386,6 +395,7 @@ const EmotionCard: React.FC = () => {
   const [selectedMonth, setSelectedMonth] = useState<string>(new Date().toISOString().slice(0, 7));
   const [sortOrder, setSortOrder] = useState<'newest' | 'oldest'>('newest');
   const [tab, setTab] = useState<'sent' | 'received'>('sent');
+  const prevReceivedIds = useRef<string[] | null>(null);
 
   // 보낸 메시지 쿼리 (파트너 없으면 비활성화)
   const {
@@ -418,7 +428,11 @@ const EmotionCard: React.FC = () => {
     queryKey: ['receivedMessages', myId],
     queryFn: () => fetchReceivedMessages(),
     enabled: !!myId,
+    refetchInterval: 5000, // 5초마다 자동 갱신
   });
+
+  // 커스텀 훅 사용
+  useEmotionCardNotifications(receivedMessages);
 
   // 탭 전환 시 refetch
   useEffect(() => {
@@ -569,6 +583,22 @@ const EmotionCard: React.FC = () => {
   const closeModal = () => {
     setSelectedMessage(null);
   };
+
+  // 알림 처리 로직 추가
+  useEffect(() => {
+    if (receivedMessages && receivedMessages.length > 0) {
+      if (prevReceivedIds.current === null) {
+        // 최초 마운트: 알림 추가하지 않고 id만 저장
+        prevReceivedIds.current = receivedMessages.map((msg: any) => msg.id);
+        return;
+      }
+      const newCards = receivedMessages.filter((msg: any) => !prevReceivedIds.current!.includes(msg.id));
+      newCards.forEach(() => {
+        useNotificationStore.getState().addNotification('새 감정카드가 도착했어요!', '/emotion-card?tab=received');
+      });
+      prevReceivedIds.current = receivedMessages.map((msg: any) => msg.id);
+    }
+  }, [receivedMessages]);
 
   if (sentError || receivedError) {
     return (
@@ -733,7 +763,7 @@ const EmotionCard: React.FC = () => {
                       onClick={() => openModal(msg)}
                     >
                       <CardEmoji>{msg.emoji || "❤️"}</CardEmoji>
-                      <CardDate>{msg.createdAt.slice(2, 10).replace(/-/g, ".")}</CardDate>
+                      <CardDate>{formatDateToKST(msg.createdAt)}</CardDate>
                     </OverlapCard>
                   ))}
                 </CardRow>
@@ -791,7 +821,7 @@ const EmotionCard: React.FC = () => {
                     >
                       {isTodayKST(msg.createdAt) && <NewBadge>NEW</NewBadge>}
                       <CardEmoji>{msg.emoji || "❤️"}</CardEmoji>
-                      <CardDate>{msg.createdAt.slice(2, 10).replace(/-/g, ".")}</CardDate>
+                      <CardDate>{formatDateToKST(msg.createdAt)}</CardDate>
                     </OverlapCard>
                   ))}
                 </CardRow>
@@ -825,7 +855,9 @@ const EmotionCard: React.FC = () => {
               >
                 {selectedMessage.text || selectedMessage.message || '-'}
               </div>
-              <span style={{ color: '#888', fontSize: '0.95rem' }}>보낸 시간: {new Date(selectedMessage.createdAt).toLocaleString()}</span>
+              <span style={{ color: '#888', fontSize: '0.95rem' }}>
+                보낸 시간: {new Date(selectedMessage.createdAt).toLocaleString('ko-KR', { timeZone: 'Asia/Seoul' })}
+              </span>
             </div>
           </ModalContent>
         </ModalBackground>

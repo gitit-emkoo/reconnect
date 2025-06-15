@@ -92,46 +92,47 @@ const ModalBackdrop = styled.div`
 `;
 
 const ModalContent = styled.div`
-  background-color: white;
-  padding: 2rem;
-  border-radius: 0.5rem;
-  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
-  min-width: 300px;
-  max-width: 90%;
-  text-align: left; 
+  background: #fff;
+  border-radius: 12px;
+  padding: 24px;
+  min-width: 280px;
+  max-width: 340px;
+  box-shadow: 0 4px 16px #0001;
 `;
 
 const ModalTitle = styled.h3`
-  font-size: 1.3rem;
-  color: #333;
-  margin-bottom: 1.5rem;
-  text-align: center;
+  margin: 0;
+  margin-bottom: 16px;
+  font-size: 18px;
+  color: #E64A8D;
 `;
 
-const ModalInfoItem = styled.p`
-  font-size: 1rem;
-  color: #555;
-  margin-bottom: 0.75rem;
+const ModalInfoItem = styled.div`
   display: flex;
   align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+  font-size: 14px;
+  color: #333;
+
   span {
-    margin-right: 8px; 
+    font-size: 16px;
   }
 `;
 
 const CloseButton = styled.button`
-  margin-top: 1.5rem;
-  padding: 0.6rem 1.2rem;
-  background-color: #E64A8D;
-  color: white;
+  width: 100%;
+  padding: 12px;
   border: none;
-  border-radius: 0.25rem;
+  border-radius: 6px;
+  background: #E64A8D;
+  color: #fff;
+  font-weight: 600;
   cursor: pointer;
-  display: block; 
-  margin-left: auto;
-  margin-right: auto;
+  margin-top: 16px;
+
   &:hover {
-    background-color: #c33764;
+    background: #d13d7d;
   }
 `;
 
@@ -210,6 +211,41 @@ const DashboardCalendar = ({
     }
   };
 
+  const getDateActivities = (dateString: string) => {
+    const activities = [];
+    
+    // 감정일기 확인
+    if (diaryList.find(d => d.date === dateString)) {
+      activities.push({ type: 'diary', icon: '📔', text: '감정일기를 작성했어요.' });
+    }
+
+    // 보낸 감정카드 확인
+    const sentCard = sentMessages.find((msg: any) => 
+      msg.senderId === userId && msg.createdAt.slice(0, 10) === dateString
+    );
+    if (sentCard) {
+      activities.push({ 
+        type: 'sentCard', 
+        icon: '💌', 
+        text: `파트너에게 감정카드를 보냈어요.${sentCard.emoji ? ` (${sentCard.emoji})` : ''}` 
+      });
+    }
+
+    // 받은 감정카드 확인
+    const receivedCard = receivedMessages.find((msg: any) => 
+      msg.receiverId === userId && msg.createdAt.slice(0, 10) === dateString
+    );
+    if (receivedCard) {
+      activities.push({ 
+        type: 'receivedCard', 
+        icon: '💝', 
+        text: `파트너로부터 감정카드를 받았어요.${receivedCard.emoji ? ` (${receivedCard.emoji})` : ''}` 
+      });
+    }
+
+    return activities;
+  };
+
   return (
     <>
       <StyledCalendar
@@ -226,11 +262,18 @@ const DashboardCalendar = ({
         <ModalBackdrop onClick={() => setIsDateModalOpen(false)}>
           <ModalContent onClick={(e) => e.stopPropagation()}>
             <ModalTitle>{selectedDateData?.date}</ModalTitle>
-            {diaryList.find(d => d.date === selectedDateData?.date) ? (
-              <ModalInfoItem><span>📔</span> 감정일기를 작성했어요.</ModalInfoItem>
-            ) : (
-              <p>이벤트가 없습니다.</p>
-            )}
+            {(() => {
+              const activities = getDateActivities(selectedDateData?.date || '');
+              if (activities.length === 0) {
+                return <p>이벤트가 없습니다.</p>;
+              }
+              return activities.map((activity, index) => (
+                <ModalInfoItem key={index}>
+                  <span>{activity.icon}</span>
+                  {activity.text}
+                </ModalInfoItem>
+              ));
+            })()}
             <CloseButton onClick={() => setIsDateModalOpen(false)}>닫기</CloseButton>
           </ModalContent>
         </ModalBackdrop>
