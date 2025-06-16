@@ -26,6 +26,7 @@ import Popup from '../components/common/Popup';
 import { useQuery } from '@tanstack/react-query';
 import { fetchDiaries } from '../api/diary';
 import { fetchSentMessages, fetchReceivedMessages } from './EmotionCard';
+import { useEmotionCardNotifications } from '../hooks/useEmotionCardNotifications';
 
 const Container = styled.div`
   padding: 1.5rem;
@@ -313,8 +314,12 @@ const Dashboard: React.FC = () => {
       if (!user?.id) return [];
       return await fetchReceivedMessages();
     },
-    enabled: !!user?.id
+    enabled: !!user?.id,
+    refetchInterval: 5000 // 5초마다 자동 갱신
   });
+
+  // 커스텀 훅 사용
+  useEmotionCardNotifications(receivedMessages);
 
   // 오늘 날짜의 상태 계산
   const getDiaryStatus = (dateString: string): DiaryStatus => ({
@@ -353,7 +358,11 @@ const Dashboard: React.FC = () => {
         prevReceivedIds.current = receivedMessages.map((msg: any) => msg.id);
         return;
       }
-      const newCards = receivedMessages.filter((msg: any) => !prevReceivedIds.current!.includes(msg.id));
+      const newCards = receivedMessages.filter((msg: any) => {
+        const isNew = !prevReceivedIds.current!.includes(msg.id);
+        // 이미 읽은 카드는 알림을 보내지 않음
+        return isNew && !msg.isRead;
+      });
       newCards.forEach(() => {
         useNotificationStore.getState().addNotification('새 감정카드가 도착했어요!', '/emotion-card?tab=received');
       });

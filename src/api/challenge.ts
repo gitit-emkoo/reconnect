@@ -2,6 +2,7 @@ import axiosInstance from './axios';
 
 export interface Challenge {
   id: string;
+  templateId: string;
   title: string;
   description: string;
   category: 'DAILY_SHARE' | 'TOGETHER_ACT' | 'EMOTION_EXPR' | 'MEMORY_BUILD' | 'SELF_CARE' | 'GROW_TOGETHER';
@@ -24,7 +25,7 @@ export interface ChallengeHistory {
 const challengeApi = {
   // 카테고리별 챌린지 목록 조회
   getChallengesByCategory: async (category: Challenge['category']) => {
-    const response = await axiosInstance.get<Challenge[]>(`/challenges/category/${category}`);
+    const response = await axiosInstance.get<Challenge[]>(`/challenges/template/category/${category}`);
     return response.data;
   },
 
