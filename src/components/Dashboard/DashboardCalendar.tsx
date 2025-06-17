@@ -145,21 +145,29 @@ interface DiaryStatus {
   hasReceivedEmotionCard: boolean;
 }
 
+interface DashboardCalendarProps {
+  diaryList: DiaryEntry[];
+  StatusIcons: React.FC<DiaryStatus>;
+  sentMessages: any[];
+  receivedMessages: any[];
+  userId: string;
+  scheduleMap: { [date: string]: string[] };
+  onDeleteSchedule: (date: string, idx: number) => void;
+  onDateClick: (date: string) => void;
+}
+
 const DashboardCalendar = ({ 
   diaryList = [], 
   StatusIcons,
   sentMessages = [],
   receivedMessages = [],
-  userId
-}: { 
-  diaryList: DiaryEntry[], 
-  StatusIcons: React.FC<DiaryStatus>,
-  sentMessages: any[],
-  receivedMessages: any[],
-  userId: string
-}) => {
+  userId,
+  scheduleMap,
+  onDeleteSchedule,
+  onDateClick
+}: DashboardCalendarProps) => {
   const [calendarDate, setCalendarDate] = useState(new Date()); 
-  const [selectedDateData, setSelectedDateData] = useState<{ date: string } | null>(null);
+  const [selectedDate, setSelectedDate] = useState<string | null>(null);
   const [isDateModalOpen, setIsDateModalOpen] = useState(false);
 
   const formatDate = (date: Date): string => {
@@ -181,7 +189,13 @@ const DashboardCalendar = ({
     if (view === 'month') {
       const dateString = formatDate(date);
       const status = getDiaryStatus(dateString);
-      return <StatusIcons {...status} />;
+      const hasSchedule = scheduleMap[dateString] && scheduleMap[dateString].length > 0;
+      return (
+        <>
+          <StatusIcons {...status} />
+          {hasSchedule && <div style={{ marginTop: 2, fontSize: 18 }}>✔️</div>}
+        </>
+      );
     }
     return null;
   };
@@ -199,26 +213,20 @@ const DashboardCalendar = ({
     }
   };
 
-  const handleDayClick: CalendarProps['onClickDay'] = (value: Date, _event: React.MouseEvent<HTMLButtonElement>) => { 
-    const dateString = formatDate(value);
-    setSelectedDateData({ date: dateString });
+  const handleDayClick: CalendarProps['onClickDay'] = (value: Date, _event: React.MouseEvent<HTMLButtonElement>) => {
+    const dateStr = formatDate(value);
+    setSelectedDate(dateStr);
     setIsDateModalOpen(true);
-  };
-  
-  const handleMonthChange: CalendarProps['onActiveStartDateChange'] = (props: any) => {
-    if (props.activeStartDate instanceof Date) {
-      setCalendarDate(props.activeStartDate);
-    }
+    if (onDateClick) onDateClick(dateStr);
   };
 
+  // 날짜별 활동 내역(감정일기/카드) + 일정 모달
   const getDateActivities = (dateString: string) => {
     const activities = [];
-    
     // 감정일기 확인
     if (diaryList.find(d => d.date === dateString)) {
       activities.push({ type: 'diary', icon: '📔', text: '감정일기를 작성했어요.' });
     }
-
     // 보낸 감정카드 확인
     const sentCard = sentMessages.find((msg: any) => 
       msg.senderId === userId && msg.createdAt.slice(0, 10) === dateString
@@ -230,7 +238,6 @@ const DashboardCalendar = ({
         text: `파트너에게 감정카드를 보냈어요.${sentCard.emoji ? ` (${sentCard.emoji})` : ''}` 
       });
     }
-
     // 받은 감정카드 확인
     const receivedCard = receivedMessages.find((msg: any) => 
       msg.receiverId === userId && msg.createdAt.slice(0, 10) === dateString
@@ -242,42 +249,56 @@ const DashboardCalendar = ({
         text: `파트너로부터 감정카드를 받았어요.${receivedCard.emoji ? ` (${receivedCard.emoji})` : ''}` 
       });
     }
-
     return activities;
   };
+
+  const renderDateModal = () => (
+    isDateModalOpen && selectedDate && (
+      <ModalBackdrop onClick={() => setIsDateModalOpen(false)}>
+        <ModalContent onClick={e => e.stopPropagation()}>
+          <ModalTitle>{selectedDate} 활동 & 일정</ModalTitle>
+          {/* 활동 내역 */}
+          {(() => {
+            const activities = getDateActivities(selectedDate);
+            if (activities.length === 0) {
+              return <div style={{ color: '#aaa', fontSize: 15, textAlign: 'center', margin: '12px 0' }}>감정일기/카드 활동이 없습니다</div>;
+            }
+            return activities.map((activity, index) => (
+              <ModalInfoItem key={index}>
+                <span>{activity.icon}</span>
+                {activity.text}
+              </ModalInfoItem>
+            ));
+          })()}
+          {/* 일정 리스트 */}
+          <div style={{ marginTop: 18 }}>
+            <div style={{ fontWeight: 600, marginBottom: 6, color: '#7D5FFF' }}>일정</div>
+            {(scheduleMap[selectedDate] && scheduleMap[selectedDate].length > 0) ? (
+              scheduleMap[selectedDate].map((item, idx) => (
+                <div key={idx} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: '#f9fafb', borderRadius: 6, padding: '6px 10px', marginBottom: 6 }}>
+                  <span style={{ fontSize: 15 }}>{item}</span>
+                  <span style={{ cursor: 'pointer', marginLeft: 8 }} onClick={() => onDeleteSchedule(selectedDate, idx)}>🗑️</span>
+                </div>
+              ))
+            ) : (
+              <div style={{ color: '#aaa', fontSize: 15, textAlign: 'center', margin: '8px 0' }}>일정이 없습니다</div>
+            )}
+          </div>
+          <CloseButton onClick={() => setIsDateModalOpen(false)}>닫기</CloseButton>
+        </ModalContent>
+      </ModalBackdrop>
+    )
+  );
 
   return (
     <>
       <StyledCalendar
-        onChange={handleCalendarChange}
         value={calendarDate}
-        onActiveStartDateChange={handleMonthChange}
+        onChange={handleCalendarChange}
         tileContent={tileContent}
         onClickDay={handleDayClick}
-        formatDay={(_locale, date) => date.getDate().toString()}
-        locale="ko-KR"
       />
-      
-      {isDateModalOpen && (
-        <ModalBackdrop onClick={() => setIsDateModalOpen(false)}>
-          <ModalContent onClick={(e) => e.stopPropagation()}>
-            <ModalTitle>{selectedDateData?.date}</ModalTitle>
-            {(() => {
-              const activities = getDateActivities(selectedDateData?.date || '');
-              if (activities.length === 0) {
-                return <p>이벤트가 없습니다.</p>;
-              }
-              return activities.map((activity, index) => (
-                <ModalInfoItem key={index}>
-                  <span>{activity.icon}</span>
-                  {activity.text}
-                </ModalInfoItem>
-              ));
-            })()}
-            <CloseButton onClick={() => setIsDateModalOpen(false)}>닫기</CloseButton>
-          </ModalContent>
-        </ModalBackdrop>
-      )}
+      {renderDateModal()}
     </>
   );
 };
