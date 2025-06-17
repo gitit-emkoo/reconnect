@@ -215,6 +215,7 @@ const ChallengePage: React.FC = () => {
   const [historyTab, setHistoryTab] = React.useState<'success' | 'fail'>('success');
   const [challengeHistory, setChallengeHistory] = React.useState<{ completed: Challenge[]; failed: Challenge[] }>({ completed: [], failed: [] });
   const [showPartnerRequiredModal, setShowPartnerRequiredModal] = React.useState(false);
+  const [showWeeklyCompletionModal, setShowWeeklyCompletionModal] = React.useState(false);
 
   // 파트너 연결 상태 확인
   React.useEffect(() => {
@@ -258,11 +259,23 @@ const ChallengePage: React.FC = () => {
     }
   };
 
-  const handleCategoryClick = (category: Challenge['category']) => {
+  const handleCategoryClick = async (category: Challenge['category']) => {
     if (!hasPartner) {
       setShowPartnerRequiredModal(true);
       return;
     }
+
+    try {
+      // 이번 주 챌린지 달성 여부 확인
+      const isCompleted = await challengeApi.checkWeeklyCompletion();
+      if (isCompleted) {
+        setShowWeeklyCompletionModal(true);
+        return;
+      }
+    } catch (error) {
+      console.error('주간 달성 여부 확인 중 오류 발생:', error);
+    }
+
     setSelectedCategory(category);
     setIsModalOpen(true);
   };
@@ -419,6 +432,64 @@ const ChallengePage: React.FC = () => {
         open={showPartnerRequiredModal}
         onClose={() => setShowPartnerRequiredModal(false)}
       />
+      
+      {/* 주간 달성 모달 */}
+      {showWeeklyCompletionModal && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          background: 'rgba(0, 0, 0, 0.5)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 1000
+        }} onClick={() => setShowWeeklyCompletionModal(false)}>
+          <div style={{
+            background: 'white',
+            borderRadius: '12px',
+            padding: '24px',
+            maxWidth: '320px',
+            textAlign: 'center',
+            boxShadow: '0 4px 20px rgba(0, 0, 0, 0.15)'
+          }} onClick={e => e.stopPropagation()}>
+            <div style={{
+              fontSize: '48px',
+              marginBottom: '16px'
+            }}>🎉</div>
+            <h3 style={{
+              margin: '0 0 12px 0',
+              fontSize: '18px',
+              fontWeight: '600',
+              color: '#333'
+            }}>이번주는 이미 챌린지 달성되었습니다!</h3>
+            <p style={{
+              margin: '0 0 20px 0',
+              fontSize: '14px',
+              color: '#666',
+              lineHeight: '1.5'
+            }}>다음주에 새로운 챌린지에 도전하세요.</p>
+            <button
+              onClick={() => setShowWeeklyCompletionModal(false)}
+              style={{
+                background: '#E64A8D',
+                color: 'white',
+                border: 'none',
+                borderRadius: '8px',
+                padding: '12px 24px',
+                fontSize: '14px',
+                fontWeight: '600',
+                cursor: 'pointer',
+                width: '100%'
+              }}
+            >
+              확인
+            </button>
+          </div>
+        </div>
+      )}
     </PageContainer>
   );
 };
