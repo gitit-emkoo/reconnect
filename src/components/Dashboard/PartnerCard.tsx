@@ -2,12 +2,13 @@ import React from 'react';
 import styled from 'styled-components';
 
 const Card = styled.div`
-  background: #fff;
+  background: linear-gradient(135deg,rgb(255, 255, 255) 0%,rgb(217, 171, 250) 100%);
   border-radius: 1.2rem;
+  border: 1px solid rgb(217, 171, 250);
   padding: 2rem 1.5rem;
   text-align: center;
   margin-top: 1.5rem;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+  // box-shadow: 0 2px 8px rgba(0,0,0,0.04);
 `;
 
 interface PartnerCardProps {

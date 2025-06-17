@@ -55,7 +55,7 @@ const NewBadge = styled.span`
   display: inline-block;
   background: #ef4444;
   color: #fff;
-  font-size: 0.7rem;
+  font-size: 0.6rem;
   font-weight: 700;
   border-radius: 8px;
   padding: 2px 7px;
@@ -391,7 +391,11 @@ const EmotionCard: React.FC = () => {
   const [isSuggesting, setIsSuggesting] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showPartnerRequiredModal, setShowPartnerRequiredModal] = useState(false);
-  const [showPopup, setShowPopup] = useState(true);
+  const todayKey = 'emotioncard_popup';
+  const today = new Date();
+  const ymd = today.toISOString().slice(0, 10).replace(/-/g, '');
+  const hideToday = typeof window !== 'undefined' && localStorage.getItem(`${todayKey}_${ymd}`) === 'true';
+  const [showPopup, setShowPopup] = useState(!hideToday);
   const [selectedMonth, setSelectedMonth] = useState<string>(new Date().toISOString().slice(0, 7));
   const [sortOrder, setSortOrder] = useState<'newest' | 'oldest'>('newest');
   const [tab, setTab] = useState<'sent' | 'received'>('sent');
@@ -633,11 +637,19 @@ const EmotionCard: React.FC = () => {
 
   return (
     <>
-    <Popup isOpen={showPopup} onClose={() => setShowPopup(false)}>
-      <div style={{ whiteSpace: 'pre-line', fontSize: '1rem', fontWeight: 400 }}>
-        {`76%가 \n'관계가 이전보다 회복되었다'고 응답했어요`}
-      </div>
-    </Popup>
+    <Popup
+      isOpen={showPopup}
+      onClose={() => setShowPopup(false)}
+      title="감정카드, 진짜 효과가 있을까요?"
+      emoji="💌"
+      description={<>
+        76%의 커플이 <b>관계가 이전보다 회복되었다</b>고 응답했어요.<br />
+        오늘, 당신의 감정을 카드로 전해보세요!
+      </>}
+      buttonText="감정카드 작성 시작하기"
+      onButtonClick={() => setShowPopup(false)}
+      todayKey="emotioncard_popup"
+    />
       <PageContainer>
         <PageHeaderContainer>
           <StyledBackButton /> {/* 스타일링된 BackButton 사용 */}
@@ -721,7 +733,7 @@ const EmotionCard: React.FC = () => {
           <TabButton active={tab === 'sent'} onClick={() => setTab('sent')}>보낸 카드</TabButton>
           <TabButton active={tab === 'received'} onClick={() => setTab('received')}>
             받은 카드
-            {tab !== 'received' && Array.isArray(receivedMessages) && receivedMessages.some((msg: SentMessage) => msg.isRead === false) && <NewBadge>NEW</NewBadge>}
+            {tab !== 'received' && Array.isArray(receivedMessages) && receivedMessages.some((msg: SentMessage) => msg.isRead === false) && <NewBadge>TODAY</NewBadge>}
           </TabButton>
         </TabsContainer>
 
@@ -819,7 +831,7 @@ const EmotionCard: React.FC = () => {
                       style={{ zIndex: arr.length - idx }}
                       onClick={() => openModal(msg)}
                     >
-                      {isTodayKST(msg.createdAt) && <NewBadge>NEW</NewBadge>}
+                      {isTodayKST(msg.createdAt) && <NewBadge>TODAY</NewBadge>}
                       <CardEmoji>{msg.emoji || "❤️"}</CardEmoji>
                       <CardDate>{formatDateToKST(msg.createdAt)}</CardDate>
                     </OverlapCard>

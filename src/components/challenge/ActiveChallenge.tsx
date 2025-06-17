@@ -2,6 +2,7 @@ import React from 'react';
 import styled from 'styled-components';
 import { Challenge } from '../../api/challenge';
 import challengeApi from '../../api/challenge';
+import { useNotificationStore } from '../../store/notificationsStore';
 
 const Container = styled.div`
   background: #fff;
@@ -93,6 +94,7 @@ interface Props {
 const ActiveChallenge: React.FC<Props> = ({ challenge, onComplete, isCurrentUserCompleted }) => {
   const [isLoading, setIsLoading] = React.useState(false);
   const [remainingDays, setRemainingDays] = React.useState(0);
+  const addNotification = useNotificationStore(state => state.addNotification);
 
   // 남은 일수 계산
   React.useEffect(() => {
@@ -117,6 +119,8 @@ const ActiveChallenge: React.FC<Props> = ({ challenge, onComplete, isCurrentUser
     try {
       setIsLoading(true);
       await challengeApi.completeChallenge(challenge.id);
+      // 알림 추가
+      addNotification('챌린지가 완료되었습니다!', '/challenge');
       onComplete();
     } catch (error) {
       console.error('챌린지 완료 처리 중 오류 발생:', error);

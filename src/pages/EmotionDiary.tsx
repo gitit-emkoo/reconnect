@@ -337,7 +337,11 @@ const EmotionDiary: React.FC = () => {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [showModal, setShowModal] = useState(false);
-  const [showPopup, setShowPopup] = useState(true);
+  const todayKey = 'emotiondiary_popup';
+  const today = getToday();
+  const ymd = today.replace(/-/g, '');
+  const hideToday = typeof window !== 'undefined' && localStorage.getItem(`${todayKey}_${ymd}`) === 'true';
+  const [showPopup, setShowPopup] = useState(!hideToday);
   const [selectedEmotion, setSelectedEmotion] = useState<Emotion | null>(null);
   const [selectedTriggers, setSelectedTriggers] = useState<Trigger[]>([]);
   const [comment, setComment] = useState('');
@@ -351,7 +355,6 @@ const EmotionDiary: React.FC = () => {
   });
 
   // 오늘 날짜의 다이어리 조회
-  const today = getToday();
   const { data: selectedDiary } = useQuery({
     queryKey: ['diary', today],
     queryFn: () => fetchDiaryByDate(today),
@@ -469,15 +472,20 @@ const EmotionDiary: React.FC = () => {
   return (
     <>
     <MobileOnlyBanner />
-    <Popup isOpen={showPopup} onClose={() => setShowPopup(false)}>
-      <div style={{ whiteSpace: 'pre-line', fontSize: '1rem', fontWeight: 500 }}>
-      {`매일매일 작성하는 1분 감정다이어리는`}
-    <br />
-    {`감정 기록과 전문가에 보다 더 정확한`}
-    <br />
-    {`솔루션을 받을 수 있어요`}
-      </div>
-    </Popup>
+    <Popup
+      isOpen={showPopup}
+      onClose={() => setShowPopup(false)}
+      title="1분 감정다이어리 안내"
+      emoji="📔"
+      description={<>
+        매일매일 작성하는 <b>1분 감정다이어리</b>는<br />
+        감정 기록과 전문가에게<br />
+        보다 더 정확한 솔루션을 받을 수 있어요.
+      </>}
+      buttonText="작성 시작하기"
+      onButtonClick={() => setShowPopup(false)}
+      todayKey="emotiondiary_popup"
+    />
       <Container>
         <PageHeaderContainer>
           <StyledBackButton onClick={handleBack} />

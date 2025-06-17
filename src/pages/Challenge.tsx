@@ -2,6 +2,7 @@ import React from "react";
 import styled from "styled-components";
 import NavigationBar from "../components/NavigationBar";
 import MobileOnlyBanner from '../components/common/MobileOnlyBanner';
+import Popup from '../components/common/Popup';
 
 const Container = styled.div`
   background: #f9fafb;
@@ -102,9 +103,27 @@ const challengeList = [
 ];
 
 const Challenge: React.FC = () => {
+  const todayKey = 'challenge_popup';
+  const today = new Date();
+  const ymd = today.toISOString().slice(0, 10).replace(/-/g, '');
+  const hideToday = typeof window !== 'undefined' && localStorage.getItem(`${todayKey}_${ymd}`) === 'true';
+  const [showPopup, setShowPopup] = React.useState(!hideToday);
   return (
     <>
       <MobileOnlyBanner />
+      <Popup
+        isOpen={showPopup}
+        onClose={() => setShowPopup(false)}
+        title="챌린지 안내"
+        emoji="🏆"
+        description={<>
+          커플 챌린지에 참여하고<br />
+          서로의 마음을 더 가까이 느껴보세요!<br />
+        </>}
+        buttonText="챌린지 시작하기"
+        onButtonClick={() => setShowPopup(false)}
+        todayKey="challenge_popup"
+      />
       <Container>
         <GuideText>주제별 챌린지에 참여하고 감정 온도를 높여보세요.</GuideText>
         <ChallengeGrid>
