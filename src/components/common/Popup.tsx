@@ -50,7 +50,7 @@ const CloseBtn = styled.button`
 
 const Title = styled.div`
   font-weight: 700;
-  font-size: 1.35rem;
+  font-size: 1.2rem;
   color: #7a295a;
   margin-bottom: 0.7rem;
 `;

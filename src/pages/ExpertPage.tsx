@@ -6,7 +6,6 @@ import Header from '../components/common/Header';
 import ImgCounseling from '../assets/Img_counseling.jpg';
 import ImgBeads from '../assets/Img_Beads.jpg';
 import ImgLaw from '../assets/Img_Law.jpg';
-import { useNavigate } from 'react-router-dom';
 
 const Container = styled.div`
   display: flex;
@@ -66,24 +65,7 @@ const CardDesc = styled.div`
   margin-top: 0.2rem;
 `;
 
-const CTAButton = styled.button`
-  background: linear-gradient(to right, #FF69B4, #4169E1);
-  color: white;
-  padding: 1rem 2rem;
-  font-size: 1.2rem;
-  font-weight: 600;
-  border: none;
-  border-radius: 0.75rem;
-  cursor: pointer;
-  transition: 0.2s;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-  &:hover {
-    opacity: 0.9;
-  }
-`;
-
 const ExpertPage: React.FC = () => {
-  const navigate = useNavigate();
   return (
     <>
       <Header title="전문가" />
@@ -111,7 +93,6 @@ const ExpertPage: React.FC = () => {
             </CardText>
           </Card>
         </CardList>
-        <CTAButton style={{ marginTop: '2.5rem' }} onClick={() => navigate('/')}>홈으로 돌아가기</CTAButton>
       </Container>
       <NavigationBar />
     </>
