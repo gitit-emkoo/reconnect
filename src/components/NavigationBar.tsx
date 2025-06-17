@@ -8,7 +8,6 @@ import { ReactComponent as ContentsIcon } from '../assets/Icon_ContentsCenter.sv
 import { ReactComponent as CommunityIcon } from '../assets/Icon_Community.svg';
 import { ReactComponent as MyIcon } from '../assets/Icon_My.svg';
 
-
 const NavContainer = styled.nav`
   position: fixed;
   bottom: 0;

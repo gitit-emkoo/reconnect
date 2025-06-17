@@ -52,6 +52,12 @@ const challengeApi = {
     const response = await axiosInstance.get<ChallengeHistory>('/challenges/history');
     return response.data;
   },
+
+  // 이번 주 챌린지 달성 여부 확인
+  checkWeeklyCompletion: async () => {
+    const response = await axiosInstance.get<boolean>('/challenges/weekly-completion');
+    return response.data;
+  },
 };
 
 export default challengeApi; 

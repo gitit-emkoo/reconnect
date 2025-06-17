@@ -28,6 +28,7 @@ import { fetchDiaries } from '../api/diary';
 import { fetchSentMessages, fetchReceivedMessages } from './EmotionCard';
 import { useEmotionCardNotifications } from '../hooks/useEmotionCardNotifications';
 import challengeApi, { Challenge } from '../api/challenge';
+import { scheduleApi, Schedule } from '../api/schedule';
 
 const Container = styled.div`
   padding: 1.5rem;
@@ -331,45 +332,211 @@ const Dashboard: React.FC = () => {
 
   const todayStatus = getDiaryStatus(todayString);
 
-  // Dashboard 컴포넌트 내부에 일정 상태 추가
-  const [schedules, setSchedules] = useState<{ date: string, text: string }[]>([]);
-  const [isScheduleModalOpen, setIsScheduleModalOpen] = useState(false);
+  // 일정 관련 상태
+  const [scheduleMap, setScheduleMap] = useState<Record<string, string[]>>({});
   const [scheduleInput, setScheduleInput] = useState('');
   const [scheduleDate, setScheduleDate] = useState(todayString);
+  const [isScheduleModalOpen, setIsScheduleModalOpen] = useState(false);
 
-  // 오늘 일정 찾기
-  const todaySchedule = schedules.find(s => s.date === todayString);
+  // 스케줄 데이터 로드
+  useEffect(() => {
+    const loadSchedules = async () => {
+      try {
+        const schedules = await scheduleApi.findAll();
+        const scheduleMapData: Record<string, string[]> = {};
+        
+        schedules.forEach((schedule: Schedule) => {
+          if (!scheduleMapData[schedule.date]) {
+            scheduleMapData[schedule.date] = [];
+          }
+          scheduleMapData[schedule.date].push(schedule.content);
+        });
+        
+        setScheduleMap(scheduleMapData);
+      } catch (error) {
+        console.error('스케줄 로드 실패:', error);
+      }
+    };
 
-  // 일정 저장 함수
-  const handleSaveSchedule = () => {
+    loadSchedules();
+  }, []);
+
+  // 일정 추가
+  const handleAddSchedule = async () => {
     if (!scheduleInput.trim()) return;
-    setSchedules(prev => [
-      ...prev.filter(s => s.date !== scheduleDate),
-      { date: scheduleDate, text: scheduleInput }
-    ]);
-    setIsScheduleModalOpen(false);
-    setScheduleInput('');
+    
+    try {
+      await scheduleApi.create({
+        date: scheduleDate,
+        content: scheduleInput.trim()
+      });
+      
+      setScheduleMap(prev => {
+        const prevArr = prev[scheduleDate] || [];
+        return { ...prev, [scheduleDate]: [...prevArr, scheduleInput.trim()] };
+      });
+      setScheduleInput('');
+    } catch (error) {
+      console.error('일정 추가 실패:', error);
+    }
   };
 
-  const prevReceivedIds = useRef<string[] | null>(null);
-  useEffect(() => {
-    if (receivedMessages && receivedMessages.length > 0) {
-      if (prevReceivedIds.current === null) {
-        // 최초 마운트: 알림 추가하지 않고 id만 저장
-        prevReceivedIds.current = receivedMessages.map((msg: any) => msg.id);
-        return;
+  // 일정 삭제
+  const handleDeleteSchedule = async (date: string, idx: number) => {
+    try {
+      const schedules = await scheduleApi.findByDate(date);
+      if (schedules[idx]) {
+        await scheduleApi.remove(schedules[idx].id);
       }
-      const newCards = receivedMessages.filter((msg: any) => {
-        const isNew = !prevReceivedIds.current!.includes(msg.id);
-        // 이미 읽은 카드는 알림을 보내지 않음
-        return isNew && !msg.isRead;
+      
+      setScheduleMap(prev => {
+        const arr = prev[date] ? [...prev[date]] : [];
+        arr.splice(idx, 1);
+        return { ...prev, [date]: arr };
       });
-      newCards.forEach(() => {
-        useNotificationStore.getState().addNotification('새 감정카드가 도착했어요!', '/emotion-card?tab=received');
-      });
-      prevReceivedIds.current = receivedMessages.map((msg: any) => msg.id);
+    } catch (error) {
+      console.error('일정 삭제 실패:', error);
     }
-  }, [receivedMessages]);
+  };
+
+  // 오늘 일정
+  const todaySchedules = scheduleMap[todayString] || [];
+
+  // 일정 등록 모달
+  const renderScheduleModal = () => {
+    // 현재 선택된 날짜를 년/월/일로 분리
+    const [selectedYear, selectedMonth, selectedDay] = scheduleDate.split('-').map(Number);
+    
+    // 년도 옵션 (현재 년도 기준 전후 5년)
+    const currentYear = new Date().getFullYear();
+    const yearOptions = Array.from({ length: 11 }, (_, i) => currentYear - 5 + i);
+    
+    // 월 옵션
+    const monthOptions = Array.from({ length: 12 }, (_, i) => i + 1);
+    
+    // 일 옵션 (선택된 년/월에 따른 일수)
+    const getDaysInMonth = (year: number, month: number) => {
+      return new Date(year, month, 0).getDate();
+    };
+    const dayOptions = Array.from({ length: getDaysInMonth(selectedYear, selectedMonth) }, (_, i) => i + 1);
+
+    // 날짜 변경 핸들러
+    const handleDateChange = (type: 'year' | 'month' | 'day', value: number) => {
+      let newYear = selectedYear;
+      let newMonth = selectedMonth;
+      let newDay = selectedDay;
+
+      if (type === 'year') {
+        newYear = value;
+        // 년도가 바뀌면 일수를 다시 계산
+        const maxDays = getDaysInMonth(newYear, newMonth);
+        if (newDay > maxDays) {
+          newDay = maxDays;
+        }
+      } else if (type === 'month') {
+        newMonth = value;
+        // 월이 바뀌면 일수를 다시 계산
+        const maxDays = getDaysInMonth(newYear, newMonth);
+        if (newDay > maxDays) {
+          newDay = maxDays;
+        }
+      } else if (type === 'day') {
+        newDay = value;
+      }
+
+      const newDate = `${newYear}-${String(newMonth).padStart(2, '0')}-${String(newDay).padStart(2, '0')}`;
+      setScheduleDate(newDate);
+    };
+
+    return (
+      isScheduleModalOpen && (
+        <div style={{ position: 'fixed', left: 0, top: 0, width: '100vw', height: '100vh', background: 'rgba(0,0,0,0.3)', zIndex: 10000, display: 'flex', alignItems: 'center', justifyContent: 'center' }} onClick={() => setIsScheduleModalOpen(false)}>
+          <div style={{ background: '#fff', borderRadius: 12, padding: 24, minWidth: 280, maxWidth: 340, boxShadow: '0 4px 16px #0001' }} onClick={e => e.stopPropagation()}>
+            <h3 style={{ margin: 0, marginBottom: 16, fontSize: 18, color: '#E64A8D' }}>일정 등록</h3>
+            
+            <div style={{ marginBottom: 12 }}>
+              <label style={{ fontSize: 14, color: '#555', display: 'block', marginBottom: 4 }}>날짜</label>
+              <div style={{ display: 'flex', gap: 8 }}>
+                <select 
+                  value={selectedYear} 
+                  onChange={(e) => handleDateChange('year', Number(e.target.value))}
+                  style={{ 
+                    flex: 1, 
+                    padding: 8, 
+                    borderRadius: 6, 
+                    border: '1px solid #eee', 
+                    fontSize: 14,
+                    backgroundColor: '#fff'
+                  }}
+                >
+                  {yearOptions.map(year => (
+                    <option key={year} value={year}>{year}년</option>
+                  ))}
+                </select>
+                <select 
+                  value={selectedMonth} 
+                  onChange={(e) => handleDateChange('month', Number(e.target.value))}
+                  style={{ 
+                    flex: 1, 
+                    padding: 8, 
+                    borderRadius: 6, 
+                    border: '1px solid #eee', 
+                    fontSize: 14,
+                    backgroundColor: '#fff'
+                  }}
+                >
+                  {monthOptions.map(month => (
+                    <option key={month} value={month}>{month}월</option>
+                  ))}
+                </select>
+                <select 
+                  value={selectedDay} 
+                  onChange={(e) => handleDateChange('day', Number(e.target.value))}
+                  style={{ 
+                    flex: 1, 
+                    padding: 8, 
+                    borderRadius: 6, 
+                    border: '1px solid #eee', 
+                    fontSize: 14,
+                    backgroundColor: '#fff'
+                  }}
+                >
+                  {dayOptions.map(day => (
+                    <option key={day} value={day}>{day}일</option>
+                  ))}
+                </select>
+              </div>
+            </div>
+            
+            <div style={{ marginBottom: 16 }}>
+              <label style={{ fontSize: 14, color: '#555' }}>일정 내용</label>
+              <input type="text" value={scheduleInput} onChange={e => setScheduleInput(e.target.value)} placeholder="예: 결혼기념일" style={{ width: '100%', padding: 8, borderRadius: 6, border: '1px solid #eee', marginTop: 4 }} />
+            </div>
+            <button onClick={handleAddSchedule} style={{ background: '#E64A8D', color: '#fff', border: 'none', borderRadius: 6, padding: '8px 16px', cursor: 'pointer', width: '100%', fontWeight: 600, fontSize: 16 }}>추가</button>
+            {/* 일정 리스트 */}
+            {(scheduleMap[scheduleDate] && scheduleMap[scheduleDate].length > 0) && (
+              <div style={{ marginTop: 18 }}>
+                <div style={{ fontWeight: 600, marginBottom: 6, color: '#E64A8D' }}>등록된 일정</div>
+                {scheduleMap[scheduleDate].map((item, idx) => (
+                  <div key={idx} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: '#f9fafb', borderRadius: 6, padding: '6px 10px', marginBottom: 6 }}>
+                    <span style={{ fontSize: 15 }}>{item}</span>
+                    <span style={{ cursor: 'pointer', marginLeft: 8 }} onClick={() => handleDeleteSchedule(scheduleDate, idx)}>🗑️</span>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+      )
+    );
+  };
+
+  // 상태바 일정 표시
+  const todayScheduleText = todaySchedules.length === 0
+    ? '일정이 없습니다'
+    : todaySchedules.length === 1
+      ? todaySchedules[0]
+      : `${todaySchedules[0]} 외 ${todaySchedules.length - 1}개 일정`;
 
   const [activeChallenge, setActiveChallenge] = useState<Challenge | null>(null);
 
@@ -439,13 +606,13 @@ const Dashboard: React.FC = () => {
 
         <MenuCardsColumn>
           <MenuCard as="div" style={{ padding: 0, background: 'none', boxShadow: 'none', position: 'relative' }}>
-            <CalendarToggleButton disabled style={{ pointerEvents: 'none', position: 'relative' }}>
+            <CalendarToggleButton onClick={() => { setScheduleDate(todayString); setIsScheduleModalOpen(true); }}>
               <DateInfo>
                 <DateText>
                   {today.getFullYear()}-{String(today.getMonth() + 1).padStart(2, '0')}-{String(today.getDate()).padStart(2, '0')}
                 </DateText>
                 <ScheduleText>
-                  {todaySchedule ? todaySchedule.text : '등록된 일정이 없습니다'}
+                  {todayScheduleText}
                 </ScheduleText>
               </DateInfo>
               <StatusIcons {...todayStatus} />
@@ -478,12 +645,15 @@ const Dashboard: React.FC = () => {
             </CalendarToggleButton>
           </MenuCard>
           <PartnerSection>
-            <DashboardCalendar 
-              diaryList={diaryList} 
+            <DashboardCalendar
+              diaryList={diaryList}
               StatusIcons={StatusIcons}
               sentMessages={sentMessages}
               receivedMessages={receivedMessages}
               userId={user.id ?? ''}
+              scheduleMap={scheduleMap}
+              onDeleteSchedule={handleDeleteSchedule}
+              onDateClick={() => { /* 아무 동작도 하지 않음, 일정 등록 모달 열지 않음 */ }}
             />
           </PartnerSection>
           <MenuCard onClick={() => handleFeatureClick("/onboarding")} disabled>
@@ -513,27 +683,7 @@ const Dashboard: React.FC = () => {
         </div>
       </Popup>
       {/* 일정 등록 모달 */}
-      {isScheduleModalOpen && (
-        <div style={{
-          position: 'fixed', left: 0, top: 0, width: '100vw', height: '100vh', background: 'rgba(0,0,0,0.3)', zIndex: 10000, display: 'flex', alignItems: 'center', justifyContent: 'center'
-        }} onClick={() => setIsScheduleModalOpen(false)}>
-          <div style={{ background: '#fff', borderRadius: 12, padding: 24, minWidth: 280, maxWidth: 340, boxShadow: '0 4px 16px #0001' }} onClick={e => e.stopPropagation()}>
-            <h3 style={{ margin: 0, marginBottom: 16, fontSize: 18, color: '#E64A8D' }}>일정 등록</h3>
-            <div style={{ marginBottom: 12 }}>
-              <label style={{ fontSize: 14, color: '#555' }}>날짜</label>
-              <input type="date" value={scheduleDate} onChange={e => setScheduleDate(e.target.value)} style={{ width: '100%', padding: 8, borderRadius: 6, border: '1px solid #eee', marginTop: 4 }} />
-            </div>
-            <div style={{ marginBottom: 16 }}>
-              <label style={{ fontSize: 14, color: '#555' }}>일정 내용</label>
-              <input type="text" value={scheduleInput} onChange={e => setScheduleInput(e.target.value)} placeholder="예: 결혼기념일" style={{ width: '100%', padding: 8, borderRadius: 6, border: '1px solid #eee', marginTop: 4 }} />
-            </div>
-            <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
-              <button onClick={() => setIsScheduleModalOpen(false)} style={{ background: '#eee', color: '#555', border: 'none', borderRadius: 6, padding: '8px 16px', cursor: 'pointer' }}>취소</button>
-              <button onClick={handleSaveSchedule} style={{ background: '#E64A8D', color: '#fff', border: 'none', borderRadius: 6, padding: '8px 16px', cursor: 'pointer' }}>저장</button>
-            </div>
-          </div>
-        </div>
-      )}
+      {renderScheduleModal()}
     </>
   );
 };
