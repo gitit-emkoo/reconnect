@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
@@ -135,24 +135,19 @@ const ErrorMessage = styled.p`
 `;
 
 const resetPasswordSchema = z.object({
-  password: z.string()
-    .min(8, '비밀번호는 최소 8자 이상이어야 합니다')
-    .regex(/[0-9]/, '숫자를 포함해야 합니다')
-    .regex(/[a-z]/, '영문 소문자를 포함해야 합니다')
-    .regex(/[A-Z]/, '영문 대문자를 포함해야 합니다')
-    .regex(/[^A-Za-z0-9]/, '특수문자를 포함해야 합니다'),
+  newPassword: z.string().min(8, '비밀번호는 8자 이상이어야 합니다.'),
   confirmPassword: z.string(),
-}).refine((data) => data.password === data.confirmPassword, {
-  message: "비밀번호가 일치하지 않습니다",
-  path: ["confirmPassword"],
+}).refine(data => data.newPassword === data.confirmPassword, {
+  message: '비밀번호가 일치하지 않습니다.',
+  path: ['confirmPassword'],
 });
 
 type ResetPasswordFormData = z.infer<typeof resetPasswordSchema>;
 
-const ResetPassword: React.FC = () => {
+const ResetPasswordPage: React.FC = () => {
   const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
-  const token = searchParams.get('token');
+  const location = useLocation();
+  const [token, setToken] = useState<string | null>(null);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
@@ -160,23 +155,33 @@ const ResetPassword: React.FC = () => {
     resolver: zodResolver(resetPasswordSchema),
   });
 
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const tokenFromUrl = params.get('token');
+    if (tokenFromUrl) {
+      setToken(tokenFromUrl);
+    } else {
+      alert('유효하지 않은 접근입니다.');
+      navigate('/login');
+    }
+  }, [location, navigate]);
+
   const onSubmit = async (data: ResetPasswordFormData) => {
     if (!token) {
-      alert('유효하지 않은 접근입니다.');
-      navigate('/');
+      alert('토큰이 없습니다.');
       return;
     }
 
     try {
       const backendUrl = import.meta.env.VITE_APP_API_URL || 'http://localhost:3000';
-      const response = await fetch(`${backendUrl}/auth/reset-password`, {
+      const response = await fetch(`${backendUrl}/users/reset-password`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
           token,
-          password: data.password,
+          newPassword: data.newPassword,
         }),
       });
 
@@ -185,8 +190,8 @@ const ResetPassword: React.FC = () => {
         throw new Error(errorData.message || '비밀번호 재설정 실패');
       }
 
-      alert('비밀번호가 성공적으로 변경되었습니다.');
-      navigate('/');
+      alert('비밀번호가 성공적으로 변경되었습니다. 다시 로그인해주세요.');
+      navigate('/login');
     } catch (error: any) {
       console.error("비밀번호 재설정 에러:", error.message);
       alert(error.message || '알 수 없는 오류가 발생했습니다.');
@@ -196,7 +201,7 @@ const ResetPassword: React.FC = () => {
   return (
     <Container>
       <BackButton onClick={() => navigate(-1)}>←</BackButton>
-      <Title>새 비밀번호 설정</Title>
+      <Title>비밀번호 재설정</Title>
       <Description>
         새로운 비밀번호를 입력해주세요.
       </Description>
@@ -206,7 +211,7 @@ const ResetPassword: React.FC = () => {
           <Input
             type={showPassword ? "text" : "password"}
             placeholder="새 비밀번호"
-            {...register('password')}
+            {...register('newPassword')}
           />
           <PasswordToggle 
             type="button"
@@ -215,7 +220,7 @@ const ResetPassword: React.FC = () => {
             {showPassword ? <CloseEye /> : <OpenEye />}
           </PasswordToggle>
         </InputWrapper>
-        {errors.password && <ErrorMessage>{errors.password.message}</ErrorMessage>}
+        {errors.newPassword && <ErrorMessage>{errors.newPassword.message}</ErrorMessage>}
 
         <InputWrapper>
           <Input
@@ -233,11 +238,11 @@ const ResetPassword: React.FC = () => {
         {errors.confirmPassword && <ErrorMessage>{errors.confirmPassword.message}</ErrorMessage>}
 
         <SubmitButton type="submit" disabled={isSubmitting}>
-          {isSubmitting ? '처리 중...' : '비밀번호 변경하기'}
+          {isSubmitting ? '변경 중...' : '비밀번호 변경'}
         </SubmitButton>
       </Form>
     </Container>
   );
 };
 
-export default ResetPassword; 
+export default ResetPasswordPage; 

@@ -115,7 +115,7 @@ const ForgotPassword: React.FC = () => {
   const onSubmit = async (data: ForgotPasswordFormData) => {
     try {
       const backendUrl = import.meta.env.VITE_APP_API_URL || 'http://localhost:3000';
-      const response = await fetch(`${backendUrl}/auth/forgot-password`, {
+      const response = await fetch(`${backendUrl}/users/forgot-password`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

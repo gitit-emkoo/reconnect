@@ -8,7 +8,7 @@ export const userService = {
   updateProfile: async (nickname: string): Promise<ProfileUpdateResponse> => {
     try {
       const token = getAuthToken();
-      const response = await fetch(`${API_URL}/users/profile`, {
+      const response = await fetch(`${API_URL}api/users/profile`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
