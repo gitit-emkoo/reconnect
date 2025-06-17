@@ -45,6 +45,7 @@ import PostDetailPage from './pages/PostDetailPage';
 import PostEditPage from './pages/PostEditPage';
 import MarriageDiagnosis from './pages/MarriageDiagnosis';
 import MarriageDiagnosisResult from './pages/MarriageDiagnosisResult';
+import ContentAdmin from './pages/ContentAdmin';
 
 const queryClient = new QueryClient();
 
@@ -93,6 +94,7 @@ const App = () => {
             <Route path="/challenge" element={<ProtectedRoute><ChallengePage /></ProtectedRoute>} />
             <Route path="/report" element={<ProtectedRoute><Report /></ProtectedRoute>} />
             <Route path="/content-center" element={<ProtectedRoute><ContentCenter /></ProtectedRoute>} />
+            <Route path="/content-admin" element={<ProtectedRoute><ContentAdmin /></ProtectedRoute>} />
             <Route path="/invite" element={<ProtectedRoute><Invite /></ProtectedRoute>} />
             <Route path="/calendar" element={<ProtectedRoute><Calendar /></ProtectedRoute>} />
             <Route path="/community" element={<ProtectedRoute><Community /></ProtectedRoute>} />
