@@ -1,4 +1,3 @@
-
 import React from 'react';
 import styled from 'styled-components';
 
@@ -22,6 +21,7 @@ interface PartnerCardProps {
     nickname: string;
   };
   coupleCreatedAt?: string;
+  activeChallengeTitle?: string;
 }
 
 function formatDate(dateString?: string) {
@@ -30,7 +30,7 @@ function formatDate(dateString?: string) {
   return `${date.getFullYear()}.${String(date.getMonth() + 1).padStart(2, '0')}.${String(date.getDate()).padStart(2, '0')}`;
 }
 
-const PartnerCard: React.FC<PartnerCardProps> = ({ partner, user, coupleCreatedAt }) => (
+const PartnerCard: React.FC<PartnerCardProps> = ({ partner, user, coupleCreatedAt, activeChallengeTitle }) => (
   <Card>
     <div style={{ fontWeight: 700, fontSize: '1.1rem', marginBottom: '0.5rem' }}>
       {partner.nickname} ❤️ {user.nickname}
@@ -41,7 +41,13 @@ const PartnerCard: React.FC<PartnerCardProps> = ({ partner, user, coupleCreatedA
       </div>
     )}
     <div style={{ color: '#888' }}>
-      지금 우리가 좀 더 따뜻해 지는 중!
+      {activeChallengeTitle ? (
+        <>
+          <span style={{ color: '#8e44ad', fontWeight: 600 }}>{activeChallengeTitle}</span> 챌린지 진행중
+        </>
+      ) : (
+        '지금 우리가 좀 더 따뜻해 지는 중!'
+      )}
     </div>
   </Card>
 );

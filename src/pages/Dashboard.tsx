@@ -27,6 +27,7 @@ import { useQuery } from '@tanstack/react-query';
 import { fetchDiaries } from '../api/diary';
 import { fetchSentMessages, fetchReceivedMessages } from './EmotionCard';
 import { useEmotionCardNotifications } from '../hooks/useEmotionCardNotifications';
+import challengeApi, { Challenge } from '../api/challenge';
 
 const Container = styled.div`
   padding: 1.5rem;
@@ -370,6 +371,21 @@ const Dashboard: React.FC = () => {
     }
   }, [receivedMessages]);
 
+  const [activeChallenge, setActiveChallenge] = useState<Challenge | null>(null);
+
+  useEffect(() => {
+    // 진행중인 챌린지 정보 불러오기
+    const fetchActiveChallenge = async () => {
+      try {
+        const challenge = await challengeApi.getActiveChallenge();
+        setActiveChallenge(challenge);
+      } catch (e) {
+        setActiveChallenge(null);
+      }
+    };
+    fetchActiveChallenge();
+  }, []);
+
   return (
     <>
       <Container>
@@ -390,7 +406,9 @@ const Dashboard: React.FC = () => {
         {partner ? <PartnerCard 
         partner={partner} 
         user={{nickname: user.nickname??''}}
-        coupleCreatedAt={(user as User).couple?.createdAt} /> : <PartnerConnectCard onShareClick={() => setIsShareModalOpen(true)} onInputClick={() => setIsInputModalOpen(true)} />}
+        coupleCreatedAt={(user as User).couple?.createdAt}
+        activeChallengeTitle={activeChallenge?.title}
+        /> : <PartnerConnectCard onShareClick={() => setIsShareModalOpen(true)} onInputClick={() => setIsInputModalOpen(true)} />}
 
         <MainMenuRow style={{ margin: '2.5rem 0' }}>
           <MainMenuItem
