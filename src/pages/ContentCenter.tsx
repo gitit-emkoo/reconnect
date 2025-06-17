@@ -3,7 +3,6 @@ import { mockContents } from '../mocks/mockContents';
 import { ContentList } from '../components/contents/ContentList';
 import { ContentDetail } from '../components/contents/ContentDetail';
 import '../components/contents/ContentCard.css';
-import '../components/contents/ContentDetail.css';
 import NavigationBar from '../components/NavigationBar';
 import Header from '../components/common/Header';
 import MobileOnlyBanner from '../components/common/MobileOnlyBanner';
@@ -25,10 +24,7 @@ const ContentCenter: React.FC = () => {
         <ContentList onCardClick={setSelectedId} contents={mockContents} />
       ) : (
         <div>
-          <button style={{ margin: '24px 0 0 24px' }} onClick={() => setSelectedId(null)}>
-            ← 목록으로
-          </button>
-          <ContentDetail {...selected} />
+          <ContentDetail {...selected} onBack={() => setSelectedId(null)} />
         </div>
       )}
       <NavigationBar />
