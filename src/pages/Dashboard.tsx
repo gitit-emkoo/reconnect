@@ -232,11 +232,15 @@ const Dashboard: React.FC = () => {
   const { user, isLoggedIn, accessToken } = useAuthStore();
   const [isInviteModalOpen, setIsInviteModalOpen] = useState(false);
   const today = new Date();
+  const todayStr = today.toISOString().slice(0, 10).replace(/-/g, '');
+  const todayKey = 'main_dashboard_popup';
+  const hideToday = typeof window !== 'undefined' && localStorage.getItem(`${todayKey}_${todayStr}`) === 'true';
+  const [showPopup, setShowPopup] = useState(!hideToday);
   const { data: diaryList = [] } = useQuery({
     queryKey: ['diaries'],
     queryFn: fetchDiaries
   });
-  const todayString = new Date().toISOString().slice(0, 10);
+  const todayString = today.toISOString().slice(0, 10);
 
   // 로딩 상태를 isLoggedIn과 user 존재 여부로 판단
   const isLoading = !isLoggedIn && !user && !!accessToken;
@@ -284,7 +288,6 @@ const Dashboard: React.FC = () => {
 
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
   const [isInputModalOpen, setIsInputModalOpen] = useState(false);
-  const [showPopup, setShowPopup] = useState(true);
 
   // (선택) 최초 진입 시 한 번만 보여주고 싶으면 아래 주석 해제
   // useEffect(() => {
@@ -677,11 +680,19 @@ const Dashboard: React.FC = () => {
         onConfirm={() => setShowPartnerModal(false)}
         message="파트너 연결 후에 사용 가능합니다."
       />
-      <Popup isOpen={showPopup} onClose={() => setShowPopup(false)}>
-        <div style={{ whiteSpace: 'pre-line', fontSize: '1rem', fontWeight: 400 }}>
-          {`감정 표현만으로 관계가 달라질 수 있을까요?\n이미 12,000쌍의 부부가 리커넥트를 통해 그 답을 찾고있어요`}
-        </div>
-      </Popup>
+      <Popup
+        isOpen={showPopup}
+        onClose={() => setShowPopup(false)}
+        title="요즘 우리 사이, 예전 같지 않나요?"
+        emoji="🌡️"
+        description={<>
+          감정 하나로도 관계는 회복될 수 있어요.<br />
+          이미 12,000쌍의 부부가 ReConnect로 그 가능성을 확인했어요.
+        </>}
+        buttonText="💗 감정 온도 진단 시작하기"
+        onButtonClick={() => { setShowPopup(false); navigate('/marriage-diagnosis'); }}
+        todayKey={todayKey}
+      />
       {/* 일정 등록 모달 */}
       {renderScheduleModal()}
     </>

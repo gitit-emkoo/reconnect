@@ -68,7 +68,7 @@ const MarriageDiagnosisResult: React.FC = () => {
   }, [location]);
 
   const handleBack = () => {
-    navigate('/marriage-diagnosis');
+    navigate('/report');
   };
 
   if (!result) {
@@ -86,7 +86,7 @@ const MarriageDiagnosisResult: React.FC = () => {
         <ResultText> 총 점수: {diagnosis.score} </ResultText>
         <ResultText> (※ 진단 문항별 답변: {diagnosis.answers.join(', ')} ) </ResultText>
       </ResultContainer>
-      <Button onClick={handleBack}> 진단 페이지로 돌아가기 </Button>
+      <Button onClick={handleBack}> 리포트 페이지로 돌아가기 </Button>
     </Container>
   );
 };
