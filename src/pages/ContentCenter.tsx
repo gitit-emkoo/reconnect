@@ -49,9 +49,6 @@ const ContentCenter: React.FC = () => {
         <div>
           <ContentDetail
             id={selected.id}
-            title={selected.title}
-            body={selected.body}
-            createdAt={selected.createdAt}
             onBack={() => setSelectedId(null)}
           />
         </div>
