@@ -64,10 +64,10 @@ const NewBadge = styled.span`
 `;
 
 // SentMessage 타입 정의 (백엔드 응답 기준)
-interface SentMessage {
+export interface SentMessage {
   id: string; // 서버에서 생성된 ID (문자열로 가정)
   text: string;
-  createdAt: string; // 서버에서 내려오는 타임스탬프 (ISO 문자열로 가정)
+  createdAt: string | Date; // 서버에서 내려오는 타임스탬프 (ISO 문자열로 가정)
   emoji?: string; // 이모지(선택)
   isRead?: boolean; // 읽음 여부(선택)
   message?: string; // 백엔드 호환(선택)
@@ -320,12 +320,12 @@ const CloseButton = styled.button`
 const API_BASE_URL = "https://reconnect-backend.onrender.com/api";
 
 // (fetchSentMessages, fetchReceivedMessages 함수 수정)
-export async function fetchSentMessages() {
+export async function fetchSentMessages(): Promise<SentMessage[]> {
   const { data } = await axiosInstance.get("/emotion-cards");
   return data;
 }
 
-export async function fetchReceivedMessages() {
+export async function fetchReceivedMessages(): Promise<SentMessage[]> {
   const { data } = await axiosInstance.get("/emotion-cards/received");
   return data;
 }
@@ -386,7 +386,7 @@ const EmotionCard: React.FC = () => {
   const [showPartnerRequiredModal, setShowPartnerRequiredModal] = useState(false);
   const todayKey = 'emotioncard_popup';
   const today = new Date();
-  const ymd = today.toISOString().slice(0, 10).replace(/-/g, '');
+  const ymd = formatInKST(today, 'yyyyMMdd');
   const hideToday = typeof window !== 'undefined' && localStorage.getItem(`${todayKey}_${ymd}`) === 'true';
   const [showPopup, setShowPopup] = useState(!hideToday);
   const [selectedMonth, setSelectedMonth] = useState<string>(new Date().toISOString().slice(0, 7));
@@ -457,7 +457,7 @@ const EmotionCard: React.FC = () => {
   // 월별 필터링과 정렬을 위한 함수
   const getFilteredAndSortedMessages = (messages: SentMessage[]) => {
     return messages
-      .filter(msg => msg.createdAt.startsWith(selectedMonth))
+      .filter(msg => formatInKST(msg.createdAt, 'yyyy-MM') === selectedMonth)
       .sort((a, b) => {
         const dateA = new Date(a.createdAt).getTime();
         const dateB = new Date(b.createdAt).getTime();
@@ -467,7 +467,7 @@ const EmotionCard: React.FC = () => {
 
   // 사용 가능한 월 목록 생성 (최신순으로 정렬)
   const getAvailableMonths = (messages: SentMessage[]) => {
-    const months = new Set(messages.map(msg => msg.createdAt.slice(0, 7)));
+    const months = new Set(messages.map(msg => formatInKST(msg.createdAt, 'yyyy-MM')));
     return Array.from(months).sort().reverse();
   };
 

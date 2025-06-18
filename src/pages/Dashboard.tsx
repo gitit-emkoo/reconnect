@@ -25,10 +25,11 @@ import ConfirmationModal from '../components/common/ConfirmationModal';
 import Popup from '../components/common/Popup';
 import { useQuery } from '@tanstack/react-query';
 import { fetchDiaries } from '../api/diary';
-import { fetchSentMessages, fetchReceivedMessages } from './EmotionCard';
+import { fetchSentMessages, fetchReceivedMessages, SentMessage } from './EmotionCard';
 import { useEmotionCardNotifications } from '../hooks/useEmotionCardNotifications';
 import challengeApi, { Challenge } from '../api/challenge';
 import { scheduleApi, Schedule } from '../api/schedule';
+import { formatInKST } from '../utils/date';
 
 const Container = styled.div`
   padding: 1.5rem;
@@ -232,7 +233,7 @@ const Dashboard: React.FC = () => {
   const { user, isLoggedIn, accessToken } = useAuthStore();
   const [isInviteModalOpen, setIsInviteModalOpen] = useState(false);
   const today = new Date();
-  const todayStr = today.toISOString().slice(0, 10).replace(/-/g, '');
+  const todayStr = formatInKST(today, 'yyyyMMdd');
   const todayKey = 'main_dashboard_popup';
   const hideToday = typeof window !== 'undefined' && localStorage.getItem(`${todayKey}_${todayStr}`) === 'true';
   const [showPopup, setShowPopup] = useState(!hideToday);
@@ -240,7 +241,7 @@ const Dashboard: React.FC = () => {
     queryKey: ['diaries'],
     queryFn: fetchDiaries
   });
-  const todayString = today.toISOString().slice(0, 10);
+  const todayString = formatInKST(today, 'yyyy-MM-dd');
 
   // 로딩 상태를 isLoggedIn과 user 존재 여부로 판단
   const isLoading = !isLoggedIn && !user && !!accessToken;
@@ -305,7 +306,7 @@ const Dashboard: React.FC = () => {
   const partner = user.partner;
 
   // 감정카드 데이터 useQuery 추가 (EmotionCard.tsx 참고)
-  const { data: sentMessages = [] } = useQuery({
+  const { data: sentMessages = [] } = useQuery<SentMessage[]>({
     queryKey: ['sentMessages', user?.id, user?.partner?.id],
     queryFn: async () => {
       if (!user?.partner?.id) return [];
@@ -313,7 +314,7 @@ const Dashboard: React.FC = () => {
     },
     enabled: !!user?.partner?.id
   });
-  const { data: receivedMessages = [] } = useQuery({
+  const { data: receivedMessages = [] } = useQuery<SentMessage[]>({
     queryKey: ['receivedMessages', user?.id],
     queryFn: async () => {
       if (!user?.id) return [];
@@ -328,9 +329,9 @@ const Dashboard: React.FC = () => {
 
   // 오늘 날짜의 상태 계산
   const getDiaryStatus = (dateString: string): DiaryStatus => ({
-    hasEmotionDiary: diaryList.some(d => d.date === dateString),
-    hasSentEmotionCard: sentMessages.some((msg: any) => msg.senderId === user?.id && msg.createdAt.slice(0, 10) === dateString),
-    hasReceivedEmotionCard: receivedMessages.some((msg: any) => msg.receiverId === user?.id && msg.createdAt.slice(0, 10) === dateString),
+    hasEmotionDiary: diaryList.some(diary => formatInKST(diary.date, 'yyyy-MM-dd') === dateString),
+    hasSentEmotionCard: sentMessages.some(msg => formatInKST(msg.createdAt, 'yyyy-MM-dd') === dateString),
+    hasReceivedEmotionCard: receivedMessages.some(msg => formatInKST(msg.createdAt, 'yyyy-MM-dd') === dateString),
   });
 
   const todayStatus = getDiaryStatus(todayString);

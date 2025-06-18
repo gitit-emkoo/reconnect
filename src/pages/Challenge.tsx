@@ -3,6 +3,7 @@ import styled from "styled-components";
 import NavigationBar from "../components/NavigationBar";
 import MobileOnlyBanner from '../components/common/MobileOnlyBanner';
 import Popup from '../components/common/Popup';
+import { formatInKST } from '../utils/date';
 
 const Container = styled.div`
   background: #f9fafb;
@@ -105,7 +106,7 @@ const challengeList = [
 const Challenge: React.FC = () => {
   const todayKey = 'challenge_popup';
   const today = new Date();
-  const ymd = today.toISOString().slice(0, 10).replace(/-/g, '');
+  const ymd = formatInKST(today, 'yyyyMMdd');
   const hideToday = typeof window !== 'undefined' && localStorage.getItem(`${todayKey}_${ymd}`) === 'true';
   const [showPopup, setShowPopup] = React.useState(!hideToday);
   return (

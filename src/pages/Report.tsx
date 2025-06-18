@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { useEffect, useState } from 'react';
 import Popup from '../components/common/Popup';
 import NavigationBar from '../components/NavigationBar';
+import { formatInKST } from '../utils/date';
 
 const Container = styled.div`
   background-color: #f9fafb;
@@ -88,7 +89,7 @@ const Report: React.FC = () => {
   const [diagnosisList, setDiagnosisList] = useState<any[]>([]);
   const todayKey = 'report_popup';
   const today = new Date();
-  const ymd = today.toISOString().slice(0, 10).replace(/-/g, '');
+  const ymd = formatInKST(today, 'yyyyMMdd');
   const hideToday = typeof window !== 'undefined' && localStorage.getItem(`${todayKey}_${ymd}`) === 'true';
   const [showPopup, setShowPopup] = useState(!hideToday);
 

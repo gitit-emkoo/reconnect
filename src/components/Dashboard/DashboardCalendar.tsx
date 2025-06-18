@@ -3,6 +3,7 @@ import styled from "styled-components";
 import OriginalCalendar, { type CalendarProps } from 'react-calendar';
 import 'react-calendar/dist/Calendar.css';
 import { DiaryEntry } from '../../api/diary';
+import { formatInKST } from '../../utils/date';
 
 // 캘린더 컴포넌트를 styled-components로 래핑합니다.
 const StyledCalendar = styled(OriginalCalendar)`
@@ -181,8 +182,8 @@ const DashboardCalendar = ({
   // tileContent에서 날짜별 상태 계산
   const getDiaryStatus = (dateString: string): DiaryStatus => ({
     hasEmotionDiary: diaryList.some(d => d.date === dateString),
-    hasSentEmotionCard: sentMessages.some((msg: any) => msg.senderId === userId && msg.createdAt.slice(0, 10) === dateString),
-    hasReceivedEmotionCard: receivedMessages.some((msg: any) => msg.receiverId === userId && msg.createdAt.slice(0, 10) === dateString),
+    hasSentEmotionCard: sentMessages.some((msg: any) => msg.senderId === userId && formatInKST(msg.createdAt, 'yyyy-MM-dd') === dateString),
+    hasReceivedEmotionCard: receivedMessages.some((msg: any) => msg.receiverId === userId && formatInKST(msg.createdAt, 'yyyy-MM-dd') === dateString),
   });
 
   const tileContent: CalendarProps['tileContent'] = ({ date, view }) => {
@@ -229,7 +230,7 @@ const DashboardCalendar = ({
     }
     // 보낸 감정카드 확인
     const sentCard = sentMessages.find((msg: any) => 
-      msg.senderId === userId && msg.createdAt.slice(0, 10) === dateString
+      msg.senderId === userId && formatInKST(msg.createdAt, 'yyyy-MM-dd') === dateString
     );
     if (sentCard) {
       activities.push({ 
@@ -240,7 +241,7 @@ const DashboardCalendar = ({
     }
     // 받은 감정카드 확인
     const receivedCard = receivedMessages.find((msg: any) => 
-      msg.receiverId === userId && msg.createdAt.slice(0, 10) === dateString
+      msg.receiverId === userId && formatInKST(msg.createdAt, 'yyyy-MM-dd') === dateString
     );
     if (receivedCard) {
       activities.push({ 
