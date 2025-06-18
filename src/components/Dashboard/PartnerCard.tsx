@@ -2,12 +2,12 @@ import React from 'react';
 import styled from 'styled-components';
 
 const Card = styled.div`
-  border: 3px solid transparent;
-    border-radius: 1.2rem;
-    background-image: linear-gradient(#fff, #fff), 
-    linear-gradient(to right, rgb(253, 102, 203) 0%,rgb(138, 52, 251) 100%);
-    background-origin: border-box;
-    background-clip: content-box, border-box;
+  border: 2px solid transparent;
+  border-radius: 1.2rem;
+  background-image: linear-gradient(#fff, #fff), 
+    linear-gradient(to right, rgb(253, 102, 203) 0%, rgb(138, 52, 251) 100%);
+  background-origin: border-box;
+  background-clip: content-box, border-box;
   
   padding: 2rem 1.5rem;
   text-align: center;

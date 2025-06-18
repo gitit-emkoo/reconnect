@@ -1,16 +1,36 @@
-// KST(한국시간) 변환 함수
-export function toKST(date: Date | string) {
-  const d = new Date(date);
-  return new Date(d.getTime() + 9 * 60 * 60 * 1000);
+import { format } from 'date-fns';
+import { toZonedTime, formatInTimeZone } from 'date-fns-tz';
+
+const KOREA_TIME_ZONE = 'Asia/Seoul';
+
+/**
+ * UTC 또는 다른 시간대의 날짜를 한국 시간(KST)으로 변환합니다.
+ * 서버에서 받은 시간(주로 UTC)을 클라이언트에서 한국 시간으로 보여줄 때 사용합니다.
+ * @param date - Date 객체, 숫자(타임스탬프), 또는 날짜 형식의 문자열
+ * @returns 한국 시간대의 Date 객체
+ */
+export const toKST = (date: Date | string | number): Date => {
+  return toZonedTime(date, KOREA_TIME_ZONE);
+};
+
+/**
+ * 주어진 날짜가 한국 시간 기준으로 오늘인지 확인합니다.
+ * @param date - 확인할 날짜 (Date, 타임스탬프, 문자열)
+ * @returns 오늘이면 true, 아니면 false
+ */
+export function isTodayKST(date: Date | string | number): boolean {
+  const now = toKST(new Date()); // 현재 한국 시간
+  const targetDate = toKST(date); // 대상 날짜를 한국 시간으로
+  return format(now, 'yyyy-MM-dd') === format(targetDate, 'yyyy-MM-dd');
 }
 
-// KST 기준 오늘 날짜인지 판별
-export function isTodayKST(date: Date | string) {
-  const now = toKST(new Date());
-  const target = toKST(date);
-  return (
-    now.getFullYear() === target.getFullYear() &&
-    now.getMonth() === target.getMonth() &&
-    now.getDate() === target.getDate()
-  );
-} 
+/**
+ * 날짜를 원하는 형식의 문자열로 변환합니다. (KST 기준)
+ * 예: "yyyy-MM-dd", "yyyy년 M월 d일 a h:mm" 등
+ * @param date - 포맷할 날짜
+ * @param formatStr - 포맷 형식 문자열
+ * @returns 포맷된 날짜 문자열
+ */
+export const formatInKST = (date: Date | string | number, formatStr: string): string => {
+  return formatInTimeZone(date, KOREA_TIME_ZONE, formatStr);
+}; 

@@ -10,6 +10,7 @@ import 'react-toastify/dist/ReactToastify.css';
 import useAuthStore from './store/authStore';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import LoadingSpinner from './components/common/LoadingSpinner';
+import ScrollToTop from './components/common/ScrollToTop';
 
 // 페이지 컴포넌트 임포트
 import WelcomePage from "./pages/WelcomePage";
@@ -68,6 +69,7 @@ const App = () => {
     <QueryClientProvider client={queryClient}>
       <GoogleOAuthProvider clientId={clientId || ''}>
         <Router>
+          <ScrollToTop />
           <GlobalStyle />
           <Routes>
             {/* 루트 경로를 웰컴 페이지로 변경 */}
