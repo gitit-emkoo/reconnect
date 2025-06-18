@@ -19,7 +19,7 @@ ReConnect는 부부/연인 관계 개선을 위한 웹 애플리케이션입니�
 
 ## 시작하기
 
-### 설치
+### 1. 의존성 설치
 ```bash
 # 저장소 클론
 git clone https://github.com/gitit-emkoo/reconnect.git
@@ -31,7 +31,15 @@ cd reconnect
 npm install
 ```
 
-### 개발 서버 실행
+### 2. 환경 변수 설정
+로컬 개발 환경에서 백엔드 API와 통신하기 위해, 프로젝트 루트 디렉토리(`reconnect/`)에 `.env.local` 파일을 생성하고 아래와 같이 API 서버 주소를 설정해야 합니다.
+
+```env
+# 백엔드 개발 서버 주소
+VITE_API_URL=http://localhost:3000/api
+```
+
+### 3. 개발 서버 실행
 ```bash
 npm run dev
 ```
