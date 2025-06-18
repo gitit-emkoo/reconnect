@@ -4,6 +4,7 @@ import OriginalCalendar, { type CalendarProps } from 'react-calendar';
 import 'react-calendar/dist/Calendar.css';
 import { DiaryEntry } from '../../api/diary';
 import { formatInKST } from '../../utils/date';
+import { SentMessage } from "../../pages/EmotionCard";
 
 // 캘린더 컴포넌트를 styled-components로 래핑합니다.
 const StyledCalendar = styled(OriginalCalendar)`
@@ -149,8 +150,8 @@ interface DiaryStatus {
 interface DashboardCalendarProps {
   diaryList: DiaryEntry[];
   StatusIcons: React.FC<DiaryStatus>;
-  sentMessages: any[];
-  receivedMessages: any[];
+  sentMessages: SentMessage[];
+  receivedMessages: SentMessage[];
   userId: string;
   scheduleMap: { [date: string]: string[] };
   onDeleteSchedule: (date: string, idx: number) => void;
@@ -182,8 +183,8 @@ const DashboardCalendar = ({
   // tileContent에서 날짜별 상태 계산
   const getDiaryStatus = (dateString: string): DiaryStatus => ({
     hasEmotionDiary: diaryList.some(d => d.date === dateString),
-    hasSentEmotionCard: sentMessages.some((msg: any) => msg.senderId === userId && formatInKST(msg.createdAt, 'yyyy-MM-dd') === dateString),
-    hasReceivedEmotionCard: receivedMessages.some((msg: any) => msg.receiverId === userId && formatInKST(msg.createdAt, 'yyyy-MM-dd') === dateString),
+    hasSentEmotionCard: sentMessages.some((msg) => msg.senderId === userId && formatInKST(msg.createdAt, 'yyyy-MM-dd') === dateString),
+    hasReceivedEmotionCard: receivedMessages.some((msg) => msg.receiverId === userId && formatInKST(msg.createdAt, 'yyyy-MM-dd') === dateString),
   });
 
   const tileContent: CalendarProps['tileContent'] = ({ date, view }) => {
@@ -229,7 +230,7 @@ const DashboardCalendar = ({
       activities.push({ type: 'diary', icon: '📔', text: '감정일기를 작성했어요.' });
     }
     // 보낸 감정카드 확인
-    const sentCard = sentMessages.find((msg: any) => 
+    const sentCard = sentMessages.find((msg) => 
       msg.senderId === userId && formatInKST(msg.createdAt, 'yyyy-MM-dd') === dateString
     );
     if (sentCard) {
@@ -240,7 +241,7 @@ const DashboardCalendar = ({
       });
     }
     // 받은 감정카드 확인
-    const receivedCard = receivedMessages.find((msg: any) => 
+    const receivedCard = receivedMessages.find((msg) => 
       msg.receiverId === userId && formatInKST(msg.createdAt, 'yyyy-MM-dd') === dateString
     );
     if (receivedCard) {

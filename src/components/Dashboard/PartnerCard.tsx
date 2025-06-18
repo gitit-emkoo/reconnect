@@ -37,7 +37,7 @@ function formatDate(dateString?: string) {
 
 const PartnerCard: React.FC<PartnerCardProps> = ({ partner, user, coupleCreatedAt, activeChallengeTitle }) => (
   <Card>
-    <div style={{ fontWeight: 700, fontSize: '1.1rem', marginBottom: '0.5rem' }}>
+    <div style={{ fontWeight: 700, fontSize: '1.1rem', marginBottom: '0.5rem',marginTop: '1.4rem' }}>
       {partner.nickname} ❤️ {user.nickname}
     </div>
     {coupleCreatedAt && (
@@ -45,10 +45,10 @@ const PartnerCard: React.FC<PartnerCardProps> = ({ partner, user, coupleCreatedA
         파트너 연결일: {formatDate(coupleCreatedAt)}
       </div>
     )}
-    <div style={{ color: '#888' }}>
+    <div style={{ color: '#888', marginBottom: '1.2rem' }}>
       {activeChallengeTitle ? (
         <>
-          <span style={{ color: '#8e44ad', fontWeight: 600, paddingBottom: '2rem' }}>{activeChallengeTitle}</span> 챌린지 진행중
+          <span style={{ color: '#8e44ad', fontWeight: 600 }}>{activeChallengeTitle}</span> 챌린지 진행중
         </>
       ) : (
         '지금 우리가 좀 더 따뜻해 지는 중!'

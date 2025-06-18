@@ -6,13 +6,13 @@ interface WelcomeUserSectionProps {
   emotion: string;
 }
 
-const WelcomeUserSection: React.FC<WelcomeUserSectionProps> = ({ user, heartPercent, emotion }) => (
+const WelcomeUserSection: React.FC<WelcomeUserSectionProps> = ({ user, emotion }) => (
   <div>
-    <div style={{ fontWeight: 700, fontSize: '1.3rem', marginBottom: 8 }}>
-      {user.nickname}님, 감정을 챙깁니다다
+    <div style={{ fontWeight: 700, fontSize: '1.2rem', marginBottom: 8 }}>
+      {user.nickname}님<br/> 감정은 꼭 챙기세요
     </div>
-    <div style={{ color: '#888', fontSize: '1.1rem' }}>
-      오늘 우리의 온도: {emotion} {heartPercent}°C
+    <div style={{ color: '#888', fontSize: '1rem' }}>
+      우리의 온도 : {emotion} 
     </div>
   </div>
 );

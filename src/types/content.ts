@@ -1,10 +1,16 @@
+export enum ContentType {
+  ARTICLE = 'ARTICLE',
+  VIDEO = 'VIDEO',
+  AUDIO = 'AUDIO',
+  PREMIUM = 'PREMIUM',
+}
+
 export interface Content {
   id: string;
   title: string;
-  chip: string;
-  thumbnail: string;
-  content: string;
-  createdAt: string;
-  index?: number;
-  onClick?: () => void;
+  body: string;
+  type: ContentType;
+  isPremium: boolean;
+  createdAt: Date;
+  updatedAt: Date;
 } 

@@ -1,4 +1,4 @@
-import { format } from 'date-fns';
+import { format, isThisWeek } from 'date-fns';
 import { toZonedTime, formatInTimeZone } from 'date-fns-tz';
 
 const KOREA_TIME_ZONE = 'Asia/Seoul';
@@ -33,4 +33,15 @@ export function isTodayKST(date: Date | string | number): boolean {
  */
 export const formatInKST = (date: Date | string | number, formatStr: string): string => {
   return formatInTimeZone(date, KOREA_TIME_ZONE, formatStr);
-}; 
+};
+
+/**
+ * 주어진 날짜가 한국 시간 기준으로 이번 주에 속하는지 확인합니다. (주의 시작: 일요일)
+ * @param date - 확인할 날짜 (Date, 타임스탬프, 문자열)
+ * @returns 이번 주이면 true, 아니면 false
+ */
+export function isThisWeekKST(date: Date | string | number): boolean {
+  const kstDate = toKST(date);
+    // date-fns의 isThisWeek 함수를 사용하고, 주의 시작을 일요일(0)로 명시합니다.
+  return isThisWeek(kstDate, { weekStartsOn: 0 });
+} 

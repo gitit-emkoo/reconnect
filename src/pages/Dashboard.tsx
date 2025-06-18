@@ -570,7 +570,7 @@ const Dashboard: React.FC = () => {
             <HeartGauge percentage={76} size={120} />
           </Left>
           <Right>
-            <WelcomeUserSection user={user as User} heartPercent={76} emotion="따뜻함" />
+            <WelcomeUserSection user={user as User} heartPercent={76} emotion="포근한 햇살" />
           </Right>
         </TopSection>
 

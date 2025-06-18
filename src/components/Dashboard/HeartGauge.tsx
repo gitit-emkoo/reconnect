@@ -46,9 +46,9 @@ const HeartGauge: React.FC<HeartGaugeProps> = ({ percentage, size = 120 }) => {
     <svg width={size} height={size * 0.8} viewBox="0 0 140 100">
       <defs>
         <linearGradient id="gauge-gradient" x1="0%" y1="100%" x2="100%" y2="0%">
-          <stop offset="0%" stopColor="#ffe066" />
-          <stop offset="50%" stopColor="#ffa94d" />
-          <stop offset="100%" stopColor="#ff6b6b" />
+          <stop offset="0%" stopColor="rgb(254, 172, 239)" />
+          <stop offset="50%" stopColor="rgb(255, 90, 203)" />
+          <stop offset="100%" stopColor="rgb(255, 0, 140)" />
         </linearGradient>
       </defs>
       {/* 배경 아치 */}
