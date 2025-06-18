@@ -42,7 +42,6 @@ export const formatInKST = (date: Date | string | number, formatStr: string): st
  */
 export function isThisWeekKST(date: Date | string | number): boolean {
   const kstDate = toKST(date);
-  const now = new Date();
-  // date-fns의 isThisWeek 함수를 사용하고, 주의 시작을 일요일(0)로 명시합니다.
+    // date-fns의 isThisWeek 함수를 사용하고, 주의 시작을 일요일(0)로 명시합니다.
   return isThisWeek(kstDate, { weekStartsOn: 0 });
 } 

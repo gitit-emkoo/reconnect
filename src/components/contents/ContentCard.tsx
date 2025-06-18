@@ -1,8 +1,9 @@
 import React from 'react';
+import { ContentType } from '../../types/content';
 
 interface ContentCardProps {
   title: string;
-  chip: string;
+  type: ContentType;
   // thumbnail: string; // 이미지 대신 배경색 사용
   onClick?: () => void;
   index: number;
@@ -19,7 +20,7 @@ const CARD_COLORS = [
   '#E2C2B9', // 베이지
 ];
 
-export const ContentCard: React.FC<ContentCardProps> = ({ title, chip, onClick, index }) => (
+export const ContentCard: React.FC<ContentCardProps> = ({ title, type, onClick, index }) => (
   <div
     className="content-card"
     onClick={onClick}
@@ -37,7 +38,7 @@ export const ContentCard: React.FC<ContentCardProps> = ({ title, chip, onClick, 
     }}
   >
     {/* <img src={thumbnail} alt={title} className="thumbnail" /> */}
-    <div className="chip" style={{ marginBottom: 12, fontWeight: 600 }}>{chip}</div>
+    <div className="chip" style={{ marginBottom: 12, fontWeight: 600 }}>{type}</div>
     <div className="title" style={{ fontSize: 18, fontWeight: 700 }}>{title}</div>
   </div>
 );
