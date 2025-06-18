@@ -13,7 +13,7 @@ import axiosInstance from '../api/axios';
 import { User } from "../types/user";
 import PartnerRequiredModal from '../components/common/PartnerRequiredModal';
 import Popup from '../components/common/Popup';
-import { isTodayKST } from '../utils/date';
+import { isTodayKST, formatInKST } from '../utils/date';
 import { useNotificationStore } from '../store/notificationsStore';
 import { useEmotionCardNotifications } from '../hooks/useEmotionCardNotifications';
 
@@ -64,10 +64,10 @@ const NewBadge = styled.span`
 `;
 
 // SentMessage 타입 정의 (백엔드 응답 기준)
-interface SentMessage {
+export interface SentMessage {
   id: string; // 서버에서 생성된 ID (문자열로 가정)
   text: string;
-  createdAt: string; // 서버에서 내려오는 타임스탬프 (ISO 문자열로 가정)
+  createdAt: string | Date; // 서버에서 내려오는 타임스탬프 (ISO 문자열로 가정)
   emoji?: string; // 이모지(선택)
   isRead?: boolean; // 읽음 여부(선택)
   message?: string; // 백엔드 호환(선택)
@@ -320,12 +320,12 @@ const CloseButton = styled.button`
 const API_BASE_URL = "https://reconnect-backend.onrender.com/api";
 
 // (fetchSentMessages, fetchReceivedMessages 함수 수정)
-export async function fetchSentMessages() {
+export async function fetchSentMessages(): Promise<SentMessage[]> {
   const { data } = await axiosInstance.get("/emotion-cards");
   return data;
 }
 
-export async function fetchReceivedMessages() {
+export async function fetchReceivedMessages(): Promise<SentMessage[]> {
   const { data } = await axiosInstance.get("/emotion-cards/received");
   return data;
 }
@@ -372,13 +372,6 @@ const FilterGroup = styled.div`
   gap: 0.5rem;
 `;
 
-// 날짜 포맷팅 유틸리티 함수 추가
-const formatDateToKST = (dateString: string) => {
-  const date = new Date(dateString);
-  const kstDate = new Date(date.getTime() + 9 * 60 * 60 * 1000);
-  return kstDate.toISOString().slice(2, 10).replace(/-/g, ".");
-};
-
 const EmotionCard: React.FC = () => {
   const queryClient = useQueryClient();
   const user = useAuthStore((state) => state.user) as User;
@@ -393,7 +386,7 @@ const EmotionCard: React.FC = () => {
   const [showPartnerRequiredModal, setShowPartnerRequiredModal] = useState(false);
   const todayKey = 'emotioncard_popup';
   const today = new Date();
-  const ymd = today.toISOString().slice(0, 10).replace(/-/g, '');
+  const ymd = formatInKST(today, 'yyyyMMdd');
   const hideToday = typeof window !== 'undefined' && localStorage.getItem(`${todayKey}_${ymd}`) === 'true';
   const [showPopup, setShowPopup] = useState(!hideToday);
   const [selectedMonth, setSelectedMonth] = useState<string>(new Date().toISOString().slice(0, 7));
@@ -464,7 +457,7 @@ const EmotionCard: React.FC = () => {
   // 월별 필터링과 정렬을 위한 함수
   const getFilteredAndSortedMessages = (messages: SentMessage[]) => {
     return messages
-      .filter(msg => msg.createdAt.startsWith(selectedMonth))
+      .filter(msg => formatInKST(msg.createdAt, 'yyyy-MM') === selectedMonth)
       .sort((a, b) => {
         const dateA = new Date(a.createdAt).getTime();
         const dateB = new Date(b.createdAt).getTime();
@@ -474,7 +467,7 @@ const EmotionCard: React.FC = () => {
 
   // 사용 가능한 월 목록 생성 (최신순으로 정렬)
   const getAvailableMonths = (messages: SentMessage[]) => {
-    const months = new Set(messages.map(msg => msg.createdAt.slice(0, 7)));
+    const months = new Set(messages.map(msg => formatInKST(msg.createdAt, 'yyyy-MM')));
     return Array.from(months).sort().reverse();
   };
 
@@ -603,6 +596,11 @@ const EmotionCard: React.FC = () => {
       prevReceivedIds.current = receivedMessages.map((msg: any) => msg.id);
     }
   }, [receivedMessages]);
+
+  // 모달에 표시될 날짜 포맷팅
+  const formattedDate = selectedMessage 
+    ? formatInKST(selectedMessage.createdAt, 'yyyy년 M월 d일 a h:mm') 
+    : '';
 
   if (sentError || receivedError) {
     return (
@@ -775,7 +773,7 @@ const EmotionCard: React.FC = () => {
                       onClick={() => openModal(msg)}
                     >
                       <CardEmoji>{msg.emoji || "❤️"}</CardEmoji>
-                      <CardDate>{formatDateToKST(msg.createdAt)}</CardDate>
+                      <CardDate>{formatInKST(msg.createdAt, 'M.d')}</CardDate>
                     </OverlapCard>
                   ))}
                 </CardRow>
@@ -833,7 +831,7 @@ const EmotionCard: React.FC = () => {
                     >
                       {isTodayKST(msg.createdAt) && <NewBadge>TODAY</NewBadge>}
                       <CardEmoji>{msg.emoji || "❤️"}</CardEmoji>
-                      <CardDate>{formatDateToKST(msg.createdAt)}</CardDate>
+                      <CardDate>{formatInKST(msg.createdAt, 'M.d')}</CardDate>
                     </OverlapCard>
                   ))}
                 </CardRow>
@@ -849,7 +847,7 @@ const EmotionCard: React.FC = () => {
         <ModalBackground onClick={closeModal}>
           <ModalContent onClick={(e) => e.stopPropagation()}>
             <CloseButton onClick={closeModal}>&times;</CloseButton>
-            <h4>내가 보낸 감정 카드</h4>
+            <h4>{tab === 'sent' ? '내가 보낸 감정 카드' : '내가 받은 감정 카드'}</h4>
             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginBottom: '1rem' }}>
               <span style={{ fontSize: '2.5rem', marginBottom: '0.5rem' }}>{selectedMessage.emoji || '❤️'}</span>
               <div
@@ -868,7 +866,7 @@ const EmotionCard: React.FC = () => {
                 {selectedMessage.text || selectedMessage.message || '-'}
               </div>
               <span style={{ color: '#888', fontSize: '0.95rem' }}>
-                보낸 시간: {new Date(selectedMessage.createdAt).toLocaleString('ko-KR', { timeZone: 'Asia/Seoul' })}
+                {tab === 'sent' ? '보낸 시간' : '받은 시간'}: {formattedDate}
               </span>
             </div>
           </ModalContent>

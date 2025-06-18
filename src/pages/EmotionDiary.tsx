@@ -10,6 +10,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { fetchDiaries, fetchDiaryByDate, createDiary, updateDiary, DiaryEntry } from '../api/diary';
 import useAuthStore from '../store/authStore';
 import MobileOnlyBanner from '../components/common/MobileOnlyBanner';
+import { formatInKST } from '../utils/date';
 
 // SVG 아이콘 임포트
 import { ReactComponent as TriggerActivitiesIcon } from "../assets/Trigger_Activities.svg";
@@ -338,7 +339,7 @@ const EmotionDiary: React.FC = () => {
   const queryClient = useQueryClient();
   const [showModal, setShowModal] = useState(false);
   const todayKey = 'emotiondiary_popup';
-  const today = getToday();
+  const today = getTodayDateString();
   const ymd = today.replace(/-/g, '');
   const hideToday = typeof window !== 'undefined' && localStorage.getItem(`${todayKey}_${ymd}`) === 'true';
   const [showPopup, setShowPopup] = useState(!hideToday);
@@ -663,9 +664,8 @@ const EmotionDiary: React.FC = () => {
 };
 
 // 오늘 날짜를 YYYY-MM-DD 형식으로 반환
-const getToday = () => {
-  const now = new Date();
-  return now.toISOString().slice(0, 10);
+const getTodayDateString = () => {
+  return formatInKST(new Date(), 'yyyy-MM-dd');
 };
 
 export default EmotionDiary;

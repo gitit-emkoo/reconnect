@@ -7,6 +7,7 @@ import challengeApi from '../api/challenge';
 import NavigationBar from '../components/NavigationBar';
 import TabSwitcher, { Tab } from '../components/common/TabSwitcher';
 import PartnerRequiredModal from '../components/common/PartnerRequiredModal';
+import { formatInKST } from '../utils/date';
 
 const PageContainer = styled.div`
   max-width: 800px;
@@ -179,9 +180,8 @@ const HistoryDesc = styled.div`
 `;
 
 const HistoryDate = styled.div`
-  font-size: 0.88rem;
-  color: #aaa;
-  margin-top: 0.2rem;
+  font-size: 0.9rem;
+  color: #888;
 `;
 
 const StatusBadge = styled.span<{ success?: boolean }>`
@@ -403,7 +403,7 @@ const ChallengePage: React.FC = () => {
                   <StatusBadge success>성공</StatusBadge>
                 </HistoryTitle>
                 <HistoryDesc>{item.description}</HistoryDesc>
-                <HistoryDate>완료일: {item.completedAt ? item.completedAt.slice(0, 10) : '-'}</HistoryDate>
+                <HistoryDate>완료일: {item.completedAt ? formatInKST(item.completedAt, 'yyyy-MM-dd') : '-'}</HistoryDate>
               </HistoryItemCard>
             ))
           ) : (

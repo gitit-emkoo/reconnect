@@ -1,5 +1,6 @@
 import React from 'react';
 import styled from 'styled-components';
+import { formatInKST } from '../../utils/date';
 
 interface PopupProps {
   isOpen: boolean;
@@ -98,7 +99,7 @@ const Popup: React.FC<PopupProps> = ({
   const getTodayKey = () => {
     if (!todayKey) return '';
     const today = new Date();
-    const ymd = today.toISOString().slice(0, 10).replace(/-/g, '');
+    const ymd = formatInKST(today, 'yyyyMMdd');
     return `${todayKey}_${ymd}`;
   };
 
