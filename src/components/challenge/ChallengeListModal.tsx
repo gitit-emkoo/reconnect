@@ -120,9 +120,11 @@ interface Props {
   onClose: () => void;
   category: Challenge['category'];
   onSelectChallenge: (challenge: Challenge) => void;
+  isWeeklyCompleted: boolean;
+  onShowCompletionModal: () => void;
 }
 
-const ChallengeListModal: React.FC<Props> = ({ isOpen, onClose, category, onSelectChallenge }) => {
+const ChallengeListModal: React.FC<Props> = ({ isOpen, onClose, category, onSelectChallenge, isWeeklyCompleted, onShowCompletionModal }) => {
   const [challenges, setChallenges] = React.useState<Challenge[]>([]);
   const [isLoading, setIsLoading] = React.useState(false);
   const [confirmChallenge, setConfirmChallenge] = React.useState<Challenge | null>(null);
@@ -171,7 +173,13 @@ const ChallengeListModal: React.FC<Props> = ({ isOpen, onClose, category, onSele
                 <ChallengeTitle>{challenge.title}</ChallengeTitle>
                 <ChallengeDescription>{challenge.description}</ChallengeDescription>
               </div>
-              <SelectButton onClick={() => setConfirmChallenge(challenge)}>선택</SelectButton>
+              <SelectButton onClick={() => {
+                if (isWeeklyCompleted) {
+                  onShowCompletionModal();
+                } else {
+                  setConfirmChallenge(challenge);
+                }
+              }}>선택</SelectButton>
             </ChallengeCard>
           ))}
         </ChallengeList>
