@@ -13,4 +13,8 @@ export interface Content {
   isPremium: boolean;
   createdAt: Date;
   updatedAt: Date;
+  likesCount?: number;
+  bookmarksCount?: number;
+  isLiked?: boolean;
+  isBookmarked?: boolean;
 } 

@@ -190,6 +190,7 @@ const ContentAdmin: React.FC = () => {
   const [isAuthorized, setIsAuthorized] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [isSaving, setIsSaving] = useState(false);
   const user = useAuthStore((state) => state.user);
 
   const [formData, setFormData] = useState<Partial<Content>>({
@@ -243,11 +244,14 @@ const ContentAdmin: React.FC = () => {
   };
 
   const handleSave = async () => {
+    if (isSaving) return;
+
     if (!formData.title || !formData.body) {
       alert('제목과 내용을 모두 입력해주세요.');
       return;
     }
 
+    setIsSaving(true);
     try {
       if (isEditing && selectedContent) {
         await updateContent(selectedContent.id, formData);
@@ -258,6 +262,8 @@ const ContentAdmin: React.FC = () => {
       loadContents();
     } catch (err) {
       alert(`저장에 실패했습니다: ${err}`);
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -364,9 +370,9 @@ const ContentAdmin: React.FC = () => {
                     삭제
                   </Button>
                 )}
-                <Button onClick={() => setShowModal(false)}>취소</Button>
-                <Button variant="primary" onClick={handleSave}>
-                  저장
+                <Button onClick={() => setShowModal(false)} disabled={isSaving}>취소</Button>
+                <Button variant="primary" onClick={handleSave} disabled={isSaving}>
+                  {isSaving ? '저장 중...' : '저장'}
                 </Button>
               </ButtonGroup>
             </ModalContent>

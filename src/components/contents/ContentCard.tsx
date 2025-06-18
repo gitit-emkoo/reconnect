@@ -25,21 +25,12 @@ export const ContentCard: React.FC<ContentCardProps> = ({ title, type, onClick, 
     className="content-card"
     onClick={onClick}
     style={{
-      cursor: 'pointer',
       background: CARD_COLORS[index % CARD_COLORS.length],
-      minHeight: 180,
-      display: 'flex',
-      flexDirection: 'column',
-      alignItems: 'center',
-      justifyContent: 'center',
-      borderRadius: 16,
-      boxShadow: '0 2px 8px rgba(0,0,0,0.06)',
-      margin: 8,
     }}
   >
     {/* <img src={thumbnail} alt={title} className="thumbnail" /> */}
-    <div className="chip" style={{ marginBottom: 12, fontWeight: 600 }}>{type}</div>
-    <div className="title" style={{ fontSize: 18, fontWeight: 700 }}>{title}</div>
+    <div className="chip">{type}</div>
+    <div className="title">{title}</div>
   </div>
 );
 

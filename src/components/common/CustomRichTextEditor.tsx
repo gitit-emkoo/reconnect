@@ -114,8 +114,8 @@ const CustomRichTextEditor = forwardRef<CustomEditorRef, CustomRichTextEditorPro
 
   useEffect(() => {
     setContent(initialContent);
-    if (editorRef.current) {
-        editorRef.current.innerHTML = initialContent;
+    if (editorRef.current && editorRef.current.innerHTML !== initialContent) {
+      editorRef.current.innerHTML = initialContent;
     }
   }, [initialContent]);
 
