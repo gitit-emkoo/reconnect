@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
-import BackButton from '../common/BackButton';
 import { formatInKST } from '../../utils/date';
 import {
   fetchContentById,
@@ -14,7 +13,6 @@ import LoadingSpinner from '../common/LoadingSpinner';
 
 interface ContentDetailProps {
   id: string;
-  onBack?: () => void;
 }
 
 const Container = styled.div`
@@ -25,22 +23,20 @@ const Container = styled.div`
   min-height: 100vh;
 `;
 
-const Header = styled.div`
-  position: relative;
-  margin-bottom: 32px;
-`;
-
 const Title = styled.h1`
-  font-size: 28px;
+  font-size: 24px;
   font-weight: 700;
   color: #2c3e50;
-  margin: 16px 0;
-  line-height: 1.3;
+  line-height: 1.4;
+  margin: 0;
+  text-align: center;
+  padding: 16px 0;
 `;
 
 const MetaInfo = styled.div`
   display: flex;
   align-items: center;
+  justify-content: center;
   margin-bottom: 32px;
   padding-bottom: 24px;
   border-bottom: 1px solid #e9ecef;
@@ -114,7 +110,7 @@ const ActionButton = styled.button<{ active?: boolean }>`
   }
 `;
 
-export const ContentDetail: React.FC<ContentDetailProps> = ({ id, onBack }) => {
+export const ContentDetail: React.FC<ContentDetailProps> = ({ id }) => {
   const [content, setContent] = useState<Content | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -190,13 +186,10 @@ export const ContentDetail: React.FC<ContentDetailProps> = ({ id, onBack }) => {
   return (
     <div style={{ paddingBottom: '80px' }}>
       <Container>
-        <Header>
-          {onBack && <BackButton onClick={onBack} />}
-          <Title>{content.title}</Title>
-          <MetaInfo>
-            <DateText>{formatInKST(content.createdAt, 'yyyy.MM.dd')}</DateText>
-          </MetaInfo>
-        </Header>
+        <Title>{content.title}</Title>
+        <MetaInfo>
+          <DateText>{formatInKST(content.createdAt, 'yyyy.MM.dd')}</DateText>
+        </MetaInfo>
         <ContentBody dangerouslySetInnerHTML={{ __html: content.body }} />
       </Container>
       <ActionToolbar>
@@ -215,4 +208,4 @@ export const ContentDetail: React.FC<ContentDetailProps> = ({ id, onBack }) => {
       </ActionToolbar>
     </div>
   );
-}; 
+};

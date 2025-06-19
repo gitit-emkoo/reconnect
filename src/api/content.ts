@@ -84,4 +84,14 @@ export const unbookmarkContent = async (id: string): Promise<void> => {
     console.error('Error unbookmarking content:', error);
     throw error;
   }
+};
+
+export const fetchBookmarkedContents = async (): Promise<Content[]> => {
+  try {
+    const response = await axiosInstance.get('/content/bookmarked');
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching bookmarked contents:', error);
+    throw error;
+  }
 }; 

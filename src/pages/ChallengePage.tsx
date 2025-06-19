@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import styled from 'styled-components';
 import ActiveChallenge from '../components/challenge/ActiveChallenge';
 import ChallengeListModal from '../components/challenge/ChallengeListModal';
@@ -7,12 +7,13 @@ import challengeApi from '../api/challenge';
 import NavigationBar from '../components/NavigationBar';
 import TabSwitcher, { Tab } from '../components/common/TabSwitcher';
 import PartnerRequiredModal from '../components/common/PartnerRequiredModal';
-import { formatInKST } from '../utils/date';
+import { formatInKST, isThisWeekKST } from '../utils/date';
+import useAuthStore from '../store/authStore';
 
 const PageContainer = styled.div`
   max-width: 800px;
   margin: 0 auto;
-  padding: 1rem;
+  padding: 2.5rem 1rem;
 `;
 
 const Header = styled.div`
@@ -179,20 +180,24 @@ const HistoryDesc = styled.div`
   margin-bottom: 0.7rem;
 `;
 
+const HistoryFooter = styled.div`
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  margin-top: auto;
+  padding-top: 0.5rem;
+`;
+
 const HistoryDate = styled.div`
   font-size: 0.9rem;
   color: #888;
 `;
 
-const StatusBadge = styled.span<{ success?: boolean }>`
-  display: inline-block;
-  font-size: 0.85rem;
-  font-weight: 600;
-  color: #fff;
-  background: ${props => props.success ? '#7D5FFF' : '#FF6B81'};
-  border-radius: 0.7rem;
-  padding: 0.18rem 0.8rem;
-  margin-left: 0.6rem;
+const HistoryFrequency = styled.div`
+  font-size: 0.9rem;
+  color: #555;
+  font-weight: 500;
 `;
 
 const HistoryIcon = styled.span<{ success?: boolean }>`
@@ -208,73 +213,37 @@ const EmptyText = styled.div`
 `;
 
 const ChallengePage: React.FC = () => {
-  const [activeChallenge, setActiveChallenge] = React.useState<Challenge | null>(null);
-  const [selectedCategory, setSelectedCategory] = React.useState<Challenge['category'] | null>(null);
-  const [isModalOpen, setIsModalOpen] = React.useState(false);
-  const [hasPartner, setHasPartner] = React.useState(false);
-  const [historyTab, setHistoryTab] = React.useState<'success' | 'fail'>('success');
-  const [challengeHistory, setChallengeHistory] = React.useState<{ completed: Challenge[]; failed: Challenge[] }>({ completed: [], failed: [] });
-  const [showPartnerRequiredModal, setShowPartnerRequiredModal] = React.useState(false);
-  const [showWeeklyCompletionModal, setShowWeeklyCompletionModal] = React.useState(false);
-  const [isWeeklyCompleted, setIsWeeklyCompleted] = React.useState(false);
+  const [activeChallenge, setActiveChallenge] = useState<Challenge | null>(null);
+  const [selectedCategory, setSelectedCategory] = useState<Challenge['category'] | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [historyTab, setHistoryTab] = useState<'success' | 'fail'>('success');
+  const [challengeHistory, setChallengeHistory] = useState<{ completed: Challenge[]; failed: Challenge[] }>({ completed: [], failed: [] });
+  const [showPartnerRequiredModal, setShowPartnerRequiredModal] = useState(false);
+  const user = useAuthStore(state => state.user);
+  const hasPartner = !!user?.partner?.id;
 
-  // 파트너 연결 상태 확인
-  React.useEffect(() => {
-    checkPartnerStatus();
-  }, []);
-
-  // 활성 챌린지 로드
-  React.useEffect(() => {
-    loadActiveChallenge();
-  }, []);
-
-  React.useEffect(() => {
-    // 챌린지 히스토리 불러오기
-    const loadHistory = async () => {
-      try {
-        const data = await challengeApi.getChallengeHistory();
-        setChallengeHistory(data);
-      } catch (error) {
-        console.error('챌린지 히스토리 로드 중 오류 발생:', error);
-      }
-    };
-    loadHistory();
-  }, []);
-
-  const checkPartnerStatus = async () => {
+  const loadData = useCallback(async () => {
     try {
-      // TODO: 파트너 연결 상태 확인 API 호출
-      const hasPartner = true; // 임시 값
-      setHasPartner(hasPartner);
+      const [active, history] = await Promise.all([
+        challengeApi.getActiveChallenge(),
+        challengeApi.getChallengeHistory(),
+      ]);
+      setActiveChallenge(active);
+      setChallengeHistory(history);
     } catch (error) {
-      console.error('파트너 상태 확인 중 오류 발생:', error);
+      console.error('데이터 로드 중 오류 발생:', error);
+      setActiveChallenge(null); // 에러 발생 시 activeChallenge를 null로 설정
     }
-  };
+  }, []);
 
-  const loadActiveChallenge = async () => {
-    try {
-      const challenge = await challengeApi.getActiveChallenge();
-      setActiveChallenge(challenge);
-    } catch (error) {
-      console.error('활성 챌린지 로드 중 오류 발생:', error);
-    }
-  };
+  useEffect(() => {
+    loadData();
+  }, [loadData]);
 
   const handleCategoryClick = async (category: Challenge['category']) => {
     if (!hasPartner) {
       setShowPartnerRequiredModal(true);
       return;
-    }
-
-    try {
-      // 이번 주 챌린지 달성 여부 확인
-      const isCompleted = await challengeApi.checkWeeklyCompletion();
-      if (isCompleted) {
-        setShowWeeklyCompletionModal(true);
-        return;
-      }
-    } catch (error) {
-      console.error('주간 달성 여부 확인 중 오류 발생:', error);
     }
 
     setSelectedCategory(category);
@@ -283,59 +252,35 @@ const ChallengePage: React.FC = () => {
 
   const handleSelectChallenge = async (challenge: Challenge) => {
     try {
-      await challengeApi.startChallenge(challenge.templateId);
-      await loadActiveChallenge();
+      await challengeApi.startChallenge(challenge.id);
+      setIsModalOpen(false);
+      loadData(); // 새 챌린지 시작 후 데이터 다시 로드
     } catch (error) {
-      alert('챌린지 시작에 실패했습니다.');
+      console.error('챌린지 시작 중 오류 발생:', error);
+      alert('챌린지 시작 중 오류가 발생했습니다.');
     }
   };
 
-  const handleShowCompletionModal = () => {
-    setShowWeeklyCompletionModal(false);
-    setIsWeeklyCompleted(true);
-  };
-
-  const categories: Array<{
-    type: Challenge['category'];
-    title: string;
-    description: string;
-  }> = [
-    {
-      type: 'DAILY_SHARE',
-      title: '일상 공유',
-      description: '작은 말 한마디가 큰 정서적 연결을 만듭니다.',
-    },
-    {
-      type: 'TOGETHER_ACT',
-      title: '함께 하기',
-      description: '공동 활동을 통해 정서적 유대감을 키우는 주간.',
-    },
-    {
-      type: 'EMOTION_EXPR',
-      title: '감정 표현',
-      description: '말로 표현하는 감정은 마음을 더욱 가깝게 합니다',
-    },
-    {
-      type: 'MEMORY_BUILD',
-      title: '기억 쌓기',
-      description: '추억은 감정을 단단하게 붙들어주는 접착제입니다',
-    },
-    {
-      type: 'SELF_CARE',
-      title: '마음 돌보기',
-      description: '내 마음을 먼저 살피는 것이 관계 회복의 시작입니다',
-    },
-    {
-      type: 'GROW_TOGETHER',
-      title: '함께 성장',
-      description: '같은 방향을 보는 것이 관계의 본질입니다',
-    },
-  ];
+  const isWeeklyCompleted = !!activeChallenge?.completedAt && isThisWeekKST(new Date(activeChallenge.completedAt));
+  
+  const isCurrentUserCompleted = 
+    !!activeChallenge &&
+    ((user?.id === activeChallenge.member1Id && activeChallenge.isCompletedByMember1) ||
+      (user?.id === activeChallenge.member2Id && activeChallenge.isCompletedByMember2));
 
   const historyTabs: Tab[] = [
     { key: 'success', label: '성공한 챌린지' },
     { key: 'fail', label: '실패한 챌린지' },
   ];
+
+  const categoryDescriptions = {
+    DAILY_SHARE: { title: '데일리 공유', description: '매일의 작은 순간들을 나누며 가까워져요.' },
+    TOGETHER_ACT: { title: '함께하는 활동', description: '같이 요리하고, 산책하며 즐거운 시간을 보내세요.' },
+    EMOTION_EXPR: { title: '감정 표현', description: '서로의 마음에 귀 기울이는 연습을 해봐요.' },
+    MEMORY_BUILD: { title: '추억 쌓기', description: '사진첩을 만들거나, 특별한 날을 기념해보세요.' },
+    SELF_CARE: { title: '서로 돌보기', description: '서로를 챙겨주며 애정을 표현하는 시간.' },
+    GROW_TOGETHER: { title: '함께 성장', description: '미래를 계획하고, 같이 목표를 세워봐요.' },
+  };
 
   return (
     <PageContainer>
@@ -350,8 +295,9 @@ const ChallengePage: React.FC = () => {
         {activeChallenge ? (
           <ActiveChallenge
             challenge={activeChallenge}
-            onComplete={loadActiveChallenge}
-            isCurrentUserCompleted={activeChallenge.isCompletedByMember1}
+            onComplete={loadData}
+            isCurrentUserCompleted={isCurrentUserCompleted}
+            isWeeklyCompleted={isWeeklyCompleted}
           />
         ) : (
           <span style={{ color: '#888', fontSize: '1.1rem' }}>
@@ -361,78 +307,70 @@ const ChallengePage: React.FC = () => {
       </ActiveChallengeCard>
 
       <CategoryGrid>
-        {categories.map(category => {
-          const style = categoryStyles[category.type];
+        {Object.entries(categoryStyles).map(([key, value]) => {
+          const categoryInfo = categoryDescriptions[key as keyof typeof categoryDescriptions];
           return (
             <CategoryCard
-              key={category.type}
-              bg={style.bg}
+              key={key}
+              bg={value.bg}
             >
-              <CategoryIcon>{style.icon}</CategoryIcon>
-              <CategoryTitle>{category.title}</CategoryTitle>
-              <CategoryDescription>{category.description}</CategoryDescription>
+              <CategoryIcon>{value.icon}</CategoryIcon>
+              <CategoryTitle>{categoryInfo.title}</CategoryTitle>
+              <CategoryDescription>{categoryInfo.description}</CategoryDescription>
               <CategoryButton
-                bg={style.btnBg}
-                color={style.btnColor}
-                onClick={() => handleCategoryClick(category.type)}
+                bg={value.btnBg}
+                color={value.btnColor}
+                onClick={() => handleCategoryClick(key as Challenge['category'])}
               >
-                {style.btnText}
+                {value.btnText}
               </CategoryButton>
             </CategoryCard>
           );
         })}
       </CategoryGrid>
 
-      {isModalOpen && selectedCategory && (
+      {selectedCategory && (
         <ChallengeListModal
           isOpen={isModalOpen}
-          onClose={() => setIsModalOpen(false)}
           category={selectedCategory}
-          onSelectChallenge={handleSelectChallenge}
+          onClose={() => setIsModalOpen(false)}
+          onSelect={handleSelectChallenge}
           isWeeklyCompleted={isWeeklyCompleted}
-          onShowCompletionModal={handleShowCompletionModal}
         />
       )}
 
-      {/* 챌린지 히스토리 탭 */}
-      <TabSwitcher
-        tabs={historyTabs}
-        activeKey={historyTab}
-        onChange={(key) => setHistoryTab(key as 'success' | 'fail')}
-      />
+      <TabSwitcher tabs={historyTabs} activeKey={historyTab} onChange={key => setHistoryTab(key as 'success' | 'fail')} />
+
       <HistoryList>
         {historyTab === 'success' ? (
           challengeHistory.completed.length > 0 ? (
             challengeHistory.completed.map(item => (
               <HistoryItemCard key={item.id} success>
-                <HistoryTitle>
-                  <HistoryIcon success>🏆</HistoryIcon>
-                  {item.title}
-                  <StatusBadge success>성공</StatusBadge>
-                </HistoryTitle>
+                <HistoryTitle><HistoryIcon success>🏆</HistoryIcon> {item.title}</HistoryTitle>
                 <HistoryDesc>{item.description}</HistoryDesc>
-                <HistoryDate>완료일: {item.completedAt ? formatInKST(item.completedAt, 'yyyy-MM-dd') : '-'}</HistoryDate>
+                <HistoryFooter>
+                  <HistoryFrequency>
+                    {item.isOneTime ? '1회' : `주 ${item.frequency}회`}
+                  </HistoryFrequency>
+                  <HistoryDate>{formatInKST(new Date(item.completedAt!), 'yyyy.MM.dd')} 완료</HistoryDate>
+                </HistoryFooter>
               </HistoryItemCard>
             ))
-          ) : (
-            <EmptyText>성공한 챌린지 내역이 없습니다.</EmptyText>
-          )
+          ) : <EmptyText>성공한 챌린지가 없습니다.</EmptyText>
         ) : (
           challengeHistory.failed.length > 0 ? (
             challengeHistory.failed.map(item => (
               <HistoryItemCard key={item.id}>
-                <HistoryTitle>
-                  <HistoryIcon>💔</HistoryIcon>
-                  {item.title}
-                  <StatusBadge>실패</StatusBadge>
-                </HistoryTitle>
+                <HistoryTitle><HistoryIcon>😥</HistoryIcon> {item.title}</HistoryTitle>
                 <HistoryDesc>{item.description}</HistoryDesc>
-                <HistoryDate>기간 만료</HistoryDate>
+                <HistoryFooter>
+                  <HistoryFrequency>
+                    {item.isOneTime ? '1회' : `주 ${item.frequency}회`}
+                  </HistoryFrequency>
+                </HistoryFooter>
               </HistoryItemCard>
             ))
-          ) : (
-            <EmptyText>실패한 챌린지 내역이 없습니다.</EmptyText>
-          )
+          ) : <EmptyText>실패한 챌린지가 없습니다.</EmptyText>
         )}
       </HistoryList>
       <NavigationBar />
@@ -440,64 +378,6 @@ const ChallengePage: React.FC = () => {
         open={showPartnerRequiredModal}
         onClose={() => setShowPartnerRequiredModal(false)}
       />
-      
-      {/* 주간 달성 모달 */}
-      {showWeeklyCompletionModal && (
-        <div style={{
-          position: 'fixed',
-          top: 0,
-          left: 0,
-          right: 0,
-          bottom: 0,
-          background: 'rgba(0, 0, 0, 0.5)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          zIndex: 1000
-        }} onClick={() => setShowWeeklyCompletionModal(false)}>
-          <div style={{
-            background: 'white',
-            borderRadius: '12px',
-            padding: '24px',
-            maxWidth: '320px',
-            textAlign: 'center',
-            boxShadow: '0 4px 20px rgba(0, 0, 0, 0.15)'
-          }} onClick={e => e.stopPropagation()}>
-            <div style={{
-              fontSize: '48px',
-              marginBottom: '16px'
-            }}>🎉</div>
-            <h3 style={{
-              margin: '0 0 12px 0',
-              fontSize: '18px',
-              fontWeight: '600',
-              color: '#333'
-            }}>이번주는 이미 챌린지 달성되었습니다!</h3>
-            <p style={{
-              margin: '0 0 20px 0',
-              fontSize: '14px',
-              color: '#666',
-              lineHeight: '1.5'
-            }}>다음주에 새로운 챌린지에 도전하세요.</p>
-            <button
-              onClick={() => setShowWeeklyCompletionModal(false)}
-              style={{
-                background: '#E64A8D',
-                color: 'white',
-                border: 'none',
-                borderRadius: '8px',
-                padding: '12px 24px',
-                fontSize: '14px',
-                fontWeight: '600',
-                cursor: 'pointer',
-                width: '100%'
-              }}
-            >
-              확인
-            </button>
-          </div>
-        </div>
-      )}
     </PageContainer>
   );
 };
