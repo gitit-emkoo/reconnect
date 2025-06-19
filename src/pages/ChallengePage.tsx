@@ -7,7 +7,7 @@ import challengeApi from '../api/challenge';
 import NavigationBar from '../components/NavigationBar';
 import TabSwitcher, { Tab } from '../components/common/TabSwitcher';
 import PartnerRequiredModal from '../components/common/PartnerRequiredModal';
-import { formatInKST, isThisWeekKST } from '../utils/date';
+import { formatInKST } from '../utils/date';
 
 const PageContainer = styled.div`
   max-width: 800px;
@@ -130,15 +130,15 @@ const CategoryButton = styled.button<{ bg: string; color: string }>`
   &:hover { opacity: 0.92; }
 `;
 
-const ActiveChallengeCard = styled.div<{ status: 'active' | 'completed' | 'pending' }>`
-  background: ${({ status }) => (status === 'completed' ? '#fff0f3' : '#f1f3f7')};
+const ActiveChallengeCard = styled.div`
+  background: #f1f3f7;
   border-radius: 1rem;
   padding: 1.5rem;
   margin-bottom: 2rem;
   min-height: 110px;
   display: flex;
   flex-direction: column;
-  align-items: ${({ status }) => (status === 'active' ? 'flex-start' : 'center')};
+  align-items: flex-start;
   justify-content: center;
 `;
 
@@ -150,7 +150,6 @@ const HistoryList = styled.div`
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
   gap: 1.2rem;
-  margin-bottom: 6rem;
 `;
 
 const HistoryItemCard = styled.div<{ success?: boolean }>`
@@ -185,16 +184,6 @@ const HistoryDate = styled.div`
   color: #888;
 `;
 
-const HistoryMeta = styled.div`
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  width: 100%;
-  font-size: 0.9rem;
-  color: #666;
-  margin-top: 0.5rem;
-`;
-
 const StatusBadge = styled.span<{ success?: boolean }>`
   display: inline-block;
   font-size: 0.85rem;
@@ -213,21 +202,13 @@ const HistoryIcon = styled.span<{ success?: boolean }>`
 `;
 
 const EmptyText = styled.div`
-  color: #666;
+  color: #aaa;
   text-align: center;
-  font-size: 1rem;
-`;
-
-const CompletionText = styled.div`
-  font-weight: 600;
-  font-size: 1.1rem;
-  color: #e64a8d;
-  text-align: center;
+  padding: 2.5rem 0;
 `;
 
 const ChallengePage: React.FC = () => {
   const [activeChallenge, setActiveChallenge] = React.useState<Challenge | null>(null);
-  const [isWeeklyChallengeCompleted, setIsWeeklyChallengeCompleted] = React.useState(false);
   const [selectedCategory, setSelectedCategory] = React.useState<Challenge['category'] | null>(null);
   const [isModalOpen, setIsModalOpen] = React.useState(false);
   const [hasPartner, setHasPartner] = React.useState(false);
@@ -235,53 +216,30 @@ const ChallengePage: React.FC = () => {
   const [challengeHistory, setChallengeHistory] = React.useState<{ completed: Challenge[]; failed: Challenge[] }>({ completed: [], failed: [] });
   const [showPartnerRequiredModal, setShowPartnerRequiredModal] = React.useState(false);
   const [showWeeklyCompletionModal, setShowWeeklyCompletionModal] = React.useState(false);
+  const [isWeeklyCompleted, setIsWeeklyCompleted] = React.useState(false);
 
-  // 활성 챌린지 및 히스토리 로드
+  // 파트너 연결 상태 확인
   React.useEffect(() => {
-    const loadData = async () => {
-      try {
-        const challenge = await challengeApi.getActiveChallenge();
-        setActiveChallenge(challenge);
-      } catch (error) {
-        // 활성 챌린지가 없는 경우
-        setActiveChallenge(null);
-      }
+    checkPartnerStatus();
+  }, []);
 
+  // 활성 챌린지 로드
+  React.useEffect(() => {
+    loadActiveChallenge();
+  }, []);
+
+  React.useEffect(() => {
+    // 챌린지 히스토리 불러오기
+    const loadHistory = async () => {
       try {
-        const historyData = await challengeApi.getChallengeHistory();
-        setChallengeHistory(historyData);
+        const data = await challengeApi.getChallengeHistory();
+        setChallengeHistory(data);
       } catch (error) {
         console.error('챌린지 히스토리 로드 중 오류 발생:', error);
       }
     };
-
-    loadData();
-    checkPartnerStatus();
+    loadHistory();
   }, []);
-
-  // 활성 챌린지나 히스토리 변경 시, 주간 완료 상태 업데이트
-  React.useEffect(() => {
-    if (!activeChallenge) {
-      if (challengeHistory.completed.length > 0) {
-        const lastCompleted = challengeHistory.completed[0];
-        if (lastCompleted.completedAt && isThisWeekKST(lastCompleted.completedAt)) {
-          setIsWeeklyChallengeCompleted(true);
-        } else {
-          setIsWeeklyChallengeCompleted(false);
-        }
-      } else {
-        setIsWeeklyChallengeCompleted(false);
-      }
-    } else {
-      setIsWeeklyChallengeCompleted(false);
-    }
-  }, [activeChallenge, challengeHistory]);
-
-  const status = activeChallenge
-    ? 'active'
-    : isWeeklyChallengeCompleted
-    ? 'completed'
-    : 'pending';
 
   const checkPartnerStatus = async () => {
     try {
@@ -298,7 +256,7 @@ const ChallengePage: React.FC = () => {
       const challenge = await challengeApi.getActiveChallenge();
       setActiveChallenge(challenge);
     } catch (error) {
-      setActiveChallenge(null);
+      console.error('활성 챌린지 로드 중 오류 발생:', error);
     }
   };
 
@@ -308,6 +266,17 @@ const ChallengePage: React.FC = () => {
       return;
     }
 
+    try {
+      // 이번 주 챌린지 달성 여부 확인
+      const isCompleted = await challengeApi.checkWeeklyCompletion();
+      if (isCompleted) {
+        setShowWeeklyCompletionModal(true);
+        return;
+      }
+    } catch (error) {
+      console.error('주간 달성 여부 확인 중 오류 발생:', error);
+    }
+
     setSelectedCategory(category);
     setIsModalOpen(true);
   };
@@ -315,25 +284,15 @@ const ChallengePage: React.FC = () => {
   const handleSelectChallenge = async (challenge: Challenge) => {
     try {
       await challengeApi.startChallenge(challenge.templateId);
-      // 챌린지 시작 후, 활성 챌린지와 히스토리 모두 새로고침
-      await Promise.all([loadActiveChallenge(), loadChallengeHistory()]);
+      await loadActiveChallenge();
     } catch (error) {
       alert('챌린지 시작에 실패했습니다.');
     }
   };
 
-  const onChallengeComplete = async () => {
-    // 챌린지 완료 후, 활성 챌린지와 히스토리 모두 새로고침
-    await Promise.all([loadActiveChallenge(), loadChallengeHistory()]);
-  };
-
-  const loadChallengeHistory = async () => {
-    try {
-      const data = await challengeApi.getChallengeHistory();
-      setChallengeHistory(data);
-    } catch (error) {
-      console.error('챌린지 히스토리 로드 중 오류 발생:', error);
-    }
+  const handleShowCompletionModal = () => {
+    setShowWeeklyCompletionModal(false);
+    setIsWeeklyCompleted(true);
   };
 
   const categories: Array<{
@@ -387,17 +346,17 @@ const ChallengePage: React.FC = () => {
         </Description>
       </Header>
 
-      <ActiveChallengeCard status={status}>
-        {status === 'active' && activeChallenge ? (
+      <ActiveChallengeCard>
+        {activeChallenge ? (
           <ActiveChallenge
             challenge={activeChallenge}
-            onComplete={onChallengeComplete}
+            onComplete={loadActiveChallenge}
             isCurrentUserCompleted={activeChallenge.isCompletedByMember1}
           />
-        ) : status === 'completed' ? (
-          <CompletionText>🎉 이번주 챌린지를 성공했습니다! 🎉</CompletionText>
         ) : (
-          <EmptyText>새로운 챌린지를 진행해 주세요!</EmptyText>
+          <span style={{ color: '#888', fontSize: '1.1rem' }}>
+            진행중인 챌린지가 없습니다
+          </span>
         )}
       </ActiveChallengeCard>
 
@@ -424,17 +383,14 @@ const ChallengePage: React.FC = () => {
         })}
       </CategoryGrid>
 
-      {selectedCategory && (
+      {isModalOpen && selectedCategory && (
         <ChallengeListModal
           isOpen={isModalOpen}
           onClose={() => setIsModalOpen(false)}
           category={selectedCategory}
           onSelectChallenge={handleSelectChallenge}
-          isWeeklyCompleted={isWeeklyChallengeCompleted}
-          onShowCompletionModal={() => {
-            setIsModalOpen(false); // 리스트 모달은 닫고
-            setShowWeeklyCompletionModal(true); // 완료 모달을 띄움
-          }}
+          isWeeklyCompleted={isWeeklyCompleted}
+          onShowCompletionModal={handleShowCompletionModal}
         />
       )}
 
@@ -452,13 +408,10 @@ const ChallengePage: React.FC = () => {
                 <HistoryTitle>
                   <HistoryIcon success>🏆</HistoryIcon>
                   {item.title}
+                  <StatusBadge success>성공</StatusBadge>
                 </HistoryTitle>
-                <HistoryMeta>
-                  <span>{item.description}</span>
-                  <HistoryDate>
-                    완료일: {item.completedAt ? formatInKST(item.completedAt, 'yyyy-MM-dd') : '-'}
-                  </HistoryDate>
-                </HistoryMeta>
+                <HistoryDesc>{item.description}</HistoryDesc>
+                <HistoryDate>완료일: {item.completedAt ? formatInKST(item.completedAt, 'yyyy-MM-dd') : '-'}</HistoryDate>
               </HistoryItemCard>
             ))
           ) : (

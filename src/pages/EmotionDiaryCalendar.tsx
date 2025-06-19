@@ -1,6 +1,7 @@
 import React from 'react';
 import EmotionImagePreview, { PaletteItem } from '../components/EmotionImagePreview';
 import { triggers } from './EmotionDiary';
+import { toKST } from '../utils/date';
 
 interface DiaryEntry {
   date: string;
@@ -42,7 +43,7 @@ function mapRandomInfoWithIcons(randomInfo: PaletteItem[]): PaletteItem[] {
 
 const EmotionDiaryCalendar: React.FC<Props> = ({ diaryList, onDayClick }) => {
   // 이번 달 정보
-  const now = new Date();
+  const now = toKST(new Date());
   const year = now.getFullYear();
   const month = now.getMonth(); // 0-indexed
   const firstDay = new Date(year, month, 1);
