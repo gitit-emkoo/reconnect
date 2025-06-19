@@ -216,6 +216,7 @@ const ChallengePage: React.FC = () => {
   const [challengeHistory, setChallengeHistory] = React.useState<{ completed: Challenge[]; failed: Challenge[] }>({ completed: [], failed: [] });
   const [showPartnerRequiredModal, setShowPartnerRequiredModal] = React.useState(false);
   const [showWeeklyCompletionModal, setShowWeeklyCompletionModal] = React.useState(false);
+  const [isWeeklyCompleted, setIsWeeklyCompleted] = React.useState(false);
 
   // 파트너 연결 상태 확인
   React.useEffect(() => {
@@ -287,6 +288,11 @@ const ChallengePage: React.FC = () => {
     } catch (error) {
       alert('챌린지 시작에 실패했습니다.');
     }
+  };
+
+  const handleShowCompletionModal = () => {
+    setShowWeeklyCompletionModal(false);
+    setIsWeeklyCompleted(true);
   };
 
   const categories: Array<{
@@ -377,12 +383,14 @@ const ChallengePage: React.FC = () => {
         })}
       </CategoryGrid>
 
-      {selectedCategory && (
+      {isModalOpen && selectedCategory && (
         <ChallengeListModal
           isOpen={isModalOpen}
           onClose={() => setIsModalOpen(false)}
           category={selectedCategory}
           onSelectChallenge={handleSelectChallenge}
+          isWeeklyCompleted={isWeeklyCompleted}
+          onShowCompletionModal={handleShowCompletionModal}
         />
       )}
 
