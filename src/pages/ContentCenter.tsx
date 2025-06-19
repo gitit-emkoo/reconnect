@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { ContentList } from '../components/contents/ContentList';
 import { ContentDetail } from '../components/contents/ContentDetail';
-import '../components/contents/ContentCard.css';
 import NavigationBar from '../components/NavigationBar';
 import Header from '../components/common/Header';
 import MobileOnlyBanner from '../components/common/MobileOnlyBanner';

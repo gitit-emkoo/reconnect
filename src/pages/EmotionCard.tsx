@@ -392,6 +392,7 @@ const EmotionCard: React.FC = () => {
   const [selectedMonth, setSelectedMonth] = useState<string>(new Date().toISOString().slice(0, 7));
   const [sortOrder, setSortOrder] = useState<'newest' | 'oldest'>('newest');
   const [tab, setTab] = useState<'sent' | 'received'>('sent');
+  const [hoveredCard, setHoveredCard] = useState<string | null>(null);
   const prevReceivedIds = useRef<string[] | null>(null);
 
   // 보낸 메시지 쿼리 (파트너 없으면 비활성화)
@@ -442,7 +443,6 @@ const EmotionCard: React.FC = () => {
   
   const [selectedMessage, setSelectedMessage] = useState<SentMessage | null>(null);
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
-  const CARDS_PER_PAGE = 20;
   const CARDS_PER_ROW = 5;
 
   // === 필터링 추가 ===
@@ -728,10 +728,15 @@ const EmotionCard: React.FC = () => {
 
         {/* === 탭 UI를 카드 리스트 위에 추가 === */}
         <TabsContainer>
-          <TabButton active={tab === 'sent'} onClick={() => setTab('sent')}>보낸 카드</TabButton>
+          <TabButton active={tab === 'sent'} onClick={() => setTab('sent')}>
+            보낸 카드
+          </TabButton>
           <TabButton active={tab === 'received'} onClick={() => setTab('received')}>
             받은 카드
-            {tab !== 'received' && Array.isArray(receivedMessages) && receivedMessages.some((msg: SentMessage) => msg.isRead === false) && <NewBadge>TODAY</NewBadge>}
+            {/* 오늘 받은 메시지가 있으면 'TODAY' 배지 표시 */}
+            {Array.isArray(receivedMessages) && receivedMessages.some((msg) => isTodayKST(msg.createdAt)) && (
+              <NewBadge>TODAY</NewBadge>
+            )}
           </TabButton>
         </TabsContainer>
 
@@ -751,8 +756,6 @@ const EmotionCard: React.FC = () => {
                     </option>
                   ))}
                 </Select>
-              </FilterGroup>
-              <FilterGroup>
                 <Select 
                   value={sortOrder} 
                   onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setSortOrder(e.target.value as 'newest' | 'oldest')}
@@ -762,23 +765,26 @@ const EmotionCard: React.FC = () => {
                 </Select>
               </FilterGroup>
             </FilterContainer>
-            <CardGridWrapper>
-              {chunkCards<SentMessage>(filteredAndSortedSentMessages.slice(0, CARDS_PER_PAGE), CARDS_PER_ROW).map((row, rowIdx) => (
-                <CardRow key={rowIdx}>
-                  {(row as SentMessage[]).map((msg: SentMessage, idx: number, arr) => (
+            {chunkCards(filteredAndSortedSentMessages, CARDS_PER_ROW).map((row, rowIndex) => (
+              <CardGridWrapper key={rowIndex}>
+                <CardRow>
+                  {row.map((msg) => (
                     <OverlapCard
                       key={msg.id}
-                      isHovered={false}
-                      style={{ zIndex: arr.length - idx }}
                       onClick={() => openModal(msg)}
+                      onMouseEnter={() => setHoveredCard(msg.id)}
+                      onMouseLeave={() => setHoveredCard(null)}
+                      isHovered={hoveredCard === msg.id}
                     >
-                      <CardEmoji>{msg.emoji || "❤️"}</CardEmoji>
-                      <CardDate>{formatInKST(msg.createdAt, 'M.d')}</CardDate>
+                      <CardEmoji>{msg.emoji}</CardEmoji>
+                      <CardDate>
+                        {formatInKST(msg.createdAt, 'MM.dd')}
+                      </CardDate>
                     </OverlapCard>
                   ))}
                 </CardRow>
-              ))}
-            </CardGridWrapper>
+              </CardGridWrapper>
+            ))}
           </SentCardsSection>
         )}
         {tab === 'sent' && !isLoadingSent && !suggestionError && filteredSentMessages.length === 0 && (
@@ -795,12 +801,12 @@ const EmotionCard: React.FC = () => {
         )}
         {tab === 'received' && !isLoadingReceived && filteredReceivedMessages.length > 0 && (
           <SentCardsSection>
-            <SentCardsTitle>내가 받은 감정 카드</SentCardsTitle>
+            <SentCardsTitle>파트너가 보낸 감정 카드</SentCardsTitle>
             <FilterContainer>
               <FilterGroup>
                 <Select 
                   value={selectedMonth} 
-                  onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setSelectedMonth(e.target.value)}
+                  onChange={(e) => setSelectedMonth(e.target.value)}
                 >
                   {getAvailableMonths(filteredReceivedMessages).map(month => (
                     <option key={month} value={month}>
@@ -808,35 +814,49 @@ const EmotionCard: React.FC = () => {
                     </option>
                   ))}
                 </Select>
-              </FilterGroup>
-              <FilterGroup>
                 <Select 
                   value={sortOrder} 
-                  onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setSortOrder(e.target.value as 'newest' | 'oldest')}
+                  onChange={(e) => setSortOrder(e.target.value as 'newest' | 'oldest')}
                 >
                   <option value="newest">최신순</option>
                   <option value="oldest">오래된순</option>
                 </Select>
               </FilterGroup>
             </FilterContainer>
-            <CardGridWrapper>
-              {chunkCards<SentMessage>(filteredAndSortedReceivedMessages.slice(0, CARDS_PER_PAGE), CARDS_PER_ROW).map((row, rowIdx) => (
-                <CardRow key={rowIdx}>
-                  {(row as SentMessage[]).map((msg: SentMessage, idx: number, arr) => (
+            {chunkCards(filteredAndSortedReceivedMessages, CARDS_PER_ROW).map((row, rowIndex) => (
+              <CardGridWrapper key={rowIndex}>
+                <CardRow>
+                  {row.map((msg) => (
                     <OverlapCard
                       key={msg.id}
-                      isHovered={false}
-                      style={{ zIndex: arr.length - idx }}
                       onClick={() => openModal(msg)}
+                      onMouseEnter={() => setHoveredCard(msg.id)}
+                      onMouseLeave={() => setHoveredCard(null)}
+                      isHovered={hoveredCard === msg.id}
                     >
-                      {isTodayKST(msg.createdAt) && <NewBadge>TODAY</NewBadge>}
-                      <CardEmoji>{msg.emoji || "❤️"}</CardEmoji>
-                      <CardDate>{formatInKST(msg.createdAt, 'M.d')}</CardDate>
+                      {/* 오늘 받은 카드에만 'TODAY' 배지 추가 */}
+                      {isTodayKST(msg.createdAt) && (
+                        <NewBadge 
+                          style={{ 
+                            position: 'absolute', 
+                            top: '6px', 
+                            right: '6px', 
+                            fontSize: '0.5rem', 
+                            padding: '2px 4px' 
+                          }}
+                        >
+                          TODAY
+                        </NewBadge>
+                      )}
+                      <CardEmoji>{msg.emoji}</CardEmoji>
+                      <CardDate>
+                        {formatInKST(msg.createdAt, 'MM.dd')}
+                      </CardDate>
                     </OverlapCard>
                   ))}
                 </CardRow>
-              ))}
-            </CardGridWrapper>
+              </CardGridWrapper>
+            ))}
           </SentCardsSection>
         )}
 

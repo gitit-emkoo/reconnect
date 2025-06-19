@@ -10,6 +10,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { fetchDiaries, fetchDiaryByDate, createDiary, updateDiary, DiaryEntry } from '../api/diary';
 import useAuthStore from '../store/authStore';
 import MobileOnlyBanner from '../components/common/MobileOnlyBanner';
+import { formatInKST } from '../utils/date';
 
 // SVG 아이콘 임포트
 import { ReactComponent as TriggerActivitiesIcon } from "../assets/Trigger_Activities.svg";
@@ -338,7 +339,7 @@ const EmotionDiary: React.FC = () => {
   const queryClient = useQueryClient();
   const [showModal, setShowModal] = useState(false);
   const todayKey = 'emotiondiary_popup';
-  const today = getToday();
+  const today = formatInKST(new Date(), 'yyyy-MM-dd');
   const ymd = today.replace(/-/g, '');
   const hideToday = typeof window !== 'undefined' && localStorage.getItem(`${todayKey}_${ymd}`) === 'true';
   const [showPopup, setShowPopup] = useState(!hideToday);
@@ -575,7 +576,7 @@ const EmotionDiary: React.FC = () => {
           {selectedDateForModal && (
             <Modal onClick={() => setSelectedDateForModal(null)}>
               <ModalContent onClick={(e) => e.stopPropagation()}>
-                <ModalTitle>{selectedDateForModal}</ModalTitle>
+                <ModalTitle>{formatInKST(new Date(selectedDateForModal), 'yyyy년 M월 d일')} 다이어리</ModalTitle>
                 {(() => {
                   const diary = diaryList.find(d => d.date === selectedDateForModal);
                   if (!diary) return <div>이 날짜에는 작성된 다이어리가 없습니다.</div>;
@@ -615,6 +616,9 @@ const EmotionDiary: React.FC = () => {
                         </div>
                         <div style={{ marginBottom: '0.5rem' }}>
                           <strong>메시지:</strong> {diary.comment || '-'}
+                        </div>
+                        <div style={{ marginBottom: '0.5rem' }}>
+                          <strong>작성 시간:</strong> {diary.createdAt ? formatInKST(diary.createdAt, 'a h:mm') : '-'}
                         </div>
                         <div>
                           <strong>트리거:</strong> {diary.triggers && diary.triggers.length > 0
@@ -660,12 +664,6 @@ const EmotionDiary: React.FC = () => {
       <NavigationBar />
     </>
   );
-};
-
-// 오늘 날짜를 YYYY-MM-DD 형식으로 반환
-const getToday = () => {
-  const now = new Date();
-  return now.toISOString().slice(0, 10);
 };
 
 export default EmotionDiary;
