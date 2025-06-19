@@ -2,6 +2,7 @@ import React from 'react';
 import styled from 'styled-components';
 import { Challenge } from '../../api/challenge';
 import challengeApi from '../../api/challenge';
+import LoadingSpinner from '../common/LoadingSpinner';
 
 const ModalOverlay = styled.div`
   position: fixed;
@@ -92,61 +93,44 @@ const SelectButton = styled.button`
   &:hover {
     opacity: 0.9;
   }
+  
+  &:disabled {
+    background: #ccc;
+    cursor: not-allowed;
+    opacity: 0.7;
+  }
 `;
 
-const ConfirmModalOverlay = styled.div`
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0, 0, 0, 0.3);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  z-index: 2000;
-`;
-
-const ConfirmModalContent = styled.div`
-  background: #fff;
-  border-radius: 1rem;
-  padding: 2rem 1.5rem;
-  max-width: 320px;
-  text-align: center;
-`;
 
 interface Props {
   isOpen: boolean;
   onClose: () => void;
   category: Challenge['category'];
-  onSelectChallenge: (challenge: Challenge) => void;
+  onSelect: (challenge: Challenge) => void;
   isWeeklyCompleted: boolean;
-  onShowCompletionModal: () => void;
 }
 
-const ChallengeListModal: React.FC<Props> = ({ isOpen, onClose, category, onSelectChallenge, isWeeklyCompleted, onShowCompletionModal }) => {
+const ChallengeListModal: React.FC<Props> = ({ isOpen, onClose, category, onSelect, isWeeklyCompleted }) => {
   const [challenges, setChallenges] = React.useState<Challenge[]>([]);
-  const [isLoading, setIsLoading] = React.useState(false);
-  const [confirmChallenge, setConfirmChallenge] = React.useState<Challenge | null>(null);
+  const [isLoading, setIsLoading] = React.useState(true);
 
   React.useEffect(() => {
     if (isOpen) {
+      const loadChallenges = async () => {
+        try {
+          setIsLoading(true);
+          const data = await challengeApi.getChallengesByCategory(category);
+          setChallenges(data);
+        } catch (error) {
+          console.error('챌린지 목록 로드 오류:', error);
+          setChallenges([]);
+        } finally {
+          setIsLoading(false);
+        }
+      };
       loadChallenges();
     }
-    // eslint-disable-next-line
   }, [isOpen, category]);
-
-  const loadChallenges = async () => {
-    try {
-      setIsLoading(true);
-      const data = await challengeApi.getChallengesByCategory(category);
-      setChallenges(data);
-    } catch (error) {
-      setChallenges([]);
-    } finally {
-      setIsLoading(false);
-    }
-  };
 
   if (!isOpen) return null;
 
@@ -154,49 +138,31 @@ const ChallengeListModal: React.FC<Props> = ({ isOpen, onClose, category, onSele
     <ModalOverlay onClick={onClose}>
       <ModalContent onClick={e => e.stopPropagation()}>
         <ModalHeader>
-          <Title>
-            {category === 'DAILY_SHARE' && '일상 공유'}
-            {category === 'TOGETHER_ACT' && '함께하기'}
-            {category === 'EMOTION_EXPR' && '감정표현'}
-            {category === 'MEMORY_BUILD' && '기억쌓기'}
-            {category === 'SELF_CARE' && '마음 돌보기'}
-            {category === 'GROW_TOGETHER' && '함께 성장'}
-          </Title>
+          <Title>챌린지 선택</Title>
           <CloseButton onClick={onClose}>&times;</CloseButton>
         </ModalHeader>
         <ChallengeList>
-          {isLoading && <div style={{ color: '#aaa', textAlign: 'center' }}>로딩 중...</div>}
-          {!isLoading && challenges.length === 0 && <div style={{ color: '#aaa', textAlign: 'center' }}>챌린지 목록이 없습니다.</div>}
-          {challenges.map(challenge => (
-            <ChallengeCard key={challenge.id}>
-              <div>
-                <ChallengeTitle>{challenge.title}</ChallengeTitle>
-                <ChallengeDescription>{challenge.description}</ChallengeDescription>
-              </div>
-              <SelectButton onClick={() => {
-                if (isWeeklyCompleted) {
-                  onShowCompletionModal();
-                } else {
-                  setConfirmChallenge(challenge);
-                }
-              }}>선택</SelectButton>
-            </ChallengeCard>
-          ))}
+          {isLoading ? (
+            <LoadingSpinner />
+          ) : challenges.length === 0 ? (
+            <div style={{ color: '#aaa', textAlign: 'center', padding: '2rem 0' }}>
+              이 카테고리에는 아직 챌린지가 없어요.
+            </div>
+          ) : (
+            challenges.map(challenge => (
+              <ChallengeCard key={challenge.id}>
+                <div>
+                  <ChallengeTitle>{challenge.title}</ChallengeTitle>
+                  <ChallengeDescription>{challenge.description}</ChallengeDescription>
+                </div>
+                <SelectButton onClick={() => onSelect(challenge)} disabled={isWeeklyCompleted}>
+                  {isWeeklyCompleted ? '완료됨' : '선택'}
+                </SelectButton>
+              </ChallengeCard>
+            ))
+          )}
         </ChallengeList>
       </ModalContent>
-      {confirmChallenge && (
-        <ConfirmModalOverlay>
-          <ConfirmModalContent>
-            <div style={{ marginBottom: 18 }}>
-              이 챌린지로 선택하시겠습니까?
-              <br />
-              <b>{confirmChallenge.title}</b>
-            </div>
-            <SelectButton onClick={() => { onSelectChallenge(confirmChallenge); setConfirmChallenge(null); onClose(); }}>예</SelectButton>
-            <button style={{ marginLeft: 12, background: 'none', border: 'none', color: '#888', fontWeight: 600, cursor: 'pointer' }} onClick={() => setConfirmChallenge(null)}>아니오</button>
-          </ConfirmModalContent>
-        </ConfirmModalOverlay>
-      )}
     </ModalOverlay>
   );
 };

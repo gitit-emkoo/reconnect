@@ -1,110 +1,89 @@
-import React, { useMemo, useEffect, useState } from 'react';
+import React, { useMemo } from 'react';
 import { Swiper, SwiperSlide } from 'swiper/react';
-import { Autoplay } from 'swiper/modules'; // Autoplay 모듈 임포트
+import { Autoplay } from 'swiper/modules';
 import 'swiper/css';
-import 'swiper/css/autoplay';
-import { ContentCard }  from './ContentCard';
-import type { Content }  from '../../types/content';
-
-const ROWS = 5;
+import styled from 'styled-components';
+import { ContentCard } from './ContentCard';
+import type { Content } from '../../types/content';
 
 interface ContentListProps {
   contents: Content[];
   onCardClick: (id: string) => void;
 }
 
-const MemoizedSwiper = React.memo(({ 
-  row, 
-  index, 
-  onCardClick 
-}: { 
-  row: Content[], 
-  index: number,
-  onCardClick: (id: string) => void 
-}) => {
-  const [isMobile, setIsMobile] = useState(false);
+const SectionTitle = styled.h3`
+  font-size: 18px;
+  font-weight: 700;
+  margin: 24px 0 16px 20px;
+`;
 
-  useEffect(() => {
-    const checkIsMobile = () => {
-      setIsMobile(window.innerWidth <= 768);
-    };
-    
-    checkIsMobile();
-    window.addEventListener('resize', checkIsMobile);
-    
-    return () => window.removeEventListener('resize', checkIsMobile);
-  }, []);
+const SwiperWrapper = styled.div`
+  margin-bottom: 16px;
+  .swiper-wrapper {
+    transition-timing-function: linear !important;
+  }
+`;
 
+const MemoizedSwiper: React.FC<{
+  row: Content[];
+  index: number;
+  onCardClick: (id: string) => void;
+}> = React.memo(({ row, index, onCardClick }) => {
+  // Swiper가 올바르게 반응형으로 작동하려면 state보다는 CSS 미디어 쿼리를 사용하는 것이 더 안정적입니다.
+  // 이 컴포넌트는 이제 Swiper의 설정만 담당합니다.
+
+  // loop 모드가 끊김없이 작동하려면 슬라이드 개수가 slidesPerView보다 최소 2배 이상 많아야 합니다.
   // 카드를 3번 반복해서 연속 효과 생성
-  const duplicatedRow = [...row, ...row, ...row];
+  const duplicatedRow = row.length > 0 ? [...row, ...row, ...row] : [];
 
   return (
-    <Swiper
-      key={index}
-      modules={[Autoplay]}
-      slidesPerView={isMobile ? 2.5 : 4} // 모바일에서는 2.5개, PC에서는 4개
-      spaceBetween={isMobile ? 8 : 20} // 모바일에서는 8px, PC에서는 20px
-      loop={true}
-      speed={isMobile ? 8000 : 12000} // 모바일에서는 더 빠르게
-      autoplay={{ 
-        delay: 0, 
-        disableOnInteraction: false, 
-        pauseOnMouseEnter: false, 
-        reverseDirection: index % 2 === 1,
-        stopOnLastSlide: false // 마지막 슬라이드에서 멈추지 않음
-      }}
-      allowTouchMove={false}
-      freeMode={false} // freeMode 비활성화로 일정한 속도 유지
-      watchSlidesProgress={false} // 슬라이드 진행률 감시 비활성화
-      watchOverflow={false} // 오버플로우 감시 비활성화
-      style={{ marginBottom: 32 }}
-      breakpoints={{
-        // 모바일 (768px 이하)
-        320: {
-          slidesPerView: 2.5,
-          spaceBetween: 8,
-          speed: 8000
-        },
-        // 태블릿 (768px - 1024px)
-        768: {
-          slidesPerView: 3.5,
-          spaceBetween: 15,
-          speed: 10000
-        },
-        // PC (1024px 이상)
-        1024: {
-          slidesPerView: 4,
-          spaceBetween: 20,
-          speed: 12000
-        }
-      }}
-    >
-      {duplicatedRow.map((item, idx) => (
-        <SwiperSlide key={`${item.id}-${idx}`} style={{ 
-          display: 'flex', 
-          alignItems: 'center', 
-          justifyContent: 'center',
-          width: isMobile ? 'auto' : 'auto'
-        }}>
-          <ContentCard {...item} index={index * row.length + (idx % row.length)} onClick={() => onCardClick(item.id)} />
-        </SwiperSlide>
-      ))}
-    </Swiper>
+    <SwiperWrapper>
+      <Swiper
+        modules={[Autoplay]}
+        slidesPerView={2.5}
+        spaceBetween={8}
+        loop={true}
+        speed={8000 + index * 1000} // 각 줄마다 속도를 약간 다르게
+        autoplay={{
+          delay: 0,
+          disableOnInteraction: false,
+          pauseOnMouseEnter: true,
+          reverseDirection: index % 2 === 1,
+        }}
+        allowTouchMove={true}
+        freeMode={false}
+        breakpoints={{
+          768: { slidesPerView: 3.5, spaceBetween: 15 },
+          1024: { slidesPerView: 4.5, spaceBetween: 20 },
+        }}
+      >
+        {duplicatedRow.map((item, idx) => (
+          <SwiperSlide key={`${item.id}-${idx}`}>
+            <ContentCard
+              {...item}
+              index={index * row.length + (idx % row.length)}
+              onClick={() => onCardClick(item.id)}
+            />
+          </SwiperSlide>
+        ))}
+      </Swiper>
+    </SwiperWrapper>
   );
 });
 
 export const ContentList: React.FC<ContentListProps> = React.memo(({ contents, onCardClick }) => {
-  const rows = useMemo(() =>
-    Array.from({ length: ROWS }, (_, i) =>
-      contents.filter((_, idx) => idx % ROWS === i)
-    ),
-    [contents]
-  );
+  const rows = useMemo(() => {
+    // 콘텐츠가 10개 미만이면 한 줄로, 그 이상이면 2줄로 나누어 보여줍니다.
+    const numRows = contents.length < 10 ? 1 : 2;
+    return Array.from({ length: numRows }, (_, i) =>
+      contents.filter((_, idx) => idx % numRows === i)
+    );
+  }, [contents]);
 
   if (contents.length === 0) {
     return (
       <div>
-        <h3>AI가 추천하는 우리가 더욱 가까워 지는 방법</h3>
+        <SectionTitle>AI가 추천하는 우리가 더욱 가까워 지는 방법</SectionTitle>
         <p style={{ textAlign: 'center', color: '#666', margin: '2rem 0' }}>
           아직 추천할 콘텐츠가 없습니다.
         </p>
@@ -114,17 +93,19 @@ export const ContentList: React.FC<ContentListProps> = React.memo(({ contents, o
 
   return (
     <div>
-      <h3>AI가 추천하는 우리가 더욱 가까워 지는 방법</h3>
-      <div className="content-list">
-        {rows.map((row, i) => (
-          <MemoizedSwiper
-            key={i}
-            row={row}
-            index={i}
-            onCardClick={onCardClick}
-          />
-        ))}
-      </div>
+      {rows[0] && rows[0].length > 0 && (
+        <>
+          <SectionTitle>AI가 추천하는 우리가 더욱 가까워 지는 방법</SectionTitle>
+          <MemoizedSwiper row={rows[0]} index={0} onCardClick={onCardClick} />
+        </>
+      )}
+
+      {rows[1] && rows[1].length > 0 && (
+        <>
+          <SectionTitle>관계 가이드 아티클</SectionTitle>
+          <MemoizedSwiper row={rows[1]} index={1} onCardClick={onCardClick} />
+        </>
+      )}
     </div>
   );
 });

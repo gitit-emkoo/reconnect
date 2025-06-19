@@ -5,6 +5,7 @@ import BackButton from './BackButton';
 interface HeaderProps {
   title: string;
   showBackButton?: boolean;
+  onBackClick?: () => void;
   className?: string;
 }
 
@@ -36,10 +37,10 @@ const StyledBackButton = styled(BackButton)`
   transform: translateY(-50%);
 `;
 
-const Header: React.FC<HeaderProps> = ({ title, showBackButton = false, className }) => {
+const Header: React.FC<HeaderProps> = ({ title, showBackButton = false, onBackClick, className }) => {
   return (
     <HeaderContainer className={className}>
-      {showBackButton && <StyledBackButton />}
+      {showBackButton && <StyledBackButton onClick={onBackClick} />}
       <Title>{title}</Title>
     </HeaderContainer>
   );

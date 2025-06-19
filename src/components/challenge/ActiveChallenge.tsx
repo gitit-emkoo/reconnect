@@ -4,123 +4,130 @@ import { Challenge } from '../../api/challenge';
 import challengeApi from '../../api/challenge';
 import { useNotificationStore } from '../../store/notificationsStore';
 
-const Container = styled.div`
-  background: #fff;
+const Container = styled.div<{ status: 'inProgress' | 'completed' | 'noChallenge' }>`
+  background: ${({ status }) => {
+    if (status === 'completed') return '#FFE0E7';
+    if (status === 'noChallenge') return '#f1f3f7';
+    return '#fff';
+  }};
   border-radius: 1rem;
-  padding: 1.2rem;
-  margin: 0 1rem 1.5rem 1rem;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  padding: 1.5rem;
+  margin: 0 1rem 2rem 1rem;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  min-height: 150px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
 `;
 
 const Title = styled.div`
-  font-size: 1.1rem;
-  font-weight: 600;
-  color: #333;
-  margin-bottom: 0.5rem;
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: #2c3e50;
+  margin-bottom: 0.75rem;
 `;
 
 const Description = styled.div`
-  font-size: 0.9rem;
-  color: #666;
-  margin-bottom: 1rem;
+  font-size: 0.95rem;
+  color: #555;
+  margin-bottom: 1.2rem;
+  line-height: 1.5;
 `;
 
 const ProgressContainer = styled.div`
+  width: 100%;
   display: flex;
   align-items: center;
-  margin-bottom: 1rem;
+  margin-bottom: 1.2rem;
 `;
 
 const ProgressBar = styled.div<{ progress: number }>`
   flex: 1;
-  height: 6px;
-  background: #eee;
-  border-radius: 3px;
+  height: 8px;
+  background: #e0e0e0;
+  border-radius: 4px;
   margin-right: 1rem;
   overflow: hidden;
+  position: relative;
 
   &::after {
     content: '';
-    display: block;
+    position: absolute;
+    top: 0;
+    left: 0;
     width: ${({ progress }) => progress}%;
     height: 100%;
-    background: #4CAF50;
-    border-radius: 3px;
-    transition: width 0.3s ease;
+    background: linear-gradient(90deg, #4CAF50, #81C784);
+    border-radius: 4px;
+    transition: width 0.5s ease-in-out;
   }
 `;
 
 const ProgressText = styled.div`
-  font-size: 0.8rem;
-  color: #666;
-  min-width: 60px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #333;
+  min-width: 40px;
 `;
 
-const CompleteButton = styled.button<{ isCompleted: boolean }>`
+const CompleteButton = styled.button`
   width: 100%;
+  max-width: 200px;
   padding: 0.8rem;
   border: none;
   border-radius: 0.7rem;
-  background: ${({ isCompleted }) => isCompleted ? '#4CAF50' : '#ff6b81'};
+  background: #ff6b81;
   color: white;
   font-weight: 600;
-  font-size: 0.9rem;
+  font-size: 1rem;
   cursor: pointer;
-  transition: opacity 0.2s;
+  transition: all 0.2s;
 
   &:hover {
-    opacity: 0.9;
+    transform: translateY(-2px);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
   }
 
   &:disabled {
     background: #ccc;
     cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
   }
 `;
 
 const RemainingTime = styled.div`
-  font-size: 0.8rem;
+  font-size: 0.85rem;
   color: #666;
-  text-align: center;
-  margin-top: 0.8rem;
+  margin-top: 1rem;
+`;
+
+const CompletionText = styled.div`
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #E64A8D;
 `;
 
 interface Props {
-  challenge: Challenge;
+  challenge: Challenge | null;
   onComplete: () => void;
   isCurrentUserCompleted: boolean;
+  isWeeklyCompleted: boolean;
 }
 
-const ActiveChallenge: React.FC<Props> = ({ challenge, onComplete, isCurrentUserCompleted }) => {
+const ActiveChallenge: React.FC<Props> = ({ challenge, onComplete, isCurrentUserCompleted, isWeeklyCompleted }) => {
   const [isLoading, setIsLoading] = React.useState(false);
-  const [remainingDays, setRemainingDays] = React.useState(0);
   const addNotification = useNotificationStore(state => state.addNotification);
 
-  // 남은 일수 계산
-  React.useEffect(() => {
-    const calculateRemainingDays = () => {
-      const end = new Date(challenge.endDate);
-      const now = new Date();
-      const diff = end.getTime() - now.getTime();
-      const days = Math.ceil(diff / (1000 * 60 * 60 * 24));
-      setRemainingDays(days > 0 ? days : 0);
-    };
-
-    calculateRemainingDays();
-    const timer = setInterval(calculateRemainingDays, 1000 * 60 * 60); // 1시간마다 갱신
-
-    return () => clearInterval(timer);
-  }, [challenge.endDate]);
-
-  // 완료 버튼 클릭 핸들러
   const handleComplete = async () => {
-    if (isLoading || isCurrentUserCompleted) return;
+    if (!challenge || isLoading || isCurrentUserCompleted) return;
 
     try {
       setIsLoading(true);
       await challengeApi.completeChallenge(challenge.id);
-      // 알림 추가
-      addNotification('챌린지가 완료되었습니다!', '/challenge');
+      addNotification('챌린지가 완료되었습니다! 🎉', '/challenge');
       onComplete();
     } catch (error) {
       console.error('챌린지 완료 처리 중 오류 발생:', error);
@@ -130,11 +137,32 @@ const ActiveChallenge: React.FC<Props> = ({ challenge, onComplete, isCurrentUser
     }
   };
 
-  // 진행률 계산
+  if (isWeeklyCompleted) {
+    return (
+      <Container status="completed">
+        <Title>이번주 챌린지를 이미 성공했습니다!</Title>
+        <Description>다음주를 기다려 주세요 😊</Description>
+      </Container>
+    );
+  }
+
+  if (!challenge) {
+    return (
+      <Container status="noChallenge">
+        <Title>진행 가능한 챌린지가 없어요</Title>
+        <Description>새로운 챌린지를 시작해보세요!</Description>
+      </Container>
+    );
+  }
+
   const progress = ((challenge.isCompletedByMember1 ? 1 : 0) + (challenge.isCompletedByMember2 ? 1 : 0)) * 50;
+  const end = new Date(challenge.endDate);
+  const now = new Date();
+  const diff = end.getTime() - now.getTime();
+  const remainingDays = Math.ceil(diff / (1000 * 60 * 60 * 24));
 
   return (
-    <Container>
+    <Container status="inProgress">
       <Title>{challenge.title}</Title>
       <Description>{challenge.description}</Description>
       
@@ -143,18 +171,16 @@ const ActiveChallenge: React.FC<Props> = ({ challenge, onComplete, isCurrentUser
         <ProgressText>{progress}%</ProgressText>
       </ProgressContainer>
 
-      <CompleteButton
-        onClick={handleComplete}
-        disabled={isLoading || isCurrentUserCompleted}
-        isCompleted={isCurrentUserCompleted}
-      >
-        {isCurrentUserCompleted ? '완료됨' : '달성하기'}
-      </CompleteButton>
+      {isCurrentUserCompleted ? (
+        <CompletionText>파트너의 완료를 기다리는 중...</CompletionText>
+      ) : (
+        <CompleteButton onClick={handleComplete} disabled={isLoading}>
+          달성하기
+        </CompleteButton>
+      )}
 
       <RemainingTime>
-        {remainingDays > 0
-          ? `남은 기간: ${remainingDays}일`
-          : '오늘 마감'}
+        {remainingDays > 0 ? `남은 기간: ${remainingDays}일` : '오늘 마감'}
       </RemainingTime>
     </Container>
   );

@@ -12,7 +12,7 @@ export interface Partner {
 
 export interface AuthState {
   isLoggedIn: boolean;
-  user: Partial<User> | null;
+  user: User | null;
   accessToken: string | null;
   isLoading: boolean; // 로딩 상태 추가
   login: (user: User, token: string) => void;
@@ -43,7 +43,7 @@ const useAuthStore = create<AuthState>()(
       },
       setUser: (user) => {
         console.log('[authStore.setUser]', user);
-        set((state) => ({ user: { ...state.user, ...user } }));
+        set((state) => ({ user: state.user ? { ...state.user, ...user } : null }));
         console.log('[authStore.setUser] after set:', get());
       },
       setToken: (token, rememberMe) => {

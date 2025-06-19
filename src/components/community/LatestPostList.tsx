@@ -25,59 +25,76 @@ interface LatestPostListProps {
 }
 
 const PostListItem = styled.div`
-  display: flex;
-  flex-direction: column;
-  padding: 1.2rem 1.5rem;
+  padding: 1rem 1.2rem;
   border-bottom: 1px solid #f1f3f5;
+
   &:last-child {
     border-bottom: none;
   }
 `;
-const PostHeaderCommunity = styled.div`
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  margin-bottom: 0.5rem;
-`;
-const CategoryTagCommunity = styled.span<{ $bgcolor: string }>`
+
+const CategoryTag = styled.span<{ $bgcolor: string }>`
   background-color: ${props => props.$bgcolor};
   color: white;
-  padding: 0.08rem 0.45rem;
-  border-radius: 0.7rem;
-  font-size: 0.82rem;
-  font-weight: 500;
-  line-height: 1.2;
-  margin-right: 0.3rem;
+  padding: 0.15rem 0.6rem;
+  border-radius: 0.8rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  line-height: 1.4;
+  display: inline-block;
+  margin-bottom: 0.5rem;
 `;
-const PostTitleCommunity = styled(Link)`
-  font-size: 1.01rem;
-  font-weight: 700;
+
+const PostTitle = styled(Link)`
+  font-size: 0.95rem;
+  font-weight: 600;
   color: #212529;
   text-decoration: none;
-  margin-bottom: 0.2rem;
+  line-height: 1.4;
+  
   display: -webkit-box;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
   text-overflow: ellipsis;
   word-break: break-all;
-  max-height: 2.7em;
-  line-height: 1.35;
+
   &:hover {
     text-decoration: underline;
   }
 `;
-const PostMetaCommunity = styled.div`
-  font-size: 0.95rem;
-  color: #adb5bd;
+
+const TagContainer = styled.div`
+  margin-top: 0.4rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+`;
+
+const Tag = styled.span`
+  background-color: #f1f3f5;
+  color: #868e96;
+  padding: 0.2rem 0.6rem;
+  border-radius: 0.8rem;
+  font-size: 0.75rem;
+  font-weight: 500;
+  margin-right: 0.4rem;
+`;
+
+const PostMeta = styled.div`
+  font-size: 0.8rem;
+  color: #868e96;
   display: flex;
   align-items: center;
-  gap: 0.75rem;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
 `;
+
 const CommentCount = styled.span`
   color: #FF69B4;
   font-weight: 600;
 `;
+
 const PaginationButton = styled.button<{ $active: boolean }>`
   background: none;
   border: none;
@@ -86,6 +103,7 @@ const PaginationButton = styled.button<{ $active: boolean }>`
   display: flex;
   align-items: center;
 `;
+
 const PaginationNum = styled.span`
   font-size: 1.15rem;
   font-weight: 700;
@@ -115,45 +133,24 @@ const LatestPostList: React.FC<LatestPostListProps> = ({ posts, currentId, page,
     ) : (
       posts.filter(p => p.id !== currentId).map(post => (
         <PostListItem key={post.id}>
-          <PostHeaderCommunity>
-            <CategoryTagCommunity $bgcolor={getCategoryColor(post.category?.name)}>{post.category?.name}</CategoryTagCommunity>
-            <PostTitleCommunity to={`/community/${post.id}`}>{post.title}</PostTitleCommunity>
-          </PostHeaderCommunity>
-          {/* 태그 표시 */}
+          <CategoryTag $bgcolor={getCategoryColor(post.category?.name)}>
+            {post.category?.name}
+          </CategoryTag>
+          <PostTitle to={`/community/${post.id}`}>{post.title}</PostTitle>
           {post.tags && post.tags.length > 0 && (
-            <div style={{
-              margin: '0.18rem 0 0.08rem 0',
-              display: 'block',
-              overflow: 'hidden',
-              whiteSpace: 'nowrap',
-              textOverflow: 'ellipsis',
-              maxWidth: '100%',
-            }}>
+            <TagContainer>
               {post.tags.map(tag => (
-                <span key={tag} style={{
-                  display: 'inline-block',
-                  background: '#f8f0fa',
-                  color: '#b197fc',
-                  fontSize: '0.82rem',
-                  fontWeight: 400,
-                  borderRadius: '0.7rem',
-                  padding: '0.08rem 0.45rem',
-                  marginRight: '0.18rem',
-                  maxWidth: '120px',
-                  overflow: 'hidden',
-                  textOverflow: 'ellipsis',
-                  verticalAlign: 'middle',
-                }}>#{tag}</span>
+                <Tag key={tag}>#{tag}</Tag>
               ))}
-            </div>
+            </TagContainer>
           )}
-          <PostMetaCommunity>
+          <PostMeta>
             <span>{post.author?.nickname}</span>
             <span>·</span>
             <span>{new Date(post.createdAt).toLocaleDateString()}</span>
             <span>·</span>
-            <span>댓글 <CommentCount>{post._count?.comments ?? 0}</CommentCount></span>
-          </PostMetaCommunity>
+            <CommentCount>댓글 {post._count?.comments ?? 0}</CommentCount>
+          </PostMeta>
         </PostListItem>
       ))
     )}

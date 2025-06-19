@@ -12,6 +12,8 @@ export interface Challenge {
   startDate: string;
   endDate: string;
   status: 'IN_PROGRESS' | 'COMPLETED' | 'FAILED';
+  member1Id?: string;
+  member2Id?: string;
   isCompletedByMember1: boolean;
   isCompletedByMember2: boolean;
   completedAt?: string;
