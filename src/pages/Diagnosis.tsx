@@ -1,18 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import styled from 'styled-components';
 import { useNavigate } from 'react-router-dom';
 import BackButton from '../components/common/BackButton';
 import ProgressBar from '../components/common/ProgressBar';
+import { diagnosisQuestions } from '../config/diagnosisQuestions';
 
-// 샘플 진단 질문 리스트
-const questions = [
-  "최근 1주일 안에 포옹이나 스킨십을 했나요?",
-  "요즘 배우자와 대화할 때 감정이 통한다고 느끼시나요?",
-  "서로의 기분이나 일상에 관심을 표현하나요?",
-  "최근 배우자에게 고맙다고 표현한 적이 있나요?",
-  "마지막 스킨십 시도가 어색하거나 불편했나요?",
-  "요즘 배우자와 단둘이 보내는 시간이 있나요?"
-];
+const questions = diagnosisQuestions;
 
 const Container = styled.div`
   display: flex;
@@ -74,11 +67,12 @@ const ButtonContainer = styled.div`
   @media (max-width: 480px) {
     flex-direction: column;
     gap: 0.8rem;
+    align-items: center;
   }
 `;
 
-const Button = styled.button<{ isYes?: boolean }>`
-  padding: 1rem 3rem;
+const Button = styled.button<{ colorType: 'yes' | 'neutral' | 'no' }>`
+  padding: 1rem 2rem;
   border-radius: 30px;
   font-size: 1.1rem;
   font-weight: 500;
@@ -87,10 +81,12 @@ const Button = styled.button<{ isYes?: boolean }>`
   width: 100%;
   max-width: 200px;
   color: white;
-  background: ${({ isYes }) =>
-    isYes
+  background: ${({ colorType }) =>
+    colorType === 'yes'
       ? 'linear-gradient(to right, #FF69B4, #FF1493)'
-      : 'linear-gradient(to right, #4169E1, #0000CD)'};
+      : colorType === 'no'
+      ? 'linear-gradient(to right, #4169E1, #0000CD)'
+      : 'linear-gradient(to right, #888, #666)'};
   transition: transform 0.2s;
 
   &:hover {
@@ -105,22 +101,24 @@ const Button = styled.button<{ isYes?: boolean }>`
 const Diagnosis: React.FC = () => {
   const navigate = useNavigate();
   const [currentQuestion, setCurrentQuestion] = useState(0);
-  const [answers, setAnswers] = useState<string[]>([]);
+  const [answers, setAnswers] = useState<( "yes" | "no" | "neutral")[]>([]);
 
+  /* 테스트를 위해 임시 주석 처리
   useEffect(() => {
     if (localStorage.getItem('hasVisited') === 'true') {
       navigate('/welcome', { replace: true });
     }
   }, [navigate]);
+  */
 
-  const handleAnswer = (answer: string) => {
+  const handleAnswer = (answer: "yes" | "no" | "neutral") => {
     const newAnswers = [...answers, answer];
     setAnswers(newAnswers);
     if (currentQuestion < questions.length - 1) {
       setCurrentQuestion(currentQuestion + 1);
     } else {
       localStorage.setItem('hasVisited', 'true');
-      navigate('/diagnosis-result', { state: { answers: newAnswers } });
+      navigate('/diagnosis/result', { state: { answers: newAnswers } });
     }
   };
 
@@ -139,15 +137,18 @@ const Diagnosis: React.FC = () => {
 
       <QuestionCard>
         <Question>
-          {questions[currentQuestion]}
+          {questions[currentQuestion].text}
         </Question>
       </QuestionCard>
 
       <ButtonContainer>
-        <Button isYes onClick={() => handleAnswer("yes")}>
+        <Button colorType="yes" onClick={() => handleAnswer("yes")}>
           예
         </Button>
-        <Button onClick={() => handleAnswer("no")}>
+        <Button colorType="neutral" onClick={() => handleAnswer("neutral")}>
+          잘 모르겠다
+        </Button>
+        <Button colorType="no" onClick={() => handleAnswer("no")}>
           아니요
         </Button>
       </ButtonContainer>
