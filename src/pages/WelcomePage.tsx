@@ -311,8 +311,8 @@ const WelcomePage: React.FC = () => {
       const response = await axiosInstance.post('/auth/login', data);
       console.log('로그인 응답:', response.data);
       if (response.data.accessToken) {
-        console.log('setToken 호출:', response.data.accessToken, rememberMe);
-        setToken(response.data.accessToken, rememberMe);
+        console.log('setToken 호출:', response.data.accessToken);
+        setToken(response.data.accessToken);
         if (response.data.user) {
           console.log('setUser 호출:', response.data.user);
           setUser(response.data.user);
@@ -341,7 +341,7 @@ const WelcomePage: React.FC = () => {
           access_token: tokenResponse.access_token,
         });
         if (response.data.accessToken) {
-          setToken(response.data.accessToken, rememberMe);
+          setToken(response.data.accessToken);
           if (response.data.user) {
             setUser(response.data.user);
           }

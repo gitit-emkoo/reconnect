@@ -1,30 +1,45 @@
 import { create } from 'zustand';
 
 export interface Notification {
-  id: string;
+  id: number;
   message: string;
-  createdAt: string;
+  url: string;
   read: boolean;
-  link?: string;
 }
 
-interface NotificationState {
+export interface NotificationState {
   notifications: Notification[];
+  addNotification: (message: string, url: string) => void;
+  markAsRead: (id: number) => void;
+  markAllAsRead: () => void;
   hasUnread: boolean;
-  addNotification: (msg: string, link?: string) => void;
-  markAllRead: () => void;
 }
 
-export const useNotificationStore = create<NotificationState>((set) => ({
+const useNotificationStore = create<NotificationState>((set) => ({
   notifications: [],
   hasUnread: false,
-  addNotification: (msg, link) => set(state => {
-    const newNoti = { id: Date.now().toString(), message: msg, createdAt: new Date().toISOString(), read: false, link };
-    const notifications = [newNoti, ...state.notifications].slice(0, 10); // 최대 10개
-    return { notifications, hasUnread: true };
-  }),
-  markAllRead: () => set(state => ({
-    notifications: state.notifications.map(n => ({ ...n, read: true })),
-    hasUnread: false
-  }))
-})); 
+
+  addNotification: (message, url) => {
+    set((state) => ({
+      notifications: [...state.notifications, { id: Date.now(), message, url, read: false }],
+      hasUnread: true,
+    }));
+  },
+
+  markAsRead: (id) => {
+    set((state) => {
+      const notifications = state.notifications.map((n) => (n.id === id ? { ...n, read: true } : n));
+      const hasUnread = notifications.some((n) => !n.read);
+      return { notifications, hasUnread };
+    });
+  },
+
+  markAllAsRead: () => {
+    set((state) => ({
+      notifications: state.notifications.map((n) => ({ ...n, read: true })),
+      hasUnread: false,
+    }));
+  },
+}));
+
+export default useNotificationStore; 

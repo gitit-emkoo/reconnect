@@ -1,11 +1,8 @@
 // src/pages/EmotionCard.tsx (백엔드 연동 수정)
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect } from "react";
 import styled from "styled-components";
 import NavigationBar from "../components/NavigationBar";
-import BackButton from "../components/common/BackButton";
-import SubmitButton from "../components/common/SubmitButton";
 import ConfirmationModal from '../components/common/ConfirmationModal';
-import EmojiPicker, { EmojiStyle } from 'emoji-picker-react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { produce } from 'immer';
 import useAuthStore from '../store/authStore';
@@ -13,55 +10,13 @@ import axiosInstance from '../api/axios';
 import { User } from "../types/user";
 import PartnerRequiredModal from '../components/common/PartnerRequiredModal';
 import Popup from '../components/common/Popup';
-import { isTodayKST, formatInKST } from '../utils/date';
-import { useNotificationStore } from '../store/notificationsStore';
-import { useEmotionCardNotifications } from '../hooks/useEmotionCardNotifications';
-
-// 배열을 행 단위로 나누는 chunkCards 함수 추가
-function chunkCards<T>(array: T[], size: number): T[][] {
-  const result: T[][] = [];
-  for (let i = 0; i < array.length; i += size) {
-    result.push(array.slice(i, i + size));
-  }
-  return result;
-}
-
-// 아이콘 (SVG 등 사용 가능, 여기서는 텍스트로 대체)
-const SparkleIcon = () => <span style={{ marginRight: "0.5rem" }}>✨</span>;
-
-// 탭 UI 스타일
-const TabsContainer = styled.div`
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  margin-top: 2rem;
-  border-bottom: 2px solid #e5e7eb;
-  width: 100%;
-  max-width: 600px;
-`;
-const TabButton = styled.button<{ active: boolean }>`
-  flex: 1;
-  padding: 1rem 0;
-  background: none;
-  border: none;
-  border-bottom: 3px solid ${({ active }) => (active ? '#7C3AED' : 'transparent')};
-  color: ${({ active }) => (active ? '#7C3AED' : '#888')};
-  font-size: 1.1rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: color 0.2s, border-bottom 0.2s;
-`;
-const NewBadge = styled.span`
-  display: inline-block;
-  background: #ef4444;
-  color: #fff;
-  font-size: 0.6rem;
-  font-weight: 700;
-  border-radius: 8px;
-  padding: 2px 7px;
-  margin-left: 6px;
-  vertical-align: middle;
-`;
+import { formatInKST } from '../utils/date';
+// import { useNotificationStore } from '../store/notificationsStore';
+// import { useEmotionCardNotifications } from '../hooks/useEmotionCardNotifications';
+import EmotionCardHeader from "../components/emotioncard/EmotionCardHeader";
+import EmotionCardForm from "../components/emotioncard/EmotionCardForm";
+import EmotionCardList from "../components/emotioncard/EmotionCardList";
+import EmotionCardDetailModal from "../components/emotioncard/EmotionCardDetailModal";
 
 // SentMessage 타입 정의 (백엔드 응답 기준)
 export interface SentMessage {
@@ -84,40 +39,15 @@ const PageContainer = styled.div`
   display: flex;
   flex-direction: column;
   align-items: center; // 자식 요소들을 가로축 중앙 정렬 (PageHeaderContainer, ContentWrapper)
-  // justify-content: center; // 전체 페이지 세로 중앙 정렬은 일단 보류 (타이틀/백버튼 묶음을 상단에 가깝게)
   box-sizing: border-box; // 패딩과 테두리가 min-height에 포함되도록 설정
   overflow-y: auto; // 내용이 길어질 경우 세로 스크롤 허용
 `;
 
-// 뒤로가기 버튼과 페이지 타이틀을 묶는 컨테이너
-const PageHeaderContainer = styled.div`
-  display: flex;
-  align-items: center; // BackButton과 PageTitle을 세로 중앙 정렬
-  justify-content: center; // 내부 요소들을 가로 중앙에 배치 (타이틀 기준)
-  width: 100%; // PageContainer의 align-items:center에 의해 중앙 정렬되도록 너비 확보
-  max-width: 600px; // ContentWrapper와 동일한 최대 너비로 일관성 유지
-  margin-bottom: 1.5rem; // ContentWrapper와의 간격
-  position: relative; // BackButton을 왼쪽에 배치하기 위한 기준점
-`;
-
-const StyledBackButton = styled(BackButton)`
-  position: absolute; // PageHeaderContainer를 기준으로 절대 위치
-  left: 0; // 왼쪽에 배치
-  top: 50%; // 세로 중앙 정렬 시도
-  transform: translateY(-50%); // 세로 중앙 정렬 시도
-`;
-
-const PageTitle = styled.h2`
-  font-size: 1.75rem; // 기본 글씨 크기
-  font-weight: 600;
-  color: #2d3748;
+const ErrorMessage = styled.p`
+  color: #ef4444; // Tailwind red-500
+  font-size: 0.9rem;
+  margin-bottom: 1.5rem;
   text-align: center;
-  // margin-bottom 제거 (PageHeaderContainer에서 관리)
-  // PageHeaderContainer의 justify-content:center로 인해 중앙 정렬됨
-
-  @media (max-width: 768px) { // 모바일 화면 크기 (예: 768px 이하)
-    font-size: 1.2rem; // 모바일에서 글씨 크기 조정
-  }
 `;
 
 const ContentWrapper = styled.div`
@@ -128,193 +58,6 @@ const ContentWrapper = styled.div`
   width: 100%;
   max-width: 600px;
   margin-top: 1rem; // PageHeaderContainer와의 추가 간격 (선택 사항)
-`;
-
-const TextArea = styled.textarea`
-  width: 100%;
-  min-height: 150px; // 높이 증가
-  border-radius: 0.75rem;
-  padding: 1rem;
-  border: 1px solid #e2e8f0;
-  margin-bottom: 1.5rem;
-  font-size: 1rem;
-  color: #4a5568;
-  resize: vertical; // 세로 크기만 조절 가능
-
-  &:focus {
-    outline: none;
-    border-color: #3b82f6; // 프로젝트 주요 색상 (예시: blue-500)
-    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.3);
-  }
-`;
-
-const SuggestionContainer = styled.div`
-  background-color: #f0f9ff; // 연한 하늘색 배경 (예시: sky-50)
-  border: 1px solid #bae6fd; // 연한 하늘색 테두리 (예시: sky-200)
-  padding: 1.5rem;
-  border-radius: 0.75rem;
-  margin-bottom: 1.5rem;
-  color: #0c4a6e; // 어두운 하늘색 텍스트 (예시: sky-800)
-`;
-
-const SuggestionHeader = styled.p`
-  font-weight: 500;
-  margin-bottom: 0.75rem;
-  display: flex;
-  align-items: center;
-`;
-
-const SuggestionText = styled.p`
-  line-height: 1.6;
-  margin-bottom: 1rem;
-`;
-
-const ErrorMessage = styled.p`
-  color: #ef4444; // Tailwind red-500
-  font-size: 0.9rem;
-  margin-bottom: 1.5rem;
-  text-align: center;
-`;
-
-const ButtonGroup = styled.div`
-  display: flex;
-  gap: 1rem;
-  justify-content: flex-end; // 버튼 그룹을 오른쪽으로 정렬
-  align-items: center;
-  flex-wrap: wrap; // 너비가 부족할 경우 줄바꿈 (필요시)
-`;
-
-const TextButton = styled.button`
-  padding: 0.5rem 1rem;
-  border: none;
-  border-radius: 0.5rem;
-  cursor: pointer;
-  font-weight: 500;
-  font-size: 0.95rem;
-  background-color: transparent;
-  color: #3b82f6; // blue-500
-  transition: background-color 0.2s ease-in-out;
-
-  &:hover:not(:disabled) {
-    background-color: rgba(59, 130, 246, 0.1); // 연한 파란색 배경
-  }
-
-  &:disabled {
-    background-color: transparent;
-    color: #94a3b8; // Tailwind slate-400
-    cursor: not-allowed;
-  }
-`;
-
-// 카드 목록 및 모달을 위한 스타일 추가
-const SentCardsSection = styled.section`
-  width: 100%;
-  max-width: 600px;
-  margin: 0 auto;
-  margin-top: 2rem;
-`;
-
-const SentCardsTitle = styled.h3`
-  font-size: 1.25rem;
-  font-weight: 600;
-  color: #2d3748;
-  margin-bottom: 1rem;
-`;
-
-// 카드 겹치기 UI 스타일
-const CardGridWrapper = styled.div`
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-  align-items: start
-  margin-top: 1.5rem;
-  margin-left: 1rem;
-  
-`;
-const CardRow = styled.div`
-  display: flex;
-  min-height: 110px;
-  gap: 1rem;
-  width: 100%;
-`;
-const OverlapCard = styled.div<{ isHovered: boolean }>`
-  width: 70px;
-  height: 100px;
-  background: #fff;
-  border-radius: 12px;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.10);
-  margin-left: -22px;
-  z-index: ${({ isHovered }) => (isHovered ? 10 : 1)};
-  position: relative;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  border: 2px solid #e5e7eb;
-  transition: transform 0.18s, z-index 0.18s, box-shadow 0.18s;
-  transform: ${({ isHovered }) => (isHovered ? 'scale(1.15) translateY(-10px)' : 'none')};
-  box-shadow: ${({ isHovered }) => (isHovered ? '0 8px 24px rgba(0,0,0,0.18)' : '0 4px 12px rgba(0,0,0,0.10)')};
-`;
-const CardEmoji = styled.span`
-  font-size: 2.2rem;
-  margin-bottom: 0.2rem;
-`;
-const CardDate = styled.span`
-  font-size: 0.85rem;
-  color: #888;
-`;
-
-
-const ModalBackground = styled.div`
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background-color: rgba(0, 0, 0, 0.5);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  z-index: 1000; // NavigationBar보다 위에 오도록
-`;
-
-const ModalContent = styled.div`
-  background-color:     #ffffff;
-  padding: 1.5rem;
-  border-radius: 0.75rem;
-  width: 90%;
-  max-width: 500px;
-  box-shadow: 0 10px 25px -5px rgba(0,0,0,0.1), 0 10px 10px -5px rgba(0,0,0,0.04);
-  position: relative;
-
-  h4 {
-    font-size: 1.25rem;
-    font-weight: 600;
-    margin-bottom: 1rem;
-  }
-
-  p {
-    font-size: 1rem;
-    line-height: 1.6;
-    margin-bottom: 1.5rem;
-    white-space: pre-wrap; // 줄바꿈 유지
-  }
-`;
-
-const CloseButton = styled.button`
-  position: absolute;
-  top: 1rem;
-  right: 1rem;
-  background: transparent;
-  border: none;
-  font-size: 1.5rem;
-  cursor: pointer;
-  color: #4a5568;
-
-  &:hover {
-    color: #1a202c;
-  }
 `;
 
 const API_BASE_URL = "https://reconnect-backend.onrender.com/api";
@@ -329,48 +72,6 @@ export async function fetchReceivedMessages(): Promise<SentMessage[]> {
   const { data } = await axiosInstance.get("/emotion-cards/received");
   return data;
 }
-
-const FilterContainer = styled.div`
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 1.5rem;
-  padding: 0 0.5rem;
-  width: 100%;
-`;
-
-const Select = styled.select`
-  padding: 0.4rem 0.8rem;
-  border: 1px solid #e2e8f0;
-  border-radius: 0.5rem;
-  background-color: white;
-  font-size: 0.85rem;
-  color: #4a5568;
-  cursor: pointer;
-  min-width: 100px;
-  appearance: none;
-  background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
-  background-repeat: no-repeat;
-  background-position: right 0.5rem center;
-  background-size: 0.8em;
-  padding-right: 2rem;
-  
-  &:focus {
-    outline: none;
-    border-color: #7C3AED;
-    box-shadow: 0 0 0 2px rgba(124, 58, 237, 0.1);
-  }
-
-  &:hover {
-    border-color: #7C3AED;
-  }
-`;
-
-const FilterGroup = styled.div`
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-`;
 
 const EmotionCard: React.FC = () => {
   const queryClient = useQueryClient();
@@ -393,7 +94,6 @@ const EmotionCard: React.FC = () => {
   const [sortOrder, setSortOrder] = useState<'newest' | 'oldest'>('newest');
   const [tab, setTab] = useState<'sent' | 'received'>('sent');
   const [hoveredCard, setHoveredCard] = useState<string | null>(null);
-  const prevReceivedIds = useRef<string[] | null>(null);
 
   // 보낸 메시지 쿼리 (파트너 없으면 비활성화)
   const {
@@ -429,8 +129,8 @@ const EmotionCard: React.FC = () => {
     refetchInterval: 5000, // 5초마다 자동 갱신
   });
 
-  // 커스텀 훅 사용
-  useEmotionCardNotifications(receivedMessages);
+  // 커스텀 훅 사용 -> App.tsx로 이동
+  // useEmotionCardNotifications(receivedMessages);
 
   // 탭 전환 시 refetch
   useEffect(() => {
@@ -442,8 +142,6 @@ const EmotionCard: React.FC = () => {
   }, [tab, refetchReceived, refetchSent]);
   
   const [selectedMessage, setSelectedMessage] = useState<SentMessage | null>(null);
-  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
-  const CARDS_PER_ROW = 5;
 
   // === 필터링 추가 ===
   const filteredSentMessages = Array.isArray(sentMessages) ? sentMessages.filter(
@@ -453,27 +151,6 @@ const EmotionCard: React.FC = () => {
   const filteredReceivedMessages = Array.isArray(receivedMessages) ? receivedMessages.filter(
     (msg: SentMessage) => msg.senderId === partnerId && msg.receiverId === myId
   ) : [];
-
-  // 월별 필터링과 정렬을 위한 함수
-  const getFilteredAndSortedMessages = (messages: SentMessage[]) => {
-    return messages
-      .filter(msg => formatInKST(msg.createdAt, 'yyyy-MM') === selectedMonth)
-      .sort((a, b) => {
-        const dateA = new Date(a.createdAt).getTime();
-        const dateB = new Date(b.createdAt).getTime();
-        return sortOrder === 'newest' ? dateB - dateA : dateA - dateB;
-      });
-  };
-
-  // 사용 가능한 월 목록 생성 (최신순으로 정렬)
-  const getAvailableMonths = (messages: SentMessage[]) => {
-    const months = new Set(messages.map(msg => formatInKST(msg.createdAt, 'yyyy-MM')));
-    return Array.from(months).sort().reverse();
-  };
-
-  // 필터링된 메시지
-  const filteredAndSortedSentMessages = getFilteredAndSortedMessages(filteredSentMessages);
-  const filteredAndSortedReceivedMessages = getFilteredAndSortedMessages(filteredReceivedMessages);
 
   const postEmotionCard = async (data: { 
     text: string, 
@@ -581,7 +258,8 @@ const EmotionCard: React.FC = () => {
     setSelectedMessage(null);
   };
 
-  // 알림 처리 로직 추가
+  // 알림 처리 로직 추가 -> App.tsx로 이동하여 주석 처리
+  /*
   useEffect(() => {
     if (receivedMessages && receivedMessages.length > 0) {
       if (prevReceivedIds.current === null) {
@@ -596,16 +274,12 @@ const EmotionCard: React.FC = () => {
       prevReceivedIds.current = receivedMessages.map((msg: any) => msg.id);
     }
   }, [receivedMessages]);
-
-  // 모달에 표시될 날짜 포맷팅
-  const formattedDate = selectedMessage 
-    ? formatInKST(selectedMessage.createdAt, 'yyyy년 M월 d일 a h:mm') 
-    : '';
+  */
 
   if (sentError || receivedError) {
     return (
       <PageContainer style={{ textAlign: 'center', paddingTop: '4rem' }}>
-        <PageTitle>오류 발생</PageTitle>
+        <EmotionCardHeader title="오류 발생" />
         <ErrorMessage>
           데이터를 불러오는 중 오류가 발생했습니다.
           {sentError?.message || receivedError?.message}
@@ -617,10 +291,7 @@ const EmotionCard: React.FC = () => {
   if (!partnerId) {
     return (
       <PageContainer>
-        <PageHeaderContainer>
-          <StyledBackButton />
-          <PageTitle>오늘의 감정카드 작성</PageTitle>
-        </PageHeaderContainer>
+        <EmotionCardHeader title="오늘의 감정카드 작성" />
         <ContentWrapper>
           <ErrorMessage>파트너가 연결되어야 감정카드를 사용할 수 있습니다.</ErrorMessage>
         </ContentWrapper>
@@ -649,248 +320,46 @@ const EmotionCard: React.FC = () => {
       todayKey="emotioncard_popup"
     />
       <PageContainer>
-        <PageHeaderContainer>
-          <StyledBackButton /> {/* 스타일링된 BackButton 사용 */}
-          <PageTitle>오늘의 감정카드 작성</PageTitle>
-        </PageHeaderContainer>
+        <EmotionCardHeader title="오늘의 감정카드 작성" />
         
-        <ContentWrapper>
-          {/* 이모지 미리보기 및 선택 버튼 */}
-          <div style={{ display: 'flex', alignItems: 'center', marginBottom: '1rem', gap: '1rem' }}>
-            <span style={{ fontSize: '2rem', cursor: 'pointer' }} onClick={() => setShowEmojiPicker(v => !v)}>
-              {selectedEmoji ? selectedEmoji : '❤️'}
-            </span>
-            <button type="button" onClick={() => setShowEmojiPicker(v => !v)} style={{ border: '1px solid #eee', borderRadius: '8px', padding: '0.3rem 0.8rem', background: '#fafafa', cursor: 'pointer' }}>
-              {selectedEmoji ? '마음을 표현할 아이콘을 선택해 보세요' : '전하고 싶은 감정을 선택하세요'}
-            </button>
-          </div>
-          {showEmojiPicker && (
-            <div style={{ marginBottom: '1rem', zIndex: 100 }}>
-              <EmojiPicker
-                onEmojiClick={(emojiData) => {
-                  setSelectedEmoji(emojiData.emoji);
-                  setShowEmojiPicker(false);
-                }}
-                searchDisabled={false}
-                skinTonesDisabled={false}
-                width="100%"
-                height={350}
-                lazyLoadEmojis={true}
-                previewConfig={{ showPreview: false }}
-                emojiStyle={EmojiStyle.NATIVE}
-              />
-            </div>
-          )}
-          <TextArea
-            value={message}
-            onChange={(e) => setMessage(e.target.value)}
-            placeholder="오늘 느낀 감정을 파트너에게 전달해보세요. AI가 따뜻한 말로 다듬어 줄 거예요. 가능한 상황에 대해 자세히 써주시면 AI가 상황을 판단하고 더 자연스럽게 바꿔줄거에요."
-            disabled={isSuggesting || sendCardMutation.isPending}
-          />
-
-          {suggestionError && <ErrorMessage>{suggestionError}</ErrorMessage>}
-
-          {suggestion && (
-            <SuggestionContainer>
-              <SuggestionHeader>
-                <SparkleIcon /> AI 추천 메시지
-              </SuggestionHeader>
-              <SuggestionText>{suggestion}</SuggestionText>
-              <TextButton
-                onClick={applySuggestion}
-                disabled={isSuggesting || sendCardMutation.isPending}
-                style={{ alignSelf: "flex-start" }} // 왼쪽 정렬
-              >
-                이 내용 사용하기
-              </TextButton>
-            </SuggestionContainer>
-          )}
-
-          <ButtonGroup>
-            <SubmitButton 
-              onClick={handleSuggest} 
-              disabled={isSuggesting || sendCardMutation.isPending || message.trim().length === 0}
-              size="small"
-              width="150px"
-            >
-              {isSuggesting ? "AI가 다듬는 중..." : (suggestion ? "AI 다른 제안 보기" : "AI 말투 다듬기")}
-            </SubmitButton>
-            <SubmitButton 
-              onClick={() => setIsSubmitting(true)} 
-              disabled={sendCardMutation.isPending || isSuggesting || message.trim().length === 0}
-              size="small"
-              width="150px"
-            >
-              {sendCardMutation.isPending ? "전송 중..." : "보내기"}
-            </SubmitButton>
-          </ButtonGroup>
-        </ContentWrapper>
-
-        {/* === 탭 UI를 카드 리스트 위에 추가 === */}
-        <TabsContainer>
-          <TabButton active={tab === 'sent'} onClick={() => setTab('sent')}>
-            보낸 카드
-          </TabButton>
-          <TabButton active={tab === 'received'} onClick={() => setTab('received')}>
-            받은 카드
-            {/* 오늘 받은 메시지가 있으면 'TODAY' 배지 표시 */}
-            {Array.isArray(receivedMessages) && receivedMessages.some((msg) => isTodayKST(msg.createdAt)) && (
-              <NewBadge>TODAY</NewBadge>
-            )}
-          </TabButton>
-        </TabsContainer>
-
-        {/* 카드 목록: 이모지+날짜만 간단히 표시, 클릭 시 모달 */}
-        {tab === 'sent' && !isLoadingSent && filteredSentMessages.length > 0 && (
-          <SentCardsSection>
-            <SentCardsTitle>내가 보낸 감정 카드</SentCardsTitle>
-            <FilterContainer>
-              <FilterGroup>
-                <Select 
-                  value={selectedMonth} 
-                  onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setSelectedMonth(e.target.value)}
-                >
-                  {getAvailableMonths(filteredSentMessages).map(month => (
-                    <option key={month} value={month}>
-                      {month.replace('-', '년 ')}월
-                    </option>
-                  ))}
-                </Select>
-                <Select 
-                  value={sortOrder} 
-                  onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setSortOrder(e.target.value as 'newest' | 'oldest')}
-                >
-                  <option value="newest">최신순</option>
-                  <option value="oldest">오래된순</option>
-                </Select>
-              </FilterGroup>
-            </FilterContainer>
-            {chunkCards(filteredAndSortedSentMessages, CARDS_PER_ROW).map((row, rowIndex) => (
-              <CardGridWrapper key={rowIndex}>
-                <CardRow>
-                  {row.map((msg) => (
-                    <OverlapCard
-                      key={msg.id}
-                      onClick={() => openModal(msg)}
-                      onMouseEnter={() => setHoveredCard(msg.id)}
-                      onMouseLeave={() => setHoveredCard(null)}
-                      isHovered={hoveredCard === msg.id}
-                    >
-                      <CardEmoji>{msg.emoji}</CardEmoji>
-                      <CardDate>
-                        {formatInKST(msg.createdAt, 'MM.dd')}
-                      </CardDate>
-                    </OverlapCard>
-                  ))}
-                </CardRow>
-              </CardGridWrapper>
-            ))}
-          </SentCardsSection>
-        )}
-        {tab === 'sent' && !isLoadingSent && !suggestionError && filteredSentMessages.length === 0 && (
-          <SentCardsSection>
-            <SentCardsTitle>내가 보낸 감정 카드</SentCardsTitle>
-            <p>아직 작성한 카드가 없습니다.</p>
-          </SentCardsSection>
-        )}
-        {tab === 'received' && !isLoadingReceived && !receivedError && Array.isArray(filteredReceivedMessages) && filteredReceivedMessages.length === 0 && (
-          <SentCardsSection>
-            <SentCardsTitle>내가 받은 감정 카드</SentCardsTitle>
-            <p>아직 받은 카드가 없습니다.</p>
-          </SentCardsSection>
-        )}
-        {tab === 'received' && !isLoadingReceived && filteredReceivedMessages.length > 0 && (
-          <SentCardsSection>
-            <SentCardsTitle>파트너가 보낸 감정 카드</SentCardsTitle>
-            <FilterContainer>
-              <FilterGroup>
-                <Select 
-                  value={selectedMonth} 
-                  onChange={(e) => setSelectedMonth(e.target.value)}
-                >
-                  {getAvailableMonths(filteredReceivedMessages).map(month => (
-                    <option key={month} value={month}>
-                      {month.replace('-', '년 ')}월
-                    </option>
-                  ))}
-                </Select>
-                <Select 
-                  value={sortOrder} 
-                  onChange={(e) => setSortOrder(e.target.value as 'newest' | 'oldest')}
-                >
-                  <option value="newest">최신순</option>
-                  <option value="oldest">오래된순</option>
-                </Select>
-              </FilterGroup>
-            </FilterContainer>
-            {chunkCards(filteredAndSortedReceivedMessages, CARDS_PER_ROW).map((row, rowIndex) => (
-              <CardGridWrapper key={rowIndex}>
-                <CardRow>
-                  {row.map((msg) => (
-                    <OverlapCard
-                      key={msg.id}
-                      onClick={() => openModal(msg)}
-                      onMouseEnter={() => setHoveredCard(msg.id)}
-                      onMouseLeave={() => setHoveredCard(null)}
-                      isHovered={hoveredCard === msg.id}
-                    >
-                      {/* 오늘 받은 카드에만 'TODAY' 배지 추가 */}
-                      {isTodayKST(msg.createdAt) && (
-                        <NewBadge 
-                          style={{ 
-                            position: 'absolute', 
-                            top: '6px', 
-                            right: '6px', 
-                            fontSize: '0.5rem', 
-                            padding: '2px 4px' 
-                          }}
-                        >
-                          TODAY
-                        </NewBadge>
-                      )}
-                      <CardEmoji>{msg.emoji}</CardEmoji>
-                      <CardDate>
-                        {formatInKST(msg.createdAt, 'MM.dd')}
-                      </CardDate>
-                    </OverlapCard>
-                  ))}
-                </CardRow>
-              </CardGridWrapper>
-            ))}
-          </SentCardsSection>
-        )}
+        <EmotionCardForm
+            message={message}
+            setMessage={setMessage}
+            selectedEmoji={selectedEmoji}
+            setSelectedEmoji={setSelectedEmoji}
+            suggestion={suggestion}
+            suggestionError={suggestionError}
+            isSuggesting={isSuggesting}
+            isSubmitting={sendCardMutation.isPending}
+            onSuggest={handleSuggest}
+            onApplySuggestion={applySuggestion}
+            onSubmit={() => setIsSubmitting(true)}
+        />
+        
+        <EmotionCardList 
+            tab={tab}
+            setTab={setTab}
+            sentMessages={filteredSentMessages}
+            receivedMessages={filteredReceivedMessages}
+            isLoadingSent={isLoadingSent}
+            isLoadingReceived={isLoadingReceived}
+            openModal={openModal}
+            selectedMonth={selectedMonth}
+            setSelectedMonth={setSelectedMonth}
+            sortOrder={sortOrder}
+            setSortOrder={setSortOrder}
+            hoveredCard={hoveredCard}
+            setHoveredCard={setHoveredCard}
+        />
 
       </PageContainer>
 
-      {/* 카드 상세 모달: 이모지+내용 */}
       {selectedMessage && (
-        <ModalBackground onClick={closeModal}>
-          <ModalContent onClick={(e) => e.stopPropagation()}>
-            <CloseButton onClick={closeModal}>&times;</CloseButton>
-            <h4>{tab === 'sent' ? '내가 보낸 감정 카드' : '내가 받은 감정 카드'}</h4>
-            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginBottom: '1rem' }}>
-              <span style={{ fontSize: '2.5rem', marginBottom: '0.5rem' }}>{selectedMessage.emoji || '❤️'}</span>
-              <div
-                style={{
-                  maxHeight: '180px',
-                  overflowY: 'auto',
-                  marginBottom: '0.5rem',
-                  
-                  fontSize: '1.1rem',
-                  padding: '0.5rem 1rem 0rem',
-                  
-                  wordBreak: 'break-all',
-                  lineHeight: 1.6,
-                }}
-              >
-                {selectedMessage.text || selectedMessage.message || '-'}
-              </div>
-              <span style={{ color: '#888', fontSize: '0.95rem' }}>
-                {tab === 'sent' ? '보낸 시간' : '받은 시간'}: {formattedDate}
-              </span>
-            </div>
-          </ModalContent>
-        </ModalBackground>
+        <EmotionCardDetailModal 
+            selectedMessage={selectedMessage}
+            tab={tab}
+            closeModal={closeModal}
+        />
       )}
 
       <ConfirmationModal
@@ -912,6 +381,5 @@ const EmotionCard: React.FC = () => {
     </>
   );
 };
-
-// 토글로 보낸카드, 받은카드 리스트업 할수있게 하기. 
+ 
 export default EmotionCard;

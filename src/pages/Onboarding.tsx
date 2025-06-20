@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState} from "react";
 import { useNavigate } from "react-router-dom";
 import styled from "styled-components";
 import { useSwipeable } from "react-swipeable";
@@ -147,11 +147,13 @@ const Onboarding: React.FC = () => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const totalCards = 5;
 
+  /* 테스트를 위해 임시 주석 처리
   useEffect(() => {
     if (localStorage.getItem('hasVisited') === 'true') {
       navigate('/welcome', { replace: true });
     }
   }, [navigate]);
+  */
 
   const handlers = useSwipeable({
     onSwipedLeft: () => {

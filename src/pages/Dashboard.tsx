@@ -20,7 +20,7 @@ import PartnerConnectCard from '../components/Dashboard/PartnerConnectCard';
 import PartnerCard from '../components/Dashboard/PartnerCard';
 import InviteCodeInputModal from '../components/Invite/InviteCodeInputModal';
 import NotificationBell from '../components/NotificationBell';
-import { useNotificationStore } from '../store/notificationsStore';
+import useNotificationStore from '../store/notificationsStore';
 import ConfirmationModal from '../components/common/ConfirmationModal';
 import Popup from '../components/common/Popup';
 import { useQuery } from '@tanstack/react-query';
@@ -230,7 +230,7 @@ const Right = styled.div`
 
 const Dashboard: React.FC = () => {
   const navigate = useNavigate();
-  const { user, isLoggedIn, accessToken } = useAuthStore();
+  const { user, isLoading } = useAuthStore();
   const [isInviteModalOpen, setIsInviteModalOpen] = useState(false);
   const today = new Date();
   const todayStr = formatInKST(today, 'yyyyMMdd');
@@ -242,9 +242,6 @@ const Dashboard: React.FC = () => {
     queryFn: fetchDiaries
   });
   const todayString = formatInKST(today, 'yyyy-MM-dd');
-
-  // 로딩 상태를 isLoggedIn과 user 존재 여부로 판단
-  const isLoading = !isLoggedIn && !user && !!accessToken;
 
   const prevPartnerId = useRef(user?.partner?.id);
 
@@ -261,7 +258,7 @@ const Dashboard: React.FC = () => {
   // 2. 파트너 연결 알림
   useEffect(() => {
     if (user?.partner?.id && prevPartnerId.current !== user.partner.id) {
-      useNotificationStore.getState().addNotification('파트너가 연결되었습니다!');
+      useNotificationStore.getState().addNotification('파트너가 연결되었습니다!', '#');
       prevPartnerId.current = user.partner.id;
     }
   }, [user?.partner?.id]);

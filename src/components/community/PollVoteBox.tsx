@@ -35,16 +35,13 @@ const PollVoteBox: React.FC<PollVoteBoxProps> = React.memo(({ post, user }) => {
   // useMutation을 useMemo 없이 최상단에서 직접 호출
   const voteMutation = useMutation({
     mutationFn: async (choiceIdx: number) => {
+      const choiceValue = choiceIdx + 1; // 0, 1을 1, 2로 변환
       if (!userId) {
         throw new Error('로그인이 필요합니다.');
       }
-      if (myVote && myVote.choice === choiceIdx) {
-        await axiosInstance.delete(`/community/posts/${post.id}/vote`);
-        return { cancelled: true, choiceIdx };
-      } else {
-        await axiosInstance.post(`/community/posts/${post.id}/vote`, { choice: choiceIdx });
-        return { cancelled: false, choiceIdx };
-      }
+      // 백엔드 로직에 맞춰 투표 취소도 POST로 처리
+      await axiosInstance.post(`/community/posts/${post.id}/vote`, { choice: choiceValue });
+      return { choiceIdx };
     },
     onMutate: async (choiceIdx: number) => {
       if (!userId) return;
@@ -59,13 +56,15 @@ const PollVoteBox: React.FC<PollVoteBoxProps> = React.memo(({ post, user }) => {
           const existingVoteIndex = votes.findIndex((v: PollVote) => v.userId === userId);
 
           if (existingVoteIndex > -1) {
-            if (votes[existingVoteIndex].choice === choiceIdx) {
+            // 이미 투표한 경우: choice가 같으면 취소(splice), 다르면 변경
+            if (votes[existingVoteIndex].choice === choiceIdx + 1) { // 1, 2 기준으로 비교
               votes.splice(existingVoteIndex, 1);
             } else {
-              votes[existingVoteIndex].choice = choiceIdx;
+              votes[existingVoteIndex].choice = choiceIdx + 1; // 1, 2 기준으로 변경
             }
           } else {
-            votes.push({ userId, choice: choiceIdx });
+            // 첫 투표
+            votes.push({ userId, choice: choiceIdx + 1 }); // 1, 2 기준으로 추가
           }
           draft.poll.votes = votes;
         })
@@ -95,9 +94,9 @@ const PollVoteBox: React.FC<PollVoteBoxProps> = React.memo(({ post, user }) => {
   const renderVoteOptions = useMemo(() => 
     post.poll?.options.map((opt: string, idx: number) => {
       const totalVotes = localVotes.length;
-      const votesForOption = localVotes.filter((v: PollVote) => v.choice === idx).length;
+      const votesForOption = localVotes.filter((v: PollVote) => v.choice === idx + 1).length; // 1, 2 기준으로 필터링
       const percent = totalVotes > 0 ? Math.round((votesForOption / totalVotes) * 100) : 0;
-      const isMyChoice = myVote && myVote.choice === idx;
+      const isMyChoice = myVote && myVote.choice === idx + 1; // 1, 2 기준으로 비교
       
       return (
         <div key={idx} style={{ flex: 1, textAlign: 'center' }}>

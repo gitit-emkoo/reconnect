@@ -11,6 +11,10 @@ import useAuthStore from './store/authStore';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import LoadingSpinner from './components/common/LoadingSpinner';
 import ScrollToTop from './components/common/ScrollToTop';
+import { useChallengeNotifications } from './hooks/useChallengeNotifications';
+import { useEmotionCardNotifications } from './hooks/useEmotionCardNotifications';
+import { fetchReceivedMessages } from './pages/EmotionCard';
+import { useQuery } from '@tanstack/react-query';
 
 // 페이지 컴포넌트 임포트
 import WelcomePage from "./pages/WelcomePage";
@@ -50,6 +54,25 @@ import ContentAdmin from './pages/ContentAdmin';
 
 const queryClient = new QueryClient();
 
+// 알림 관련 훅을 관리하는 컴포넌트
+const NotificationHooks = () => {
+  const isAuthenticated = useAuthStore(state => state.isAuthenticated);
+
+  // 감정 카드 알림
+  const { data: receivedMessages } = useQuery({
+    queryKey: ['receivedMessagesForNotif'],
+    queryFn: fetchReceivedMessages,
+    enabled: isAuthenticated,
+    refetchInterval: 5000,
+  });
+  useEmotionCardNotifications(receivedMessages);
+
+  // 챌린지 알림
+  useChallengeNotifications();
+
+  return null; // 이 컴포넌트는 UI를 렌더링하지 않습니다.
+};
+
 const App = () => {
   const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
   const checkAuth = useAuthStore((state) => state.checkAuth);
@@ -71,6 +94,7 @@ const App = () => {
         <Router>
           <ScrollToTop />
           <GlobalStyle />
+          <NotificationHooks />
           <Routes>
             {/* 루트 경로를 웰컴 페이지로 변경 */}
             <Route path="/" element={<Onboarding />} />

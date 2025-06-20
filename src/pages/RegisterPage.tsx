@@ -249,7 +249,7 @@ const RegisterPage: React.FC = () => {
 
         const data = response.data;
         if (data.accessToken) {
-          setToken(data.accessToken, true);
+          setToken(data.accessToken);
         }
         if (data.user) {
           setUser(data.user);
