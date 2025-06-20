@@ -2,7 +2,6 @@ import React from 'react';
 import styled from 'styled-components';
 import { Challenge } from '../../api/challenge';
 import challengeApi from '../../api/challenge';
-import { useNotificationStore } from '../../store/notificationsStore';
 
 const Container = styled.div<{ status: 'inProgress' | 'completed' | 'noChallenge' }>`
   background: ${({ status }) => {
@@ -99,16 +98,12 @@ const CompleteButton = styled.button`
 `;
 
 const RemainingTime = styled.div`
-  font-size: 0.85rem;
-  color: #666;
+  font-size: 0.9rem;
+  color: #e74c3c;
+  font-weight: 500;
   margin-top: 1rem;
 `;
 
-const CompletionText = styled.div`
-  font-size: 1.1rem;
-  font-weight: 600;
-  color: #E64A8D;
-`;
 
 interface Props {
   challenge: Challenge | null;
@@ -119,7 +114,6 @@ interface Props {
 
 const ActiveChallenge: React.FC<Props> = ({ challenge, onComplete, isCurrentUserCompleted, isWeeklyCompleted }) => {
   const [isLoading, setIsLoading] = React.useState(false);
-  const addNotification = useNotificationStore(state => state.addNotification);
 
   const handleComplete = async () => {
     if (!challenge || isLoading || isCurrentUserCompleted) return;
@@ -127,7 +121,6 @@ const ActiveChallenge: React.FC<Props> = ({ challenge, onComplete, isCurrentUser
     try {
       setIsLoading(true);
       await challengeApi.completeChallenge(challenge.id);
-      addNotification('챌린지가 완료되었습니다! 🎉', '/challenge');
       onComplete();
     } catch (error) {
       console.error('챌린지 완료 처리 중 오류 발생:', error);
@@ -159,7 +152,8 @@ const ActiveChallenge: React.FC<Props> = ({ challenge, onComplete, isCurrentUser
   const end = new Date(challenge.endDate);
   const now = new Date();
   const diff = end.getTime() - now.getTime();
-  const remainingDays = Math.ceil(diff / (1000 * 60 * 60 * 24));
+  const remainingDays = Math.floor(diff / (1000 * 60 * 60 * 24));
+  const remainingHours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
 
   return (
     <Container status="inProgress">
@@ -171,17 +165,14 @@ const ActiveChallenge: React.FC<Props> = ({ challenge, onComplete, isCurrentUser
         <ProgressText>{progress}%</ProgressText>
       </ProgressContainer>
 
-      {isCurrentUserCompleted ? (
-        <CompletionText>파트너의 완료를 기다리는 중...</CompletionText>
-      ) : (
-        <CompleteButton onClick={handleComplete} disabled={isLoading}>
-          달성하기
-        </CompleteButton>
-      )}
-
       <RemainingTime>
-        {remainingDays > 0 ? `남은 기간: ${remainingDays}일` : '오늘 마감'}
+        챌린지 종료까지 {remainingDays > 0 ? `${remainingDays}일 ` : ''}
+        {remainingHours > 0 ? `${remainingHours}시간 남음` : (remainingDays <= 0 ? '곧 종료돼요!' : '남음')}
       </RemainingTime>
+      
+      <CompleteButton onClick={handleComplete} disabled={isLoading || isCurrentUserCompleted}>
+        {isLoading ? '처리 중...' : (isCurrentUserCompleted ? '파트너 기다리는 중' : '나의 챌린지 완료')}
+      </CompleteButton>
     </Container>
   );
 };
