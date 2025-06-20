@@ -1,5 +1,5 @@
 // src/pages/EmotionCard.tsx (백엔드 연동 수정)
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect } from "react";
 import styled from "styled-components";
 import NavigationBar from "../components/NavigationBar";
 import ConfirmationModal from '../components/common/ConfirmationModal';

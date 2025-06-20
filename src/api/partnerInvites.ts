@@ -22,8 +22,11 @@ export interface PartnerInvite {
 export const partnerInvitesApi = {
   // 초대 코드 생성
   createInviteCode: async (): Promise<PartnerInvite> => {
-    const accessToken = useAuthStore.getState().accessToken;
-    console.log('[partnerInvitesApi.createInviteCode] accessToken:', accessToken);
+    const token = useAuthStore.getState().token;
+    if (!token) {
+      throw new Error('No token found');
+    }
+    console.log('[partnerInvitesApi.createInviteCode] accessToken:', token);
     console.log('[partnerInvitesApi.createInviteCode] axiosInstance default headers:', axiosInstance.defaults.headers);
     try {
       const response = await axiosInstance.post<PartnerInvite>('/partner-invites');
@@ -37,8 +40,11 @@ export const partnerInvitesApi = {
 
   // 초대 코드로 응답
   respondToInvite: async (code: string): Promise<{ couple: any; invite: PartnerInvite }> => {
-    const accessToken = useAuthStore.getState().accessToken;
-    console.log('[partnerInvitesApi.respondToInvite] accessToken:', accessToken);
+    const token = useAuthStore.getState().token;
+    if (!token) {
+      throw new Error('No token found');
+    }
+    console.log('[partnerInvitesApi.respondToInvite] accessToken:', token);
     console.log('[partnerInvitesApi.respondToInvite] axiosInstance default headers:', axiosInstance.defaults.headers);
     try {
       const response = await axiosInstance.post<{ couple: any; invite: PartnerInvite }>('/partner-invites/respond', { code });
@@ -68,8 +74,11 @@ export const partnerInvitesApi = {
 
   // 내 초대 현황 조회
   getMyInvites: async (): Promise<PartnerInvite[]> => {
-    const accessToken = useAuthStore.getState().accessToken;
-    console.log('[partnerInvitesApi.getMyInvites] accessToken:', accessToken);
+    const token = useAuthStore.getState().token;
+    if (!token) {
+      throw new Error('No token found');
+    }
+    console.log('[partnerInvitesApi.getMyInvites] accessToken:', token);
     // axiosInstance의 Authorization 헤더 확인
     console.log('[partnerInvitesApi.getMyInvites] axiosInstance default headers:', axiosInstance.defaults.headers);
     try {

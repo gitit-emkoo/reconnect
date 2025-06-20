@@ -128,8 +128,8 @@ export const InviteModal: React.FC<InviteModalProps> = ({ onClose }) => {
     try {
       setIsLoading(true);
       // 콘솔: accessToken, useAuthStore 상태
-      const accessToken = useAuthStore.getState().accessToken;
-      console.log('[InviteModal] accessToken:', accessToken);
+      const token = useAuthStore.getState().token;
+      console.log('[InviteModal] token:', token);
       console.log('[InviteModal] useAuthStore:', useAuthStore.getState());
       // 콘솔: axiosInstance Authorization 헤더
       console.log('[InviteModal] axiosInstance default headers:', axiosInstance.defaults.headers);

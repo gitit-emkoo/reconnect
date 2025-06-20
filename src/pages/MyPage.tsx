@@ -113,7 +113,7 @@ const MyPage: React.FC = () => {
   const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
 
   // 토큰 체크는 Zustand의 token 사용
-  const token = useAuthStore((state) => state.accessToken);
+  const token = useAuthStore((state) => state.token);
   useEffect(() => {
     if (!token) {
       navigate('/login');

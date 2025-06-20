@@ -3,6 +3,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import axios from 'axios';
 import styled from 'styled-components';
 import useAuthStore from '../store/authStore';
+import { type User } from '../types/user';
 
 const Container = styled.div`
   display: flex;
@@ -28,8 +29,6 @@ const KakaoCallback: React.FC = () => {
     const handleKakaoCallback = async () => {
       const params = new URLSearchParams(location.search);
       const code = params.get('code');
-      const state = params.get('state'); // 'remember' or 'session'
-      const rememberMe = state === 'remember';
       
       console.log('현재 경로:', location.pathname);
       console.log('isRegister:', isRegister);
@@ -64,16 +63,37 @@ const KakaoCallback: React.FC = () => {
 
         const { data } = response;
         if (data.accessToken) {
-          setToken(data.accessToken, rememberMe);
+          setToken(data.accessToken);
           console.log('액세스 토큰 저장됨');
+          const user: User = {
+            id: data.userId || '',
+            email: data.userEmail || '',
+            nickname: data.userNickname,
+            provider: 'KAKAO',
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
+          };
+          setUser(user);
+          console.log('사용자 정보 저장됨');
+          navigate('/dashboard', { replace: true });
+        } else {
+          console.error('카카오 인증 상세 에러:', response.data);
+          if (axios.isAxiosError(response.data)) {
+            console.error('에러 응답:', response.data.response?.data);
+            console.error('에러 상태:', response.data.response?.status);
+            console.error('에러 헤더:', response.data.response?.headers);
+            
+            if (response.data.response?.status === 409) {
+              alert('이미 가입된 계정입니다. 로그인 페이지로 이동합니다.');
+              navigate('/login');
+              return;
+            }
+            alert(response.data.response?.data?.message || '카카오 인증 중 오류가 발생했습니다.');
+          } else {
+            alert('알 수 없는 오류가 발생했습니다.');
+          }
+          navigate('/login');
         }
-        if (data.userNickname) {
-          setUser({ nickname: data.userNickname });
-          console.log('사용자 닉네임 저장됨');
-        }
-
-        // 회원가입/로그인 성공 후 대시보드로 이동
-        navigate('/dashboard', { replace: true });
       } catch (error) {
         console.error('카카오 인증 상세 에러:', error);
         if (axios.isAxiosError(error)) {
