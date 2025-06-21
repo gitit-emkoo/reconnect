@@ -30,6 +30,7 @@ import { useEmotionCardNotifications } from '../hooks/useEmotionCardNotification
 import challengeApi, { Challenge } from '../api/challenge';
 import { scheduleApi, Schedule } from '../api/schedule';
 import { formatInKST } from '../utils/date';
+import { getLatestDiagnosisResult } from '../api/diagnosis';
 
 const Container = styled.div`
   padding: 1.5rem;
@@ -554,6 +555,14 @@ const Dashboard: React.FC = () => {
     fetchActiveChallenge();
   }, []);
 
+  const { data: latestDiagnosis } = useQuery({
+    queryKey: ['latestDiagnosis', user?.id],
+    queryFn: getLatestDiagnosisResult,
+    enabled: !!user, // 사용자가 있을 때만 쿼리 실행
+  });
+
+  const percentage = latestDiagnosis?.score ?? 0; // 진단 결과가 있으면 score, 없으면 0
+
   return (
     <>
       <Container>
@@ -564,7 +573,7 @@ const Dashboard: React.FC = () => {
 
         <TopSection>
           <Left>
-            <HeartGauge percentage={76} size={120} />
+            <HeartGauge percentage={percentage} size={120} />
           </Left>
           <Right>
             <WelcomeUserSection user={user as User} heartPercent={76} emotion="포근한 햇살" />

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import styled from 'styled-components';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -223,6 +223,8 @@ const CheckboxLabel = styled.label`
 
 const RegisterPage: React.FC = () => {
   const navigate = useNavigate();
+  const location = useLocation();
+  const diagnosisId = location.state?.diagnosisId;
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isChecked, setIsChecked] = useState(false);
@@ -238,7 +240,10 @@ const RegisterPage: React.FC = () => {
         const backendUrl = import.meta.env.VITE_APP_API_URL || 'http://localhost:3000';
         const response = await axios.post(
           `${backendUrl}/auth/google/register`,
-          { access_token: tokenResponse.access_token },
+          { 
+            access_token: tokenResponse.access_token,
+            diagnosisId,
+          },
           { 
             headers: {
               'Content-Type': 'application/json',
@@ -281,32 +286,28 @@ const RegisterPage: React.FC = () => {
   });
 
   const handleKakaoRegister = () => {
-    window.location.href = getKakaoRegisterUrl();
+    const kakaoUrl = getKakaoRegisterUrl();
+    window.location.href = `${kakaoUrl}${diagnosisId ? `&state=${diagnosisId}` : ''}`;
   };
 
   const onSubmit = async (data: RegisterFormData) => {
     if (!isChecked) {
-      alert("모든 약관에 동의해주세요.");
+      alert('필수 약관에 동의해주세요.');
       return;
     }
     try {
+      const { confirmPassword, ...registerData } = data;
       const backendUrl = import.meta.env.VITE_APP_API_URL || 'http://localhost:3000';
-      console.log("백엔드 URL:", backendUrl);
-      console.log("전송할 데이터:", { email: data.email, nickname: data.nickname, password: data.password });
-      
-      const requestUrl = `${backendUrl}/api/auth/register`;
-      console.log("전체 요청 URL:", requestUrl);
-
-      const response = await axios.post(requestUrl, {
-        email: data.email,
-        nickname: data.nickname,
-        password: data.password,
-      }, {
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        withCredentials: true,
-      });
+      const response = await axios.post(
+        `${backendUrl}/api/auth/register`,
+        { ...registerData, diagnosisId },
+        {
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          withCredentials: true,
+        }
+      );
 
       console.log("회원가입 성공:", response.data);
       alert("회원가입이 완료되었습니다!");

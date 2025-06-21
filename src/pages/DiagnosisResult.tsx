@@ -1,8 +1,9 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import styled from "styled-components";
+import axios from "../api/axios";
 import BackButton from '../components/common/BackButton';
-import ActionButton from '../components/common/ActionButton';
+// import ActionButton from '../components/common/ActionButton';
 import { diagnosisQuestions, MAX_SCORE } from "../config/diagnosisQuestions";
 
 const Container = styled.div`
@@ -29,14 +30,6 @@ const ImageSection = styled.div`
   }
 `;
 
-const ActionButtons = styled.div`
-  position: absolute;
-  top: 20px;
-  right: 20px;
-  display: flex;
-  gap: 1rem;
-  z-index: 10;
-`;
 
 const ContentSection = styled.div`
   padding: 2rem 1.5rem;
@@ -126,6 +119,25 @@ const Description = styled.p`
   margin: 2rem 0;
   font-size: 0.95rem;
   white-space: pre-line;
+`;
+
+const ActionButton = styled.button`
+  width: 100%;
+  padding: 1rem;
+  border: none;
+  border-radius: 30px;
+  background: #3b82f6;
+  color: white;
+  font-size: 1.1rem;
+  font-weight: 500;
+  cursor: pointer;
+  margin-top: 1rem;
+  margin-bottom: 0.5rem;
+  transition: transform 0.2s;
+
+  &:hover {
+    transform: translateY(-2px);
+  }
 `;
 
 const InviteButton = styled.button`
@@ -234,73 +246,101 @@ const calculatePercentageRank = (userScore: number) => {
   return Math.round(percentile);
 };
 
+interface DiagnosisResultData {
+  id: string;
+  score: number;
+  resultType: string;
+  createdAt: string;
+}
+
 const DiagnosisResult: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
+  const [diagnosisResult, setDiagnosisResult] = useState<DiagnosisResultData | null>(null);
   
-  // 예외 처리: location.state 또는 location.state.answers가 없을 경우
   if (!location.state?.answers) {
-    // 경고 메시지를 보여주고 진단 페이지로 리디렉션
     alert("진단 결과가 없습니다. 진단 페이지로 돌아갑니다.");
     navigate('/diagnosis', { replace: true });
-    return null; // 리디렉션 후 렌더링 중단
+    return null;
   }
 
   const answers: string[] = location.state.answers;
 
+  // 올바른 점수 계산 로직으로 수정
   const totalScore = answers.reduce((score, answer, index) => {
     const question = diagnosisQuestions[index];
-    if (question && answer in question.scores) {
-      return score + question.scores[answer as 'yes' | 'neutral' | 'no'];
+    // '예', '잘 모르겠다', '아니요'에 해당하는 키로 변환
+    const answerKey = answer === '예' ? 'yes' : answer === '잘 모르겠다' ? 'neutral' : 'no';
+    
+    if (question && answerKey in question.scores) {
+      return score + question.scores[answerKey as 'yes' | 'neutral' | 'no'];
     }
     return score;
   }, 0);
 
-  const temperature = Math.round((totalScore / MAX_SCORE) * 100);
-  const result = getResultByTemperature(temperature);
-  const percentageRank = calculatePercentageRank(temperature);
+  const score = Math.round((totalScore / MAX_SCORE) * 100);
+  const result = getResultByTemperature(score);
+  const rankPercentage = calculatePercentageRank(score);
 
-  const handleLike = () => {
-    // TODO: Implement like functionality
-    console.log('Like clicked');
+  useEffect(() => {
+    const saveResult = async () => {
+      if (score === null || !result.title) return;
+
+      try {
+        const response = await axios.post('/diagnosis', {
+          score,
+          resultType: result.title,
+        });
+        setDiagnosisResult(response.data);
+      } catch (error) {
+        console.error("진단 결과 저장에 실패했습니다.", error);
+      }
+    };
+
+    saveResult();
+  }, [score, result.title]);
+
+  const handleRegister = () => {
+    if (diagnosisResult) {
+      navigate('/register', { state: { diagnosisId: diagnosisResult.id } });
+    } else {
+      alert("진단 결과를 저장 중입니다. 잠시 후 다시 시도해주세요.");
+    }
   };
 
-  const handleDownload = () => {
-    // TODO: Implement download functionality
-    console.log('Download clicked');
+  const handleShare = () => {
+    alert("공유 기능은 현재 준비 중입니다.");
   };
 
   return (
     <Container>
-      <StyledBackButton />
-      <ActionButtons>
-        <ActionButton type="like" onClick={handleLike} />
-        <ActionButton type="download" onClick={handleDownload} />
-      </ActionButtons>
+      <StyledBackButton onClick={() => navigate(-1)} />
       <ImageSection>
-        <img src={result.image} alt="Temperature illustration" />
+        <img src={result.image} alt={result.title} />
       </ImageSection>
       
       <ContentSection>
         <Title>{result.title}</Title>
         <TemperatureBar>
           <TopSection>
-            <TemperatureText>우리 지금 이대로 괜찮은걸까...</TemperatureText>
-            <TemperatureValue>
-              {temperature}<span>℃</span>
-            </TemperatureValue>
+            <TemperatureText>나의 관계 온도</TemperatureText>
+            <TemperatureValue>{score}<span>°C</span></TemperatureValue>
           </TopSection>
-          <TemperatureMeter temperature={temperature} />
+          <TemperatureMeter temperature={score} />
         </TemperatureBar>
         
         <PercentageText>
-          우리 부부는 평균 부부의 <span>상위 {percentageRank}%</span>에 속해있습니다.
+          우리의 관계는 상위 <span>{rankPercentage}%</span>
         </PercentageText>
         
         <Description>{result.description}</Description>
 
-        <InviteButton onClick={() => navigate('/welcome')}>
-          확인
+        <ActionButton onClick={handleRegister}>
+          이 결과로 회원가입하고 더 알아보기
+        </ActionButton>
+
+        <InviteButton onClick={handleShare}>
+          파트너에게 결과 공유하기
         </InviteButton>
       </ContentSection>
     </Container>
