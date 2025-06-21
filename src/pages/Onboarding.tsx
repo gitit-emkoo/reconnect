@@ -1,4 +1,4 @@
-import React, { useState} from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import styled from "styled-components";
 import { useSwipeable } from "react-swipeable";
@@ -112,13 +112,6 @@ const Card = styled.div<{ $index: number }>`
   user-select: none;
 `;
 
-const ButtonContainer = styled.div`
-  width: 100%;
-  padding: 1rem;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-`;
 
 const StartButton = styled.button`
   background: linear-gradient(to right, #FF69B4, #8A2BE2);
@@ -142,18 +135,30 @@ const StartButton = styled.button`
   }
 `;
 
+const DotsContainer = styled.div`
+  display: flex;
+  justify-content: center;
+  margin-top: 1rem;
+`;
+
+const Dot = styled.div<{ $isActive: boolean }>`
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background-color: ${({ $isActive }) => ($isActive ? '#FF69B4' : '#808080')};
+  margin: 0 5px;
+`;
+
 const Onboarding: React.FC = () => {
   const navigate = useNavigate();
   const [currentIndex, setCurrentIndex] = useState(0);
   const totalCards = 5;
 
-  /* 테스트를 위해 임시 주석 처리
   useEffect(() => {
     if (localStorage.getItem('hasVisited') === 'true') {
       navigate('/welcome', { replace: true });
     }
   }, [navigate]);
-  */
 
   const handlers = useSwipeable({
     onSwipedLeft: () => {
@@ -166,12 +171,12 @@ const Onboarding: React.FC = () => {
         setCurrentIndex(prev => prev - 1);
       }
     },
-    trackMouse: false,
-    trackTouch: true,
-    preventScrollOnSwipe: true,
-    delta: 10,
-    swipeDuration: 500,
+    trackMouse: true,
   });
+
+  const handleStart = () => {
+    navigate('/diagnosis');
+  };
 
   const handleCardClick = (direction: 'left' | 'right') => {
     if (direction === 'left' && currentIndex > 0) {
@@ -181,20 +186,15 @@ const Onboarding: React.FC = () => {
     }
   };
 
-  const handleStart = () => {
-    localStorage.setItem('hasVisited', 'true');
-    navigate("/diagnosis");
-  };
-
   return (
-    <Container>
+    <Container {...handlers}>
       <Header>
         <Title>지금 당신의 관계 괜찮으신가요?</Title>
         <Subtitle>우리 부부, 어느 순간부터 대화를 놓쳤을지도 몰라요</Subtitle>
       </Header>
 
-      <CardsContainer {...handlers}>
-        {[...Array(totalCards)].map((_, index) => (
+      <CardsContainer>
+        {Array.from({ length: totalCards }).map((_, index) => (
           <CardWrapper
             key={index}
             $index={index}
@@ -203,17 +203,23 @@ const Onboarding: React.FC = () => {
             onClick={() => handleCardClick(index > currentIndex ? 'right' : 'left')}
           >
             <Card $index={index}>
-              이미지{index + 1}
+              {index === 0 && <img src="/images/img1.jpg" alt="Onboarding 1" />}
+              {index === 1 && <img src="/images/img2.jpg" alt="Onboarding 2" />}
+              {index === 2 && <img src="/images/img3.jpg" alt="Onboarding 3" />}
+              {index === 3 && <img src="/images/img4.jpg" alt="Onboarding 4" />}
+              {index === 4 && <img src="/images/img5.jpg" alt="Onboarding 5" />}
             </Card>
           </CardWrapper>
         ))}
       </CardsContainer>
 
-      <ButtonContainer>
-        <StartButton onClick={handleStart}>
-          지금 시작하기
-        </StartButton>
-      </ButtonContainer>
+      <DotsContainer>
+        {Array.from({ length: totalCards }).map((_, index) => (
+          <Dot key={index} $isActive={index === currentIndex} />
+        ))}
+      </DotsContainer>
+      
+      <StartButton onClick={handleStart}>시작하기</StartButton>
     </Container>
   );
 };

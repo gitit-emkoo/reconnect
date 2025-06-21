@@ -5,6 +5,9 @@ import { useEffect, useState } from 'react';
 import Popup from '../components/common/Popup';
 import NavigationBar from '../components/NavigationBar';
 import { formatInKST } from '../utils/date';
+import { useQuery } from '@tanstack/react-query';
+import { getLatestDiagnosisResult } from '../api/diagnosis';
+import useAuthStore from "../store/authStore";
 
 const Container = styled.div`
   background-color: #f9fafb;
@@ -82,7 +85,14 @@ const DiagnosisButton = styled(CTA)`
 `;
 
 const Report: React.FC = () => {
-  const relationTemp = 37.2;
+  const { user } = useAuthStore();
+  const { data: latestDiagnosis } = useQuery({
+    queryKey: ['latestDiagnosis', user?.id],
+    queryFn: getLatestDiagnosisResult,
+    enabled: !!user,
+  });
+
+  const relationTemp = latestDiagnosis?.score ?? 0;
   const emotionShares = 4;
   const missionCount = 2;
   const navigate = useNavigate();
