@@ -226,14 +226,16 @@ const PostWritePage: React.FC = () => {
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         
+        const isPoll = selectedCategoryName === '찬반토론';
         const safeTags = Array.isArray(tags) ? tags : [];
         const postData: any = {
           title: editorTitle,
           content: editorContent,
           categoryId,
           tags: safeTags,
+          isPollCategory: isPoll,
         };
-        if (selectedCategoryName === '찬반토론') {
+        if (isPoll) {
           postData.poll = {
             question: pollQuestion,
             options: pollOptions.map(opt => opt.option),
