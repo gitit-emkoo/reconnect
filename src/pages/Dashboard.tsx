@@ -9,6 +9,7 @@ import useAuthStore from "../store/authStore"; // AuthContext 대신 useAuthStor
 import { InviteModal } from "../components/Invite/InviteModal";
 import DashboardCalendar from "../components/Dashboard/DashboardCalendar"; // 새로 추가된 캘린더 컴포넌트
 import WelcomeUserSection from "../components/Dashboard/WelcomeUserSection"; // 새로 추가 // 새로 추가
+import logoImage from '../assets/Logo.png'; // 로고 이미지 import
 
 import type { User } from "../types/user"; // types/user.ts 에서 User 타입 import
 import iconCard from '../assets/love-letter_14299289.png';
@@ -47,7 +48,7 @@ const Header = styled.div`
 `;
 
 const Logo = styled.img`
-  width: 120px;
+  width: 180px;
   height: auto;
 `;
 
@@ -299,7 +300,6 @@ const Dashboard: React.FC = () => {
     </CenteredContainer>
   );
   
-  const logoUrl = '/images/reconnect.png';
 
   const partner = user.partner;
 
@@ -563,11 +563,15 @@ const Dashboard: React.FC = () => {
 
   const percentage = latestDiagnosis?.score ?? 0; // 진단 결과가 있으면 score, 없으면 0
 
+  if (isLoading) {
+    return <div>로딩 중...</div>;
+  }
+
   return (
     <>
       <Container>
         <Header>
-          <Logo src={logoUrl} alt="Reconnect Logo" />
+          <Logo src={logoImage} alt="리커넥트 로고" />
           <NotificationBell />
         </Header>
 

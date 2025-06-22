@@ -11,6 +11,7 @@ import useAuthStore, { type AuthState } from '../store/authStore';
 import { useGoogleLogin } from '@react-oauth/google';
 import { getKakaoLoginUrl } from '../utils/socialAuth';
 import MainImg from '../assets/MainImg.png';
+import logoImage from '../assets/Logo.png';
 
 
 const Container = styled.div`
@@ -24,7 +25,7 @@ const Container = styled.div`
 `;
 
 const Logo = styled.img`
-  width: 130px;
+  width: 180px;
   height: auto;
   margin-bottom: 1.5rem;
 `;
@@ -287,7 +288,6 @@ const SocialLoginButton: React.FC<{
 const WelcomePage: React.FC = () => {
   const navigate = useNavigate();
   const [imageLoaded, setImageLoaded] = useState(false);
-  const [logoLoaded, setLogoLoaded] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState<string>('');
   const [googleError, setGoogleError] = useState<string>('');
@@ -376,12 +376,7 @@ const WelcomePage: React.FC = () => {
 
   return (
     <Container>
-      <Logo 
-        src="/images/reconnect.png" 
-        alt="Reconnect" 
-        onLoad={() => setLogoLoaded(true)}
-        style={{ opacity: logoLoaded ? 1 : 0, transition: 'opacity 0.3s' }}
-      />
+      <Logo src={logoImage} alt="리커넥트 로고" />
       <IllustrationWrapper>
         <img 
           src={MainImg} 
