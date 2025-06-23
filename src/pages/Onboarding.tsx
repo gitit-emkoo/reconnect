@@ -2,6 +2,12 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import styled from "styled-components";
 import { useSwipeable } from "react-swipeable";
+import Onboarding1 from "../assets/Onboarding_1.png";
+import Onboarding2 from "../assets/Onboarding_2.png";
+import Onboarding3 from "../assets/Onboarding_3.png";
+import Onboarding4 from "../assets/Onboarding_4.png";
+import Onboarding5 from "../assets/Onboarding_5.png";
+import Onboarding6 from "../assets/Onboarding_6.png";
 
 const Container = styled.div`
   display: flex;
@@ -88,33 +94,21 @@ const CardWrapper = styled.div<{ $index: number; $currentIndex: number; $total: 
   }
 `;
 
-const Card = styled.div<{ $index: number }>`
+const Card = styled.div<{ $imageUrl: string }>`
   width: 100%;
   height: 100%;
-  background: ${({ $index }) => {
-    const colors = [
-      'linear-gradient(135deg, #FF9A9E, #FAD0C4)',
-      'linear-gradient(135deg, #A8EDEA, #FED6E3)',
-      'linear-gradient(135deg, #D4FC79, #96E6A1)',
-      'linear-gradient(135deg, #E2B0FF, #9F44D3)',
-      'linear-gradient(135deg, #FFE985, #FA742B)'
-    ];
-    return colors[$index];
-  }};
+  background-image: url(${({ $imageUrl }) => $imageUrl});
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
   border-radius: 20px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 1.5rem;
-  color: #333;
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
   cursor: pointer;
   user-select: none;
 `;
 
-
 const StartButton = styled.button`
-  background: linear-gradient(to right, #FF69B4, #8A2BE2);
+  background: linear-gradient(to right, #ff69b4, #8a2be2);
   color: white;
   padding: 1rem 3rem;
   border-radius: 30px;
@@ -149,10 +143,19 @@ const Dot = styled.div<{ $isActive: boolean }>`
   margin: 0 5px;
 `;
 
+const onboardingSlides = [
+  { image: Onboarding1 },
+  { image: Onboarding2 },
+  { image: Onboarding3 },
+  { image: Onboarding4 },
+  { image: Onboarding5 },
+  { image: Onboarding6 },
+];
+
 const Onboarding: React.FC = () => {
   const navigate = useNavigate();
   const [currentIndex, setCurrentIndex] = useState(0);
-  const totalCards = 5;
+  const totalCards = onboardingSlides.length;
 
   useEffect(() => {
     if (localStorage.getItem('hasVisited') === 'true') {
@@ -194,7 +197,7 @@ const Onboarding: React.FC = () => {
       </Header>
 
       <CardsContainer>
-        {Array.from({ length: totalCards }).map((_, index) => (
+        {onboardingSlides.map((slide, index) => (
           <CardWrapper
             key={index}
             $index={index}
@@ -202,13 +205,7 @@ const Onboarding: React.FC = () => {
             $total={totalCards}
             onClick={() => handleCardClick(index > currentIndex ? 'right' : 'left')}
           >
-            <Card $index={index}>
-              {index === 0 && <img src="/images/img1.jpg" alt="Onboarding 1" />}
-              {index === 1 && <img src="/images/img2.jpg" alt="Onboarding 2" />}
-              {index === 2 && <img src="/images/img3.jpg" alt="Onboarding 3" />}
-              {index === 3 && <img src="/images/img4.jpg" alt="Onboarding 4" />}
-              {index === 4 && <img src="/images/img5.jpg" alt="Onboarding 5" />}
-            </Card>
+            <Card $imageUrl={slide.image} />
           </CardWrapper>
         ))}
       </CardsContainer>
