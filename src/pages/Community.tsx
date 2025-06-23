@@ -2,7 +2,7 @@
 import React, { useState } from "react";
 import type { KeyboardEvent } from "react";
 import styled from "styled-components";
-import { Link, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import NavigationBar from "../components/NavigationBar";
 import axiosInstance from "../api/axios"; // 우리 백엔드용 axios 인스턴스
 import LeftActive from '../assets/DirectionLeftActive.svg?url';
@@ -206,7 +206,7 @@ const FABContainer = styled.div`
   z-index: 10;
 `;
 
-const FABButton = styled.div`
+const FABButton = styled(Link)`
   background: linear-gradient(90deg, #FF69B4 0%, #8A2BE2 100%);
   color: white;
   width: 56px;
@@ -265,7 +265,6 @@ const fetchCategories = async (): Promise<PostCategory[]> => {
 
 
 const Community: React.FC = () => {
-  const navigate = useNavigate();
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [activeSearch, setActiveSearch] = useState('');
@@ -380,8 +379,8 @@ const Community: React.FC = () => {
           </>
         )}
         
-        <FABContainer onClick={() => navigate('/community/write')}>
-          <FABButton>
+        <FABContainer>
+          <FABButton to="/community/write">
             <img src={WriteIcon} alt="글쓰기" width="24" />
           </FABButton>
         </FABContainer>
