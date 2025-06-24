@@ -1,10 +1,11 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import styled from "styled-components";
 import axios from "../api/axios";
 import BackButton from '../components/common/BackButton';
 // import ActionButton from '../components/common/ActionButton';
 import { diagnosisQuestions, MAX_SCORE } from "../config/diagnosisQuestions";
+import useAuthStore from '../store/authStore';
 
 const Container = styled.div`
   display: flex;
@@ -255,7 +256,8 @@ const AVERAGE_TEMPERATURE = 61;
 const DiagnosisResult: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const { token } = useAuthStore();
+  const isLoggedIn = !!token;
   
   if (!location.state?.answers) {
     useEffect(() => {
@@ -282,37 +284,27 @@ const DiagnosisResult: React.FC = () => {
   const result = getResultByTemperature(temperature);
 
   useEffect(() => {
-    const checkLoginStatus = async () => {
-      const token = localStorage.getItem('token');
-      setIsLoggedIn(!!token);
-    };
-
-    checkLoginStatus();
-  }, []);
-  
-  useEffect(() => {
     const saveResult = async () => {
-      const token = localStorage.getItem('token');
-      if (token) {
+      if (isLoggedIn) {
         try {
-          await axios.post('/diagnosis', { score: temperature, resultType: result.title }, {
-            headers: { Authorization: `Bearer ${token}` }
-          });
+          await axios.post('/diagnosis', { score: temperature, resultType: result.title });
         } catch (error) {
           console.error("진단 결과 저장 실패:", error);
         }
+      } else {
+        localStorage.setItem('diagnosisResult', JSON.stringify({ score: temperature, createdAt: new Date().toISOString() }));
       }
     };
     saveResult();
-  }, [temperature, result.title]);
+  }, [isLoggedIn, temperature, result.title]);
 
   const temperatureDifference = temperature - AVERAGE_TEMPERATURE;
   const comparisonText =
     temperatureDifference > 0
-      ? `평균 관계온도 보다 ${temperatureDifference}도 높은 결과입니다`
+      ? `우리 커플의 관계는 평균보다 ${temperatureDifference}도 높은 온도입니다`
       : temperatureDifference < 0
-      ? `평균 관계온도 보다 ${Math.abs(temperatureDifference)}도 낮은 결과입니다`
-      : "평균 관계온도와 같은 결과입니다";
+      ? `우리 커플의 관계는 평균보다 ${Math.abs(temperatureDifference)}도 낮은 온도입니다`
+      : "우리 커플의 관계는 평균과 같은 온도입니다";
 
   const handleNextStep = () => {
     // 비회원일 때 진단 결과를 state에 담아 로그인 페이지로 전달

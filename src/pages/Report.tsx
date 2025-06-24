@@ -92,7 +92,7 @@ const Report: React.FC = () => {
     enabled: !!user,
   });
 
-  const relationTemp = latestDiagnosis?.score ?? 0;
+  const relationTemp = latestDiagnosis?.score ?? 36.5;
   const emotionShares = 4;
   const missionCount = 2;
   const navigate = useNavigate();
