@@ -9,10 +9,10 @@ interface ProtectedRouteProps {
 
 const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
   const user = useAuthStore((state) => state.user);
-  const isLoading = false;
+  const isLoading = useAuthStore((state) => state.isLoading);
 
   if (isLoading) {
-    return <LoadingSpinner size={48} />;
+    return <LoadingSpinner fullscreen size={48} />;
   }
 
   if (!user) {

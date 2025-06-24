@@ -16,4 +16,6 @@ export const diagnosisQuestions: Question[] = [
   { text: "요즘 배우자와 단둘이 보내는 시간이 있나요?", scores: { yes: 2, neutral: 1, no: 0 } }
 ];
 
-export const MAX_SCORE = diagnosisQuestions.length * 2; 
+export const MAX_SCORE = diagnosisQuestions.reduce((max, q) => {
+  return max + Math.max(q.scores.yes, q.scores.neutral, q.scores.no);
+}, 0); 

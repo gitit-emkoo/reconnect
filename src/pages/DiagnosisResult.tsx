@@ -36,11 +36,23 @@ const ContentSection = styled.div`
   margin-top: -20px;
 `;
 
+const TitleContainer = styled.div`
+  display: flex;
+  align-items: center;
+  margin-bottom: 1.5rem;
+`;
+
+const Icon = styled.img`
+  width: 28px;
+  height: 28px;
+  margin-right: 12px;
+`;
+
 const Title = styled.h1`
   font-size: 1.8rem;
   font-weight: bold;
   color: #333;
-  margin-bottom: 1.5rem;
+  margin-bottom: 0;
 `;
 
 const TemperatureBar = styled.div`
@@ -102,9 +114,10 @@ const TemperatureMeter = styled.div<{ temperature: number }>`
 
 const PercentageText = styled.p`
   text-align: center;
-  font-size: 1.1rem;
+  font-size: 1rem;
   color: #333;
-  margin-bottom: 2rem;
+  margin-top: 0.8rem;
+  margin-bottom: 1.2rem;
 
   span {
     color: #FF69B4;
@@ -113,12 +126,19 @@ const PercentageText = styled.p`
 `;
 
 const Description = styled.p`
-  text-align: center;
   color: #666;
   line-height: 1.6;
   margin: 2rem 0;
   font-size: 0.95rem;
   white-space: pre-line;
+`;
+
+const LoginText = styled.p`
+ 
+  color: #777;
+  line-height: 1.6;
+  font-size: 0.8rem;
+  
 `;
 
 const ActionButton = styled.button`
@@ -178,42 +198,42 @@ const StyledBackButton = styled(BackButton)`
 // 온도에 따른 결과 데이터
 const resultData = {
   100: {
-    title: "♥ 완전 연결",
+    title: "완전 연결",
     description: "두 분의 관계는 뜨겁게 연결되어 있어요. 서로에 대한 이해와 애정이 충만합니다. 지금처럼만 유지할 수 있도록, 리커넥트를 통해 서로의 감정을 주기적으로 확인해보세요.",
     image: "/images/img1.jpg"
   },
   90: {
-    title: "□ 거의 이상적",
+    title: "거의 이상적",
     description: "거의 모든 영역에서 건강한 관계를 유지 중이에요. 감사 표현이나 소소한 챌린지를 리커넥트를 통해 함께 해보세요. 관계는 더 깊어질 수 있어요.",
     image: "/images/img2.jpg"
   },
   80: {
-    title: "□ 안정적인 유대",
+    title: "안정적인 유대",
     description: "서로를 향한 신뢰가 잘 유지되고 있어요. 리커넥트를 통해 감정 카드나 감정 캘린더를 함께 작성해보세요. 더 많은 대화가 열릴 거예요.",
     image: "/images/img3.jpg"
   },
   70: {
-    title: "□ 일상적인 연결",
+    title: "일상적인 연결",
     description: "큰 문제는 없지만 감정 표현이 줄었을 수 있어요. 리커넥트를 통해 '감사 노트'를 작성하거나 챌린지를 시작해보세요. 작지만 중요한 변화가 생길 거예요.",
     image: "/images/img4.jpg"
   },
   60: {
-    title: "□ 무심한 평온",
+    title: "무심한 평온",
     description: "관계는 유지되지만 정서적 활력이 줄어들고 있어요. 리커넥트를 통해 대화 주제를 던지거나 감정 퀴즈로 공감대를 되살려보세요.",
     image: "/images/img5.jpg"
   },
   50: {
-    title: "□ 어색한 거리감",
+    title: "어색한 거리감",
     description: "감정 표현이나 소통이 어색해진 상태예요. 리커넥트를 통해 부담 없이 감정 카드를 주고받으며 자연스럽게 대화를 회복해보세요.",
     image: "/images/img6.jpg"
   },
   40: {
-    title: "□ 감정적 단절",
+    title: "감정적 단절",
     description: "정서적 거리감이 커지고 있어요. 리커넥트로 작은 교류를 시작하거나 전문가 연결 기능을 통해 회복의 첫걸음을 떼어보세요.",
     image: "/images/img1.jpg" // Placeholder
   },
   0: {
-    title: "※ 정서적 냉각기",
+    title: "정서적 냉각기",
     description: "지금은 서로의 마음이 닫혀 있는 상태예요. 혼자 고민하지 말고, 리커넥트를 통해 상담사 매칭이나 감정일기로 정서 회복을 시작해보세요.",
     image: "/images/img2.jpg" // Placeholder
   }
@@ -230,86 +250,97 @@ const getResultByTemperature = (temp: number) => {
   return resultData[0];
 };
 
-// 가상 평균 데이터 (80명 기준, 평균 점수 하향 조정)
-const virtualScores = [
-  95, 91, 88, 85, 82, 80, 78, 77, 75, 75, 72, 71, 70, 70, 69, 68, 67, 66, 65, 65, 
-  64, 63, 62, 61, 60, 60, 59, 58, 57, 56, 55, 55, 54, 53, 52, 51, 50, 50, 49, 48, 
-  47, 46, 45, 44, 43, 42, 41, 40, 40, 39, 38, 37, 36, 35, 34, 33, 32, 31, 30, 29, 
-  28, 27, 26, 25, 24, 23, 22, 21, 20, 18, 17, 15, 14, 12, 11, 10, 8, 6, 5
-];
-
-// 사용자의 점수가 상위 몇 퍼센트인지 계산하는 함수
-const calculatePercentageRank = (userScore: number) => {
-  const totalPopulation = virtualScores.length + 1;
-  const rank = virtualScores.filter(score => score > userScore).length + 1;
-  const percentile = (rank / totalPopulation) * 100;
-  return Math.round(percentile);
-};
-
-interface DiagnosisResultData {
-  id: string;
-  score: number;
-  resultType: string;
-  createdAt: string;
-}
+const AVERAGE_TEMPERATURE = 61;
 
 const DiagnosisResult: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const [diagnosisResult, setDiagnosisResult] = useState<DiagnosisResultData | null>(null);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
   
   if (!location.state?.answers) {
-    alert("진단 결과가 없습니다. 진단 페이지로 돌아갑니다.");
-    navigate('/diagnosis', { replace: true });
-    return null;
+    useEffect(() => {
+      navigate('/diagnosis', { replace: true });
+    }, [navigate]);
+    return null; 
   }
 
-  const answers: string[] = location.state.answers;
+  const { answers } = location.state;
 
-  // 올바른 점수 계산 로직으로 수정
-  const totalScore = answers.reduce((score, answer, index) => {
+  let totalScore = 0;
+  answers.forEach((answer: 'yes' | 'no' | 'unknown', index: number) => {
     const question = diagnosisQuestions[index];
-    // '예', '잘 모르겠다', '아니요'에 해당하는 키로 변환
-    const answerKey = answer === '예' ? 'yes' : answer === '잘 모르겠다' ? 'neutral' : 'no';
-    
-    if (question && answerKey in question.scores) {
-      return score + question.scores[answerKey as 'yes' | 'neutral' | 'no'];
+    if (answer === 'yes') {
+      totalScore += question.scores.yes;
+    } else if (answer === 'no') {
+      totalScore += question.scores.no;
+    } else {
+      totalScore += question.scores.neutral;
     }
-    return score;
-  }, 0);
+  });
 
-  const score = Math.round((totalScore / MAX_SCORE) * 100);
-  const result = getResultByTemperature(score);
-  const rankPercentage = calculatePercentageRank(score);
+  const temperature = Math.round((totalScore / MAX_SCORE) * 100);
+  const result = getResultByTemperature(temperature);
 
   useEffect(() => {
-    const saveResult = async () => {
-      if (score === null || !result.title) return;
-
-      try {
-        const response = await axios.post('/diagnosis', {
-          score,
-          resultType: result.title,
-        });
-        setDiagnosisResult(response.data);
-      } catch (error) {
-        console.error("진단 결과 저장에 실패했습니다.", error);
-      }
+    const checkLoginStatus = async () => {
+      const token = localStorage.getItem('token');
+      setIsLoggedIn(!!token);
     };
 
+    checkLoginStatus();
+  }, []);
+  
+  useEffect(() => {
+    const saveResult = async () => {
+      const token = localStorage.getItem('token');
+      if (token) {
+        try {
+          await axios.post('/diagnosis', { score: temperature, resultType: result.title }, {
+            headers: { Authorization: `Bearer ${token}` }
+          });
+        } catch (error) {
+          console.error("진단 결과 저장 실패:", error);
+        }
+      }
+    };
     saveResult();
-  }, [score, result.title]);
+  }, [temperature, result.title]);
 
-  const handleRegister = () => {
-    if (diagnosisResult) {
-      navigate('/register', { state: { diagnosisId: diagnosisResult.id } });
-    } else {
-      alert("진단 결과를 저장 중입니다. 잠시 후 다시 시도해주세요.");
-    }
+  const temperatureDifference = temperature - AVERAGE_TEMPERATURE;
+  const comparisonText =
+    temperatureDifference > 0
+      ? `평균 관계온도 보다 ${temperatureDifference}도 높은 결과입니다`
+      : temperatureDifference < 0
+      ? `평균 관계온도 보다 ${Math.abs(temperatureDifference)}도 낮은 결과입니다`
+      : "평균 관계온도와 같은 결과입니다";
+
+  const handleNextStep = () => {
+    // 비회원일 때 진단 결과를 state에 담아 로그인 페이지로 전달
+    navigate('/login', { state: { answers } });
   };
 
-  const handleShare = () => {
-    alert("공유 기능은 현재 준비 중입니다.");
+  const handleShare = async () => {
+    const shareUrl = `${window.location.origin}/diagnosis`;
+
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: '리커넥트: 우리 관계 진단하기',
+          text: '우리 관계의 온도를 확인해볼까? 지금 바로 관계 진단을 시작해보세요!',
+          url: shareUrl,
+        });
+      } catch (error) {
+        console.error('공유 기능 에러:', error);
+      }
+    } else {
+      try {
+        await navigator.clipboard.writeText(shareUrl);
+        alert('진단 링크가 클립보드에 복사되었어요. 파트너에게 공유해주세요!');
+      } catch (err) {
+        console.error('클립보드 복사 실패:', err);
+        alert('링크 복사에 실패했습니다.');
+      }
+    }
   };
 
   return (
@@ -320,28 +351,39 @@ const DiagnosisResult: React.FC = () => {
       </ImageSection>
       
       <ContentSection>
-        <Title>{result.title}</Title>
+        <TitleContainer>
+          <Icon src="/images/favicon.png" alt="icon" />
+          <Title>{result.title}</Title>
+        </TitleContainer>
         <TemperatureBar>
           <TopSection>
-            <TemperatureText>나의 관계 온도</TemperatureText>
-            <TemperatureValue>{score}<span>°C</span></TemperatureValue>
+            <TemperatureText>우리의 관계 온도</TemperatureText>
+            <TemperatureValue>{temperature}<span>°C</span></TemperatureValue>
           </TopSection>
-          <TemperatureMeter temperature={score} />
+          <TemperatureMeter temperature={temperature} />
         </TemperatureBar>
         
         <PercentageText>
-          우리의 관계는 상위 <span>{rankPercentage}%</span>
+          {comparisonText}
         </PercentageText>
         
         <Description>{result.description}</Description>
 
-        <ActionButton onClick={handleRegister}>
-          이 결과로 회원가입하고 더 알아보기
-        </ActionButton>
-
-        <InviteButton onClick={handleShare}>
-          파트너에게 결과 공유하기
-        </InviteButton>
+        {!isLoggedIn ? (
+          <>
+            <ActionButton onClick={handleNextStep}>
+              상세리포트 보러가기기
+            </ActionButton>
+            <LoginText>이벤트 기간 나의 결혼생활 정밀진단 무료제공<br/>(10만원 상당)</LoginText>
+            <InviteButton onClick={handleShare}>
+              파트너에게 테스트 요청하기
+            </InviteButton>
+          </>
+        ) : (
+          <InviteButton onClick={handleShare}>
+            파트너에게 테스트 요청하기
+          </InviteButton>
+        )}
       </ContentSection>
     </Container>
   );

@@ -380,8 +380,8 @@ const Community: React.FC = () => {
         )}
         
         <FABContainer>
-          <FABButton to="/community/write">
-            <img src={WriteIcon} alt="글쓰기" width="24" />
+          <FABButton to="/community/new">
+            <img src={WriteIcon} alt="글쓰기" width="24" height="24" />
           </FABButton>
         </FABContainer>
 

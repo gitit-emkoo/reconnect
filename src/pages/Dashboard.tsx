@@ -24,6 +24,7 @@ import NotificationBell from '../components/NotificationBell';
 import useNotificationStore from '../store/notificationsStore';
 import ConfirmationModal from '../components/common/ConfirmationModal';
 import Popup from '../components/common/Popup';
+import LoadingSpinner from '../components/common/LoadingSpinner';
 import { useQuery } from '@tanstack/react-query';
 import { fetchDiaries } from '../api/diary';
 import { fetchSentMessages, fetchReceivedMessages, SentMessage } from './EmotionCard';
@@ -234,6 +235,7 @@ const Dashboard: React.FC = () => {
   const navigate = useNavigate();
   const { user, isLoading } = useAuthStore();
   const [isInviteModalOpen, setIsInviteModalOpen] = useState(false);
+  const [showDiscardModal, setShowDiscardModal] = useState(false);
   const today = new Date();
   const todayStr = formatInKST(today, 'yyyyMMdd');
   const todayKey = 'main_dashboard_popup';
@@ -244,6 +246,14 @@ const Dashboard: React.FC = () => {
     queryFn: fetchDiaries
   });
   const todayString = formatInKST(today, 'yyyy-MM-dd');
+
+  useEffect(() => {
+    const shouldShowModal = sessionStorage.getItem('showDiagnosisDiscardedModal');
+    if (shouldShowModal) {
+      setShowDiscardModal(true);
+      sessionStorage.removeItem('showDiagnosisDiscardedModal');
+    }
+  }, []);
 
   const prevPartnerId = useRef(user?.partner?.id);
 
@@ -563,8 +573,8 @@ const Dashboard: React.FC = () => {
 
   const percentage = latestDiagnosis?.score ?? 0; // 진단 결과가 있으면 score, 없으면 0
 
-  if (isLoading) {
-    return <div>로딩 중...</div>;
+  if (isLoading || !user) {
+    return <LoadingSpinner />;
   }
 
   return (
@@ -706,6 +716,17 @@ const Dashboard: React.FC = () => {
       />
       {/* 일정 등록 모달 */}
       {renderScheduleModal()}
+      {showDiscardModal && (
+        <ConfirmationModal
+          isOpen={showDiscardModal}
+          onRequestClose={() => setShowDiscardModal(false)}
+          title="진단 결과 안내"
+          message="새로운 진단 결과는 저장되지 않았어요. 기존에 저장된 부부의 온도가 유지됩니다."
+          onConfirm={() => setShowDiscardModal(false)}
+          showCancelButton={false}
+          confirmButtonText="확인"
+        />
+      )}
     </>
   );
 };

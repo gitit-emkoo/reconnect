@@ -17,6 +17,7 @@ import EmotionCardHeader from "../components/emotioncard/EmotionCardHeader";
 import EmotionCardForm from "../components/emotioncard/EmotionCardForm";
 import EmotionCardList from "../components/emotioncard/EmotionCardList";
 import EmotionCardDetailModal from "../components/emotioncard/EmotionCardDetailModal";
+import axios from 'axios';
 
 // SentMessage 타입 정의 (백엔드 응답 기준)
 export interface SentMessage {
@@ -59,8 +60,6 @@ const ContentWrapper = styled.div`
   max-width: 600px;
   margin-top: 1rem; // PageHeaderContainer와의 추가 간격 (선택 사항)
 `;
-
-const API_BASE_URL = "https://reconnect-backend.onrender.com/api";
 
 // (fetchSentMessages, fetchReceivedMessages 함수 수정)
 export async function fetchSentMessages(): Promise<SentMessage[]> {
@@ -217,24 +216,23 @@ const EmotionCard: React.FC = () => {
     setSuggestionError('');
     setSuggestion(null);
     try {
-      const token = localStorage.getItem('accessToken');
-      const response = await fetch(`${API_BASE_URL}/emotion-cards/refine-text`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          ...(token ? { 'Authorization': `Bearer ${token}` } : {})
-        },
-        body: JSON.stringify({ text: message }),
+      const response = await axiosInstance.post('/emotion-cards/refine-text', {
+        text: message
       });
-      if (!response.ok) {
-        let errorMessageText = 'AI 제안을 가져오는데 실패했습니다.';
-        try { const errorData = await response.json(); errorMessageText = errorData.message || errorMessageText; } catch (e) {}
-        throw new Error(errorMessageText);
+
+      if (!response.data || !response.data.refinedText) {
+        throw new Error('AI 제안을 가져오는데 실패했습니다.');
       }
-      const data = await response.json();
-      setSuggestion(data.refinedText);
+      
+      setSuggestion(response.data.refinedText);
     } catch (err) {
-      if (err instanceof Error) { setSuggestionError(err.message); } else { setSuggestionError("AI 제안 중 알 수 없는 오류 발생"); }
+      if (axios.isAxiosError(err) && err.response) {
+        setSuggestionError(err.response.data.message || "AI 제안 중 오류가 발생했습니다.");
+      } else if (err instanceof Error) {
+        setSuggestionError(err.message);
+      } else {
+        setSuggestionError("AI 제안 중 알 수 없는 오류 발생");
+      }
       setSuggestion(null);
     } finally {
       setIsSuggesting(false);

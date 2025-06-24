@@ -10,7 +10,7 @@ interface DiagnosisResult {
 
 export const getLatestDiagnosisResult = async (): Promise<DiagnosisResult | null> => {
   try {
-    const response = await authAxios.get<DiagnosisResult>('/diagnosis/latest');
+    const response = await authAxios.get<DiagnosisResult>('/diagnosis/my-latest');
     return response.data;
   } catch (error) {
     console.error('Failed to fetch latest diagnosis result:', error);

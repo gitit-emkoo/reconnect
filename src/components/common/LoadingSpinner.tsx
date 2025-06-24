@@ -6,11 +6,11 @@ const spin = keyframes`
   100% { transform: rotate(360deg); }
 `;
 
-const SpinnerWrapper = styled.div<{ fullscreen?: boolean }>`
+const SpinnerWrapper = styled.div<{ $fullscreen?: boolean }>`
   display: flex;
   justify-content: center;
   align-items: center;
-  ${props => props.fullscreen && `
+  ${props => props.$fullscreen && `
     position: fixed;
     top: 0;
     left: 0;
@@ -31,7 +31,7 @@ const Spinner = styled.div<{ size: number }>`
 `;
 
 const LoadingSpinner: React.FC<{ size?: number; fullscreen?: boolean }> = ({ size = 40, fullscreen = true }) => (
-  <SpinnerWrapper fullscreen={fullscreen}>
+  <SpinnerWrapper $fullscreen={fullscreen}>
     <Spinner size={size} />
   </SpinnerWrapper>
 );

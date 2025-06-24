@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState} from "react";
 import { useNavigate } from "react-router-dom";
 import styled from "styled-components";
 import { useSwipeable } from "react-swipeable";
@@ -12,6 +12,7 @@ import Onboarding6 from "../assets/Onboarding_6.png";
 const Container = styled.div`
   display: flex;
   flex-direction: column;
+  align-items: center;
   justify-content: space-between;
   min-height: 100vh;
   background: #0A1B3D;
@@ -47,6 +48,7 @@ const Subtitle = styled.p`
 
 const CardsContainer = styled.div`
   position: relative;
+  width: 100%;
   height: 400px;
   margin: 2rem 0;
   touch-action: pan-y pinch-zoom;
@@ -125,6 +127,7 @@ const StartButton = styled.button`
   }
 
   @media (min-width: 768px) {
+  margin-top:2rem;
     width: 400px;
   }
 `;
@@ -133,6 +136,7 @@ const DotsContainer = styled.div`
   display: flex;
   justify-content: center;
   margin-top: 1rem;
+  margin-bottom: 2rem;
 `;
 
 const Dot = styled.div<{ $isActive: boolean }>`
@@ -157,11 +161,11 @@ const Onboarding: React.FC = () => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const totalCards = onboardingSlides.length;
 
-  useEffect(() => {
-    if (localStorage.getItem('hasVisited') === 'true') {
-      navigate('/welcome', { replace: true });
-    }
-  }, [navigate]);
+  // useEffect(() => {
+  //   if (localStorage.getItem('hasVisited') === 'true') {
+  //     navigate('/welcome', { replace: true });
+  //   }
+  // }, [navigate]);
 
   const handlers = useSwipeable({
     onSwipedLeft: () => {
