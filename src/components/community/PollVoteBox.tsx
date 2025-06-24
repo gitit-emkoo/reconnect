@@ -32,14 +32,12 @@ const PollVoteBox: React.FC<PollVoteBoxProps> = React.memo(({ post, user }) => {
     [userId, localVotes]
   );
 
-  // useMutation을 useMemo 없이 최상단에서 직접 호출
   const voteMutation = useMutation({
     mutationFn: async (choiceIdx: number) => {
-      const choiceValue = choiceIdx + 1; // 0, 1을 1, 2로 변환
+      const choiceValue = choiceIdx + 1;
       if (!userId) {
         throw new Error('로그인이 필요합니다.');
       }
-      // 백엔드 로직에 맞춰 투표 취소도 POST로 처리
       await axiosInstance.post(`/community/posts/${post.id}/vote`, { choice: choiceValue });
       return { choiceIdx };
     },
@@ -52,19 +50,19 @@ const PollVoteBox: React.FC<PollVoteBoxProps> = React.memo(({ post, user }) => {
       queryClient.setQueryData(['post', post.id], (old: any) =>
         produce(old, (draft: Draft<Post>) => {
           if (!draft.poll) return;
+
+          const choiceValue = choiceIdx + 1;
           let votes = draft.poll.votes || [];
           const existingVoteIndex = votes.findIndex((v: PollVote) => v.userId === userId);
 
           if (existingVoteIndex > -1) {
-            // 이미 투표한 경우: choice가 같으면 취소(splice), 다르면 변경
-            if (votes[existingVoteIndex].choice === choiceIdx + 1) { // 1, 2 기준으로 비교
+            if (votes[existingVoteIndex].choice === choiceValue) {
               votes.splice(existingVoteIndex, 1);
             } else {
-              votes[existingVoteIndex].choice = choiceIdx + 1; // 1, 2 기준으로 변경
+              votes[existingVoteIndex].choice = choiceValue;
             }
           } else {
-            // 첫 투표
-            votes.push({ userId, choice: choiceIdx + 1 }); // 1, 2 기준으로 추가
+            votes.push({ userId, choice: choiceValue });
           }
           draft.poll.votes = votes;
         })
@@ -90,16 +88,15 @@ const PollVoteBox: React.FC<PollVoteBoxProps> = React.memo(({ post, user }) => {
     voteMutation.mutate(choiceIdx);
   }, [user, voteMutation]);
 
-  // 투표 옵션 렌더링 최적화
   const renderVoteOptions = useMemo(() => 
-    post.poll?.options.map((opt: string, idx: number) => {
+    post.poll?.options.map((opt, idx) => {
       const totalVotes = localVotes.length;
-      const votesForOption = localVotes.filter((v: PollVote) => v.choice === idx + 1).length; // 1, 2 기준으로 필터링
+      const votesForOption = localVotes.filter((v: PollVote) => v.choice === idx + 1).length;
       const percent = totalVotes > 0 ? Math.round((votesForOption / totalVotes) * 100) : 0;
-      const isMyChoice = myVote && myVote.choice === idx + 1; // 1, 2 기준으로 비교
+      const isMyChoice = myVote && myVote.choice === idx + 1;
       
       return (
-        <div key={idx} style={{ flex: 1, textAlign: 'center' }}>
+        <div key={opt.id} style={{ flex: 1, textAlign: 'center' }}>
           <button
             onClick={() => handleVote(idx)}
             style={{
@@ -116,7 +113,7 @@ const PollVoteBox: React.FC<PollVoteBoxProps> = React.memo(({ post, user }) => {
               transition: 'all 0.2s',
             }}
           >
-            {opt}
+            {opt.text}
             {isMyChoice && <span style={{ marginLeft: 8, fontSize: '0.95rem', color: '#388e3c' }}>(내 선택)</span>}
           </button>
           <div style={{ height: 12, background: '#e0e0e0', borderRadius: 6, overflow: 'hidden', marginBottom: 4 }}>

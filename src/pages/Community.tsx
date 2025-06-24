@@ -21,7 +21,7 @@ interface PostAuthor {
 
 interface PostCategory {
   id: string;
-  name: string;
+  name: string | { text: string };
 }
 
 interface Post {
@@ -249,12 +249,20 @@ const PaginationText = styled.span`
   font-weight: 600;
 `;
 
+const getCategoryName = (name: string | { text: string }): string => {
+  return typeof name === 'string' ? name : name.text;
+};
+
 // Fetch functions
 const fetchPosts = async (categoryId: string | null, search: string, page: number, limit: number): Promise<PostsResponse> => {
-  const params: { categoryId?: string; search?: string; page: number; limit: number } = { page, limit };
-  if (categoryId) params.categoryId = categoryId;
-  if (search) params.search = search;
-  const { data } = await axiosInstance.get('/community/posts', { params });
+  const params = new URLSearchParams({
+    page: String(page),
+    limit: String(limit),
+  });
+  if (categoryId) params.append('categoryId', categoryId);
+  if (search) params.append('search', search);
+
+  const { data } = await axiosInstance.get(`/community/posts?${params.toString()}`);
   return data;
 };
 
@@ -263,29 +271,31 @@ const fetchCategories = async (): Promise<PostCategory[]> => {
   return data;
 };
 
-
 const Community: React.FC = () => {
-  const [activeCategory, setActiveCategory] = useState<string | null>(null);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [activeSearch, setActiveSearch] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
-  const POSTS_PER_PAGE = 20;
+  const [searchTerm, setSearchTerm] = useState('');
+  const [searchQuery, setSearchQuery] = useState('');
+  const limit = 10;
 
-  const { data: postsData, isLoading: isPostsLoading, error: postsError } = useQuery({
-    queryKey: ['posts', activeCategory, activeSearch, currentPage],
-    queryFn: () => fetchPosts(activeCategory, activeSearch, currentPage, POSTS_PER_PAGE),
-    placeholderData: (previousData) => previousData,
-  });
-
-  const { data: categories, isLoading: isCategoriesLoading, error: categoriesError } = useQuery({
+  const { data: categories, isLoading: isCategoriesLoading } = useQuery({
     queryKey: ['categories'],
-    queryFn: fetchCategories,
+    queryFn: fetchCategories
   });
+
+  const { data: postsData, isLoading: isPostsLoading } = useQuery({
+    queryKey: ['posts', selectedCategory, searchQuery, currentPage],
+    queryFn: () => fetchPosts(selectedCategory, searchQuery, currentPage, limit),
+  });
+
+  const posts = postsData?.posts || [];
+  const totalPosts = postsData?.total || 0;
+  const totalPages = Math.ceil(totalPosts / limit);
 
   const handleSearch = () => {
-    setCurrentPage(1);
-    setActiveSearch(searchTerm);
-  }
+    setSearchQuery(searchTerm);
+    setCurrentPage(1); 
+  };
 
   const handleKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter') {
@@ -294,39 +304,35 @@ const Community: React.FC = () => {
   };
 
   const handleCategoryClick = (categoryId: string | null) => {
-    setCurrentPage(1);
-    setActiveCategory(categoryId);
-  }
-
-  if (categoriesError) {
-    return <Container>카테고리를 불러오는 중 오류가 발생했습니다.</Container>;
-  }
-
-  const posts = postsData?.posts || [];
-  const totalPosts = postsData?.total || 0;
-  const totalPages = Math.max(1, Math.ceil(totalPosts / POSTS_PER_PAGE));
+    setSelectedCategory(categoryId);
+    setCurrentPage(1); 
+  };
 
   return (
     <>
-      <Header title="지금 우리들의 솔직한 이야기" />
+      <Header title="커뮤니티" />
       <Container>
         <CategoryTabs>
-          <TabButton $isActive={!activeCategory} onClick={() => handleCategoryClick(null)}>전체</TabButton>
-          {isCategoriesLoading ? <p>로딩중...</p> : (categories || []).map((cat) => (
+          <TabButton 
+            $isActive={!selectedCategory} 
+            onClick={() => handleCategoryClick(null)}
+          >
+            전체
+          </TabButton>
+          {isCategoriesLoading ? <p>카테고리 로딩중...</p> : categories?.map(cat => (
             <TabButton
               key={cat.id}
-              $isActive={activeCategory === cat.id}
+              $isActive={selectedCategory === cat.id}
               onClick={() => handleCategoryClick(cat.id)}
             >
-              {cat.name}
+              {getCategoryName(cat.name)}
             </TabButton>
           ))}
         </CategoryTabs>
-        
+
         <SearchBarContainer>
-          <SearchInput
-            type="text"
-            placeholder="제목, 내용으로 검색"
+          <SearchInput 
+            placeholder="궁금한 것을 검색해보세요." 
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             onKeyDown={handleKeyDown}
@@ -334,15 +340,17 @@ const Community: React.FC = () => {
           <SearchButton onClick={handleSearch}>검색</SearchButton>
         </SearchBarContainer>
 
-        {isPostsLoading && <LoadingSpinner />}
-        {postsError && <p style={{ color: 'red', textAlign: 'center' }}>게시글을 불러오지 못했습니다.</p>}
-        {!isPostsLoading && !postsError && (
+        {isPostsLoading ? (
+          <div style={{ display: 'flex', justifyContent: 'center', padding: '4rem 0' }}>
+            <LoadingSpinner size={48} />
+          </div>
+        ) : (
           <>
             <PostListContainer>
               {posts.length > 0 ? posts.map((post: Post) => (
                 <PostListItem key={post.id}>
-                  <CategoryTag $bgcolor={getCategoryColor(post.category.name)}>
-                    {post.category.name}
+                  <CategoryTag $bgcolor={getCategoryColor(getCategoryName(post.category.name))}>
+                    {getCategoryName(post.category.name)}
                   </CategoryTag>
                   <PostTitle to={`/community/${post.id}`}>{post.title}</PostTitle>
                   {post.tags && post.tags.length > 0 && (
