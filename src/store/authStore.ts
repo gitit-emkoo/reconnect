@@ -50,19 +50,21 @@ const useAuthStore = create<AuthState>()(
       },
       
       checkAuth: async () => {
+        set({ isLoading: true });
+        const token = get().token;
+
+        if (!token) {
+          set({ user: null, isAuthenticated: false, isLoading: false });
+          return;
+        }
+
         try {
-          const storedState = JSON.parse(localStorage.getItem('reconnect-auth-storage') || '{}');
-          const token = storedState?.state?.token;
-          if (token) {
-            axiosInstance.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-            const response = await axiosInstance.get('/users/me');
-            set({ user: response.data, token, isAuthenticated: true, isLoading: false });
-          } else {
-            set({ user: null, token: null, isAuthenticated: false, isLoading: false });
-          }
+          axiosInstance.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+          const response = await axiosInstance.get('/users/me');
+          set({ user: response.data, isAuthenticated: true, isLoading: false });
         } catch (error) {
-          console.error("Authentication check failed", error);
-          get().logout();
+          console.error("[checkAuth] Authentication check failed:", error);
+          get().logout(); // 토큰이 유효하지 않으면 로그아웃 처리
           set({ isLoading: false });
         }
       },

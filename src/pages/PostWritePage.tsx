@@ -21,26 +21,43 @@ const Container = styled.div`
   background-color: #f8f9fa;
   min-height: 100vh;
   padding: 1.5rem 1rem 5rem 1rem;
+
+  @media (max-width: 768px) {
+    padding: 1rem 1rem 6rem 1rem;
+  }
 `;
 
 const Header = styled.div`
   margin-bottom: 1.5rem;
+
+  @media (max-width: 768px) {
+    margin-bottom: 1rem;
+  }
 `;
 
 const PageTitle = styled.h1`
-  font-size: 2rem;
+  font-size: 1.8rem;
   color: #212529;
   font-weight: 700;
+
+  @media (max-width: 768px) {
+    font-size: 1.5rem;
+  }
 `;
 
 const Form = styled.form`
   display: flex;
   flex-direction: column;
-  gap: 1rem;
+  gap: 1.5rem;
   background: white;
   padding: 2rem;
   border-radius: 0.5rem;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+
+  @media (max-width: 768px) {
+    padding: 1.5rem 1rem;
+    gap: 1rem;
+  }
 `;
 
 const FormRow = styled.div`
@@ -59,8 +76,7 @@ const Select = styled.select`
   padding: 0.8rem 1rem;
   border: 1px solid #dee2e6;
   border-radius: 0.5rem;
-  font-size: 1rem;
-  color: #495057;
+  font-size: 0.9rem;
   flex-basis: 200px;
   min-width: 200px;
   max-width: 100%;
@@ -83,15 +99,22 @@ const Select = styled.select`
     width: 100%;
     flex-basis: auto;
     min-width: 0;
-    font-size: 0.95rem;
-    padding: 0.7rem 2.5rem 0.7rem 0.8rem;
+    font-size: 0.9rem;
+    padding: 0.6rem 2.5rem 0.6rem 0.8rem;
   }
 `;
 
 const ButtonContainer = styled.div`
   display: flex;
-  justify-content: flex-end;
-  margin-top: 1rem;
+  justify-content: flex-end; /* 데스크탑에서는 오른쪽 정렬 유지 */
+  gap: 0.8rem;
+  
+
+  @media (max-width: 768px) {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+  }
 `;
 
 const SubmitButton = styled.button`
@@ -104,9 +127,17 @@ const SubmitButton = styled.button`
   cursor: pointer;
   font-size: 1rem;
   transition: background-color 0.2s;
+
+  @media (max-width: 768px) {
+    width: 100%;
+    padding: 0.9rem;
+    font-size: 0.95rem;
+  }
+
   &:hover {
     background-color: #343a40;
   }
+
   &:disabled {
     background-color: #ced4da;
     cursor: not-allowed;
@@ -144,6 +175,10 @@ const TagInputWrapper = styled.div`
     width: 100%;
     font-size: 1rem;
     color: #495057;
+    
+    @media (max-width: 768px) {
+      font-size: 0.9rem;
+    }
   }
   .tagify__input::placeholder {
     color: #adb5bd;
@@ -361,7 +396,7 @@ const PostWritePage: React.FC = () => {
                                 }}
                             />
                             <div style={{ fontSize: '0.8rem', color: '#888', marginTop: '0.3rem' }}>
-                                태그는 최대 5개까지 입력할 수 있습니다.
+                                태그를 입력해 주세요. 최대 5개까지 입력할 수 있습니다.
                             </div>
                         </TagInputWrapper>
                       <input 

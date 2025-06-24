@@ -10,6 +10,7 @@ interface ConfirmationModalProps {
   message: string;
   confirmButtonText?: string;
   cancelButtonText?: string;
+  showCancelButton?: boolean;
 }
 
 const ModalContent = styled.div`
@@ -46,8 +47,8 @@ const ButtonContainer = styled.div`
 `;
 
 const StyledButton = styled.button<{
-  primary?: boolean;
-  isConfirm?: boolean;
+  $primary?: boolean;
+  $isConfirm?: boolean;
 }>`
   padding: 10px 0;
   font-size: 0.9rem;
@@ -59,14 +60,14 @@ const StyledButton = styled.button<{
   width: 120px;
 
   ${(props) =>
-    props.isConfirm
+    props.$isConfirm
       ? `
-    background-color: ${props.primary ? '#FF69B4' : '#4A90E2'};
+    background-color: ${props.$primary ? '#FF69B4' : '#4A90E2'};
     color: white;
-    border-color: ${props.primary ? '#FF69B4' : '#4A90E2'};
+    border-color: ${props.$primary ? '#FF69B4' : '#4A90E2'};
     &:hover {
-      background-color: ${props.primary ? '#f557a0' : '#357ABD'};
-      border-color: ${props.primary ? '#f557a0' : '#357ABD'};
+      background-color: ${props.$primary ? '#f557a0' : '#357ABD'};
+      border-color: ${props.$primary ? '#f557a0' : '#357ABD'};
     }
   `
       : `
@@ -96,6 +97,7 @@ const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
   message,
   confirmButtonText = '확인',
   cancelButtonText = '취소',
+  showCancelButton = true,
 }) => {
   return (
     <Modal
@@ -126,8 +128,8 @@ const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
         {title && <ModalTitle>{title}</ModalTitle>}
         <Message>{message}</Message>
         <ButtonContainer>
-          <StyledButton onClick={onRequestClose}>{cancelButtonText}</StyledButton>
-          <StyledButton onClick={onConfirm} isConfirm primary={confirmButtonText === '로그아웃' || title?.includes('삭제') || title?.includes('탈퇴') } >
+          {showCancelButton && <StyledButton onClick={onRequestClose}>{cancelButtonText}</StyledButton>}
+          <StyledButton onClick={onConfirm} $isConfirm $primary={confirmButtonText === '로그아웃' || title?.includes('삭제') || title?.includes('탈퇴') } >
             {confirmButtonText}
           </StyledButton>
         </ButtonContainer>

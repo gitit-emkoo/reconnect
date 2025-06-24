@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import styled from 'styled-components';
 import { useForm, type SubmitHandler } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -7,12 +7,11 @@ import { loginSchema, type LoginFormData } from '../utils/validationSchemas';
 import { ReactComponent as CloseEye } from '../assets/Icon_CloseEye.svg';
 import { ReactComponent as OpenEye } from '../assets/Icon_OpenEye.svg';
 import axiosInstance from '../api/axios';
-import useAuthStore, { type AuthState } from '../store/authStore';
 import { useGoogleLogin } from '@react-oauth/google';
 import { getKakaoLoginUrl } from '../utils/socialAuth';
 import MainImg from '../assets/MainImg.png';
 import logoImage from '../assets/Logo.png';
-
+import useAuthStore from '../store/authStore';
 
 const Container = styled.div`
   display: flex;
@@ -110,7 +109,6 @@ const SocialLoginButtonStyled = styled.button<{ $isKakao?: boolean }>`
     }
   `}
 `;
-
 
 const DividerTextStyled = styled.p`
   font-size: 0.9rem;
@@ -249,29 +247,9 @@ const Button = styled.button`
   cursor: pointer;
   transition: transform 0.2s, background-color 0.2s;
   margin-top: 0.2rem;
-
-  &:hover {
-    transform: translateY(-2px);
-  }
   &:disabled {
-    background: #ccc;
+    opacity: 0.7;
     cursor: not-allowed;
-    transform: none;
-  }
-`;
-
-const LinkText = styled.p`
-  margin-top: 1.2rem;
-  text-align: center;
-  color: #666;
-  font-size: 0.9rem;
-
-  a {
-    color: #FF69B4;
-    text-decoration: underline;
-    font-weight: 400;
-    margin-left: 0.25rem;
-    cursor: pointer;
   }
 `;
 
@@ -285,188 +263,147 @@ const SocialLoginButton: React.FC<{
   </SocialLoginButtonStyled>
 );
 
-const WelcomePage: React.FC = () => {
-  const navigate = useNavigate();
-  const [imageLoaded, setImageLoaded] = useState(false);
+const LoginPage: React.FC = () => {
   const [showPassword, setShowPassword] = useState(false);
-  const [error, setError] = useState<string>('');
-  const [googleError, setGoogleError] = useState<string>('');
-  const [rememberMe, setRememberMe] = useState(false);
-  const setToken = useAuthStore((state: AuthState) => state.setToken);
-  const setUser = useAuthStore((state: AuthState) => state.setUser);
+  const [loginError, setLoginError] = useState('');
+  const navigate = useNavigate();
+  const location = useLocation();
 
   const {
-    register, 
+    register,
     handleSubmit,
-    formState: { errors, isSubmitting }, 
-    reset, 
+    formState: { errors, isSubmitting },
   } = useForm<LoginFormData>({
-    resolver: zodResolver(loginSchema), 
+    resolver: zodResolver(loginSchema),
   });
 
-  const onSubmitEmailLogin: SubmitHandler<LoginFormData> = async (data) => {
-    setError('');
-    setGoogleError('');
+  const handleSuccessfulLogin = async (token: string) => {
     try {
-      const response = await axiosInstance.post('/auth/login', data);
-      console.log('로그인 응답:', response.data);
-      if (response.data.accessToken) {
-        console.log('setToken 호출:', response.data.accessToken);
-        setToken(response.data.accessToken);
-        if (response.data.user) {
-          console.log('setUser 호출:', response.data.user);
-          setUser(response.data.user);
+      useAuthStore.getState().setToken(token);
+      const userResponse = await axiosInstance.get('/users/me');
+      useAuthStore.getState().setUser(userResponse.data);
+      const from = location.state?.from?.pathname || '/';
+      navigate(from, { replace: true });
+    } catch (error) {
+      console.error('Failed to fetch user after login:', error);
+      setLoginError('로그인 후 사용자 정보를 가져오는 데 실패했습니다.');
+      useAuthStore.getState().logout();
+    }
+  };
+
+  const onSubmitEmailLogin: SubmitHandler<LoginFormData> = async (data) => {
+    setLoginError('');
+    try {
+      const response = await axiosInstance.post<{ accessToken: string }>(
+        '/auth/login',
+        data
+      );
+      if (response.data && response.data.accessToken) {
+        await handleSuccessfulLogin(response.data.accessToken);
+      } else {
+        throw new Error('로그인 토큰이 없습니다.');
+      }
+    } catch (error: any) {
+      const errorMessage =
+        error.response?.data?.message || '로그인에 실패했습니다. 다시 시도해주세요.';
+      setLoginError(errorMessage);
+    }
+  };
+
+  const handleSocialLoginSuccess = async (accessToken: string) => {
+    try {
+        const response = await axiosInstance.post('/auth/google', { token: accessToken });
+        if (response.data && response.data.accessToken) {
+            await handleSuccessfulLogin(response.data.accessToken);
+        } else {
+            setLoginError('소셜 로그인에 실패했습니다.');
         }
-        reset();
-        navigate('/dashboard', { replace: true });
-      } else {
-        setError(response.data.message || '이메일 또는 비밀번호가 올바르지 않습니다.');
-      }
-    } catch (err: any) {
-      console.error('Email login error:', err);
-      if (err.response?.data?.message) {
-        setError(err.response.data.message);
-      } else {
-        setError('로그인 중 오류가 발생했습니다. 다시 시도해주세요.');
-      }
+    } catch (error) {
+        setLoginError('소셜 로그인 처리 중 오류가 발생했습니다.');
     }
   };
 
   const googleLogin = useGoogleLogin({
-    onSuccess: async (tokenResponse) => {
-      setError('');
-      setGoogleError('');
-      try {
-        const response = await axiosInstance.post('/auth/google/login', {
-          access_token: tokenResponse.access_token,
-        });
-        if (response.data.accessToken) {
-          setToken(response.data.accessToken);
-          if (response.data.user) {
-            setUser(response.data.user);
-          }
-          navigate('/dashboard', { replace: true });
-        } else {
-          setGoogleError(response.data.message || '구글 로그인에 실패했습니다. 다시 시도해주세요.');
-        }
-      } catch (err: any) {
-        console.error('Google login API error:', err);
-        const errorMsg = err.response?.data?.message || '구글 로그인 중 오류가 발생했습니다.';
-        if (err.response?.status === 404 && err.response?.data?.message.includes('User not found')){
-          setGoogleError('등록되지 않은 사용자입니다. 회원가입을 먼저 진행해주세요.');
-        } else if (err.response?.data?.message) {
-          setGoogleError(err.response.data.message);
-        } else {
-          setGoogleError(errorMsg);
-        }
-      }
-    },
-    onError: (hookError) => {
-      console.error('Google login hook error:', hookError);
-      setError('');
-      setGoogleError('구글 로그인에 실패했습니다. 잠시 후 다시 시도해주세요.');
+    onSuccess: (tokenResponse) => handleSocialLoginSuccess(tokenResponse.access_token),
+    onError: () => {
+        setLoginError('Google 로그인에 실패했습니다.');
     },
   });
 
   const handleKakaoLogin = () => {
-    setError('');
-    setGoogleError('');
-    window.location.href = getKakaoLoginUrl() + `&state=${rememberMe ? 'remember' : 'session'}`;
+    window.location.href = getKakaoLoginUrl();
   };
+
 
   return (
     <Container>
-      <Logo src={logoImage} alt="리커넥트 로고" />
+      <Logo src={logoImage} alt="Reconnect Logo" />
       <IllustrationWrapper>
-        <img 
-          src={MainImg} 
-          alt="Couple illustration" 
-          onLoad={() => setImageLoaded(true)}
-          style={{ opacity: imageLoaded ? 1 : 0, transition: 'opacity 0.3s' }}
-        />
+        <img src={MainImg} alt="Couple Illustration"/>
       </IllustrationWrapper>
-      <Title>다시한번 따뜻해지는 우리</Title>
-      <Subtitle>마음을 다시 잇는 작은 습관! 리커넥트로 시작하세요</Subtitle>
+
+      <Title>다시, 연결</Title>
+      <Subtitle>당신의 관계를 위한 새로운 시작</Subtitle>
 
       <SocialLoginButtonContainer>
-        <SocialLoginButton isKakao onClick={handleKakaoLogin}>
-          카카오로 로그인
+        <SocialLoginButton onClick={handleKakaoLogin} isKakao>
+          카카오로 시작하기
         </SocialLoginButton>
         <SocialLoginButton onClick={() => googleLogin()}>
-          구글로 로그인
+          Google로 시작하기
         </SocialLoginButton>
       </SocialLoginButtonContainer>
 
-      {googleError && 
-        <GeneralErrorMessage 
-          role="alert" 
-          style={{ marginBottom: '1rem' }}
-        >
-          {googleError}
-        </GeneralErrorMessage>
-      }
-
-      <DividerTextStyled>이메일로 로그인하기</DividerTextStyled>
+      <DividerTextStyled>또는</DividerTextStyled>
+      {loginError && <GeneralErrorMessage>{loginError}</GeneralErrorMessage>}
 
       <FormWrapper onSubmit={handleSubmit(onSubmitEmailLogin)}>
         <InputWrapper>
-          <StyledInput 
-            type="email" 
-            placeholder="이메일 주소" 
+          <StyledInput
             {...register('email')}
-            aria-invalid={errors.email ? "true" : "false"}
+            placeholder="이메일 주소"
+            type="email"
           />
-          {errors.email && <FieldErrorMessage role="alert">{errors.email.message}</FieldErrorMessage>}
         </InputWrapper>
+        {errors.email && <FieldErrorMessage>{errors.email.message}</FieldErrorMessage>}
 
         <InputWrapper>
-          <StyledInput 
-            type={showPassword ? 'text' : 'password'} 
-            placeholder="비밀번호" 
+          <StyledInput
             {...register('password')}
-            aria-invalid={errors.password ? "true" : "false"}
+            type={showPassword ? 'text' : 'password'}
+            placeholder="비밀번호"
           />
-          <PasswordToggle type="button" onClick={() => setShowPassword(!showPassword)} aria-label={showPassword ? "비밀번호 숨기기" : "비밀번호 보기"}>
+          <PasswordToggle type="button" onClick={() => setShowPassword(!showPassword)}>
             {showPassword ? <OpenEye /> : <CloseEye />}
           </PasswordToggle>
-          {errors.password && <FieldErrorMessage role="alert">{errors.password.message}</FieldErrorMessage>}
         </InputWrapper>
-
-        <div style={{ width: '100%', maxWidth: 340, margin: '0.5rem 0', display: 'flex', alignItems: 'center' }}>
-          <input
-            type="checkbox"
-            id="rememberMe"
-            checked={rememberMe}
-            onChange={() => setRememberMe((prev) => !prev)}
-            style={{ marginRight: 8 }}
-          />
-          <label htmlFor="rememberMe" style={{ fontSize: '0.9rem', color: '#666', cursor: 'pointer' }}>
-            로그인 정보 저장
-          </label>
-        </div>
-
-        {error && <GeneralErrorMessage role="alert">{error}</GeneralErrorMessage>}
+        {errors.password && <FieldErrorMessage>{errors.password.message}</FieldErrorMessage>}
 
         <Button type="submit" disabled={isSubmitting}>
-          {isSubmitting ? '로그인 중...' : 'LOG IN'}
+          {isSubmitting ? '로그인 중...' : '로그인'}
         </Button>
-
-        <ForgotPasswordLinksContainer>
-          <ForgotLink type="button" onClick={() => navigate('/find-email')}>
-            이메일 찾기
-          </ForgotLink>
-          <ForgotLink type="button" onClick={() => navigate('/forgot-password')}>
-            비밀번호 재설정
-          </ForgotLink>
-        </ForgotPasswordLinksContainer>
       </FormWrapper>
 
-      <LinkText>
-        계정이 없으신가요?
-        <a onClick={() => navigate('/register')}>회원가입</a>
-      </LinkText>
+      <ForgotPasswordLinksContainer>
+        <ForgotLink onClick={() => navigate('/find-email')}>이메일 찾기</ForgotLink>
+        <ForgotLink onClick={() => navigate('/forgot-password')}>비밀번호 재설정</ForgotLink>
+      </ForgotPasswordLinksContainer>
+
+      <Button
+        style={{
+          marginTop: '1.5rem',
+          background: 'transparent',
+          color: '#555',
+          border: '1px solid #ccc',
+          boxShadow: '0 1px 3px rgba(0,0,0,0.05)',
+        }}
+        onClick={() => navigate('/register')}
+      >
+        회원가입
+      </Button>
+
     </Container>
   );
 };
 
-export default WelcomePage; 
+export default LoginPage; 

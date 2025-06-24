@@ -1,7 +1,7 @@
 // src/App.tsx (업데이트된 부분)
 
 import  {useEffect}  from 'react';
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 import { GoogleOAuthProvider } from '@react-oauth/google';
 import GlobalStyle from "./styles/GlobalStyle";
 import ProtectedRoute from "./components/ProtectedRoute";
@@ -17,7 +17,7 @@ import { fetchReceivedMessages } from './pages/EmotionCard';
 import { useQuery } from '@tanstack/react-query';
 
 // 페이지 컴포넌트 임포트
-import WelcomePage from "./pages/WelcomePage";
+import LoginPage from "./pages/LoginPage";
 import Onboarding from "./pages/Onboarding";
 import Diagnosis from "./pages/Diagnosis";
 import DiagnosisResult from "./pages/DiagnosisResult";
@@ -54,6 +54,20 @@ import ContentAdmin from './pages/ContentAdmin';
 
 const queryClient = new QueryClient();
 
+// 홈 라우트 핸들러: 인증 상태에 따라 리디렉션
+const Home = () => {
+  const { isAuthenticated, isLoading } = useAuthStore(state => ({
+    isAuthenticated: state.isAuthenticated,
+    isLoading: state.isLoading
+  }));
+
+  if (isLoading) {
+    return <LoadingSpinner fullscreen={true} size={60} />;
+  }
+
+  return isAuthenticated ? <Navigate to="/dashboard" replace /> : <Navigate to="/onboarding" replace />;
+};
+
 // 알림 관련 훅을 관리하는 컴포넌트
 const NotificationHooks = () => {
   const isAuthenticated = useAuthStore(state => state.isAuthenticated);
@@ -64,6 +78,8 @@ const NotificationHooks = () => {
     queryFn: fetchReceivedMessages,
     enabled: isAuthenticated,
     refetchInterval: 5000,
+    retry: 1,
+    throwOnError: false,
   });
   useEmotionCardNotifications(receivedMessages);
 
@@ -83,9 +99,9 @@ const App = () => {
     checkAuth();
   }, [checkAuth]);
 
-  // 인증 상태를 확인하는 동안 아무것도 렌더링하지 않거나 로딩 스피너를 보여줄 수 있습니다.
+  // 인증 상태를 확인하는 동안 로딩 스피너를 전체 화면에 표시
   if (isLoading) {
-    return <LoadingSpinner size={60} />;
+    return <LoadingSpinner fullscreen={true} size={60} />;
   }
   
   return (
@@ -96,16 +112,15 @@ const App = () => {
           <GlobalStyle />
           <NotificationHooks />
           <Routes>
-            {/* 루트 경로를 웰컴 페이지로 변경 */}
-            <Route path="/" element={<Onboarding />} />
-            <Route path="/welcome" element={<WelcomePage />} />
+            {/* 루트 경로는 Home 컴포넌트가 처리하여 리디렉션 */}
+            <Route path="/" element={<Home />} />
             <Route path="/onboarding" element={<Onboarding />} />
 
             {/* 공개 라우트 */}
             <Route path="/diagnosis" element={<Diagnosis />} />
             <Route path="/diagnosis/result" element={<DiagnosisResult />} />
             <Route path="/register" element={<RegisterPage />} />
-            <Route path="/login" element={<WelcomePage />} />
+            <Route path="/login" element={<LoginPage />} />
             <Route path="/forgot-password" element={<ForgotPassword />} />
             <Route path="/reset-password" element={<ResetPassword />} />
             <Route path="/find-email" element={<FindEmail />} />
@@ -125,8 +140,8 @@ const App = () => {
             <Route path="/calendar" element={<ProtectedRoute><Calendar /></ProtectedRoute>} />
             <Route path="/community" element={<ProtectedRoute><Community /></ProtectedRoute>} />
             <Route path="/community/new" element={<ProtectedRoute><PostWritePage /></ProtectedRoute>} />
-            <Route path="/community/:id" element={<ProtectedRoute><PostDetailPage /></ProtectedRoute>} />
             <Route path="/community/:id/edit" element={<ProtectedRoute><PostEditPage /></ProtectedRoute>} />
+            <Route path="/community/:id" element={<ProtectedRoute><PostDetailPage /></ProtectedRoute>} />
             <Route path="/my" element={<ProtectedRoute><MyPage /></ProtectedRoute>} />
             <Route path="/expert" element={<ProtectedRoute><ExpertPage /></ProtectedRoute>} />
             <Route path="/profile/edit" element={<ProtectedRoute><ProfileEditPage /></ProtectedRoute>} />

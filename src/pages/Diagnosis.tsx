@@ -111,7 +111,7 @@ const Diagnosis: React.FC = () => {
   }, [navigate]);
   */
 
-  const handleAnswer = (answer: "예" | "아니요" | "잘 모르겠다") => {
+  const handleAnswer = (answer: 'yes' | 'no' | 'unknown') => {
     const newAnswers = [...answers, answer];
     setAnswers(newAnswers);
     if (currentQuestion < questions.length - 1) {
@@ -142,13 +142,13 @@ const Diagnosis: React.FC = () => {
       </QuestionCard>
 
       <ButtonContainer>
-        <Button colorType="yes" onClick={() => handleAnswer("예")}>
+        <Button colorType="yes" onClick={() => handleAnswer('yes')}>
           예
         </Button>
-        <Button colorType="neutral" onClick={() => handleAnswer("잘 모르겠다")}>
+        <Button colorType="neutral" onClick={() => handleAnswer('unknown')}>
           잘 모르겠다
         </Button>
-        <Button colorType="no" onClick={() => handleAnswer("아니요")}>
+        <Button colorType="no" onClick={() => handleAnswer('no')}>
           아니요
         </Button>
       </ButtonContainer>

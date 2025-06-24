@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from "react";
 import styled from "styled-components";
 import { useNavigate } from "react-router-dom";
-import { logout } from "../utils/auth";
 import useAuthStore from '../store/authStore';
 import { ProfileEditModal } from "../components/Profile/ProfileEditModal";
 import { PasswordChangeModal } from "../components/Profile/PasswordChangeModal";
@@ -108,6 +107,7 @@ const MyPage: React.FC = () => {
   const navigate = useNavigate();
   const user = useAuthStore((state) => state.user);
   const setUser = useAuthStore((state) => state.setUser);
+  const logout = useAuthStore((state) => state.logout);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false);
   const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
@@ -120,12 +120,10 @@ const MyPage: React.FC = () => {
     }
   }, [navigate, token]);
 
-  const confirmLogout = async () => {
-    const success = await logout(navigate);
-    if (!success) {
-      alert('로그아웃 중 오류가 발생했습니다. 다시 시도해주세요.');
-    }
+  const confirmLogout = () => {
+    logout();
     setIsLogoutModalOpen(false); // 모달 닫기
+    navigate('/login'); // 로그아웃 후 로그인 페이지로 이동
   };
 
   const handleUpdateSuccess = (updatedUser: User) => {

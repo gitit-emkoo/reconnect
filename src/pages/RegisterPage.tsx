@@ -224,7 +224,7 @@ const CheckboxLabel = styled.label`
 const RegisterPage: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const diagnosisId = location.state?.diagnosisId;
+  const { answers } = location.state || {};
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isChecked, setIsChecked] = useState(false);
@@ -242,7 +242,7 @@ const RegisterPage: React.FC = () => {
           `${backendUrl}/auth/google/register`,
           { 
             access_token: tokenResponse.access_token,
-            diagnosisId,
+            answers,
           },
           { 
             headers: {
@@ -287,35 +287,30 @@ const RegisterPage: React.FC = () => {
 
   const handleKakaoRegister = () => {
     const kakaoUrl = getKakaoRegisterUrl();
-    window.location.href = `${kakaoUrl}${diagnosisId ? `&state=${diagnosisId}` : ''}`;
+    const finalUrl = answers ? `${kakaoUrl}&state=${answers}` : kakaoUrl;
+    window.location.href = finalUrl;
   };
 
   const onSubmit = async (data: RegisterFormData) => {
-    if (!isChecked) {
-      alert('필수 약관에 동의해주세요.');
-      return;
-    }
     try {
-      const { confirmPassword, ...registerData } = data;
       const backendUrl = import.meta.env.VITE_APP_API_URL || 'http://localhost:3000';
-      const response = await axios.post(
-        `${backendUrl}/api/auth/register`,
-        { ...registerData, diagnosisId },
-        {
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          withCredentials: true,
-        }
+      await axios.post(
+        `${backendUrl}/auth/register`,
+        { ...data, answers },
+        { headers: { 'Content-Type': 'application/json' } }
       );
+      
+      alert("회원가입이 완료되었습니다. 로그인해주세요.");
+      navigate('/login');
 
-      console.log("회원가입 성공:", response.data);
-      alert("회원가입이 완료되었습니다!");
-      navigate('/');
     } catch (error) {
       console.error("회원가입 에러:", error);
-      if (error instanceof AxiosError) {
-        alert(`회원가입 실패: ${error.response?.data?.message || error.message}`);
+      if (error instanceof AxiosError && error.response) {
+        if (error.response.status === 409) {
+          alert("이미 사용 중인 이메일입니다.");
+        } else {
+          alert("회원가입 중 오류가 발생했습니다.");
+        }
       } else {
         alert("알 수 없는 오류가 발생했습니다.");
       }

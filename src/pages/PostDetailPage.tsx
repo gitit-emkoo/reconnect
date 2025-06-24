@@ -49,7 +49,7 @@ interface Post {
   viewCount?: number;
   poll?: {
     question: string;
-    options: string[];
+    options: { id: string, text: string }[];
     votes?: PollVote[]; // 임시: 실제 백엔드 연동 전까지 프론트 상태로 관리
   };
 }

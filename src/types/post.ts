@@ -23,7 +23,12 @@ export interface Post {
   authorId: string;
   categoryId?: string;
   category?: Category;
-  poll?: Poll;
+  poll?: {
+    id: string;
+    question: string;
+    options: { id: string; text: string }[];
+    votes: PollVote[];
+  };
   tags?: string[];
   viewCount?: number;
   _count?: {

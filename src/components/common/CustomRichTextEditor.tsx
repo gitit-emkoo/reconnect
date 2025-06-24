@@ -35,6 +35,10 @@ const EditorWrapper = styled.div`
   border-radius: 8px;
   border: 1px solid #e9ecef;
   padding: 20px 16px 12px 16px;
+
+  @media (max-width: 768px) {
+    padding: 12px 10px;
+  }
 `;
 const TitleInput = styled.input`
   width: 100%;
@@ -46,6 +50,12 @@ const TitleInput = styled.input`
   margin-bottom: 12px;
   outline: none;
   padding: 4px 0;
+
+  @media (max-width: 768px) {
+    font-size: 1rem;
+    margin-bottom: 8px;
+  }
+
   &::placeholder {
     color: #adb5bd;
     font-weight: 500;
@@ -56,6 +66,11 @@ const Toolbar = styled.div`
   align-items: center;
   gap: 8px;
   margin-bottom: 8px;
+
+  @media (max-width: 768px) {
+    gap: 4px;
+    flex-wrap: wrap;
+  }
 `;
 const ToolButton = styled.button`
   background: transparent;
@@ -64,17 +79,41 @@ const ToolButton = styled.button`
   border-radius: 4px;
   padding: 4px 7px;
   cursor: pointer;
+  
+  svg {
+    width: 18px;
+    height: 18px;
+  }
+
   &:hover { background: #f1f3f5; }
+`;
+const EditorContainer = styled.div`
+  position: relative;
 `;
 const EditorArea = styled.div`
   min-height: 160px;
   padding: 12px;
   outline: none;
+  line-height: 1.6;
+  font-size: 0.95rem;
+
+  @media (max-width: 768px) {
+    min-height: 120px;
+    padding: 8px;
+    font-size: 0.9rem;
+  }
 `;
 const Placeholder = styled.div`
   position: absolute;
+  top: 12px;
+  left: 12px;
   color: #adb5bd;
   pointer-events: none;
+
+  @media (max-width: 768px) {
+    top: 8px;
+    left: 8px;
+  }
 `;
 const HiddenInput = styled.input`
   display: none;
@@ -201,10 +240,10 @@ const CustomRichTextEditor = forwardRef<CustomEditorRef, CustomRichTextEditorPro
             <ToolButton onClick={() => handleFormat('justifyRight')}><IconAlignRight/></ToolButton>
             <ToolButton onClick={() => fileInputRef.current?.click()}>🖼️</ToolButton>
         </Toolbar>
-        <div style={{position: 'relative'}}>
+        <EditorContainer>
             <EditorArea ref={editorRef} contentEditable onInput={handleInput} />
             {(!content || content === '<br>') && <Placeholder>내용을 입력하세요</Placeholder>}
-        </div>
+        </EditorContainer>
         <HiddenInput ref={fileInputRef} type="file" accept="image/*" onChange={handleImageUpload} multiple />
       </EditorWrapper>
       <ConfirmationModal

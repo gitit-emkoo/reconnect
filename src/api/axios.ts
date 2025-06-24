@@ -1,5 +1,6 @@
 import axios from 'axios';
 import { toKST } from '../utils/date';
+import useAuthStore from '../store/authStore';
 
 const axiosInstance = axios.create({
   baseURL: 'https://reconnect-backend.onrender.com/api',
@@ -34,15 +35,8 @@ const convertDates = (data: any): any => {
 // 요청 인터셉터 추가
 axiosInstance.interceptors.request.use(
   (config) => {
-    let token;
-    try {
-      const { useAuthStore } = require('../store/authStore');
-      token = useAuthStore.getState().accessToken;
-    } catch (e) {}
-    // fallback: localStorage/sessionStorage에서 직접 읽기
-    if (!token) {
-      token = localStorage.getItem('accessToken') || sessionStorage.getItem('accessToken');
-    }
+    // Zustand 스토어에서 직접 토큰을 읽어옵니다.
+    const token = useAuthStore.getState().token;
     if (token) {
       config.headers['Authorization'] = `Bearer ${token}`;
     }
