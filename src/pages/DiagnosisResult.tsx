@@ -289,7 +289,7 @@ const DiagnosisResult: React.FC = () => {
 
   const temperature = Math.round((totalScore / MAX_SCORE) * 100);
   const result = getResultByTemperature(temperature);
-
+  
   useEffect(() => {
     const saveResult = async () => {
       if (isLoggedIn) {

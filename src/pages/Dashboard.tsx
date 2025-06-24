@@ -565,7 +565,6 @@ const Dashboard: React.FC = () => {
     fetchActiveChallenge();
   }, []);
 
-  const { data: challenges = [] } = useQuery<Challenge[], Error>({ queryKey: ['challenges', user?.id], queryFn: () => challengeApi.getChallenges(), enabled: !!user?.id });
   const { data: latestDiagnosisScore = 61, isLoading: isDiagnosisLoading } = useQuery({
     queryKey: ['latestDiagnosisResult', user?.id],
     queryFn: getLatestDiagnosisResult,

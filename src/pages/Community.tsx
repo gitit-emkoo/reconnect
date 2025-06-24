@@ -294,7 +294,7 @@ const Community: React.FC = () => {
 
   const handleSearch = () => {
     setSearchQuery(searchTerm);
-    setCurrentPage(1); 
+    setCurrentPage(1);
   };
 
   const handleKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
@@ -305,7 +305,7 @@ const Community: React.FC = () => {
 
   const handleCategoryClick = (categoryId: string | null) => {
     setSelectedCategory(categoryId);
-    setCurrentPage(1); 
+    setCurrentPage(1);
   };
 
   return (
@@ -329,9 +329,9 @@ const Community: React.FC = () => {
             </TabButton>
           ))}
         </CategoryTabs>
-
+        
         <SearchBarContainer>
-          <SearchInput 
+          <SearchInput
             placeholder="궁금한 것을 검색해보세요." 
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
