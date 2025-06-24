@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
-import axios from 'axios';
+import axios from '../api/axios';
 
 const Container = styled.div`
   padding: 20px;
@@ -51,10 +51,14 @@ const MarriageDiagnosisResult: React.FC = () => {
       // 진단 완료 시, 진단 결과를 서버에 저장(또는 조회)하는 API를 호출합니다.
       (async () => {
          try {
-           const res = await axios.post('/api/marriage-diagnosis-result', { diagnosis: stateResult });
-           console.log('결혼생활 심리 진단 결과 저장(또는 조회) 성공:', res.data);
+           // 수정한 /diagnosis 엔드포인트로 점수와 결과 타입을 전송
+           const res = await axios.post('/diagnosis', { 
+             score: stateResult.score,
+             resultType: '결혼생활 심리진단' 
+           });
+           console.log('진단 결과 저장 성공 (Report 생성/업데이트):', res.data);
          } catch (err) {
-           console.error('결혼생활 심리 진단 결과 저장(또는 조회) 실패:', err);
+           console.error('진단 결과 저장 실패:', err);
          }
       })();
     } else {

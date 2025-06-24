@@ -279,7 +279,7 @@ const LoginPage: React.FC = () => {
 
   const handleSuccessfulLogin = async (token: string) => {
     try {
-      useAuthStore.getState().setToken(token);
+    useAuthStore.getState().setToken(token);
       const userResponse = await axiosInstance.get('/users/me');
       useAuthStore.getState().setUser(userResponse.data);
       const from = location.state?.from?.pathname || '/';
@@ -307,7 +307,7 @@ const LoginPage: React.FC = () => {
       const errorMessage =
         error.response?.data?.message || '로그인에 실패했습니다. 다시 시도해주세요.';
       setLoginError(errorMessage);
-    }
+      }
   };
 
   const handleSocialLoginSuccess = async (accessToken: string) => {
@@ -315,9 +315,9 @@ const LoginPage: React.FC = () => {
         const response = await axiosInstance.post('/auth/google', { token: accessToken });
         if (response.data && response.data.accessToken) {
             await handleSuccessfulLogin(response.data.accessToken);
-        } else {
+      } else {
             setLoginError('소셜 로그인에 실패했습니다.');
-        }
+      }
     } catch (error) {
         setLoginError('소셜 로그인 처리 중 오류가 발생했습니다.');
     }
@@ -359,7 +359,7 @@ const LoginPage: React.FC = () => {
 
       <FormWrapper onSubmit={handleSubmit(onSubmitEmailLogin)}>
         <InputWrapper>
-          <StyledInput
+          <StyledInput 
             {...register('email')}
             placeholder="이메일 주소"
             type="email"
@@ -368,7 +368,7 @@ const LoginPage: React.FC = () => {
         {errors.email && <FieldErrorMessage>{errors.email.message}</FieldErrorMessage>}
 
         <InputWrapper>
-          <StyledInput
+          <StyledInput 
             {...register('password')}
             type={showPassword ? 'text' : 'password'}
             placeholder="비밀번호"

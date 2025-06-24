@@ -565,16 +565,21 @@ const Dashboard: React.FC = () => {
     fetchActiveChallenge();
   }, []);
 
-  const { data: latestDiagnosis } = useQuery({
-    queryKey: ['latestDiagnosis', user?.id],
+  const { data: latestDiagnosisScore = 61, isLoading: isDiagnosisLoading } = useQuery({
+    queryKey: ['latestDiagnosisResult', user?.id],
     queryFn: getLatestDiagnosisResult,
-    enabled: !!user, // 사용자가 있을 때만 쿼리 실행
+    enabled: !!user?.id,
+    select: (data) => data?.score ?? 61,
   });
 
-  const percentage = latestDiagnosis?.score ?? 0; // 진단 결과가 있으면 score, 없으면 0
+  const percentage = latestDiagnosisScore;
 
-  if (isLoading || !user) {
-    return <LoadingSpinner />;
+  if (isLoading || isDiagnosisLoading ||!user) {
+    return (
+      <CenteredContainer>
+        <LoadingSpinner />
+      </CenteredContainer>
+    );
   }
 
   return (
