@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import BackButton from '../components/common/BackButton';
 import ProgressBar from '../components/common/ProgressBar';
 import { diagnosisQuestions } from '../config/diagnosisQuestions';
+import logoImage from '../assets/Logo.png';
 
 const questions = diagnosisQuestions;
 
@@ -19,6 +20,13 @@ const Container = styled.div`
   @media (min-width: 768px) {
     padding: 0 2rem;
   }
+`;
+
+const Logo = styled.img`
+  width: 150px;
+  height: auto;
+  margin: 0 auto 3rem;
+  display: block;
 `;
 
 const Header = styled.div`
@@ -126,6 +134,7 @@ const Diagnosis: React.FC = () => {
     <Container>
       <BackButton />
       <Header>
+        <Logo src={logoImage} alt="Reconnect Logo" />
         <Title>관계온도 테스트</Title>
         <Subtitle>솔직하게 대답해 주세요</Subtitle>
       </Header>

@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import styled from 'styled-components';
 import { useNavigate } from 'react-router-dom';
 import BackButton from '../components/common/BackButton';
+import logoImage from '../assets/Logo.png'; // 로고 이미지 import
 
 // 30문항 리스트 (A~E 영역)
 const questions = [
@@ -58,6 +59,12 @@ const Container = styled.div`
 const Header = styled.div`
   text-align: center;
   margin-bottom: 2rem;
+`;
+
+const Logo = styled.img`
+  width: 180px;
+  height: auto;
+  margin-bottom: 1.5rem;
 `;
 
 const Title = styled.h1`
@@ -155,6 +162,7 @@ const MarriageDiagnosis: React.FC = () => {
     <Container>
       <BackButton />
       <Header>
+        <Logo src={logoImage} alt="리커넥트 로고" />
         <Title>결혼생활 심리진단</Title>
         <Subtitle>아래 30문항에 대해 솔직하게 답해주세요.<br/>1점: 전혀 그렇지 않다 ~ 5점: 매우 그렇다</Subtitle>
       </Header>
