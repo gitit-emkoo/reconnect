@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import styled from "styled-components";
 import axios from "../api/axios";
@@ -6,6 +6,7 @@ import BackButton from '../components/common/BackButton';
 // import ActionButton from '../components/common/ActionButton';
 import { diagnosisQuestions, MAX_SCORE } from "../config/diagnosisQuestions";
 import useAuthStore from '../store/authStore';
+import ConfirmationModal from '../components/common/ConfirmationModal';
 
 const Container = styled.div`
   display: flex;
@@ -134,6 +135,11 @@ const Description = styled.p`
   white-space: pre-line;
 `;
 
+const StyledComparison = styled.span<{ color?: string; isBold?: boolean }>`
+  color: ${({ color }) => color || 'inherit'};
+  font-weight: ${({ isBold }) => (isBold ? 'bold' : 'normal')};
+`;
+
 const LoginText = styled.p`
  
   color: #777;
@@ -258,6 +264,7 @@ const DiagnosisResult: React.FC = () => {
   const location = useLocation();
   const { token } = useAuthStore();
   const isLoggedIn = !!token;
+  const [isModalOpen, setIsModalOpen] = useState(false);
   
   if (!location.state?.answers) {
     useEffect(() => {
@@ -299,12 +306,28 @@ const DiagnosisResult: React.FC = () => {
   }, [isLoggedIn, temperature, result.title]);
 
   const temperatureDifference = temperature - AVERAGE_TEMPERATURE;
-  const comparisonText =
-    temperatureDifference > 0
-      ? `우리 커플의 관계는 평균보다 ${temperatureDifference}도 높은 온도입니다`
-      : temperatureDifference < 0
-      ? `우리 커플의 관계는 평균보다 ${Math.abs(temperatureDifference)}도 낮은 온도입니다`
-      : "우리 커플의 관계는 평균과 같은 온도입니다";
+  const comparisonDisplay =
+    temperatureDifference > 0 ? (
+      <>
+        우리 커플의 관계는 평균보다 <StyledComparison color="#FF69B4">{temperatureDifference}도 높은</StyledComparison> 온도입니다
+      </>
+    ) : temperatureDifference < 0 ? (
+      <>
+        우리 커플의 관계는 평균보다 <StyledComparison color="#4169E1">{Math.abs(temperatureDifference)}도 낮은</StyledComparison> 온도입니다
+      </>
+    ) : (
+      <>
+        우리 커플의 관계는 <StyledComparison isBold>평균과 같은 온도</StyledComparison>입니다
+      </>
+    );
+
+  const handleBack = () => {
+    setIsModalOpen(true);
+  };
+
+  const handleConfirmBack = () => {
+    navigate(-1);
+  };
 
   const handleNextStep = () => {
     // 비회원일 때 진단 결과를 state에 담아 로그인 페이지로 전달
@@ -337,7 +360,7 @@ const DiagnosisResult: React.FC = () => {
 
   return (
     <Container>
-      <StyledBackButton onClick={() => navigate(-1)} />
+      <StyledBackButton onClick={handleBack} />
       <ImageSection>
         <img src={result.image} alt={result.title} />
       </ImageSection>
@@ -356,7 +379,7 @@ const DiagnosisResult: React.FC = () => {
         </TemperatureBar>
         
         <PercentageText>
-          {comparisonText}
+          {comparisonDisplay}
         </PercentageText>
         
         <Description>{result.description}</Description>
@@ -377,6 +400,13 @@ const DiagnosisResult: React.FC = () => {
           </InviteButton>
         )}
       </ContentSection>
+      <ConfirmationModal
+        isOpen={isModalOpen}
+        onRequestClose={() => setIsModalOpen(false)}
+        onConfirm={handleConfirmBack}
+        message="진단결과가 삭제되며 다시 진단이 시작됩니다. 계속하시겠습니까?"
+        confirmButtonText="계속"
+      />
     </Container>
   );
 };
