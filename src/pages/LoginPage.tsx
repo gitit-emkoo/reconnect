@@ -6,12 +6,14 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { loginSchema, type LoginFormData } from '../utils/validationSchemas';
 import { ReactComponent as CloseEye } from '../assets/Icon_CloseEye.svg';
 import { ReactComponent as OpenEye } from '../assets/Icon_OpenEye.svg';
+import axios from 'axios';
 import axiosInstance from '../api/axios';
 import { useGoogleLogin } from '@react-oauth/google';
 import { getKakaoLoginUrl } from '../utils/socialAuth';
 import MainImg from '../assets/Img_LogIn.png';
 import logoImage from '../assets/Logo.png';
 import useAuthStore from '../store/authStore';
+import { User } from '../types/user';
 
 const Container = styled.div`
   display: flex;
@@ -306,71 +308,66 @@ const LoginPage: React.FC = () => {
     resolver: zodResolver(loginSchema),
   });
 
-  const handleSuccessfulLogin = async (token: string, options?: { isSocial?: boolean }) => {
-    try {
-    useAuthStore.getState().setToken(token);
-      const userResponse = await axiosInstance.get('/users/me');
-      useAuthStore.getState().setUser(userResponse.data);
+  const setToken = useAuthStore((state) => state.setToken);
+  const setUser = useAuthStore((state) => state.setUser);
 
-      const from = location.state?.from?.pathname || '/dashboard';
-      const navigateState = options?.isSocial ? { state: { fromSocialLogin: true } } : {};
-      
-      navigate(from, { ...navigateState, replace: true });
-    } catch (error) {
-      console.error('Failed to fetch user after login:', error);
-      setLoginError('로그인 후 사용자 정보를 가져오는 데 실패했습니다.');
-      useAuthStore.getState().logout();
+  const handleSuccessfulLogin = async (token: string, user: User, options?: { isSocial?: boolean }) => {
+    // 1. Zustand 스토어에 토큰과 유저 정보 저장
+    setToken(token);
+    setUser(user);
+
+    // 2. localStorage에서 비회원 진단 결과 확인 및 서버 전송
+    const unauthDiagnosisRaw = localStorage.getItem('diagnosisResult');
+    if (unauthDiagnosisRaw) {
+      try {
+        const { score, createdAt } = JSON.parse(unauthDiagnosisRaw);
+        // 새로운 API 엔드포인트로 전송
+        await axiosInstance.post('/diagnosis/unauth', {
+          score,
+          createdAt,
+        });
+        localStorage.removeItem('diagnosisResult');
+      } catch (error) {
+        console.error('비회원 진단 결과 연동 실패:', error);
+      }
     }
+
+    // 3. 페이지 이동
+    const from = location.state?.from?.pathname || '/dashboard';
+    const navigateState = options?.isSocial ? { state: { fromSocialLogin: true } } : {};
+    navigate(from, { ...navigateState, replace: true });
   };
 
   const onSubmitEmailLogin: SubmitHandler<LoginFormData> = async (data) => {
     setLoginError('');
     try {
-      const response = await axiosInstance.post<{ accessToken: string }>(
-        '/auth/login',
-        data
-      );
-      if (response.data && response.data.accessToken) {
-        await handleSuccessfulLogin(response.data.accessToken);
-      } else {
-        throw new Error('로그인 토큰이 없습니다.');
+      const response = await axiosInstance.post<{ accessToken: string; user: User }>('/auth/login', data);
+      await handleSuccessfulLogin(response.data.accessToken, response.data.user);
+    } catch (error) {
+      console.error("Login error:", error);
+      let errorMessage = '로그인에 실패했습니다. 다시 시도해 주세요.';
+      if (axios.isAxiosError(error) && error.response?.status === 401) {
+        errorMessage = '이메일 또는 비밀번호가 올바르지 않습니다.';
       }
-    } catch (error: any) {
-      const errorMessage =
-        error.response?.data?.message || '로그인에 실패했습니다. 다시 시도해주세요.';
       setLoginError(errorMessage);
-      }
+    }
   };
 
-  const handleSocialLoginSuccess = async (accessToken: string) => {
+  const handleSocialLoginSuccess = async (googleAccessToken: string) => {
+    setLoginError('');
     try {
-      const unauthDiagnosisId = localStorage.getItem('unauthDiagnosisId');
-      const payload: { accessToken: string; unauthDiagnosisId?: string } = {
-        accessToken: accessToken,
-      };
-
-      if (unauthDiagnosisId) {
-        payload.unauthDiagnosisId = unauthDiagnosisId;
-      }
-
-      const response = await axiosInstance.post('/auth/google/login', payload);
-      if (response.data && response.data.accessToken) {
-        if (unauthDiagnosisId) {
-          localStorage.removeItem('unauthDiagnosisId');
-        }
-        await handleSuccessfulLogin(response.data.accessToken, { isSocial: true });
-      } else {
-        setLoginError('소셜 로그인에 실패했습니다.');
-      }
+      const response = await axiosInstance.post<{ accessToken: string; user: User }>('/auth/google/login', { accessToken: googleAccessToken });
+      await handleSuccessfulLogin(response.data.accessToken, response.data.user, { isSocial: true });
     } catch (error) {
-        setLoginError('소셜 로그인 처리 중 오류가 발생했습니다.');
+      console.error('Social login error:', error);
+      setLoginError('소셜 로그인에 실패했습니다.');
     }
   };
 
   const googleLogin = useGoogleLogin({
     onSuccess: (tokenResponse) => handleSocialLoginSuccess(tokenResponse.access_token),
     onError: () => {
-        setLoginError('Google 로그인에 실패했습니다.');
+      setLoginError('Google 로그인에 실패했습니다.');
     },
   });
 

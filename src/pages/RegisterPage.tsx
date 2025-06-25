@@ -8,7 +8,8 @@ import { ReactComponent as CloseEye } from '../assets/Icon_CloseEye.svg';
 import { ReactComponent as OpenEye } from '../assets/Icon_OpenEye.svg';
 import { useGoogleLogin } from '@react-oauth/google';
 import { getKakaoRegisterUrl } from '../utils/socialAuth';
-import axios, { AxiosError } from 'axios';
+import axios from 'axios';
+import axiosInstance from '../api/axios';
 import useAuthStore from '../store/authStore';
 
 const Container = styled.div`
@@ -237,9 +238,8 @@ const RegisterPage: React.FC = () => {
   const googleLogin = useGoogleLogin({
     onSuccess: async (tokenResponse) => {
       try {
-        const backendUrl = import.meta.env.VITE_APP_API_URL || 'http://localhost:3000';
-        const response = await axios.post(
-          `${backendUrl}/auth/google/register`,
+        const response = await axiosInstance.post(
+          `/auth/google/register`,
           { 
             access_token: tokenResponse.access_token,
             answers,
@@ -265,7 +265,7 @@ const RegisterPage: React.FC = () => {
       } catch (error) {
         console.error('구글 회원가입 에러:', error);
         
-        if (error instanceof AxiosError) {
+        if (axios.isAxiosError(error)) {
           // 409 Conflict - 이미 가입된 사용자
           if (error.response?.status === 409) {
             alert('이미 가입된 이메일입니다. 로그인 페이지로 이동합니다.');
@@ -292,40 +292,39 @@ const RegisterPage: React.FC = () => {
   };
 
   const onSubmit = async (data: RegisterFormData) => {
-    const unauthDiagnosisId = localStorage.getItem('unauthDiagnosisId');
-    const registrationData = {
-      ...data,
-      answers,
-      unauthDiagnosisId,
-    };
-    
+    if (!isChecked) {
+      alert("이용약관 및 개인정보 처리방침에 동의해 주세요.");
+      return;
+    }
     try {
-      const backendUrl = import.meta.env.VITE_APP_API_URL || 'http://localhost:3000';
-      const response = await axios.post(`${backendUrl}/auth/register`, registrationData);
+      // 비회원 진단 ID가 있으면 함께 전송
+      const unauthDiagnosisId = localStorage.getItem('unauthDiagnosisId');
 
-      if (response.data && response.data.accessToken) {
-        setToken(response.data.accessToken);
-        const userResponse = await axios.get(`${backendUrl}/users/me`, {
-          headers: {
-            Authorization: `Bearer ${response.data.accessToken}`,
-          },
-        });
-        setUser(userResponse.data);
-        if (unauthDiagnosisId) {
-          localStorage.removeItem('unauthDiagnosisId');
-        }
-        navigate('/dashboard');
+      const payload = { ...data, unauthDiagnosisId };
+      delete (payload as any).confirmPassword;
+
+      await axiosInstance.post('/auth/register', payload);
+
+      alert("회원가입이 완료되었습니다! 로그인 페이지로 이동합니다.");
+      
+      // 로컬스토리지에서 임시 진단 결과 삭제
+      if (unauthDiagnosisId) {
+        localStorage.removeItem('unauthDiagnosisId');
       }
+
+      navigate('/login');
     } catch (error) {
-      console.error('Registration failed:', error);
-      if (axios.isAxiosError(error) && error.response) {
-        if (error.response.status === 409) {
-          alert("이미 사용 중인 이메일입니다.");
+      console.error(error);
+      if (axios.isAxiosError(error)) {
+        if (error.response) {
+          if (error.response.status === 409) {
+            alert("이미 사용 중인 이메일입니다.");
+          } else {
+            alert("회원가입 중 오류가 발생했습니다.");
+          }
         } else {
-          alert("회원가입 중 오류가 발생했습니다.");
+          alert("알 수 없는 오류가 발생했습니다.");
         }
-      } else {
-        alert("알 수 없는 오류가 발생했습니다.");
       }
     }
   };
