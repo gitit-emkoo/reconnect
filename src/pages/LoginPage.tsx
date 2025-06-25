@@ -309,8 +309,8 @@ const LoginPage: React.FC = () => {
   const handleSocialLoginSuccess = async (accessToken: string) => {
     try {
       const unauthDiagnosisId = localStorage.getItem('unauthDiagnosisId');
-      const payload: { access_token: string; unauthDiagnosisId?: string } = {
-        access_token: accessToken,
+      const payload: { accessToken: string; unauthDiagnosisId?: string } = {
+        accessToken: accessToken,
       };
 
       if (unauthDiagnosisId) {
