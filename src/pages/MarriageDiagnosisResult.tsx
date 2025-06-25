@@ -56,6 +56,10 @@ const MarriageDiagnosisResult: React.FC = () => {
              score: stateResult.score,
              resultType: '결혼생활 심리진단' 
            });
+           // 회원가입 시 사용하기 위해 진단 ID를 localStorage에 저장
+           if (res.data && res.data.id) {
+             localStorage.setItem('unauthDiagnosisId', res.data.id);
+           }
            console.log('진단 결과 저장 성공 (Report 생성/업데이트):', res.data);
          } catch (err) {
            console.error('진단 결과 저장 실패:', err);

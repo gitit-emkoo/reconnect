@@ -18,7 +18,7 @@ export interface AuthState {
   setUser: (user: User | null) => void;
   setToken: (token: string | null) => void;
   logout: () => void;
-  checkAuth: () => Promise<void>;
+  checkAuth: (options?: { silent?: boolean }) => Promise<void>;
 }
 
 const useAuthStore = create<AuthState>()(
@@ -49,8 +49,10 @@ const useAuthStore = create<AuthState>()(
         get().setToken(null);
       },
       
-      checkAuth: async () => {
-        set({ isLoading: true });
+      checkAuth: async (options) => {
+        if (!options?.silent) {
+          set({ isLoading: true });
+        }
         const token = get().token;
 
         if (!token) {

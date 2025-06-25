@@ -1,7 +1,7 @@
 // src/pages/Dashboard.tsx (최종 수정)
 import React, { useState, useEffect, useRef } from "react";
 import styled from "styled-components";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 // import Calendar, { type CalendarProps } from 'react-calendar'; // DashboardCalendar로 이동
 import 'react-calendar/dist/Calendar.css'; // DashboardCalendar 내부에서 import
 import NavigationBar from "../components/NavigationBar";
@@ -233,9 +233,11 @@ const Right = styled.div`
 
 const Dashboard: React.FC = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const { user, isLoading } = useAuthStore();
   const [isInviteModalOpen, setIsInviteModalOpen] = useState(false);
   const [showDiscardModal, setShowDiscardModal] = useState(false);
+  const [welcomeModalOpen, setWelcomeModalOpen] = useState(false);
   const today = new Date();
   const todayStr = formatInKST(today, 'yyyyMMdd');
   const todayKey = 'main_dashboard_popup';
@@ -246,6 +248,14 @@ const Dashboard: React.FC = () => {
     queryFn: fetchDiaries
   });
   const todayString = formatInKST(today, 'yyyy-MM-dd');
+
+  useEffect(() => {
+    if (location.state?.fromSocialLogin) {
+      setWelcomeModalOpen(true);
+      // 모달이 다시 뜨지 않도록 state를 정리합니다.
+      navigate(location.pathname, { replace: true, state: {} });
+    }
+  }, [location, navigate]);
 
   useEffect(() => {
     const shouldShowModal = sessionStorage.getItem('showDiagnosisDiscardedModal');
@@ -261,7 +271,7 @@ const Dashboard: React.FC = () => {
   useEffect(() => {
     if (!user?.partner) {
       const interval = setInterval(() => {
-        useAuthStore.getState().checkAuth();
+        useAuthStore.getState().checkAuth({ silent: true });
       }, 5000); // 5초마다
       return () => clearInterval(interval);
     }
@@ -589,6 +599,15 @@ const Dashboard: React.FC = () => {
           <Logo src={logoImage} alt="리커넥트 로고" />
           <NotificationBell />
         </Header>
+
+        <ConfirmationModal
+          isOpen={welcomeModalOpen}
+          onRequestClose={() => setWelcomeModalOpen(false)}
+          message="로그인이 완료되었습니다. 리커넥트에 오신 것을 환영합니다!"
+          onConfirm={() => setWelcomeModalOpen(false)}
+          showCancelButton={false}
+          confirmButtonText="확인"
+        />
 
         <TopSection>
           <Left>

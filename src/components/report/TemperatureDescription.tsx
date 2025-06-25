@@ -3,6 +3,7 @@ import styled from 'styled-components';
 
 interface TemperatureDescriptionProps {
   score: number;
+  reason: string;
 }
 
 const temperatureLevels = [
@@ -44,7 +45,17 @@ const Description = styled.p`
   margin: 0;
 `;
 
-const TemperatureDescription: React.FC<TemperatureDescriptionProps> = ({ score }) => {
+const Reason = styled.p`
+  font-size: 0.9rem;
+  color: #6b7280;
+  background-color: #f3f4f6;
+  padding: 0.75rem;
+  border-radius: 0.5rem;
+  margin-top: 1rem;
+  line-height: 1.5;
+`;
+
+const TemperatureDescription: React.FC<TemperatureDescriptionProps> = ({ score, reason }) => {
   const level = temperatureLevels.find(l => score >= l.min && score <= l.max);
 
   if (!level) {
@@ -55,6 +66,9 @@ const TemperatureDescription: React.FC<TemperatureDescriptionProps> = ({ score }
     <DescriptionContainer>
       <Title>{level.title}</Title>
       <Description>{level.description}</Description>
+      {reason && reason !== "지난 주와 큰 변화가 없었어요." && (
+        <Reason>💡 {reason}</Reason>
+      )}
     </DescriptionContainer>
   );
 };
