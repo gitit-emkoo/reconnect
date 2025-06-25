@@ -9,7 +9,7 @@ import { ReactComponent as OpenEye } from '../assets/Icon_OpenEye.svg';
 import axiosInstance from '../api/axios';
 import { useGoogleLogin } from '@react-oauth/google';
 import { getKakaoLoginUrl } from '../utils/socialAuth';
-import MainImg from '../assets/MainImg.png';
+import MainImg from '../assets/Img_LogIn.png';
 import logoImage from '../assets/Logo.png';
 import useAuthStore from '../store/authStore';
 
@@ -36,31 +36,24 @@ const IllustrationWrapper = styled.div`
   position: relative;
   border-radius: 20px;
   margin-bottom: 2rem;
-  background: white;
+  padding: 3px;
+  background: linear-gradient(to right, #FF69B4, #785ce2);
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
-  border: 2px solid #9370DB;
-  padding: 0;
   overflow: hidden;
 
   img {
     width: 100%;
     height: 100%;
     object-fit: cover;
-    filter: grayscale(100%);
+    border-radius: 17px;
+    display: block;
   }
-`;
-
-const Title = styled.h1`
-  font-size: 1.7rem;
-  font-weight: 600;
-  color: #333;
-  margin-bottom: 0.5rem;
-  text-align: center;
 `;
 
 const Subtitle = styled.p`
   font-size: 0.95rem;
-  color: #666;
+  color: #785ce2;
+  font-weight: 400;
   margin-bottom: 2rem;
   text-align: center;
   line-height: 1.4;
@@ -240,7 +233,7 @@ const Button = styled.button`
   padding: 1rem;
   border: none;
   border-radius: 30px;
-  background: linear-gradient(to right, #FF69B4, #4169E1);
+  background: linear-gradient(to right, #FF69B4, #785ce2);
   color: white;
   font-size: 1rem;
   font-weight: 500;
@@ -277,13 +270,16 @@ const LoginPage: React.FC = () => {
     resolver: zodResolver(loginSchema),
   });
 
-  const handleSuccessfulLogin = async (token: string) => {
+  const handleSuccessfulLogin = async (token: string, options?: { isSocial?: boolean }) => {
     try {
     useAuthStore.getState().setToken(token);
       const userResponse = await axiosInstance.get('/users/me');
       useAuthStore.getState().setUser(userResponse.data);
-      const from = location.state?.from?.pathname || '/';
-      navigate(from, { replace: true });
+
+      const from = location.state?.from?.pathname || '/dashboard';
+      const navigateState = options?.isSocial ? { state: { fromSocialLogin: true } } : {};
+      
+      navigate(from, { ...navigateState, replace: true });
     } catch (error) {
       console.error('Failed to fetch user after login:', error);
       setLoginError('로그인 후 사용자 정보를 가져오는 데 실패했습니다.');
@@ -312,11 +308,23 @@ const LoginPage: React.FC = () => {
 
   const handleSocialLoginSuccess = async (accessToken: string) => {
     try {
-        const response = await axiosInstance.post('/auth/google', { token: accessToken });
-        if (response.data && response.data.accessToken) {
-            await handleSuccessfulLogin(response.data.accessToken);
+      const unauthDiagnosisId = localStorage.getItem('unauthDiagnosisId');
+      const payload: { accessToken: string; unauthDiagnosisId?: string } = {
+        accessToken: accessToken,
+      };
+
+      if (unauthDiagnosisId) {
+        payload.unauthDiagnosisId = unauthDiagnosisId;
+      }
+
+      const response = await axiosInstance.post('/auth/google/login', payload);
+      if (response.data && response.data.accessToken) {
+        if (unauthDiagnosisId) {
+          localStorage.removeItem('unauthDiagnosisId');
+        }
+        await handleSuccessfulLogin(response.data.accessToken, { isSocial: true });
       } else {
-            setLoginError('소셜 로그인에 실패했습니다.');
+        setLoginError('소셜 로그인에 실패했습니다.');
       }
     } catch (error) {
         setLoginError('소셜 로그인 처리 중 오류가 발생했습니다.');
@@ -342,8 +350,7 @@ const LoginPage: React.FC = () => {
         <img src={MainImg} alt="Couple Illustration"/>
       </IllustrationWrapper>
 
-      <Title>다시, 연결</Title>
-      <Subtitle>당신의 관계를 위한 새로운 시작</Subtitle>
+      <Subtitle>다시 우리의 감정이 연결될 <br/>단 한번의 골든타임</Subtitle>
 
       <SocialLoginButtonContainer>
         <SocialLoginButton onClick={handleKakaoLogin} isKakao>

@@ -292,20 +292,33 @@ const RegisterPage: React.FC = () => {
   };
 
   const onSubmit = async (data: RegisterFormData) => {
+    const unauthDiagnosisId = localStorage.getItem('unauthDiagnosisId');
+    const registrationData = {
+      ...data,
+      answers,
+      unauthDiagnosisId,
+    };
+    
     try {
       const backendUrl = import.meta.env.VITE_APP_API_URL || 'http://localhost:3000';
-      await axios.post(
-        `${backendUrl}/auth/register`,
-        { ...data, answers },
-        { headers: { 'Content-Type': 'application/json' } }
-      );
-      
-      alert("회원가입이 완료되었습니다. 로그인해주세요.");
-      navigate('/login');
+      const response = await axios.post(`${backendUrl}/auth/register`, registrationData);
 
+      if (response.data && response.data.accessToken) {
+        setToken(response.data.accessToken);
+        const userResponse = await axios.get(`${backendUrl}/users/me`, {
+          headers: {
+            Authorization: `Bearer ${response.data.accessToken}`,
+          },
+        });
+        setUser(userResponse.data);
+        if (unauthDiagnosisId) {
+          localStorage.removeItem('unauthDiagnosisId');
+        }
+        navigate('/dashboard');
+      }
     } catch (error) {
-      console.error("회원가입 에러:", error);
-      if (error instanceof AxiosError && error.response) {
+      console.error('Registration failed:', error);
+      if (axios.isAxiosError(error) && error.response) {
         if (error.response.status === 409) {
           alert("이미 사용 중인 이메일입니다.");
         } else {

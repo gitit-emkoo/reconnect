@@ -5,7 +5,7 @@ import Popup from '../components/common/Popup';
 import NavigationBar from '../components/NavigationBar';
 import { formatInKST } from '../utils/date';
 
-import {  ReportData } from '../api/report';
+import { getAvailableWeeks, getReportByWeek, AvailableWeek, ReportData } from '../api/report';
 import TemperatureDescription from "../components/report/TemperatureDescription";
 
 const Container = styled.div`
@@ -126,24 +126,6 @@ const DiagnosisButton = styled(CTA)`
   }
 `;
 
-const mockAvailableWeeks = [
-  { label: '6월 3주차', value: '2024-25' },
-  { label: '6월 2주차', value: '2024-24' },
-  { label: '6월 1주차', value: '2024-23' },
-];
-
-const mockReports: { [key: string]: ReportData } = {
-  '2024-25': { // 6월 3주차
-    id: '3', weekStartDate: '2024-06-17', overallScore: 38, cardsSentCount: 1, challengesCompletedCount: 2, challengesFailedCount: 0, expertSolutionsCount: 1, marriageDiagnosisCount: 0, reason: '', coupleId: '1'
-  },
-  '2024-24': { // 6월 2주차
-    id: '2', weekStartDate: '2024-06-10', overallScore: 36, cardsSentCount: 2, challengesCompletedCount: 1, challengesFailedCount: 1, expertSolutionsCount: 1, marriageDiagnosisCount: 1, reason: '', coupleId: '1'
-  },
-  '2024-23': { // 6월 1주차
-    id: '1', weekStartDate: '2024-06-03', overallScore: 33.5, cardsSentCount: 3, challengesCompletedCount: 2, challengesFailedCount: 2, expertSolutionsCount: 0, marriageDiagnosisCount: 0, reason: '', coupleId: '1'
-  },
-};
-
 const ReportMetric: React.FC<{ label: string; value: number; unit: string; previousValue?: number; invertColors?: boolean }> =
   ({ label, value, unit, previousValue, invertColors = false }) => {
     
@@ -185,44 +167,96 @@ const ReportMetric: React.FC<{ label: string; value: number; unit: string; previ
 
 const Report: React.FC = () => {
   const navigate = useNavigate();
-  const [selectedWeek, setSelectedWeek] = useState<string>(mockAvailableWeeks[0]?.value);
+  const [availableWeeks, setAvailableWeeks] = useState<AvailableWeek[]>([]);
+  const [selectedWeekValue, setSelectedWeekValue] = useState<string>('');
+  const [reports, setReports] = useState<{ [key: string]: ReportData }>({});
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   const todayKey = 'report_popup';
-  const today = new Date()
+  const today = new Date();
   const ymd = formatInKST(today, 'yyyyMMdd');
   const hideToday = typeof window !== 'undefined' && localStorage.getItem(`${todayKey}_${ymd}`) === 'true';
   const [showPopup, setShowPopup] = useState(!hideToday);
-
-
+  
   const [diagnosisList, setDiagnosisList] = useState<any[]>([]);
+
   useEffect(() => {
     // 진단 내역 불러오기 (localStorage)
     const data = localStorage.getItem('diagnosisHistory');
     if (data) {
       setDiagnosisList(JSON.parse(data));
     }
+
+    const fetchWeeks = async () => {
+      try {
+        setLoading(true);
+        const weeks = await getAvailableWeeks();
+        setAvailableWeeks(weeks);
+        if (weeks.length > 0) {
+          setSelectedWeekValue(weeks[0].value);
+        }
+      } catch (err) {
+        setError('리포트 주차 정보를 불러오는데 실패했습니다.');
+        console.error(err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchWeeks();
   }, []);
 
+  useEffect(() => {
+    if (!selectedWeekValue) return;
+
+    // 이미 데이터가 있으면 다시 불러오지 않음
+    if (reports[selectedWeekValue]) return;
+
+    const fetchReport = async () => {
+      try {
+        const [yearStr, weekStr] = selectedWeekValue.split('-');
+        const year = parseInt(yearStr, 10);
+        const week = parseInt(weekStr, 10);
+        
+        const reportData = await getReportByWeek(year, week);
+        setReports(prev => ({ ...prev, [selectedWeekValue]: reportData }));
+      } catch (err) {
+        setError('리포트 상세 정보를 불러오는데 실패했습니다.');
+        console.error(err);
+      }
+    };
+
+    fetchReport();
+  }, [selectedWeekValue, reports]);
+
+
   const handleWeekChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    setSelectedWeek(e.target.value);
+    setSelectedWeekValue(e.target.value);
   };
 
-  const currentWeekLabel = mockAvailableWeeks.find(w => w.value === selectedWeek)?.label || '리포트';
+  const currentWeekLabel = useMemo(() => 
+    availableWeeks.find(w => w.value === selectedWeekValue)?.label || '리포트', 
+    [availableWeeks, selectedWeekValue]
+  );
   
-  const reportData = useMemo(() => mockReports[selectedWeek], [selectedWeek]);
+  const reportData = useMemo(() => reports[selectedWeekValue], [reports, selectedWeekValue]);
   
-  const getPreviousWeekValue = (currentValue: string) => {
-    const currentIndex = mockAvailableWeeks.findIndex(w => w.value === currentValue);
-    if (currentIndex < mockAvailableWeeks.length - 1) {
-      return mockAvailableWeeks[currentIndex + 1]?.value;
+  const previousReportData = useMemo(() => {
+    const currentIndex = availableWeeks.findIndex(w => w.value === selectedWeekValue);
+    if (currentIndex < availableWeeks.length - 1) {
+      const previousWeekValue = availableWeeks[currentIndex + 1]?.value;
+      return reports[previousWeekValue];
     }
     return undefined;
-  };
+  }, [selectedWeekValue, availableWeeks, reports]);
 
-  const previousReportData = useMemo(() => {
-    const previousWeekValue = getPreviousWeekValue(selectedWeek);
-    return previousWeekValue ? mockReports[previousWeekValue] : undefined;
-  }, [selectedWeek]);
+  if (loading) {
+    return <div>로딩 중...</div>;
+  }
+
+  if (error) {
+    return <div>에러: {error}</div>
+  }
 
   return (
     <>
@@ -234,7 +268,6 @@ const Report: React.FC = () => {
         description={<>
           이번 주 리포트와 진단 결과를<br />
           한눈에 확인해보세요!<br />
-          
         </>}
         buttonText="확인"
         onButtonClick={() => setShowPopup(false)}
@@ -243,8 +276,8 @@ const Report: React.FC = () => {
       <Container>
         <Header>
           <WeekInfo>{currentWeekLabel}</WeekInfo>
-            <WeekSelector value={selectedWeek} onChange={handleWeekChange}>
-              {mockAvailableWeeks.map(week => (
+            <WeekSelector value={selectedWeekValue} onChange={handleWeekChange}>
+              {availableWeeks.map(week => (
                 <option key={week.value} value={week.value}>
                   {week.label}
                 </option>
@@ -253,45 +286,69 @@ const Report: React.FC = () => {
         </Header>
 
         {reportData ? (
-          <Section>
-            <ReportMetric label="관계 온도" value={reportData.overallScore} unit="도" previousValue={previousReportData?.overallScore} />
-            <ReportMetric label="감정카드 보낸 횟수" value={reportData.cardsSentCount} unit="회" previousValue={previousReportData?.cardsSentCount} />
-            <ReportMetric label="챌린지 성공 횟수" value={reportData.challengesCompletedCount} unit="회" previousValue={previousReportData?.challengesCompletedCount} />
-            <ReportMetric label="챌린지 실패 횟수" value={reportData.challengesFailedCount} unit="회" previousValue={previousReportData?.challengesFailedCount} invertColors />
-            <TemperatureDescription score={reportData.overallScore} />
-          </Section>
+          <>
+            <Section>
+              <Title>주간 요약</Title>
+              <TemperatureDescription score={reportData.overallScore} reason={reportData.reason} />
+              
+              <ReportMetric 
+                label="관계 온도" 
+                value={reportData.overallScore} 
+                unit="°C" 
+                previousValue={previousReportData?.overallScore} 
+              />
+              <ReportMetric 
+                label="감정 카드" 
+                value={reportData.cardsSentCount} 
+                unit="개" 
+                previousValue={previousReportData?.cardsSentCount} 
+              />
+              <ReportMetric 
+                label="챌린지 성공" 
+                value={reportData.challengesCompletedCount} 
+                unit="개" 
+                previousValue={previousReportData?.challengesCompletedCount} 
+              />
+              <ReportMetric 
+                label="챌린지 실패" 
+                value={reportData.challengesFailedCount} 
+                unit="개" 
+                previousValue={previousReportData?.challengesFailedCount} 
+                invertColors
+              />
+            </Section>
+            
+            <CTA onClick={() => alert("전문가 솔루션 유도 (유료 진입)")}>전문가 솔루션 보기</CTA>
+
+            <DiagnosisSection>
+              <Title>결혼생활 심리진단</Title>
+              <DiagnosisButton onClick={() => navigate('/marriage-diagnosis')}>심리진단하기</DiagnosisButton>
+              <div style={{ margin: '1.5rem 0 0.5rem 0', fontWeight: 500 }}>진단 내역</div>
+              {diagnosisList.length === 0 ? (
+                <div style={{ color: '#64748b', fontSize: '0.95rem' }}>아직 진단 내역이 없습니다.</div>
+              ) : (
+                <DiagnosisList>
+                  {diagnosisList.map((item, idx) => (
+                    <DiagnosisItem key={idx} onClick={() => navigate(`/diagnosis-result/${item.id ?? idx}`)}>
+                      <div style={{ fontWeight: 600 }}>{item.date || '진단일 미상'}</div>
+                      <div style={{ fontSize: '0.95rem', color: '#7c3aed', fontWeight: 500 }}>점수: {item.score}점</div>
+                      <div style={{ fontSize: '0.92rem', color: '#64748b' }}>{item.message}</div>
+                    </DiagnosisItem>
+                  ))}
+                </DiagnosisList>
+              )}
+            </DiagnosisSection>
+          </>
         ) : (
           <Section>
-            <p>선택된 주의 리포트 데이터가 없습니다.</p>
+            <Title>리포트 정보 없음</Title>
+            <p>선택하신 주차의 리포트가 아직 생성되지 않았습니다.</p>
           </Section>
         )}
-        
-        <CTA onClick={() => alert("전문가 솔루션 유도 (유료 진입)")}>전문가 솔루션 보기</CTA>
-
-        <DiagnosisSection>
-          <Title>결혼생활 심리진단</Title>
-          <DiagnosisButton onClick={() => navigate('/marriage-diagnosis')}>심리진단하기</DiagnosisButton>
-          <div style={{ margin: '1.5rem 0 0.5rem 0', fontWeight: 500 }}>진단 내역</div>
-          {diagnosisList.length === 0 ? (
-            <div style={{ color: '#64748b', fontSize: '0.95rem' }}>아직 진단 내역이 없습니다.</div>
-          ) : (
-            <DiagnosisList>
-              {diagnosisList.map((item, idx) => (
-                <DiagnosisItem key={idx} onClick={() => navigate(`/diagnosis-result/${item.id ?? idx}`)}>
-                  <div style={{ fontWeight: 600 }}>{item.date || '진단일 미상'}</div>
-                  <div style={{ fontSize: '0.95rem', color: '#7c3aed', fontWeight: 500 }}>점수: {item.score}점</div>
-                  <div style={{ fontSize: '0.92rem', color: '#64748b' }}>{item.message}</div>
-                </DiagnosisItem>
-              ))}
-            </DiagnosisList>
-          )}
-        </DiagnosisSection>
       </Container>
       <NavigationBar />
     </>
   );
-}; 
-
-//전문가 상담을 위한 심리검사를 하시겠씁니까? 예-> 심리검사 페이지로 이동
+};
 
 export default Report;
