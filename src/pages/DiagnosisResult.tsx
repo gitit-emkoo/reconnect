@@ -3,7 +3,6 @@ import { useLocation, useNavigate } from "react-router-dom";
 import styled from "styled-components";
 import axios from "../api/axios";
 import BackButton from '../components/common/BackButton';
-// import ActionButton from '../components/common/ActionButton';
 import { diagnosisQuestions, MAX_SCORE } from "../config/diagnosisQuestions";
 import useAuthStore from '../store/authStore';
 import ConfirmationModal from '../components/common/ConfirmationModal';
@@ -108,7 +107,7 @@ const TemperatureMeter = styled.div<{ temperature: number }>`
     top: 0;
     height: 100%;
     width: ${props => props.temperature}%;
-    background: linear-gradient(to right, #FF69B4, #4169E1);
+    background: linear-gradient(to right, #FF69B4, #785cd2);
     border-radius: 5px;
     transition: width 0.3s ease;
   }
@@ -128,6 +127,9 @@ const PercentageText = styled.p`
 `;
 
 const Description = styled.p`
+background-color: #f0f0f0;
+padding: 1rem;
+border-radius: 10px;
   color: #666;
   line-height: 1.6;
   margin: 2rem 0;
@@ -141,10 +143,11 @@ const StyledComparison = styled.span<{ color?: string; isBold?: boolean }>`
 `;
 
 const LoginText = styled.p`
- 
+ text-align: center;
   color: #777;
   line-height: 1.6;
-  font-size: 0.8rem;
+  font-size: 1rem;
+  
   
 `;
 
@@ -153,7 +156,7 @@ const ActionButton = styled.button`
   padding: 1rem;
   border: none;
   border-radius: 30px;
-  background: #3b82f6;
+  background: #785cd2;
   color: white;
   font-size: 1.1rem;
   font-weight: 500;
@@ -386,10 +389,10 @@ const DiagnosisResult: React.FC = () => {
 
         {!isLoggedIn ? (
           <>
+            <LoginText>지금 전문진단 서비스 무료 이벤트 중<br/>(10만원 상당)</LoginText>
             <ActionButton onClick={handleNextStep}>
-              상세리포트 보러가기기
+              결혼생활 진단 시작하기
             </ActionButton>
-            <LoginText>이벤트 기간 나의 결혼생활 정밀진단 무료제공<br/>(10만원 상당)</LoginText>
             <InviteButton onClick={handleShare}>
               파트너에게 테스트 요청하기
             </InviteButton>

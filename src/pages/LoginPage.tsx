@@ -51,8 +51,23 @@ const IllustrationWrapper = styled.div`
 `;
 
 const Subtitle = styled.p`
+  position: absolute;
+  bottom: 1.5rem;
+  left: 0;
+  right: 0;
+  z-index: 10;
+  font-size: 1.3rem;
+  color: #785cd2;
+  font-weight: 500;
+  text-align: center;
+  line-height: 1.5;
+  text-shadow: 0 2px 4px rgb(248, 242, 242);
+  padding: 0 1rem;
+`;
+
+const Notice = styled.p`
   font-size: 0.95rem;
-  color: #785ce2;
+  color: #888;
   font-weight: 400;
   margin-bottom: 2rem;
   text-align: center;
@@ -103,11 +118,31 @@ const SocialLoginButtonStyled = styled.button<{ $isKakao?: boolean }>`
   `}
 `;
 
+const RegisterPrompt = styled.p`
+  width: 100%;
+  max-width: 340px;
+  text-align: center;
+  margin: 1.5rem 0;
+  font-size: 0.9rem;
+  color: #666;
+
+  span {
+    color: #FF69B4;
+    font-weight: 600;
+    text-decoration: underline;
+    cursor: pointer;
+
+    &:hover {
+      color: #E0559A;
+    }
+  }
+`;
+
 const DividerTextStyled = styled.p`
   font-size: 0.9rem;
   color: #999;
   text-align: center;
-  margin-top: 1.5rem;
+  margin-top: 0;
   margin-bottom: 1.5rem;
   width: 100%;
   max-width: 340px;
@@ -194,12 +229,13 @@ const FieldErrorMessage = styled.p`
 `;
 
 const GeneralErrorMessage = styled.p`
-  color: #D32F2F;
-  font-size: 0.8rem;
+  color: #d32f2f;
+  font-size: 0.85rem;
   text-align: center;
-  margin-bottom: 0.5rem;
   width: 100%;
   max-width: 340px;
+  margin-bottom: 1rem;
+  min-height: 1.2em; /* Prevent layout shift */
 `;
 
 const ForgotPasswordLinksContainer = styled.div`
@@ -248,10 +284,10 @@ const Button = styled.button`
 
 const SocialLoginButton: React.FC<{
   onClick: () => void;
-  isKakao?: boolean;
+  $isKakao?: boolean;
   children: React.ReactNode;
-}> = ({ onClick, isKakao, children }) => (
-  <SocialLoginButtonStyled onClick={onClick} $isKakao={isKakao}>
+}> = ({ onClick, $isKakao, children }) => (
+  <SocialLoginButtonStyled onClick={onClick} $isKakao={$isKakao}>
     {children}
   </SocialLoginButtonStyled>
 );
@@ -347,26 +383,32 @@ const LoginPage: React.FC = () => {
     <Container>
       <Logo src={logoImage} alt="Reconnect Logo" />
       <IllustrationWrapper>
-        <img src={MainImg} alt="Couple Illustration"/>
+        <img src={MainImg} alt="Loving couple" />
+        <Subtitle>"다시 우리의 감정이 연결될 <br/>단 한번의 골든타임"</Subtitle>
       </IllustrationWrapper>
-
-      <Subtitle>다시 우리의 감정이 연결될 <br/>단 한번의 골든타임</Subtitle>
-
+      <Notice>정식 진단을 위한 로그인이 필요합니다.<br/>이벤트 혜택은 로그인후 즉시 제공됩니다.</Notice>
       <SocialLoginButtonContainer>
-        <SocialLoginButton onClick={handleKakaoLogin} isKakao>
+        <SocialLoginButton onClick={handleKakaoLogin} $isKakao>
           카카오로 시작하기
         </SocialLoginButton>
-        <SocialLoginButton onClick={() => googleLogin()}>
-          Google로 시작하기
+        <SocialLoginButton onClick={googleLogin} $isKakao={false}>
+          <svg width="18" height="18" viewBox="0 0 18" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ marginRight: '8px' }}><g clipPath="url(#clip0_105_2)"><path d="M17.64 9.20455C17.64 8.56682 17.5827 7.95273 17.4764 7.36364H9V10.845H13.8436C13.635 11.9705 13.0009 12.9232 12.0477 13.5618V15.8195H14.7564C16.4836 14.2418 17.64 11.9464 17.64 9.20455Z" fill="#4285F4"></path><path d="M9 18C11.43 18 13.4673 17.1941 14.7564 15.8195L12.0477 13.5618C11.2418 14.1018 10.2118 14.4205 9 14.4205C6.96182 14.4205 5.23455 13.0218 4.50909 11.1714H1.70273V13.495C3.01273 16.1495 5.79545 18 9 18Z" fill="#34A853"></path><path d="M4.50909 11.1714C4.28864 10.5214 4.15636 9.82682 4.15636 9.11C4.15636 8.39318 4.28864 7.69864 4.50909 7.04864V4.725H1.70273C1.03773 6.04636 0.635455 7.53318 0.635455 9.11C0.635455 10.6868 1.03773 12.1736 1.70273 13.495L4.50909 11.1714Z" fill="#FBBC05"></path><path d="M9 3.79955C10.3173 3.79955 11.5073 4.265 12.4782 5.19182L14.8218 2.84818C13.4636 1.58773 11.43 0.889545 9 0.889545C5.79545 0.889545 3.01273 2.85045 1.70273 5.50409L4.50909 7.75182C5.23455 5.90136 6.96182 3.79955 9 3.79955Z" fill="#EA4335"></path></g><defs><clipPath id="clip0_105_2"><rect width="18" height="18" fill="white"></rect></clipPath></defs></svg>
+          Google로 계속하기
         </SocialLoginButton>
       </SocialLoginButtonContainer>
+      
+      <RegisterPrompt>
+        아직 회원이 아니신가요?{' '}
+        <span onClick={() => navigate('/register')}>회원가입</span>
+      </RegisterPrompt>
 
-      <DividerTextStyled>또는</DividerTextStyled>
+      <DividerTextStyled>OR</DividerTextStyled>
+
       {loginError && <GeneralErrorMessage>{loginError}</GeneralErrorMessage>}
 
       <FormWrapper onSubmit={handleSubmit(onSubmitEmailLogin)}>
         <InputWrapper>
-          <StyledInput 
+          <StyledInput
             {...register('email')}
             placeholder="이메일 주소"
             type="email"
@@ -387,7 +429,7 @@ const LoginPage: React.FC = () => {
         {errors.password && <FieldErrorMessage>{errors.password.message}</FieldErrorMessage>}
 
         <Button type="submit" disabled={isSubmitting}>
-          {isSubmitting ? '로그인 중...' : '로그인'}
+          {isSubmitting ? '로그인 중...' : '이메일로 계속하기'}
         </Button>
       </FormWrapper>
 
@@ -395,20 +437,6 @@ const LoginPage: React.FC = () => {
         <ForgotLink onClick={() => navigate('/find-email')}>이메일 찾기</ForgotLink>
         <ForgotLink onClick={() => navigate('/forgot-password')}>비밀번호 재설정</ForgotLink>
       </ForgotPasswordLinksContainer>
-
-      <Button
-        style={{
-          marginTop: '1.5rem',
-          background: 'transparent',
-          color: '#555',
-          border: '1px solid #ccc',
-          boxShadow: '0 1px 3px rgba(0,0,0,0.05)',
-        }}
-        onClick={() => navigate('/register')}
-      >
-        회원가입
-      </Button>
-
     </Container>
   );
 };

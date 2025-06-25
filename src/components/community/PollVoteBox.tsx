@@ -34,11 +34,10 @@ const PollVoteBox: React.FC<PollVoteBoxProps> = React.memo(({ post, user }) => {
 
   const voteMutation = useMutation({
     mutationFn: async (choiceIdx: number) => {
-      const choiceValue = choiceIdx + 1;
       if (!userId) {
         throw new Error('로그인이 필요합니다.');
       }
-      await axiosInstance.post(`/community/posts/${post.id}/vote`, { choice: choiceValue });
+      await axiosInstance.post(`/community/posts/${post.id}/vote`, { choice: choiceIdx });
       return { choiceIdx };
     },
     onMutate: async (choiceIdx: number) => {
@@ -51,7 +50,7 @@ const PollVoteBox: React.FC<PollVoteBoxProps> = React.memo(({ post, user }) => {
         produce(old, (draft: Draft<Post>) => {
           if (!draft.poll) return;
 
-          const choiceValue = choiceIdx + 1;
+          const choiceValue = choiceIdx;
           let votes = draft.poll.votes || [];
           const existingVoteIndex = votes.findIndex((v: PollVote) => v.userId === userId);
 
@@ -91,9 +90,9 @@ const PollVoteBox: React.FC<PollVoteBoxProps> = React.memo(({ post, user }) => {
   const renderVoteOptions = useMemo(() => 
     post.poll?.options.map((opt, idx) => {
       const totalVotes = localVotes.length;
-      const votesForOption = localVotes.filter((v: PollVote) => v.choice === idx + 1).length;
+      const votesForOption = localVotes.filter((v: PollVote) => v.choice === idx).length;
       const percent = totalVotes > 0 ? Math.round((votesForOption / totalVotes) * 100) : 0;
-      const isMyChoice = myVote && myVote.choice === idx + 1;
+      const isMyChoice = myVote && myVote.choice === idx;
       
       return (
         <div key={opt.id} style={{ flex: 1, textAlign: 'center' }}>
