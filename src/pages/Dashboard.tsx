@@ -724,6 +724,8 @@ const Dashboard: React.FC = () => {
         onRequestClose={() => setShowPartnerModal(false)}
         onConfirm={() => setShowPartnerModal(false)}
         message="파트너 연결 후에 사용 가능합니다."
+        showCancelButton={false}
+        confirmButtonText="확인"
       />
       <Popup
         isOpen={showPopup}

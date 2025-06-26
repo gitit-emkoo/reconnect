@@ -27,8 +27,8 @@ export interface Post {
     id: string;
     question: string;
     options: { id: string; text: string }[];
-    votes: PollVote[];
   };
+  votes?: PollVote[];
   tags?: string[];
   viewCount?: number;
   _count?: {

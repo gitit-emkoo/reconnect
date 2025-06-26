@@ -26,7 +26,7 @@ const PollVoteBox: React.FC<PollVoteBoxProps> = React.memo(({ post, user }) => {
   const queryClient = useQueryClient();
   const [error, setError] = useState<string | null>(null);
   
-  const localVotes = useMemo(() => post.poll?.votes || [], [post.poll?.votes]);
+  const localVotes = useMemo(() => post.votes || [], [post.votes]);
   const myVote = useMemo(() => 
     userId ? localVotes.find((v: PollVote) => v.userId === userId) : undefined,
     [userId, localVotes]
@@ -37,8 +37,8 @@ const PollVoteBox: React.FC<PollVoteBoxProps> = React.memo(({ post, user }) => {
       if (!userId) {
         throw new Error('로그인이 필요합니다.');
       }
-      await axiosInstance.post(`/community/posts/${post.id}/vote`, { choice: choiceIdx });
-      return { choiceIdx };
+      const { data } = await axiosInstance.post(`/community/posts/${post.id}/vote`, { choice: choiceIdx });
+      return data;
     },
     onMutate: async (choiceIdx: number) => {
       if (!userId) return;
@@ -48,25 +48,29 @@ const PollVoteBox: React.FC<PollVoteBoxProps> = React.memo(({ post, user }) => {
 
       queryClient.setQueryData(['post', post.id], (old: any) =>
         produce(old, (draft: Draft<Post>) => {
-          if (!draft.poll) return;
-
-          const choiceValue = choiceIdx;
-          let votes = draft.poll.votes || [];
+          let votes = draft.votes || [];
           const existingVoteIndex = votes.findIndex((v: PollVote) => v.userId === userId);
 
           if (existingVoteIndex > -1) {
-            if (votes[existingVoteIndex].choice === choiceValue) {
+            if (votes[existingVoteIndex].choice === choiceIdx) {
               votes.splice(existingVoteIndex, 1);
             } else {
-              votes[existingVoteIndex].choice = choiceValue;
+              votes[existingVoteIndex].choice = choiceIdx;
             }
           } else {
-            votes.push({ userId, choice: choiceValue });
+            votes.push({ userId, choice: choiceIdx });
           }
-          draft.poll.votes = votes;
+          draft.votes = votes;
         })
       );
       return { previousPost };
+    },
+    onSuccess: (data: PollVote[]) => {
+      queryClient.setQueryData(['post', post.id], (old: any) =>
+        produce(old, (draft: Draft<Post>) => {
+          draft.votes = data;
+        })
+      );
     },
     onError: (err: Error, _variables, context) => {
       setError(err.message);
@@ -75,7 +79,7 @@ const PollVoteBox: React.FC<PollVoteBoxProps> = React.memo(({ post, user }) => {
       }
     },
     onSettled: () => {
-      queryClient.invalidateQueries({ queryKey: ['post', post.id] });
+      // queryClient.invalidateQueries({ queryKey: ['post', post.id] });
     }
   });
 
@@ -90,9 +94,9 @@ const PollVoteBox: React.FC<PollVoteBoxProps> = React.memo(({ post, user }) => {
   const renderVoteOptions = useMemo(() => 
     post.poll?.options.map((opt, idx) => {
       const totalVotes = localVotes.length;
-      const votesForOption = localVotes.filter((v: PollVote) => v.choice === idx).length;
+      const votesForOption = localVotes.filter((v: PollVote) => v.choice === idx + 1).length;
       const percent = totalVotes > 0 ? Math.round((votesForOption / totalVotes) * 100) : 0;
-      const isMyChoice = myVote && myVote.choice === idx;
+      const isMyChoice = myVote && myVote.choice === idx + 1;
       
       return (
         <div key={opt.id} style={{ flex: 1, textAlign: 'center' }}>
