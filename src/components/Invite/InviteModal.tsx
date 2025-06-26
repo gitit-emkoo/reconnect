@@ -172,24 +172,41 @@ export const InviteModal: React.FC<InviteModalProps> = ({ onClose }) => {
 
   const handleShare = async () => {
     if (!invite) return;
-    const message = `리커넥트에서 파트너와 연결해보세요!\n초대 코드: ${invite.code}`;
-    
+
+    const projectUrl = window.location.origin;
+    const shareMessage = `리커넥트에 초대합니다! 아래 링크로 접속해 파트너와 다시 연결해보세요.\n${projectUrl}`;
+    const codeForClipboard = invite.code;
+
     if (navigator.share) {
       try {
         await navigator.share({
           title: '리커넥트 파트너 초대',
-          text: message,
+          text: shareMessage,
         });
+
+        // 공유 성공 후 클립보드에 초대 코드 복사
+        await navigator.clipboard.writeText(codeForClipboard);
+        alert(
+          '초대 메시지가 공유되었습니다.\n초대 코드가 클립보드에 복사되었으니, 파트너에게 붙여넣어 전송해주세요!',
+        );
       } catch (err) {
+        // 사용자가 공유를 취소한 경우 (AbortError)는 무시
+        if ((err as DOMException).name === 'AbortError') {
+          console.log('Share was cancelled by the user.');
+          return;
+        }
+
         console.error('Failed to share:', err);
-        // 공유 API가 실패하면 클립보드에 복사
-        await navigator.clipboard.writeText(message);
-        alert('초대 메시지가 클립보드에 복사되었습니다!');
+        // 기타 공유 실패 시, 전체 내용을 클립보드에 복사
+        const fallbackMessage = `${shareMessage}\n\n초대 코드: ${codeForClipboard}`;
+        await navigator.clipboard.writeText(fallbackMessage);
+        alert('공유에 실패했습니다. 초대 내용이 클립보드에 복사되었습니다.');
       }
     } else {
-      // 공유 API를 지원하지 않는 경우 클립보드에 복사
-      await navigator.clipboard.writeText(message);
-      alert('초대 메시지가 클립보드에 복사되었습니다!');
+      // Web Share API를 지원하지 않는 경우, 전체 내용을 클립보드에 복사
+      const fallbackMessage = `${shareMessage}\n\n초대 코드: ${codeForClipboard}`;
+      await navigator.clipboard.writeText(fallbackMessage);
+      alert('초대 내용이 클립보드에 복사되었습니다. 파트너에게 붙여넣어 전송해주세요.');
     }
   };
 
