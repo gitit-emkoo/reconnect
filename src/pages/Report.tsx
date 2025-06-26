@@ -1,12 +1,12 @@
 import React, { useState, useEffect, useMemo } from "react";
 import styled from "styled-components";
 import { useNavigate } from 'react-router-dom';
-import Popup from '../components/common/Popup';
 import NavigationBar from '../components/NavigationBar';
-import { formatInKST } from '../utils/date';
+import useAuthStore from "../store/authStore";
 
 import { getAvailableWeeks, getReportByWeek, AvailableWeek, ReportData } from '../api/report';
 import TemperatureDescription from "../components/report/TemperatureDescription";
+import { getLatestDiagnosisResult } from '../api/diagnosis';
 
 const Container = styled.div`
   background-color: #f9fafb;
@@ -126,6 +126,14 @@ const DiagnosisButton = styled(CTA)`
   }
 `;
 
+const getCurrentWeekLabel = () => {
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = now.getMonth() + 1;
+  const week = Math.ceil(now.getDate() / 7);
+  return `${year}년 ${month}월 ${week}주차`;
+};
+
 const ReportMetric: React.FC<{ label: string; value: number; unit: string; previousValue?: number; invertColors?: boolean }> =
   ({ label, value, unit, previousValue, invertColors = false }) => {
     
@@ -167,49 +175,68 @@ const ReportMetric: React.FC<{ label: string; value: number; unit: string; previ
 
 const Report: React.FC = () => {
   const navigate = useNavigate();
+  const { user } = useAuthStore();
   const [availableWeeks, setAvailableWeeks] = useState<AvailableWeek[]>([]);
   const [selectedWeekValue, setSelectedWeekValue] = useState<string>('');
   const [reports, setReports] = useState<{ [key: string]: ReportData }>({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-
-  const todayKey = 'report_popup';
-  const today = new Date();
-  const ymd = formatInKST(today, 'yyyyMMdd');
-  const hideToday = typeof window !== 'undefined' && localStorage.getItem(`${todayKey}_${ymd}`) === 'true';
-  const [showPopup, setShowPopup] = useState(!hideToday);
   
   const [diagnosisList, setDiagnosisList] = useState<any[]>([]);
+  const [latestTemp, setLatestTemp] = useState<number>(36.5);
+
+  const defaultReportData: ReportData = useMemo(() => ({
+    id: 'default',
+    coupleId: 'default',
+    weekStartDate: new Date().toISOString(),
+    overallScore: latestTemp,
+    reason: '파트너와 연결하고 활동을 시작하면 주간 리포트가 생성됩니다.',
+    cardsSentCount: 0,
+    challengesCompletedCount: 0,
+    challengesFailedCount: 0,
+    expertSolutionsCount: 0,
+    marriageDiagnosisCount: 0,
+  }), [latestTemp]);
 
   useEffect(() => {
-    // 진단 내역 불러오기 (localStorage)
     const data = localStorage.getItem('diagnosisHistory');
     if (data) {
       setDiagnosisList(JSON.parse(data));
     }
 
-    const fetchWeeks = async () => {
-      try {
-        setLoading(true);
-        const weeks = await getAvailableWeeks();
-        setAvailableWeeks(weeks);
-        if (weeks.length > 0) {
-          setSelectedWeekValue(weeks[0].value);
-        }
-      } catch (err) {
-        setError('리포트 주차 정보를 불러오는데 실패했습니다.');
-        console.error(err);
-      } finally {
-        setLoading(false);
+    const fetchLatestTemp = async () => {
+      const result = await getLatestDiagnosisResult();
+      if (result) {
+        setLatestTemp(result.score);
       }
     };
-    fetchWeeks();
-  }, []);
+
+    fetchLatestTemp();
+
+    if (user?.partner) {
+      const fetchWeeks = async () => {
+        try {
+          setLoading(true);
+          const weeks = await getAvailableWeeks();
+          setAvailableWeeks(weeks);
+          if (weeks.length > 0) {
+            setSelectedWeekValue(weeks[0].value);
+          }
+        } catch (err) {
+          setError('리포트 주차 정보를 불러오는데 실패했습니다.');
+          console.error(err);
+        } finally {
+          setLoading(false);
+        }
+      };
+      fetchWeeks();
+    } else {
+      setLoading(false);
+    }
+  }, [user]);
 
   useEffect(() => {
-    if (!selectedWeekValue) return;
-
-    // 이미 데이터가 있으면 다시 불러오지 않음
+    if (!selectedWeekValue || !user?.partner) return;
     if (reports[selectedWeekValue]) return;
 
     const fetchReport = async () => {
@@ -227,124 +254,92 @@ const Report: React.FC = () => {
     };
 
     fetchReport();
-  }, [selectedWeekValue, reports]);
+  }, [selectedWeekValue, reports, user]);
 
+  const currentWeekLabel = useMemo(() => {
+    if (availableWeeks.length > 0) {
+      return availableWeeks.find(w => w.value === selectedWeekValue)?.label || '리포트';
+    }
+    return getCurrentWeekLabel(); // 데이터 없을 시 현재 주차 표시
+  }, [availableWeeks, selectedWeekValue]);
+  
+  const reportData = useMemo(() => {
+    if (user?.partner && availableWeeks.length > 0 && reports[selectedWeekValue]) {
+      return reports[selectedWeekValue];
+    }
+    return defaultReportData;
+  }, [user, reports, selectedWeekValue, availableWeeks, defaultReportData]);
+  
+  const previousReportData = useMemo(() => {
+    if (user?.partner && availableWeeks.length > 1) {
+      const currentIndex = availableWeeks.findIndex(w => w.value === selectedWeekValue);
+      if (currentIndex < availableWeeks.length - 1) {
+        const previousWeekValue = availableWeeks[currentIndex + 1]?.value;
+        return reports[previousWeekValue];
+      }
+    }
+    return undefined;
+  }, [selectedWeekValue, availableWeeks, reports, user]);
 
   const handleWeekChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     setSelectedWeekValue(e.target.value);
   };
 
-  const currentWeekLabel = useMemo(() => 
-    availableWeeks.find(w => w.value === selectedWeekValue)?.label || '리포트', 
-    [availableWeeks, selectedWeekValue]
-  );
-  
-  const reportData = useMemo(() => reports[selectedWeekValue], [reports, selectedWeekValue]);
-  
-  const previousReportData = useMemo(() => {
-    const currentIndex = availableWeeks.findIndex(w => w.value === selectedWeekValue);
-    if (currentIndex < availableWeeks.length - 1) {
-      const previousWeekValue = availableWeeks[currentIndex + 1]?.value;
-      return reports[previousWeekValue];
-    }
-    return undefined;
-  }, [selectedWeekValue, availableWeeks, reports]);
-
-  if (loading) {
-    return <div>로딩 중...</div>;
-  }
-
-  if (error) {
-    return <div>에러: {error}</div>
-  }
+  if (loading) return <Container><div>로딩 중...</div></Container>;
+  if (error) return <Container><div>{error}</div></Container>;
 
   return (
     <>
-      <Popup
-        isOpen={showPopup}
-        onClose={() => setShowPopup(false)}
-        title="리포트 안내"
-        emoji="📊"
-        description={<>
-          이번 주 리포트와 진단 결과를<br />
-          한눈에 확인해보세요!<br />
-        </>}
-        buttonText="확인"
-        onButtonClick={() => setShowPopup(false)}
-        todayKey="report_popup"
-      />
       <Container>
         <Header>
           <WeekInfo>{currentWeekLabel}</WeekInfo>
+          {user?.partner && availableWeeks.length > 1 && (
             <WeekSelector value={selectedWeekValue} onChange={handleWeekChange}>
-              {availableWeeks.map(week => (
-                <option key={week.value} value={week.value}>
-                  {week.label}
-                </option>
+              {availableWeeks.map((week) => (
+                <option key={week.value} value={week.value}>{week.label}</option>
               ))}
             </WeekSelector>
+          )}
         </Header>
 
-        {reportData ? (
-          <>
-            <Section>
-              <Title>주간 요약</Title>
-              <TemperatureDescription score={reportData.overallScore} reason={reportData.reason} />
-              
-              <ReportMetric 
-                label="관계 온도" 
-                value={reportData.overallScore} 
-                unit="°C" 
-                previousValue={previousReportData?.overallScore} 
-              />
-              <ReportMetric 
-                label="감정 카드" 
-                value={reportData.cardsSentCount} 
-                unit="개" 
-                previousValue={previousReportData?.cardsSentCount} 
-              />
-              <ReportMetric 
-                label="챌린지 성공" 
-                value={reportData.challengesCompletedCount} 
-                unit="개" 
-                previousValue={previousReportData?.challengesCompletedCount} 
-              />
-              <ReportMetric 
-                label="챌린지 실패" 
-                value={reportData.challengesFailedCount} 
-                unit="개" 
-                previousValue={previousReportData?.challengesFailedCount} 
-                invertColors
-              />
-            </Section>
-            
-            <CTA onClick={() => alert("전문가 솔루션 유도 (유료 진입)")}>전문가 솔루션 보기</CTA>
+        <Section>
+          <TemperatureDescription score={reportData.overallScore} reason={reportData.reason} />
+        </Section>
+        
+        <Section>
+          <ReportMetric label="관계 온도" value={reportData.overallScore} unit="°C" previousValue={previousReportData?.overallScore} />
+          <ReportMetric label="보낸 감정 카드" value={reportData.cardsSentCount} unit="개" previousValue={previousReportData?.cardsSentCount} />
+          <ReportMetric label="완료한 챌린지" value={reportData.challengesCompletedCount} unit="개" previousValue={previousReportData?.challengesCompletedCount} />
+          <ReportMetric label="전문가 솔루션" value={reportData.expertSolutionsCount} unit="회" previousValue={previousReportData?.expertSolutionsCount} />
+          <ReportMetric label="결혼 생활 진단" value={reportData.marriageDiagnosisCount} unit="회" previousValue={previousReportData?.marriageDiagnosisCount} invertColors />
+        </Section>
 
-            <DiagnosisSection>
-              <Title>결혼생활 심리진단</Title>
-              <DiagnosisButton onClick={() => navigate('/marriage-diagnosis')}>심리진단하기</DiagnosisButton>
-              <div style={{ margin: '1.5rem 0 0.5rem 0', fontWeight: 500 }}>진단 내역</div>
-              {diagnosisList.length === 0 ? (
-                <div style={{ color: '#64748b', fontSize: '0.95rem' }}>아직 진단 내역이 없습니다.</div>
-              ) : (
-                <DiagnosisList>
-                  {diagnosisList.map((item, idx) => (
-                    <DiagnosisItem key={idx} onClick={() => navigate(`/diagnosis-result/${item.id ?? idx}`)}>
-                      <div style={{ fontWeight: 600 }}>{item.date || '진단일 미상'}</div>
-                      <div style={{ fontSize: '0.95rem', color: '#7c3aed', fontWeight: 500 }}>점수: {item.score}점</div>
-                      <div style={{ fontSize: '0.92rem', color: '#64748b' }}>{item.message}</div>
-                    </DiagnosisItem>
-                  ))}
-                </DiagnosisList>
-              )}
-            </DiagnosisSection>
-          </>
-        ) : (
-          <Section>
-            <Title>리포트 정보 없음</Title>
-            <p>선택하신 주차의 리포트가 아직 생성되지 않았습니다.</p>
-          </Section>
-        )}
+        <Section>
+          <Title>주간 리포트</Title>
+          <p>{reportData.reason}</p>
+        </Section>
+        
+        <DiagnosisSection>
+          <Title>지난 나의 진단 내역</Title>
+          {diagnosisList.length > 0 ? (
+            <DiagnosisList>
+              {diagnosisList.slice(0, 3).map((item, index) => (
+                <DiagnosisItem key={index} onClick={() => navigate('/diagnosis/result', { state: { answers: item.answers }})}>
+                  {new Date(item.date).toLocaleString('ko-KR')} - {item.score}점
+                </DiagnosisItem>
+              ))}
+            </DiagnosisList>
+          ) : (
+            <p>진단 내역이 없습니다.</p>
+          )}
+          <DiagnosisButton onClick={() => navigate('/diagnosis')}>새로운 진단 시작하기</DiagnosisButton>
+        </DiagnosisSection>
+
+        <Section>
+          <Title>전문가 솔루션</Title>
+          <p>관계 개선에 도움이 되는 다양한 콘텐츠를 살펴보세요.</p>
+          <CTA onClick={() => navigate('/contents')}>솔루션 보러가기</CTA>
+        </Section>
       </Container>
       <NavigationBar />
     </>
