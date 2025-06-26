@@ -389,7 +389,7 @@ const DiagnosisResult: React.FC = () => {
 
         {!isLoggedIn ? (
           <>
-            <LoginText>지금 전문진단 서비스 무료 이벤트 중<br/>(10만원 상당)</LoginText>
+            <LoginText>전문진단 서비스 무료 이벤트 중<br/>(10만원 상당)</LoginText>
             <ActionButton onClick={handleNextStep}>
               결혼생활 진단 시작하기
             </ActionButton>
