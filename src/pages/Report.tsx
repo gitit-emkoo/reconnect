@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useMemo, useContext } from "react";
 import styled from "styled-components";
 import { useNavigate } from 'react-router-dom';
 import NavigationBar from '../components/NavigationBar';
@@ -6,6 +6,7 @@ import NavigationBar from '../components/NavigationBar';
 import { getAvailableWeeks, getReportByWeek, AvailableWeek, ReportData } from '../api/report';
 import TemperatureDescription from "../components/report/TemperatureDescription";
 import { getLatestDiagnosisResult } from '../api/diagnosis';
+import { AuthContext } from "../contexts/AuthContext";
 
 const Container = styled.div`
   background-color: #f9fafb;
@@ -166,6 +167,7 @@ const ReportMetric: React.FC<{ label: string; value: number; unit: string; previ
 
 const Report: React.FC = () => {
   const navigate = useNavigate();
+  const { user } = useContext(AuthContext);
   const [availableWeeks, setAvailableWeeks] = useState<AvailableWeek[]>([]);
   const [selectedWeekValue, setSelectedWeekValue] = useState<string>('');
   const [reports, setReports] = useState<{ [key: string]: ReportData }>({});
@@ -205,6 +207,12 @@ const Report: React.FC = () => {
     };
     
     const fetchWeeks = async () => {
+      if (!user?.partner?.id) {
+        setAvailableWeeks([]);
+        setLoading(false);
+        return;
+      }
+
       setLoading(true);
       try {
         const weeks = await getAvailableWeeks();
@@ -227,7 +235,7 @@ const Report: React.FC = () => {
 
     fetchLatestTemp();
     fetchWeeks();
-  }, []);
+  }, [user?.partner?.id]);
 
   useEffect(() => {
     if (!selectedWeekValue) return;
@@ -294,35 +302,34 @@ const Report: React.FC = () => {
             </WeekSelector>
           )}
         </Header>
-
-        {loading && <p>리포트를 불러오는 중입니다...</p>}
         
-        {!loading && error && <p>{error}</p>}
+        {availableWeeks.length > 0 && currentReport ? (
+          <>
+            <Section>
+              <TemperatureDescription score={currentReport.overallScore} reason={currentReport.reason} />
+            </Section>
+            
+            <Section>
+              <ReportMetric label="관계 온도" value={currentReport.overallScore} unit="°C" previousValue={previousReport?.overallScore} />
+              <ReportMetric label="보낸 감정 카드" value={currentReport.cardsSentCount} unit="개" previousValue={previousReport?.cardsSentCount} />
+              <ReportMetric label="완료한 챌린지" value={currentReport.challengesCompletedCount} unit="개" previousValue={previousReport?.challengesCompletedCount} />
+              <ReportMetric label="전문가 솔루션" value={currentReport.expertSolutionsCount} unit="회" previousValue={previousReport?.expertSolutionsCount} />
+              <ReportMetric label="결혼 생활 진단" value={currentReport.marriageDiagnosisCount} unit="회" previousValue={previousReport?.marriageDiagnosisCount} invertColors />
+            </Section>
 
-        {!loading && !error && (
-          currentReport ? (
+            <CTA onClick={() => navigate('/contents-center')}>전문가 솔루션 전체 보기</CTA>
+          </>
+        ) : (
+          !loading && (
             <>
               <Section>
-                <TemperatureDescription score={currentReport.overallScore} reason={currentReport.reason} />
+                <TemperatureDescription score={defaultReportData.overallScore} reason={defaultReportData.reason} />
+                <ReportMetric label="관계 온도" value={defaultReportData.overallScore} unit="°C" />
+                <ReportMetric label="보낸 감정 카드" value={defaultReportData.cardsSentCount} unit="개" />
+                <ReportMetric label="완료한 챌린지" value={defaultReportData.challengesCompletedCount} unit="개" />
               </Section>
-              
-              <Section>
-                <ReportMetric label="관계 온도" value={currentReport.overallScore} unit="°C" previousValue={previousReport?.overallScore} />
-                <ReportMetric label="보낸 감정 카드" value={currentReport.cardsSentCount} unit="개" previousValue={previousReport?.cardsSentCount} />
-                <ReportMetric label="완료한 챌린지" value={currentReport.challengesCompletedCount} unit="개" previousValue={previousReport?.challengesCompletedCount} />
-                <ReportMetric label="전문가 솔루션" value={currentReport.expertSolutionsCount} unit="회" previousValue={previousReport?.expertSolutionsCount} />
-                <ReportMetric label="결혼 생활 진단" value={currentReport.marriageDiagnosisCount} unit="회" previousValue={previousReport?.marriageDiagnosisCount} invertColors />
-              </Section>
-
-              <CTA onClick={() => navigate('/contents-center')}>전문가 솔루션 전체 보기</CTA>
+              <CTA onClick={() => navigate('/contents-center')}>전문가 솔루션 둘러보기</CTA>
             </>
-          ) : (
-            <Section>
-              <TemperatureDescription score={defaultReportData.overallScore} reason={defaultReportData.reason} />
-              <ReportMetric label="관계 온도" value={defaultReportData.overallScore} unit="°C" />
-              <ReportMetric label="보낸 감정 카드" value={defaultReportData.cardsSentCount} unit="개" />
-              <ReportMetric label="완료한 챌린지" value={defaultReportData.challengesCompletedCount} unit="개" />
-            </Section>
           )
         )}
 

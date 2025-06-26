@@ -34,6 +34,14 @@ import { scheduleApi, Schedule } from '../api/schedule';
 import { formatInKST } from '../utils/date';
 import { getLatestDiagnosisResult } from '../api/diagnosis';
 
+const getEmotionByTemperature = (temp: number): string => {
+  if (temp > 80) return "타오르는 불꽃 🔥";
+  if (temp > 60) return "포근한 햇살 ☀️";
+  if (temp > 40) return "미지근한 온기 ☁️";
+  if (temp > 20) return "쌀쌀한 바람 🌬️";
+  return "얼어붙은 빙하 🧊";
+};
+
 const Container = styled.div`
   padding: 1.5rem;
   min-height: calc(100vh - 60px);
@@ -248,6 +256,9 @@ const Dashboard: React.FC = () => {
     queryFn: fetchDiaries
   });
   const todayString = formatInKST(today, 'yyyy-MM-dd');
+
+  const [temperature, setTemperature] = useState(36.5);
+  const [emotion, setEmotion] = useState("미지근한 온기 ☁️");
 
   useEffect(() => {
     if (location.state?.fromSocialLogin) {
@@ -584,6 +595,23 @@ const Dashboard: React.FC = () => {
 
   const percentage = latestDiagnosisScore;
 
+  useEffect(() => {
+    const fetchTemperature = async () => {
+      try {
+        const result = await getLatestDiagnosisResult();
+        if (result && typeof result.score === 'number') {
+          setTemperature(result.score);
+          setEmotion(getEmotionByTemperature(result.score));
+        }
+      } catch (error) {
+        console.error("Failed to fetch latest diagnosis result:", error);
+      }
+    };
+    if (user?.partner?.id) {
+      fetchTemperature();
+    }
+  }, [user?.partner?.id]);
+
   if (isLoading || isDiagnosisLoading ||!user) {
     return (
       <CenteredContainer>
@@ -614,7 +642,7 @@ const Dashboard: React.FC = () => {
             <HeartGauge percentage={percentage} size={120} />
           </Left>
           <Right>
-            <WelcomeUserSection user={user as User} heartPercent={76} emotion="포근한 햇살" />
+            <WelcomeUserSection user={user as User} heartPercent={temperature} emotion={emotion} />
           </Right>
         </TopSection>
 
@@ -730,14 +758,14 @@ const Dashboard: React.FC = () => {
       <Popup
         isOpen={showPopup}
         onClose={() => setShowPopup(false)}
-        title="요즘 우리 사이, 예전 같지 않나요?"
-        emoji="🌡️"
+        title="무료진단 이벤트중중"
+        emoji="🎁"
         description={<>
-          감정 하나로도 관계는 회복될 수 있어요.<br />
-          이미 12,000쌍의 부부가 ReConnect로 그 가능성을 확인했어요.
+          리포트 메뉴를 선택하고<br />
+          결혼진단 메뉴를 선택하세요요
         </>}
-        buttonText="💗 감정 온도 진단 시작하기"
-        onButtonClick={() => { setShowPopup(false); navigate('/marriage-diagnosis'); }}
+        buttonText="🎁 무료진단 받기"
+        onButtonClick={() => { setShowPopup(false); navigate('/report'); }}
         todayKey={todayKey}
       />
       {/* 일정 등록 모달 */}
