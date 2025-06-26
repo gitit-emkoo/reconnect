@@ -603,7 +603,7 @@ const Dashboard: React.FC = () => {
         <ConfirmationModal
           isOpen={welcomeModalOpen}
           onRequestClose={() => setWelcomeModalOpen(false)}
-          message="로그인이 완료되었습니다. 리커넥트에 오신 것을 환영합니다!"
+          message={`${user?.nickname}님, 다시 찾아주셔서 감사해요! 마지막으로 진단했던 관계 온도를 불러왔어요.`}
           onConfirm={() => setWelcomeModalOpen(false)}
           showCancelButton={false}
           confirmButtonText="확인"
@@ -744,10 +744,8 @@ const Dashboard: React.FC = () => {
         <ConfirmationModal
           isOpen={showDiscardModal}
           onRequestClose={() => setShowDiscardModal(false)}
-          title="진단 결과 안내"
-          message="새로운 진단 결과는 저장되지 않았어요. 기존에 저장된 부부의 온도가 유지됩니다."
+          message="파트너 연결이 필요한 기능입니다. 파트너를 연결해주세요."
           onConfirm={() => setShowDiscardModal(false)}
-          showCancelButton={false}
           confirmButtonText="확인"
         />
       )}
