@@ -97,12 +97,12 @@ const PollVoteBox: React.FC<PollVoteBoxProps> = React.memo(({ post, user }) => {
       return (
         <div key={opt.id} style={{ flex: 1, textAlign: 'center' }}>
           <button
-            onClick={() => handleVote(idx)}
+            onClick={() => handleVote(idx + 1)}
             style={{
               width: '100%',
               padding: '0.8rem 0',
               borderRadius: '0.5rem',
-              border: isMyChoice ? '2px solid #52C41A' : '1px solid #52C41A',
+              border: isMyChoice ? '2px solid #ff69b4' : '1px solid #785cd2',
               background: isMyChoice ? '#e6ffe6' : '#fff',
               color: '#52C41A',
               fontWeight: 600,
