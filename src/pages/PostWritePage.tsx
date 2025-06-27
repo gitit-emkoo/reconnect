@@ -342,7 +342,7 @@ const PostWritePage: React.FC = () => {
                         onContentChange={setEditorContent}
                         draftKey="custom_rich_text_editor_draft_new"
                     />
-                    {error && <p style={{ color: 'red', textAlign: 'right', marginTop: '0.5rem' }}>글 등록에 실패했습니다.</p>}
+                    {error && <p style={{ color: 'red', textAlign: 'center', marginTop: '0.5rem' }}>제목과 본문을 모두 작성해주세요.</p>}
                     <EditorDivider />
                     {/* 찬반토론 카테고리일 때만 투표 입력 UI */}
                     {selectedCategoryName === '찬반토론' && (

@@ -31,4 +31,9 @@ export const getReportByWeek = async (year: number, week: number): Promise<Repor
     params: { year, week },
   });
   return data;
+};
+
+export const getLatestOverallScore = async (): Promise<number | null> => {
+  const { data } = await axios.get('/reports/my-latest');
+  return data?.overallScore ?? null;
 }; 

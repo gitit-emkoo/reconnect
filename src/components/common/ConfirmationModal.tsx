@@ -55,19 +55,17 @@ const StyledButton = styled.button<{
   font-weight: 500;
   border-radius: 5px;
   cursor: pointer;
-  border: 1px solid transparent;
+  border: none;
   transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease;
   width: 120px;
 
   ${(props) =>
     props.$isConfirm
       ? `
-    background-color: ${props.$primary ? '#FF69B4' : '#4A90E2'};
+    background: linear-gradient(to right, #FF69B4, #4169E1);
     color: white;
-    border-color: ${props.$primary ? '#FF69B4' : '#4A90E2'};
     &:hover {
-      background-color: ${props.$primary ? '#f557a0' : '#357ABD'};
-      border-color: ${props.$primary ? '#f557a0' : '#357ABD'};
+      filter: brightness(0.95);
     }
   `
       : `
@@ -113,7 +111,7 @@ const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
           left: '50%',
           right: 'auto',
           bottom: 'auto',
-          marginRight: '-50%',
+          marginRight: '0',
           transform: 'translate(-50%, -50%)',
           border: 'none',
           padding: '0',

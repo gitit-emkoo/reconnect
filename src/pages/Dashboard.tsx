@@ -33,6 +33,7 @@ import challengeApi, { Challenge } from '../api/challenge';
 import { scheduleApi, Schedule } from '../api/schedule';
 import { formatInKST } from '../utils/date';
 import { getLatestDiagnosisResult } from '../api/diagnosis';
+import { getLatestOverallScore } from '../api/report';
 
 const getEmotionByTemperature = (temp: number): string => {
   if (temp > 80) return "타오르는 불꽃 🔥";
@@ -484,7 +485,8 @@ const Dashboard: React.FC = () => {
     return (
       isScheduleModalOpen && (
         <div style={{ position: 'fixed', left: 0, top: 0, width: '100vw', height: '100vh', background: 'rgba(0,0,0,0.3)', zIndex: 10000, display: 'flex', alignItems: 'center', justifyContent: 'center' }} onClick={() => setIsScheduleModalOpen(false)}>
-          <div style={{ background: '#fff', borderRadius: 12, padding: 24, minWidth: 280, maxWidth: 340, boxShadow: '0 4px 16px #0001' }} onClick={e => e.stopPropagation()}>
+          <div style={{ background: '#fff', borderRadius: 12, padding: 24, minWidth: 280, maxWidth: 340, boxShadow: '0 4px 16px #0001', position: 'relative' }} onClick={e => e.stopPropagation()}>
+            <span onClick={() => setIsScheduleModalOpen(false)} style={{ position: 'absolute', top: 12, right: 12, cursor: 'pointer', fontSize: 22, fontWeight: 700, lineHeight: 1 }} aria-label="Close">✕</span>
             <h3 style={{ margin: 0, marginBottom: 16, fontSize: 18, color: '#E64A8D' }}>일정 등록</h3>
             
             <div style={{ marginBottom: 12 }}>
@@ -593,18 +595,28 @@ const Dashboard: React.FC = () => {
     select: (data) => data?.score ?? 61,
   });
 
-  const percentage = latestDiagnosisScore;
+  const { data: latestOverallScore = null, isLoading: isReportLoading } = useQuery({
+    queryKey: ['latestOverallScore', user?.id],
+    queryFn: getLatestOverallScore,
+    enabled: !!user?.id,
+  });
+
+  const percentage = latestOverallScore ?? latestDiagnosisScore;
 
   useEffect(() => {
     const fetchTemperature = async () => {
       try {
-        const result = await getLatestDiagnosisResult();
-        if (result && typeof result.score === 'number') {
-          setTemperature(result.score);
-          setEmotion(getEmotionByTemperature(result.score));
+        let score: number | null = await getLatestOverallScore();
+        if (score === null) {
+          const result = await getLatestDiagnosisResult();
+          score = result?.score ?? 61;
+        }
+        if (typeof score === 'number') {
+          setTemperature(score);
+          setEmotion(getEmotionByTemperature(score));
         }
       } catch (error) {
-        console.error("Failed to fetch latest diagnosis result:", error);
+        console.error("Failed to fetch latest temperature:", error);
       }
     };
     if (user?.partner?.id) {
@@ -612,7 +624,7 @@ const Dashboard: React.FC = () => {
     }
   }, [user?.partner?.id]);
 
-  if (isLoading || isDiagnosisLoading ||!user) {
+  if (isLoading || isDiagnosisLoading || isReportLoading || !user) {
     return (
       <CenteredContainer>
         <LoadingSpinner />
