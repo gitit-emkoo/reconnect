@@ -7,6 +7,7 @@ import { getAvailableWeeks, getReportByWeek, AvailableWeek, ReportData } from '.
 import TemperatureDescription from "../components/report/TemperatureDescription";
 import { getLatestDiagnosisResult } from '../api/diagnosis';
 import { AuthContext } from "../contexts/AuthContext";
+import HeartGauge from '../components/Dashboard/HeartGauge';
 
 const Container = styled.div`
   background-color: #f9fafb;
@@ -96,6 +97,12 @@ const Title = styled.h2`
   font-size: 1.25rem;
   font-weight: 600;
   margin-bottom: 0.5rem;
+`;
+
+const GaugeWrapper = styled.div`
+  display: flex;
+  justify-content: center;
+  margin-bottom: 1.5rem;
 `;
 
 const ReportMetric: React.FC<{ label: string; value: number; unit: string; previousValue?: number; invertColors?: boolean }> =
@@ -269,6 +276,10 @@ const Report: React.FC = () => {
           )}
         </Header>
         
+        <GaugeWrapper>
+          <HeartGauge percentage={currentReport ? currentReport.overallScore : latestTemp} size={140} />
+        </GaugeWrapper>
+        
         {availableWeeks.length > 0 && currentReport ? (
           <>
             <Section>
@@ -276,11 +287,11 @@ const Report: React.FC = () => {
             </Section>
             
             <Section>
-              <ReportMetric label="관계 온도" value={currentReport.overallScore} unit="°C" previousValue={previousReport?.overallScore} />
-              <ReportMetric label="보낸 감정 카드" value={currentReport.cardsSentCount} unit="개" previousValue={previousReport?.cardsSentCount} />
-              <ReportMetric label="완료한 챌린지" value={currentReport.challengesCompletedCount} unit="개" previousValue={previousReport?.challengesCompletedCount} />
-              <ReportMetric label="전문가 솔루션" value={currentReport.expertSolutionsCount} unit="회" previousValue={previousReport?.expertSolutionsCount} />
-              <ReportMetric label="결혼 생활 진단" value={currentReport.marriageDiagnosisCount} unit="회" previousValue={previousReport?.marriageDiagnosisCount} invertColors />
+              <ReportMetric label="🌡️관계 온도" value={currentReport.overallScore} unit="°C" previousValue={previousReport?.overallScore} />
+              <ReportMetric label="💌보낸 감정 카드" value={currentReport.cardsSentCount} unit="개" previousValue={previousReport?.cardsSentCount} />
+              <ReportMetric label="🏆완료한 챌린지" value={currentReport.challengesCompletedCount} unit="개" previousValue={previousReport?.challengesCompletedCount} />
+              <ReportMetric label="💡전문가 솔루션" value={currentReport.expertSolutionsCount} unit="회" previousValue={previousReport?.expertSolutionsCount} />
+              <ReportMetric label="💑결혼 생활 진단" value={currentReport.marriageDiagnosisCount} unit="회" previousValue={previousReport?.marriageDiagnosisCount} invertColors />
             </Section>
 
            
@@ -290,9 +301,11 @@ const Report: React.FC = () => {
             <>
               <Section>
                 <TemperatureDescription score={defaultReportData.overallScore} reason={defaultReportData.reason} />
-                <ReportMetric label="관계 온도" value={defaultReportData.overallScore} unit="°C" />
-                <ReportMetric label="보낸 감정 카드" value={defaultReportData.cardsSentCount} unit="개" />
-                <ReportMetric label="완료한 챌린지" value={defaultReportData.challengesCompletedCount} unit="개" />
+                <ReportMetric label="🌡️관계 온도" value={defaultReportData.overallScore} unit="°C" />
+                <ReportMetric label="💌보낸 감정 카드" value={defaultReportData.cardsSentCount} unit="개" />
+                <ReportMetric label="🏆완료한 챌린지" value={defaultReportData.challengesCompletedCount} unit="개" />
+                <ReportMetric label="💡전문가 솔루션" value={defaultReportData.expertSolutionsCount} unit="회" />
+                <ReportMetric label="💑결혼 생활 진단" value={defaultReportData.marriageDiagnosisCount} unit="회" invertColors />
               </Section>
               
             </>
@@ -303,7 +316,7 @@ const Report: React.FC = () => {
         <Section>
           <Title>전문가 솔루션</Title>
           <p>관계 개선에 도움이 되는 다양한 콘텐츠를 살펴보세요.</p>
-          <CTA onClick={() => navigate('/contents')}>솔루션 보러가기</CTA>
+          <CTA onClick={() => navigate('/expert')}>솔루션 보러가기</CTA>
         </Section>
       </Container>
       <NavigationBar />
