@@ -1,5 +1,6 @@
 // src/pages/ExpertPage.tsx
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
 import NavigationBar from "../components/NavigationBar"; // NavigationBar 임포트
 import Header from '../components/common/Header';
@@ -66,11 +67,19 @@ const CardDesc = styled.div`
 `;
 
 const ExpertPage: React.FC = () => {
+  const navigate = useNavigate();
   return (
     <>
       <Header title="전문가" />
       <Container>
         <CardList>
+          <Card onClick={() => navigate('/expert/self-diagnosis')} style={{cursor:'pointer'}}>
+            <CardImg src={ImgCounseling} alt="진단" />
+            <CardText>
+              <CardTitle>자기이해 진단실</CardTitle>
+              <CardDesc>나를 좀더 깊게 알고싶다면</CardDesc>
+            </CardText>
+          </Card>
           <Card>
             <CardImg src={ImgCounseling} alt="감정심리 상담실" />
             <CardText>

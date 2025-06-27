@@ -113,9 +113,9 @@ const PaginationNum = styled.span`
 
 function getCategoryColor(name: string) {
   switch (name) {
-    case '부부관계':
-      return '#FF69B4';
     case '결혼생활':
+      return '#FF69B4';
+    case '부부관계':
       return '#4F8CFF';
     case '챌린지인증':
       return '#FFA940';

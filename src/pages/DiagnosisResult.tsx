@@ -17,7 +17,7 @@ const Container = styled.div`
 
 const ImageSection = styled.div`
   width: 100%;
-  height: 280px;
+  height: 200px;
   background: #1A0B14;
   position: relative;
   overflow: hidden;

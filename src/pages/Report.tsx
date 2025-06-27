@@ -98,34 +98,6 @@ const Title = styled.h2`
   margin-bottom: 0.5rem;
 `;
 
-const DiagnosisSection = styled(Section)`
-  margin-top: 2rem;
-`;
-
-const DiagnosisList = styled.ul`
-  list-style: none;
-  padding: 0;
-  margin: 0;
-`;
-
-const DiagnosisItem = styled.li`
-  padding: 1rem;
-  border-bottom: 1px solid #f1f5f9;
-  cursor: pointer;
-  transition: background 0.15s;
-  &:hover {
-    background: #f3f4f6;
-  }
-`;
-
-const DiagnosisButton = styled(CTA)`
-  background-color: #7c3aed;
-  margin-top: 0.5rem;
-  &:hover {
-    background-color: #5b21b6;
-  }
-`;
-
 const ReportMetric: React.FC<{ label: string; value: number; unit: string; previousValue?: number; invertColors?: boolean }> =
   ({ label, value, unit, previousValue, invertColors = false }) => {
     
@@ -174,7 +146,6 @@ const Report: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   
-  const [diagnosisList, setDiagnosisList] = useState<any[]>([]);
   const [latestTemp, setLatestTemp] = useState<number>(36.5);
 
   const defaultReportData: ReportData = useMemo(() => ({
@@ -191,11 +162,6 @@ const Report: React.FC = () => {
   }), [latestTemp]);
 
   useEffect(() => {
-    const data = localStorage.getItem('diagnosisHistory');
-    if (data) {
-      setDiagnosisList(JSON.parse(data));
-    }
-
     const fetchLatestTemp = async () => {
       try {
         const temp = await getLatestDiagnosisResult();
@@ -317,7 +283,7 @@ const Report: React.FC = () => {
               <ReportMetric label="결혼 생활 진단" value={currentReport.marriageDiagnosisCount} unit="회" previousValue={previousReport?.marriageDiagnosisCount} invertColors />
             </Section>
 
-            <CTA onClick={() => navigate('/contents-center')}>전문가 솔루션 전체 보기</CTA>
+           
           </>
         ) : (
           !loading && (
@@ -328,26 +294,11 @@ const Report: React.FC = () => {
                 <ReportMetric label="보낸 감정 카드" value={defaultReportData.cardsSentCount} unit="개" />
                 <ReportMetric label="완료한 챌린지" value={defaultReportData.challengesCompletedCount} unit="개" />
               </Section>
-              <CTA onClick={() => navigate('/contents-center')}>전문가 솔루션 둘러보기</CTA>
+              
             </>
           )
         )}
 
-        <DiagnosisSection>
-          <Title>지난 나의 진단 내역</Title>
-          {diagnosisList.length > 0 ? (
-            <DiagnosisList>
-              {diagnosisList.slice(0, 3).map((item, index) => (
-                <DiagnosisItem key={index} onClick={() => navigate('/diagnosis/result', { state: { answers: item.answers }})}>
-                  {new Date(item.date).toLocaleString('ko-KR')} - {item.score}점
-                </DiagnosisItem>
-              ))}
-            </DiagnosisList>
-          ) : (
-            <p>진단 내역이 없습니다.</p>
-          )}
-          <DiagnosisButton onClick={() => navigate('/diagnosis')}>새로운 진단 시작하기</DiagnosisButton>
-        </DiagnosisSection>
 
         <Section>
           <Title>전문가 솔루션</Title>

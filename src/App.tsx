@@ -51,6 +51,7 @@ import PostEditPage from './pages/PostEditPage';
 import MarriageDiagnosis from './pages/MarriageDiagnosis';
 import MarriageDiagnosisResult from './pages/MarriageDiagnosisResult';
 import ContentAdmin from './pages/ContentAdmin';
+import SelfDiagnosisRoom from './pages/SelfDiagnosisRoom';
 
 const queryClient = new QueryClient();
 
@@ -144,6 +145,7 @@ const App = () => {
             <Route path="/community/:id" element={<ProtectedRoute><PostDetailPage /></ProtectedRoute>} />
             <Route path="/my" element={<ProtectedRoute><MyPage /></ProtectedRoute>} />
             <Route path="/expert" element={<ProtectedRoute><ExpertPage /></ProtectedRoute>} />
+            <Route path="/expert/self-diagnosis" element={<ProtectedRoute><SelfDiagnosisRoom /></ProtectedRoute>} />
             <Route path="/profile/edit" element={<ProtectedRoute><ProfileEditPage /></ProtectedRoute>} />
             <Route path="/marriage-diagnosis" element={<ProtectedRoute><MarriageDiagnosis /></ProtectedRoute>} />
             <Route path="/marriage-diagnosis-result" element={<ProtectedRoute><MarriageDiagnosisResult /></ProtectedRoute>} />
