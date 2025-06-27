@@ -1,5 +1,5 @@
 // src/pages/ExpertPage.tsx
-import React from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
 import NavigationBar from "../components/NavigationBar"; // NavigationBar 임포트
@@ -7,6 +7,7 @@ import Header from '../components/common/Header';
 import ImgCounseling from '../assets/Img_counseling.jpg';
 import ImgBeads from '../assets/Img_Beads.jpg';
 import ImgLaw from '../assets/Img_Law.jpg';
+import ConfirmationModal from '../components/common/ConfirmationModal';
 
 const Container = styled.div`
   display: flex;
@@ -68,6 +69,8 @@ const CardDesc = styled.div`
 
 const ExpertPage: React.FC = () => {
   const navigate = useNavigate();
+  const [showComingSoon, setShowComingSoon] = useState(false);
+  const handleComingSoon = () => setShowComingSoon(true);
   return (
     <>
       <Header title="전문가" />
@@ -80,21 +83,21 @@ const ExpertPage: React.FC = () => {
               <CardDesc>나를 좀더 깊게 알고싶다면</CardDesc>
             </CardText>
           </Card>
-          <Card>
+          <Card onClick={handleComingSoon} style={{cursor:'pointer'}}>
             <CardImg src={ImgCounseling} alt="감정심리 상담실" />
             <CardText>
               <CardTitle>감정심리 상담실</CardTitle>
               <CardDesc>정서적 회복이 필요한 분</CardDesc>
             </CardText>
           </Card>
-          <Card>
+          <Card onClick={handleComingSoon} style={{cursor:'pointer'}}>
             <CardImg src={ImgBeads} alt="인연궁합 상담실" />
             <CardText>
               <CardTitle>인연궁합 상담실</CardTitle>
               <CardDesc>운명과 타이밍이 궁금한 분</CardDesc>
             </CardText>
           </Card>
-          <Card>
+          <Card onClick={handleComingSoon} style={{cursor:'pointer'}}>
             <CardImg src={ImgLaw} alt="법률 상담소" />
             <CardText>
               <CardTitle>법률 상담소</CardTitle>
@@ -103,6 +106,14 @@ const ExpertPage: React.FC = () => {
           </Card>
         </CardList>
       </Container>
+      <ConfirmationModal
+        isOpen={showComingSoon}
+        onRequestClose={() => setShowComingSoon(false)}
+        onConfirm={() => setShowComingSoon(false)}
+        message="준비중인 서비스입니다."
+        showCancelButton={false}
+        confirmButtonText="확인"
+      />
       <NavigationBar />
     </>
   );
