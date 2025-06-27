@@ -65,6 +65,7 @@ const CardDesc = styled.div`
   font-size: 0.98rem;
   color: #666;
   margin-top: 0.2rem;
+  text-align: left;
 `;
 
 const ExpertPage: React.FC = () => {
@@ -80,28 +81,28 @@ const ExpertPage: React.FC = () => {
             <CardImg src={ImgCounseling} alt="진단" />
             <CardText>
               <CardTitle>자기이해 진단실</CardTitle>
-              <CardDesc>나를 좀더 깊게 알고싶다면</CardDesc>
+              <CardDesc>검증된 이론과 AI 분석으로 설계된 자기 이해 진단</CardDesc>
             </CardText>
           </Card>
           <Card onClick={handleComingSoon} style={{cursor:'pointer'}}>
             <CardImg src={ImgCounseling} alt="감정심리 상담실" />
             <CardText>
               <CardTitle>감정심리 상담실</CardTitle>
-              <CardDesc>정서적 회복이 필요한 분</CardDesc>
+              <CardDesc>심리적 불안 정서적 어려움의 치유와 회복</CardDesc>
             </CardText>
           </Card>
           <Card onClick={handleComingSoon} style={{cursor:'pointer'}}>
             <CardImg src={ImgBeads} alt="인연궁합 상담실" />
             <CardText>
               <CardTitle>인연궁합 상담실</CardTitle>
-              <CardDesc>운명과 타이밍이 궁금한 분</CardDesc>
+              <CardDesc>관계의 흐름과 시기와 관련한 통찰</CardDesc>
             </CardText>
           </Card>
           <Card onClick={handleComingSoon} style={{cursor:'pointer'}}>
             <CardImg src={ImgLaw} alt="법률 상담소" />
             <CardText>
               <CardTitle>법률 상담소</CardTitle>
-              <CardDesc>관계의 현실적 마무리가 고민이라면</CardDesc>
+              <CardDesc>인연과 감정의 방</CardDesc>
             </CardText>
           </Card>
         </CardList>
