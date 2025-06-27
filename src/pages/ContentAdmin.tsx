@@ -202,7 +202,7 @@ const ContentAdmin: React.FC = () => {
 
   useEffect(() => {
     if (user) {
-      if (user.email && ADMIN_CONFIG.isAdmin(user.email)) {
+      if (user.email && ADMIN_CONFIG.isAdmin(user.email, user.role)) {
         setIsAuthorized(true);
         loadContents();
       } else {

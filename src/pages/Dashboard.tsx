@@ -758,14 +758,14 @@ const Dashboard: React.FC = () => {
       <Popup
         isOpen={showPopup}
         onClose={() => setShowPopup(false)}
-        title="무료진단 이벤트중중"
+        title="무료진단 혜택받기"
         emoji="🎁"
         description={<>
           리포트 메뉴를 선택하고<br />
-          결혼진단 메뉴를 선택하세요요
+          결혼진단 메뉴를 선택하세요
         </>}
-        buttonText="🎁 무료진단 받기"
-        onButtonClick={() => { setShowPopup(false); navigate('/report'); }}
+        buttonText="❤️ 무료진단 받기"
+        onButtonClick={() => { setShowPopup(false); navigate('/expert'); }}
         todayKey={todayKey}
       />
       {/* 일정 등록 모달 */}

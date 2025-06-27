@@ -21,6 +21,7 @@ export interface User {
   socialId?: string;
   createdAt: string;
   updatedAt: string;
+  role?: 'USER' | 'ADMIN';
 }
 
 export interface ProfileUpdateResponse {
