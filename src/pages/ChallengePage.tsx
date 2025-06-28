@@ -7,6 +7,7 @@ import challengeApi from '../api/challenge';
 import NavigationBar from '../components/NavigationBar';
 import TabSwitcher, { Tab } from '../components/common/TabSwitcher';
 import PartnerRequiredModal from '../components/common/PartnerRequiredModal';
+import ConfirmationModal from '../components/common/ConfirmationModal';
 import { formatInKST, isThisWeekKST } from '../utils/date';
 import useAuthStore from '../store/authStore';
 
@@ -219,6 +220,8 @@ const ChallengePage: React.FC = () => {
   const [historyTab, setHistoryTab] = useState<'success' | 'fail'>('success');
   const [challengeHistory, setChallengeHistory] = useState<{ completed: Challenge[]; failed: Challenge[] }>({ completed: [], failed: [] });
   const [showPartnerRequiredModal, setShowPartnerRequiredModal] = useState(false);
+  const [showConfirmModal, setShowConfirmModal] = useState(false);
+  const [confirmModalMessage, setConfirmModalMessage] = useState('');
   const user = useAuthStore(state => state.user);
   const hasPartner = !!user?.partner?.id;
 
@@ -255,9 +258,18 @@ const ChallengePage: React.FC = () => {
       await challengeApi.startChallenge(challenge.id);
       setIsModalOpen(false);
       loadData(); // 새 챌린지 시작 후 데이터 다시 로드
-    } catch (error) {
+    } catch (error: any) {
       console.error('챌린지 시작 중 오류 발생:', error);
-      alert('챌린지 시작 중 오류가 발생했습니다.');
+      
+      // 백엔드 에러 메시지 확인 및 분기 처리
+      const message = error?.response?.data?.message || '챌린지 시작 중 오류가 발생했습니다.';
+      if (message.includes('이미 진행중인 챌린지')) {
+        setConfirmModalMessage(message);
+        setShowConfirmModal(true);
+        setIsModalOpen(false); // 챌린지 선택 모달은 닫기
+      } else {
+        alert(message); // 그 외의 에러는 alert로 표시
+      }
     }
   };
 
@@ -378,6 +390,15 @@ const ChallengePage: React.FC = () => {
         open={showPartnerRequiredModal}
         onClose={() => setShowPartnerRequiredModal(false)}
       />
+      {showConfirmModal && (
+        <ConfirmationModal
+          isOpen={showConfirmModal}
+          message={confirmModalMessage}
+          onRequestClose={() => setShowConfirmModal(false)}
+          onConfirm={() => setShowConfirmModal(false)}
+          showCancelButton={false}
+        />
+      )}
     </PageContainer>
   );
 };
