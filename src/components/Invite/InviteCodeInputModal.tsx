@@ -94,7 +94,7 @@ const InviteCodeInputModal: React.FC<InviteCodeInputModalProps> = ({ onClose, on
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
-  const checkAuth = useAuthStore((state) => state.checkAuth);
+  const { setUser, setToken } = useAuthStore();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -102,7 +102,13 @@ const InviteCodeInputModal: React.FC<InviteCodeInputModalProps> = ({ onClose, on
     setSuccess(false);
     setIsLoading(true);
     try {
-      await partnerInvitesApi.respondToInvite(code.trim());
+      const response = await partnerInvitesApi.respondToInvite(code.trim());
+      
+      if (response.accessToken && response.user) {
+        setToken(response.accessToken);
+        setUser(response.user);
+      }
+
       setSuccess(true);
       setShowConfirmModal(true);
     } catch (err: any) {
@@ -112,11 +118,10 @@ const InviteCodeInputModal: React.FC<InviteCodeInputModalProps> = ({ onClose, on
     }
   };
 
-  const handleConfirm = async () => {
+  const handleConfirm = () => {
     setShowConfirmModal(false);
     if (onSuccess) onSuccess();
     onClose();
-    await checkAuth();
   };
 
   return (
