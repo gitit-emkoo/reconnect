@@ -350,9 +350,16 @@ const EmotionDiary: React.FC = () => {
   const user = useAuthStore((state) => state.user);
 
   // 다이어리 목록 조회
-  const { data: diaryList = [] } = useQuery({
+  const { data: diaryList = [] } = useQuery<DiaryEntry[]>({
     queryKey: ['diaries'],
-    queryFn: fetchDiaries
+    queryFn: fetchDiaries,
+  });
+
+  // 모달에 표시할 다이어리 개별 조회
+  const { data: diaryForModal, isLoading: isDiaryForModalLoading } = useQuery({
+    queryKey: ['diary', selectedDateForModal],
+    queryFn: () => fetchDiaryByDate(selectedDateForModal!),
+    enabled: !!selectedDateForModal,
   });
 
   // 오늘 날짜의 다이어리 조회
@@ -578,7 +585,10 @@ const EmotionDiary: React.FC = () => {
               <ModalContent onClick={(e) => e.stopPropagation()}>
                 <ModalTitle>{formatInKST(new Date(selectedDateForModal), 'yyyy년 M월 d일')} 다이어리</ModalTitle>
                 {(() => {
-                  const diary = diaryList.find(d => d.date === selectedDateForModal);
+                  if (isDiaryForModalLoading) {
+                    return <div>로딩 중...</div>;
+                  }
+                  const diary = diaryForModal;
                   if (!diary) return <div>이 날짜에는 작성된 다이어리가 없습니다.</div>;
 
                   // 트리거 아이콘 매핑
@@ -637,7 +647,7 @@ const EmotionDiary: React.FC = () => {
           )}
         </MainContent>
 
-        <EmotionDiaryCalendar diaryList={diaryList} onDayClick={(date)=> setSelectedDateForModal(date)} />
+        <EmotionDiaryCalendar diaryList={diaryList} onDayClick={(date) => setSelectedDateForModal(date)} />
 
         {showModal && (
           <Modal onClick={() => setShowModal(false)}>

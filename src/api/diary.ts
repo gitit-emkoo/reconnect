@@ -22,10 +22,20 @@ export interface DiaryEntry {
   updatedAt?: string;
 }
 
+export interface Diary {
+  id: string;
+  date: string;
+  content: string;
+  emotion: string;
+  userId: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
 // 다이어리 목록 조회
 export const fetchDiaries = async (): Promise<DiaryEntry[]> => {
-  const { data } = await axiosInstance.get('/diaries');
-  return data;
+  const response = await axiosInstance.get('/diaries');
+  return response.data;
 };
 
 // 특정 날짜의 다이어리 조회

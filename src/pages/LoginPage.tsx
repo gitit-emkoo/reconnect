@@ -321,14 +321,12 @@ const LoginPage: React.FC = () => {
     if (unauthDiagnosisRaw) {
       try {
         const { score, createdAt } = JSON.parse(unauthDiagnosisRaw);
-        // 새로운 API 엔드포인트로 전송
-        await axiosInstance.post('/diagnosis/unauth', {
-          score,
-          createdAt,
-        });
+        // 새로운 API 엔드포인트로 비동기 전송 (fire-and-forget)
+        axiosInstance.post('/diagnosis/unauth', { score, createdAt })
+          .catch((error) => console.error('비회원 진단 결과 연동 실패:', error));
         localStorage.removeItem('diagnosisResult');
       } catch (error) {
-        console.error('비회원 진단 결과 연동 실패:', error);
+        console.error('비회원 진단 결과 파싱 실패:', error);
       }
     }
 

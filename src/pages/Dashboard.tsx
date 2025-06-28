@@ -599,6 +599,7 @@ const Dashboard: React.FC = () => {
     queryKey: ['latestOverallScore', user?.id],
     queryFn: getLatestOverallScore,
     enabled: !!user?.id,
+    select: (data) => data?.overallScore ?? null,
   });
 
   const percentage = latestOverallScore ?? latestDiagnosisScore;
@@ -606,7 +607,8 @@ const Dashboard: React.FC = () => {
   useEffect(() => {
     const fetchTemperature = async () => {
       try {
-        let score: number | null = await getLatestOverallScore();
+        const report = await getLatestOverallScore();
+        let score: number | null = report?.overallScore ?? null;
         if (score === null) {
           const result = await getLatestDiagnosisResult();
           score = result?.score ?? 61;
@@ -773,8 +775,8 @@ const Dashboard: React.FC = () => {
         title="무료진단 혜택받기"
         emoji="🎁"
         description={<>
-          리포트 메뉴를 선택하고<br />
-          결혼진단 메뉴를 선택하세요
+          자기이해 진단실 →<br />
+          결혼생활 진단
         </>}
         buttonText="❤️ 무료진단 받기"
         onButtonClick={() => { setShowPopup(false); navigate('/expert'); }}
