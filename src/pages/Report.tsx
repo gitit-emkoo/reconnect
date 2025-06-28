@@ -153,13 +153,13 @@ const Report: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   
-  const [latestTemp, setLatestTemp] = useState<number>(36.5);
+  const [latestTemp, setLatestTemp] = useState<number | null>(null);
 
   const defaultReportData: ReportData = useMemo(() => ({
     id: 'default',
     coupleId: 'default',
     weekStartDate: new Date().toISOString(),
-    overallScore: latestTemp,
+    overallScore: latestTemp ?? 61,
     reason: '파트너와 연결하고 활동을 시작하면 주간 리포트가 생성됩니다.',
     cardsSentCount: 0,
     challengesCompletedCount: 0,
@@ -172,10 +172,14 @@ const Report: React.FC = () => {
     const fetchLatestTemp = async () => {
       try {
         const temp = await getLatestDiagnosisResult();
-        if(temp) setLatestTemp(temp.score);
+        if(temp) {
+          setLatestTemp(temp.score);
+        } else {
+          setLatestTemp(61);
+        }
       } catch (err) {
         console.error("Failed to fetch latest temperature:", err);
-        setLatestTemp(61); // 기본 온도로 설정
+        setLatestTemp(61);
       }
     };
     
@@ -191,11 +195,9 @@ const Report: React.FC = () => {
         const weeks = await getAvailableWeeks();
         if (weeks.length > 0) {
           setAvailableWeeks(weeks);
-          // 가장 최근 완료된 주를 기본으로 설정
           const latestWeek = weeks[weeks.length - 1];
           setSelectedWeekValue(latestWeek.value);
         } else {
-          // 데이터가 없을 경우
           setAvailableWeeks([]);
           setSelectedWeekValue('');
         }
@@ -212,7 +214,7 @@ const Report: React.FC = () => {
 
   useEffect(() => {
     if (!selectedWeekValue) return;
-    if (reports[selectedWeekValue]) return; // 이미 데이터가 있으면 다시 불러오지 않음
+    if (reports[selectedWeekValue]) return;
 
     const fetchReport = async () => {
       setLoading(true);
@@ -276,9 +278,22 @@ const Report: React.FC = () => {
           )}
         </Header>
         
-        <GaugeWrapper>
-          <HeartGauge percentage={currentReport ? currentReport.overallScore : latestTemp} size={140} />
-        </GaugeWrapper>
+        <Section>
+          <Title>현재 관계 온도</Title>
+          <GaugeWrapper>
+            {latestTemp !== null ? (
+              <HeartGauge percentage={latestTemp} size={140}/>
+            ) : (
+              <div>온도 정보 로딩 중...</div>
+            )}
+          </GaugeWrapper>
+          {currentReport && (
+            <TemperatureDescription 
+              score={currentReport.overallScore} 
+              reason={currentReport.reason} 
+            />
+          )}
+        </Section>
         
         {availableWeeks.length > 0 && currentReport ? (
           <>
@@ -298,17 +313,9 @@ const Report: React.FC = () => {
           </>
         ) : (
           !loading && (
-            <>
-              <Section>
-                <TemperatureDescription score={defaultReportData.overallScore} reason={defaultReportData.reason} />
-                <ReportMetric label="🌡️관계 온도" value={defaultReportData.overallScore} unit="°C" />
-                <ReportMetric label="💌보낸 감정 카드" value={defaultReportData.cardsSentCount} unit="개" />
-                <ReportMetric label="🏆완료한 챌린지" value={defaultReportData.challengesCompletedCount} unit="개" />
-                <ReportMetric label="💡전문가 솔루션" value={defaultReportData.expertSolutionsCount} unit="회" />
-                <ReportMetric label="💑결혼 생활 진단" value={defaultReportData.marriageDiagnosisCount} unit="회" invertColors />
-              </Section>
-              
-            </>
+            <Section>
+              <p>생성된 리포트가 없습니다. 파트너와 활동을 시작해 보세요!</p>
+            </Section>
           )
         )}
 

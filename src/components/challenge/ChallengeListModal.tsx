@@ -18,26 +18,29 @@ const ModalOverlay = styled.div`
 `;
 
 const ModalContent = styled.div`
-  background: white;
-  border-radius: 1rem;
+  background: #f8f9fa;
+  border-radius: 1.2rem;
   width: 90%;
   max-width: 500px;
   max-height: 80vh;
   overflow-y: auto;
-  padding: 1.5rem;
+  padding: 1.5rem 0.5rem;
+  display: flex;
+  flex-direction: column;
 `;
 
 const ModalHeader = styled.div`
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 1.5rem;
+  padding: 0 1.5rem 1.5rem 1.5rem;
+  border-bottom: 1px solid #e9ecef;
 `;
 
 const Title = styled.h2`
   font-size: 1.3rem;
-  font-weight: 600;
-  color: #333;
+  font-weight: 700;
+  color: #343a40;
   margin: 0;
 `;
 
@@ -55,49 +58,65 @@ const ChallengeList = styled.div`
   display: flex;
   flex-direction: column;
   gap: 1rem;
+  padding: 1.5rem;
+  overflow-y: auto;
+  flex: 1;
 `;
 
 const ChallengeCard = styled.div`
-  background: #f8f9fa;
-  border-radius: 0.8rem;
-  padding: 1rem;
+  background: #ffffff;
+  border-radius: 1rem;
+  padding: 1.5rem;
   display: flex;
-  align-items: center;
-  justify-content: space-between;
+  flex-direction: column;
+  gap: 1rem;
+  border: 1px solid #f1f3f5;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  }
 `;
 
-const ChallengeTitle = styled.div`
+const CardInfo = styled.div`
+  flex: 1;
+`;
+
+const ChallengeTitle = styled.h3`
   font-size: 1.1rem;
   font-weight: 600;
-  color: #333;
-  margin-bottom: 0.5rem;
+  color: #343a40;
+  margin: 0 0 0.5rem 0;
 `;
 
-const ChallengeDescription = styled.div`
+const ChallengeDescription = styled.p`
   font-size: 0.9rem;
-  color: #666;
-  margin-bottom: 0.8rem;
+  color: #868e96;
+  margin: 0;
 `;
 
 const SelectButton = styled.button`
-  background: #4CAF50;
+  background: #7048e8;
   color: white;
   border: none;
-  border-radius: 0.5rem;
-  padding: 0.5rem 1rem;
+  border-radius: 0.7rem;
+  padding: 0.7rem 0;
+  width: 100%;
   font-weight: 600;
+  font-size: 1rem;
   cursor: pointer;
-  transition: opacity 0.2s;
-  margin-left: 1rem;
+  margin-top: 0.5rem;
+  transition: background-color 0.2s;
 
-  &:hover {
-    opacity: 0.9;
+  &:hover:not(:disabled) {
+    background: #5f3dc4;
   }
   
   &:disabled {
-    background: #ccc;
+    background: #ced4da;
     cursor: not-allowed;
-    opacity: 0.7;
   }
 `;
 
@@ -151,12 +170,12 @@ const ChallengeListModal: React.FC<Props> = ({ isOpen, onClose, category, onSele
           ) : (
             challenges.map(challenge => (
               <ChallengeCard key={challenge.id}>
-                <div>
+                <CardInfo>
                   <ChallengeTitle>{challenge.title}</ChallengeTitle>
                   <ChallengeDescription>{challenge.description}</ChallengeDescription>
-                </div>
+                </CardInfo>
                 <SelectButton onClick={() => onSelect(challenge)} disabled={isWeeklyCompleted}>
-                  {isWeeklyCompleted ? '완료됨' : '선택'}
+                  {isWeeklyCompleted ? '주간 챌린지 완료' : '이 챌린지 시작'}
                 </SelectButton>
               </ChallengeCard>
             ))
