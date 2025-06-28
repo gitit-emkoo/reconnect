@@ -3,7 +3,7 @@ import styled from 'styled-components';
 import { useNavigate } from 'react-router-dom';
 import BackButton from '../components/common/BackButton';
 import ProgressBar from '../components/common/ProgressBar';
-import { diagnosisQuestions } from '../config/diagnosisQuestions';
+import { diagnosisQuestions } from '../config/baselineDiagnosisQuestions';
 import logoImage from '../assets/Logo.png';
 
 const questions = diagnosisQuestions;
@@ -106,18 +106,10 @@ const Button = styled.button<{ colorType: 'yes' | 'neutral' | 'no' }>`
   }
 `;
 
-const Diagnosis: React.FC = () => {
+const BaselineDiagnosis: React.FC = () => {
   const navigate = useNavigate();
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [answers, setAnswers] = useState<string[]>([]);
-
-  /* 테스트를 위해 임시 주석 처리
-  useEffect(() => {
-    if (localStorage.getItem('hasVisited') === 'true') {
-      navigate('/welcome', { replace: true });
-    }
-  }, [navigate]);
-  */
 
   const handleAnswer = (answer: 'yes' | 'no' | 'unknown') => {
     const newAnswers = [...answers, answer];
@@ -126,6 +118,10 @@ const Diagnosis: React.FC = () => {
       setCurrentQuestion(currentQuestion + 1);
     } else {
       localStorage.setItem('hasVisited', 'true');
+      sessionStorage.setItem(
+        'baselineDiagnosisAnswers',
+        JSON.stringify(newAnswers),
+      );
       navigate('/diagnosis/result', { state: { answers: newAnswers } });
     }
   };
@@ -135,8 +131,8 @@ const Diagnosis: React.FC = () => {
       <BackButton />
       <Header>
         <Logo src={logoImage} alt="Reconnect Logo" />
-        <Title>관계온도 테스트</Title>
-        <Subtitle>솔직하게 대답해 주세요</Subtitle>
+        <Title>기초 관계온도 진단</Title>
+        <Subtitle>우리의 관계를 이해하기 위한 첫 단계예요</Subtitle>
       </Header>
 
       <ProgressBar 
@@ -165,4 +161,4 @@ const Diagnosis: React.FC = () => {
   );
 };
 
-export default Diagnosis;
+export default BaselineDiagnosis; 

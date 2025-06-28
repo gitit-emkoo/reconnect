@@ -3,9 +3,10 @@ import { useLocation, useNavigate } from "react-router-dom";
 import styled from "styled-components";
 import axios from "../api/axios";
 import BackButton from '../components/common/BackButton';
-import { diagnosisQuestions, MAX_SCORE } from "../config/diagnosisQuestions";
+import { diagnosisQuestions, MAX_SCORE } from "../config/baselineDiagnosisQuestions";
 import useAuthStore from '../store/authStore';
 import ConfirmationModal from '../components/common/ConfirmationModal';
+import newLogo from '../assets/favicon.png';
 
 const Container = styled.div`
   display: flex;
@@ -260,158 +261,159 @@ const getResultByTemperature = (temp: number) => {
   return resultData[0];
 };
 
-const AVERAGE_TEMPERATURE = 61;
-
-const DiagnosisResult: React.FC = () => {
+const BaselineDiagnosisResult: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { token } = useAuthStore();
-  const isLoggedIn = !!token;
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  
-  if (!location.state?.answers) {
-    useEffect(() => {
-      navigate('/diagnosis', { replace: true });
-    }, [navigate]);
-    return null; 
-  }
-
-  const { answers } = location.state;
-
-  let totalScore = 0;
-  answers.forEach((answer: 'yes' | 'no' | 'unknown', index: number) => {
-    const question = diagnosisQuestions[index];
-    if (answer === 'yes') {
-      totalScore += question.scores.yes;
-    } else if (answer === 'no') {
-      totalScore += question.scores.no;
-    } else {
-      totalScore += question.scores.neutral;
-    }
-  });
-
-  const temperature = Math.round((totalScore / MAX_SCORE) * 100);
-  const result = getResultByTemperature(temperature);
+  const [score, setScore] = useState<number>(0);
+  const [showModal, setShowModal] = useState(false);
+  const isAuthenticated = useAuthStore(state => state.isAuthenticated);
   
   useEffect(() => {
-    const saveResult = async () => {
-      if (isLoggedIn) {
-        try {
-          await axios.post('/diagnosis', { score: temperature, resultType: result.title });
-        } catch (error) {
-          console.error("진단 결과 저장 실패:", error);
-        }
-      } else {
-        localStorage.setItem('diagnosisResult', JSON.stringify({ score: temperature, createdAt: new Date().toISOString() }));
-      }
-    };
-    saveResult();
-  }, [isLoggedIn, temperature, result.title]);
+    let finalAnswers = location.state?.answers;
 
-  const temperatureDifference = temperature - AVERAGE_TEMPERATURE;
-  const comparisonDisplay =
-    temperatureDifference > 0 ? (
-      <>
-        우리 커플의 관계는 평균보다 <StyledComparison color="#FF69B4">{temperatureDifference}도 높은</StyledComparison> 온도입니다
-      </>
-    ) : temperatureDifference < 0 ? (
-      <>
-        우리 커플의 관계는 평균보다 <StyledComparison color="#4169E1">{Math.abs(temperatureDifference)}도 낮은</StyledComparison> 온도입니다
-      </>
-    ) : (
-      <>
-        우리 커플의 관계는 <StyledComparison isBold>평균과 같은 온도</StyledComparison>입니다
-      </>
-    );
+    if (!finalAnswers) {
+      const storedAnswers = sessionStorage.getItem('baselineDiagnosisAnswers');
+      if (storedAnswers) {
+        finalAnswers = JSON.parse(storedAnswers);
+      }
+    }
+
+    if (finalAnswers) {
+      const answers = finalAnswers;
+      let calculatedScore = 0; // 기본 점수 0에서 시작
+      answers.forEach((answer: string, index: number) => {
+        const question = diagnosisQuestions[index];
+        const key =
+          answer === 'unknown' ? 'neutral' : (answer as 'yes' | 'no');
+        if (question.scores.hasOwnProperty(key)) {
+          calculatedScore += question.scores[key];
+        }
+      });
+      // 100점 만점으로 환산
+      const finalScore = Math.round((calculatedScore / MAX_SCORE) * 100);
+      setScore(finalScore);
+      saveResult(finalScore);
+    } else {
+      // answers가 없으면 진단 페이지로 리디렉션
+      navigate('/diagnosis', { replace: true });
+    }
+  }, [location, navigate]);
+
+  const saveResult = async (finalScore: number) => {
+    // 이 결과는 비회원일 때만 저장되어야 함 (회원은 다른 진단을 이용)
+    if (!isAuthenticated) {
+      try {
+        const res = await axios.post('/diagnosis', {
+          score: finalScore,
+          resultType: '기초 관계온도 진단',      // 명칭 변경
+          diagnosisType: 'BASELINE_TEMPERATURE' // 타입 명시
+        });
+        if (res.data && res.data.id) {
+          // 회원가입 시 연결하기 위해 ID와 점수 함께 저장
+          const diagnosisResult = {
+            id: res.data.id,
+            score: finalScore,
+          };
+          localStorage.setItem('baselineDiagnosisResult', JSON.stringify(diagnosisResult));
+        }
+        console.log('기초 관계온도 진단 결과 저장 성공:', res.data);
+      } catch (err) {
+        console.error('기초 관계온도 진단 결과 저장 실패:', err);
+      }
+    }
+  };
+
+  const result = getResultByTemperature(score);
+  const temperatureDifference = score - 61; // 평균 대신 초기값 61과 비교
 
   const handleBack = () => {
-    setIsModalOpen(true);
+    setShowModal(true);
   };
 
   const handleConfirmBack = () => {
-    navigate(-1);
+    localStorage.removeItem('unauthDiagnosisId'); // 이전 키도 제거
+    localStorage.removeItem('baselineDiagnosisResult');
+    sessionStorage.removeItem('baselineDiagnosisAnswers');
+    navigate('/diagnosis', { replace: true });
   };
 
   const handleNextStep = () => {
-    // 비회원일 때 진단 결과를 state에 담아 로그인 페이지로 전달
-    navigate('/login', { state: { answers } });
+    navigate('/register');
   };
 
   const handleShare = async () => {
-    const shareUrl = `${window.location.origin}/diagnosis`;
-
-    if (navigator.share) {
-      try {
-        await navigator.share({
-          title: '리커넥트: 우리 관계 진단하기',
-          text: '우리 관계의 온도를 확인해볼까? 지금 바로 관계 진단을 시작해보세요!',
-          url: shareUrl,
-        });
-      } catch (error) {
-        console.error('공유 기능 에러:', error);
+    const shareData = {
+      title: '리커넥트 관계온도 진단 결과',
+      text: `저의 관계온도는 ${score}점이에요! 당신의 점수도 확인해보세요!`,
+      url: window.location.href,
+    };
+    try {
+      if (navigator.share) {
+        await navigator.share(shareData);
+      } else {
+        // navigator.share를 지원하지 않는 경우 (예: 데스크톱)
+        alert('공유 기능은 모바일에서만 지원됩니다.');
       }
-    } else {
-      try {
-        await navigator.clipboard.writeText(shareUrl);
-        alert('진단 링크가 클립보드에 복사되었어요. 파트너에게 공유해주세요!');
-      } catch (err) {
-        console.error('클립보드 복사 실패:', err);
-        alert('링크 복사에 실패했습니다.');
-      }
+    } catch (error) {
+      console.error('공유 실패:', error);
     }
   };
 
+  if (!location.state?.answers) {
+    const storedAnswers = sessionStorage.getItem('baselineDiagnosisAnswers');
+    if (!storedAnswers) {
+      return null; // 리디렉션 중이므로 렌더링하지 않음
+    }
+  }
+  
   return (
     <Container>
-      <StyledBackButton onClick={handleBack} />
       <ImageSection>
         <img src={result.image} alt={result.title} />
+        <StyledBackButton onClick={handleBack} />
       </ImageSection>
-      
       <ContentSection>
         <TitleContainer>
-          <Icon src="/images/favicon.png" alt="icon" />
-          <Title>{result.title}</Title>
+          <Icon src={newLogo} alt="icon" />
+          <Title>기초 관계온도 진단 결과</Title>
         </TitleContainer>
         <TemperatureBar>
           <TopSection>
             <TemperatureText>우리의 관계 온도</TemperatureText>
-            <TemperatureValue>{temperature}<span>°C</span></TemperatureValue>
+            <TemperatureValue>{score}<span>°C</span></TemperatureValue>
           </TopSection>
-          <TemperatureMeter temperature={temperature} />
+          <TemperatureMeter temperature={score} />
         </TemperatureBar>
         
         <PercentageText>
-          {comparisonDisplay}
+          당신의 관계 온도는 평균보다 <StyledComparison {...(temperatureDifference > 0 ? { color: '#FF1493', isBold: true } : { color: '#4169E1', isBold: false })}>{Math.abs(temperatureDifference)}°C</StyledComparison> {temperatureDifference > 0 ? '높아요🥰' : '낮아요😢'}.
         </PercentageText>
         
         <Description>{result.description}</Description>
 
-        {!isLoggedIn ? (
+        {!isAuthenticated ? (
           <>
-            <LoginText>전문진단 서비스 무료 이벤트 중<br/>(10만원 상당)</LoginText>
-            <ActionButton onClick={handleNextStep}>
-              결혼생활 진단 시작하기
-            </ActionButton>
-            <InviteButton onClick={handleShare}>
-              파트너에게 테스트 요청하기
-            </InviteButton>
+            <LoginText>
+              회원가입하고 파트너와 연결하면<br/>
+              더 정확한 진단과 솔루션을 받을 수 있어요!
+            </LoginText>
+            <ActionButton onClick={handleNextStep}>회원가입하고 이어하기</ActionButton>
+            <InviteButton onClick={handleShare}>결과 공유하기</InviteButton>
           </>
         ) : (
-          <InviteButton onClick={handleShare}>
-            파트너에게 테스트 요청하기
-          </InviteButton>
+          <ActionButton onClick={() => navigate('/dashboard')}>대시보드로 이동</ActionButton>
         )}
       </ContentSection>
       <ConfirmationModal
-        isOpen={isModalOpen}
-        onRequestClose={() => setIsModalOpen(false)}
+        isOpen={showModal}
+        onRequestClose={() => setShowModal(false)}
         onConfirm={handleConfirmBack}
-        message="진단결과가 삭제되며 다시 진단이 시작됩니다. 계속하시겠습니까?"
-        confirmButtonText="계속"
+        message="진단 결과가 저장되지 않고, 다시 진단이 시작됩니다. 정말로 돌아가시겠습니까?"
+        confirmButtonText="돌아가기"
+        cancelButtonText="취소"
       />
     </Container>
   );
 };
 
-export default DiagnosisResult;
+export default BaselineDiagnosisResult; 

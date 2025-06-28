@@ -19,8 +19,8 @@ import { useQuery } from '@tanstack/react-query';
 // 페이지 컴포넌트 임포트
 import LoginPage from "./pages/LoginPage";
 import Onboarding from "./pages/Onboarding";
-import Diagnosis from "./pages/Diagnosis";
-import DiagnosisResult from "./pages/DiagnosisResult";
+import BaselineDiagnosis from "./pages/BaselineDiagnosis";
+import BaselineDiagnosisResult from "./pages/BaselineDiagnosisResult";
 import Invite from "./pages/Invite";
 import NotFound from "./pages/NotFound";
 import RegisterPage from "./pages/RegisterPage";
@@ -49,7 +49,6 @@ import PostWritePage from './pages/PostWritePage';
 import PostDetailPage from './pages/PostDetailPage';
 import PostEditPage from './pages/PostEditPage';
 import MarriageDiagnosis from './pages/MarriageDiagnosis';
-import MarriageDiagnosisResult from './pages/MarriageDiagnosisResult';
 import ContentAdmin from './pages/ContentAdmin';
 import SelfDiagnosisRoom from './pages/SelfDiagnosisRoom';
 import GenericDiagnosis from './pages/GenericDiagnosis';
@@ -120,8 +119,8 @@ const App = () => {
             <Route path="/onboarding" element={<Onboarding />} />
 
             {/* 공개 라우트 */}
-            <Route path="/diagnosis" element={<Diagnosis />} />
-            <Route path="/diagnosis/result" element={<DiagnosisResult />} />
+            <Route path="/diagnosis" element={<BaselineDiagnosis />} />
+            <Route path="/diagnosis/result" element={<BaselineDiagnosisResult />} />
             <Route path="/register" element={<RegisterPage />} />
             <Route path="/login" element={<LoginPage />} />
             <Route path="/forgot-password" element={<ForgotPassword />} />
@@ -150,7 +149,6 @@ const App = () => {
             <Route path="/expert/self-diagnosis" element={<ProtectedRoute><SelfDiagnosisRoom /></ProtectedRoute>} />
             <Route path="/profile/edit" element={<ProtectedRoute><ProfileEditPage /></ProtectedRoute>} />
             <Route path="/marriage-diagnosis" element={<ProtectedRoute><MarriageDiagnosis /></ProtectedRoute>} />
-            <Route path="/marriage-diagnosis-result" element={<ProtectedRoute><MarriageDiagnosisResult /></ProtectedRoute>} />
             <Route path="/generic-diagnosis/:diagnosisId" element={<ProtectedRoute><GenericDiagnosis /></ProtectedRoute>} />
             <Route path="/generic-diagnosis-result/:diagnosisId" element={<ProtectedRoute><GenericDiagnosisResult /></ProtectedRoute>} />
 

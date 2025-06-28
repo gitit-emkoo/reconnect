@@ -222,6 +222,24 @@ const CheckboxLabel = styled.label`
   }
 `;
 
+const AlreadyMember = styled.div`
+  margin-top: 1rem;
+  font-size: 0.9rem;
+  color: #666;
+  text-align: center;
+
+  a {
+    color: #FF1493;
+    font-weight: 600;
+    cursor: pointer;
+    text-decoration: none;
+    
+    &:hover {
+      text-decoration: underline;
+    }
+  }
+`;
+
 const RegisterPage: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
@@ -401,6 +419,8 @@ const RegisterPage: React.FC = () => {
           {isSubmitting ? '가입중.....' : '회원 가입하기'}
         </RegisterButton>
         </Form>
+
+        <AlreadyMember>이미 회원이신가요? <a onClick={() => navigate('/login')}>로그인</a></AlreadyMember>
     </Container>
   );
 };
