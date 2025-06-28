@@ -196,8 +196,8 @@ const Onboarding: React.FC = () => {
   return (
     <Container {...handlers}>
       <Header>
-        <Title>지금 당신의 관계 괜찮으신가요?</Title>
-        <Subtitle>우리 부부, 어느 순간부터 대화를 놓쳤을지도 몰라요</Subtitle>
+        <Title>우리의 시작 온도는 몇 도일까요?</Title>
+        <Subtitle>관계를 더 깊이 이해하기 위한 첫 걸음</Subtitle>
       </Header>
 
       <CardsContainer>
@@ -220,7 +220,7 @@ const Onboarding: React.FC = () => {
         ))}
       </DotsContainer>
       
-      <StartButton onClick={handleStart}>시작하기</StartButton>
+      <StartButton onClick={handleStart}>기초 관계온도 진단하기</StartButton>
     </Container>
   );
 };
