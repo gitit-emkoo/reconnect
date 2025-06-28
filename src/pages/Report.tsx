@@ -1,13 +1,11 @@
-import React, { useState, useEffect, useMemo, useContext } from "react";
+import React from "react";
 import styled from "styled-components";
 import { useNavigate } from 'react-router-dom';
 import NavigationBar from '../components/NavigationBar';
-
-import { getAvailableWeeks, getReportByWeek, AvailableWeek, ReportData } from '../api/report';
 import TemperatureDescription from "../components/report/TemperatureDescription";
-import { getLatestDiagnosisResult } from '../api/diagnosis';
-import { AuthContext } from "../contexts/AuthContext";
 import HeartGauge from '../components/Dashboard/HeartGauge';
+import { useReportData } from '../hooks/useReportData';
+import { ReportData } from "../api/report";
 
 const Container = styled.div`
   background-color: #f9fafb;
@@ -105,6 +103,41 @@ const GaugeWrapper = styled.div`
   margin-bottom: 1.5rem;
 `;
 
+const ReportHeader: React.FC<{
+  availableWeeks: { value: string; label: string }[];
+  selectedWeekValue: string;
+  onWeekChange: (e: React.ChangeEvent<HTMLSelectElement>) => void;
+}> = ({ availableWeeks, selectedWeekValue, onWeekChange }) => (
+  <Header>
+    <WeekInfo>주간 리포트</WeekInfo>
+    <WeekSelector value={selectedWeekValue} onChange={onWeekChange} disabled={availableWeeks.length === 0}>
+      {availableWeeks.length > 0 ? (
+        availableWeeks.map(week => (
+          <option key={week.value} value={week.value}>{week.label}</option>
+        ))
+      ) : (
+        <option>리포트 없음</option>
+      )}
+    </WeekSelector>
+  </Header>
+);
+
+const NoReportPlaceholder: React.FC<{ onNavigate: () => void; hasPartner: boolean }> = ({ onNavigate, hasPartner }) => (
+  <Section>
+    <Title>아직 리포트가 없어요</Title>
+    <p>파트너와 연결하고 활동을 시작하면 첫 번째 주간 리포트가 생성됩니다.</p>
+    {!hasPartner && <CTA onClick={onNavigate}>파트너 초대하기</CTA>}
+  </Section>
+);
+
+const ExpertSolutionCTA: React.FC<{ onNavigate: () => void }> = ({ onNavigate }) => (
+  <Section>
+    <Title>전문가 솔루션</Title>
+    <p>관계 개선에 도움이 되는 다양한 콘텐츠를 살펴보세요.</p>
+    <CTA onClick={onNavigate}>솔루션 보러가기</CTA>
+  </Section>
+);
+
 const ReportMetric: React.FC<{ label: string; value: number; unit: string; previousValue?: number; invertColors?: boolean }> =
   ({ label, value, unit, previousValue, invertColors = false }) => {
     
@@ -144,180 +177,71 @@ const ReportMetric: React.FC<{ label: string; value: number; unit: string; previ
     );
 };
 
+const RelationshipTemperature: React.FC<{ report: ReportData }> = ({ report }) => {
+  const score = report.overallScore;
+
+  return (
+    <Section>
+      <Title>이번 주 관계 온도</Title>
+      <GaugeWrapper>
+        <HeartGauge percentage={(score / 100) * 100} />
+      </GaugeWrapper>
+      <TemperatureDescription score={score} reason={report.reason} />
+    </Section>
+  );
+};
+
+const WeeklyActivitySummary: React.FC<{ report: ReportData, previousReport: ReportData | null }> = ({ report, previousReport }) => (
+  <Section>
+    <Title>주간 활동 요약</Title>
+    <ReportMetric label="관계 온도" value={report.overallScore} unit="°" previousValue={previousReport?.overallScore} />
+    <ReportMetric label="보낸 마음 카드" value={report.cardsSentCount} unit="개" previousValue={previousReport?.cardsSentCount} />
+    <ReportMetric label="완료한 챌린지" value={report.challengesCompletedCount} unit="개" previousValue={previousReport?.challengesCompletedCount} />
+    <ReportMetric label="놓친 챌린지" value={report.challengesFailedCount} unit="개" previousValue={previousReport?.challengesFailedCount} invertColors />
+    <ReportMetric label="전문가 솔루션" value={report.expertSolutionsCount} unit="개" previousValue={previousReport?.expertSolutionsCount} />
+    <ReportMetric label="관계 진단" value={report.marriageDiagnosisCount} unit="회" previousValue={previousReport?.marriageDiagnosisCount} />
+  </Section>
+);
+
 const Report: React.FC = () => {
   const navigate = useNavigate();
-  const { user } = useContext(AuthContext);
-  const [availableWeeks, setAvailableWeeks] = useState<AvailableWeek[]>([]);
-  const [selectedWeekValue, setSelectedWeekValue] = useState<string>('');
-  const [reports, setReports] = useState<{ [key: string]: ReportData }>({});
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const {
+    loading,
+    error,
+    currentReport,
+    previousReport,
+    availableWeeks,
+    selectedWeekValue,
+    handleWeekChange,
+    hasPartner,
+  } = useReportData();
+
+  if (error) {
+    return <div>에러: {error}</div>;
+  }
   
-  const [latestTemp, setLatestTemp] = useState<number>(36.5);
-
-  const defaultReportData: ReportData = useMemo(() => ({
-    id: 'default',
-    coupleId: 'default',
-    weekStartDate: new Date().toISOString(),
-    overallScore: latestTemp,
-    reason: '파트너와 연결하고 활동을 시작하면 주간 리포트가 생성됩니다.',
-    cardsSentCount: 0,
-    challengesCompletedCount: 0,
-    challengesFailedCount: 0,
-    expertSolutionsCount: 0,
-    marriageDiagnosisCount: 0,
-  }), [latestTemp]);
-
-  useEffect(() => {
-    const fetchLatestTemp = async () => {
-      try {
-        const temp = await getLatestDiagnosisResult();
-        if(temp) setLatestTemp(temp.score);
-      } catch (err) {
-        console.error("Failed to fetch latest temperature:", err);
-        setLatestTemp(61); // 기본 온도로 설정
-      }
-    };
-    
-    const fetchWeeks = async () => {
-      if (!user?.partner?.id) {
-        setAvailableWeeks([]);
-        setLoading(false);
-        return;
-      }
-
-      setLoading(true);
-      try {
-        const weeks = await getAvailableWeeks();
-        if (weeks.length > 0) {
-          setAvailableWeeks(weeks);
-          // 가장 최근 완료된 주를 기본으로 설정
-          const latestWeek = weeks[weeks.length - 1];
-          setSelectedWeekValue(latestWeek.value);
-        } else {
-          // 데이터가 없을 경우
-          setAvailableWeeks([]);
-          setSelectedWeekValue('');
-        }
-      } catch (err) {
-        setError("리포트 주차 정보를 불러오는 데 실패했습니다.");
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchLatestTemp();
-    fetchWeeks();
-  }, [user?.partner?.id]);
-
-  useEffect(() => {
-    if (!selectedWeekValue) return;
-    if (reports[selectedWeekValue]) return; // 이미 데이터가 있으면 다시 불러오지 않음
-
-    const fetchReport = async () => {
-      setLoading(true);
-      try {
-        const [yearStr, weekStr] = selectedWeekValue.split('-');
-        const year = parseInt(yearStr, 10);
-        const week = parseInt(weekStr.replace('W',''), 10);
-        
-        const reportData = await getReportByWeek(year, week);
-        setReports(prev => ({ ...prev, [selectedWeekValue]: reportData }));
-
-      } catch (err) {
-        setError('리포트 상세 정보를 불러오는데 실패했습니다.');
-        console.error(err);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchReport();
-  }, [selectedWeekValue, reports]);
-  
-
-  const currentReport = useMemo(() => {
-    if (!selectedWeekValue) return defaultReportData;
-    return reports[selectedWeekValue] || null;
-  }, [selectedWeekValue, reports, defaultReportData]);
-  
-  const previousReport = useMemo(() => {
-    const currentIndex = availableWeeks.findIndex(w => w.value === selectedWeekValue);
-    if (currentIndex <= 0) return null;
-
-    const previousWeekValue = availableWeeks[currentIndex - 1]?.value;
-    if (!previousWeekValue) return null;
-
-    return reports[previousWeekValue];
-  }, [selectedWeekValue, availableWeeks, reports]);
-
-  const handleWeekChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    setSelectedWeekValue(e.target.value);
-  };
-
-  if (loading) return <Container><div>로딩 중...</div></Container>;
-  if (error) return <Container><div>{error}</div></Container>;
-
   return (
     <>
       <Container>
-        <Header>
-          <WeekInfo>
-            {availableWeeks.find(w => w.value === selectedWeekValue)?.label || '리포트'}
-          </WeekInfo>
-          {availableWeeks.length > 0 && (
-            <WeekSelector value={selectedWeekValue} onChange={handleWeekChange}>
-              {availableWeeks.map((week) => (
-                <option key={week.value} value={week.value}>
-                  {week.label}
-                </option>
-              ))}
-            </WeekSelector>
-          )}
-        </Header>
-        
-        <GaugeWrapper>
-          <HeartGauge percentage={currentReport ? currentReport.overallScore : latestTemp} size={140} />
-        </GaugeWrapper>
-        
-        {availableWeeks.length > 0 && currentReport ? (
+        {loading ? (
+          <div>리포트를 불러오는 중입니다...</div>
+        ) : currentReport ? (
           <>
-            <Section>
-              <TemperatureDescription score={currentReport.overallScore} reason={currentReport.reason} />
-            </Section>
-            
-            <Section>
-              <ReportMetric label="🌡️관계 온도" value={currentReport.overallScore} unit="°C" previousValue={previousReport?.overallScore} />
-              <ReportMetric label="💌보낸 감정 카드" value={currentReport.cardsSentCount} unit="개" previousValue={previousReport?.cardsSentCount} />
-              <ReportMetric label="🏆완료한 챌린지" value={currentReport.challengesCompletedCount} unit="개" previousValue={previousReport?.challengesCompletedCount} />
-              <ReportMetric label="💡전문가 솔루션" value={currentReport.expertSolutionsCount} unit="회" previousValue={previousReport?.expertSolutionsCount} />
-              <ReportMetric label="💑결혼 생활 진단" value={currentReport.marriageDiagnosisCount} unit="회" previousValue={previousReport?.marriageDiagnosisCount} invertColors />
-            </Section>
-
-           
+            <RelationshipTemperature report={currentReport} />
+            <ReportHeader 
+              availableWeeks={availableWeeks}
+              selectedWeekValue={selectedWeekValue}
+              onWeekChange={handleWeekChange}
+            />
+            <WeeklyActivitySummary report={currentReport} previousReport={previousReport} />
+            <ExpertSolutionCTA onNavigate={() => navigate('/expert')} />
           </>
         ) : (
-          !loading && (
-            <>
-              <Section>
-                <TemperatureDescription score={defaultReportData.overallScore} reason={defaultReportData.reason} />
-                <ReportMetric label="🌡️관계 온도" value={defaultReportData.overallScore} unit="°C" />
-                <ReportMetric label="💌보낸 감정 카드" value={defaultReportData.cardsSentCount} unit="개" />
-                <ReportMetric label="🏆완료한 챌린지" value={defaultReportData.challengesCompletedCount} unit="개" />
-                <ReportMetric label="💡전문가 솔루션" value={defaultReportData.expertSolutionsCount} unit="회" />
-                <ReportMetric label="💑결혼 생활 진단" value={defaultReportData.marriageDiagnosisCount} unit="회" invertColors />
-              </Section>
-              
-            </>
-          )
+          <NoReportPlaceholder 
+            onNavigate={() => navigate('/invite')}
+            hasPartner={hasPartner}
+          />
         )}
-
-
-        <Section>
-          <Title>전문가 솔루션</Title>
-          <p>관계 개선에 도움이 되는 다양한 콘텐츠를 살펴보세요.</p>
-          <CTA onClick={() => navigate('/expert')}>솔루션 보러가기</CTA>
-        </Section>
       </Container>
       <NavigationBar />
     </>
