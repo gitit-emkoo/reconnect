@@ -144,7 +144,7 @@ const MarriageDiagnosis: React.FC = () => {
       // 진단 완료: 결과 계산 및 저장
       const result = calculateDiagnosisResult(newAnswers);
       // 진단 내역 저장
-      const history = JSON.parse(localStorage.getItem('diagnosisHistory') || '[]');
+      const history = JSON.parse(localStorage.getItem('diagnosisHistory_marriage') || '[]');
       const newItem = {
         id: Date.now(),
         date: new Date().toLocaleString('ko-KR', { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' }),
@@ -153,7 +153,7 @@ const MarriageDiagnosis: React.FC = () => {
         message: result.message,
         emotionalTemperature: result.emotionalTemperature
       };
-      localStorage.setItem('diagnosisHistory', JSON.stringify([newItem, ...history]));
+      localStorage.setItem('diagnosisHistory_marriage', JSON.stringify([newItem, ...history]));
       navigate('/marriage-diagnosis-result', { state: { diagnosis: newItem } });
     }
   };

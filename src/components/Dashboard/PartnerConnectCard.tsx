@@ -2,7 +2,7 @@ import React from 'react';
 import styled from 'styled-components';
 
 const Card = styled.div`
-  background:rgb(140, 140, 140);
+  background:rgb(205, 205, 205);
   border-radius: 1.2rem;
   padding: 2rem 1.5rem;
   text-align: center;
@@ -23,8 +23,8 @@ const Button = styled.button`
   cursor: pointer;
   &:last-child {
     background: #fff;
-    color: #c084fc;
-    border: 2px solid #c084fc;
+    color: #785cd2;
+    border: 2px solidrgb(159, 130, 254);
   }
 `;
 

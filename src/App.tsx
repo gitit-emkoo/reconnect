@@ -52,6 +52,8 @@ import MarriageDiagnosis from './pages/MarriageDiagnosis';
 import MarriageDiagnosisResult from './pages/MarriageDiagnosisResult';
 import ContentAdmin from './pages/ContentAdmin';
 import SelfDiagnosisRoom from './pages/SelfDiagnosisRoom';
+import GenericDiagnosis from './pages/GenericDiagnosis';
+import GenericDiagnosisResult from './pages/GenericDiagnosisResult';
 
 const queryClient = new QueryClient();
 
@@ -149,6 +151,8 @@ const App = () => {
             <Route path="/profile/edit" element={<ProtectedRoute><ProfileEditPage /></ProtectedRoute>} />
             <Route path="/marriage-diagnosis" element={<ProtectedRoute><MarriageDiagnosis /></ProtectedRoute>} />
             <Route path="/marriage-diagnosis-result" element={<ProtectedRoute><MarriageDiagnosisResult /></ProtectedRoute>} />
+            <Route path="/generic-diagnosis/:diagnosisId" element={<ProtectedRoute><GenericDiagnosis /></ProtectedRoute>} />
+            <Route path="/generic-diagnosis-result/:diagnosisId" element={<ProtectedRoute><GenericDiagnosisResult /></ProtectedRoute>} />
 
             {/* Placeholder Pages (보호된 라우트) - 일부는 실제 페이지로 교체 */}
             <Route path="/support/faq" element={<ProtectedRoute><FaqPage /></ProtectedRoute>} />

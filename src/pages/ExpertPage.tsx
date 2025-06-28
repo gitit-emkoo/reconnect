@@ -84,18 +84,18 @@ const ExpertPage: React.FC = () => {
               <CardDesc>검증된 이론과 AI 분석으로 설계된 자기 이해 진단</CardDesc>
             </CardText>
           </Card>
-          <Card onClick={handleComingSoon} style={{cursor:'pointer'}}>
+          <Card onClick={() => navigate('/diagnosis/stress')} style={{cursor:'pointer'}}>
             <CardImg src={ImgCounseling} alt="감정심리 상담실" />
             <CardText>
               <CardTitle>감정심리 상담실</CardTitle>
-              <CardDesc>심리적 불안 정서적 어려움의 치유와 회복</CardDesc>
+              <CardDesc>정서적 회복이 필요한 분</CardDesc>
             </CardText>
           </Card>
-          <Card onClick={handleComingSoon} style={{cursor:'pointer'}}>
+          <Card onClick={() => navigate('/diagnosis/happiness')} style={{cursor:'pointer'}}>
             <CardImg src={ImgBeads} alt="인연궁합 상담실" />
             <CardText>
               <CardTitle>인연궁합 상담실</CardTitle>
-              <CardDesc>관계의 흐름과 시기와 관련한 통찰</CardDesc>
+              <CardDesc>운명과 타이밍이 궁금한 분</CardDesc>
             </CardText>
           </Card>
           <Card onClick={handleComingSoon} style={{cursor:'pointer'}}>
