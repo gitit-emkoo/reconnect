@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import styled from "styled-components";
-import axios from "../api/axios";
+import axiosInstance from "../api/axios";
 import BackButton from '../components/common/BackButton';
 import { diagnosisQuestions, MAX_SCORE } from "../config/baselineDiagnosisQuestions";
 import useAuthStore from '../store/authStore';
@@ -169,6 +169,11 @@ const ActionButton = styled.button`
   &:hover {
     transform: translateY(-2px);
   }
+
+  &:disabled {
+    background: #c5b8e3;
+    cursor: not-allowed;
+  }
 `;
 
 const InviteButton = styled.button`
@@ -186,6 +191,11 @@ const InviteButton = styled.button`
 
   &:hover {
     transform: translateY(-2px);
+  }
+
+  &:disabled {
+    background: #ffc2d8;
+    cursor: not-allowed;
   }
 `;
 
@@ -251,14 +261,22 @@ const resultData = {
 };
 
 const getResultByTemperature = (temp: number) => {
-  if (temp === 100) return resultData[100];
-  if (temp >= 90) return resultData[90];
-  if (temp >= 80) return resultData[80];
-  if (temp >= 70) return resultData[70];
-  if (temp >= 60) return resultData[60];
-  if (temp >= 50) return resultData[50];
-  if (temp >= 40) return resultData[40];
-  return resultData[0];
+  const roundedTemp = Math.floor(temp / 10) * 10;
+  return resultData[roundedTemp as keyof typeof resultData] || resultData[0];
+};
+
+const calculateScore = (answers: (string | null)[]) => {
+  let calculatedScore = 0;
+  answers.forEach((answer: string | null, index: number) => {
+    const question = diagnosisQuestions[index];
+    if (question && answer) {
+      const key = answer === 'unknown' ? 'neutral' : (answer as 'yes' | 'no');
+      if (question.scores.hasOwnProperty(key)) {
+        calculatedScore += question.scores[key];
+      }
+    }
+  });
+  return Math.round((calculatedScore / MAX_SCORE) * 100);
 };
 
 const BaselineDiagnosisResult: React.FC = () => {
@@ -266,60 +284,40 @@ const BaselineDiagnosisResult: React.FC = () => {
   const location = useLocation();
   const [score, setScore] = useState<number>(0);
   const [showModal, setShowModal] = useState(false);
-  const isAuthenticated = useAuthStore(state => state.isAuthenticated);
+  const { user } = useAuthStore();
+  const [loading, setLoading] = useState(false);
   
   useEffect(() => {
-    let finalAnswers = location.state?.answers;
-
-    if (!finalAnswers) {
-      const storedAnswers = sessionStorage.getItem('baselineDiagnosisAnswers');
-      if (storedAnswers) {
-        finalAnswers = JSON.parse(storedAnswers);
-      }
-    }
-
-    if (finalAnswers) {
-      const answers = finalAnswers;
-      let calculatedScore = 0; // 기본 점수 0에서 시작
-      answers.forEach((answer: string, index: number) => {
-        const question = diagnosisQuestions[index];
-        const key =
-          answer === 'unknown' ? 'neutral' : (answer as 'yes' | 'no');
-        if (question.scores.hasOwnProperty(key)) {
-          calculatedScore += question.scores[key];
-        }
-      });
-      // 100점 만점으로 환산
-      const finalScore = Math.round((calculatedScore / MAX_SCORE) * 100);
+    if (location.state && location.state.answers) {
+      const { answers } = location.state;
+      const finalScore = calculateScore(answers);
       setScore(finalScore);
-      saveResult(finalScore);
-    } else {
-      // answers가 없으면 진단 페이지로 리디렉션
-      navigate('/diagnosis', { replace: true });
-    }
-  }, [location, navigate]);
-
-  const saveResult = async (finalScore: number) => {
-    // 이 결과는 비회원일 때만 저장되어야 함 (회원은 다른 진단을 이용)
-    if (!isAuthenticated) {
-      try {
-        const res = await axios.post('/diagnosis', {
-          score: finalScore,
-          resultType: '기초 관계온도 진단',      // 명칭 변경
-          diagnosisType: 'BASELINE_TEMPERATURE' // 타입 명시
-        });
-        if (res.data && res.data.id) {
-          // 회원가입 시 연결하기 위해 ID와 점수 함께 저장
-          const diagnosisResult = {
-            id: res.data.id,
-            score: finalScore,
-          };
-          localStorage.setItem('baselineDiagnosisResult', JSON.stringify(diagnosisResult));
-        }
-        console.log('기초 관계온도 진단 결과 저장 성공:', res.data);
-      } catch (err) {
-        console.error('기초 관계온도 진단 결과 저장 실패:', err);
+      // 비회원일 때만 결과를 저장합니다.
+      if (!user) {
+        saveResult(finalScore, answers);
       }
+    } else {
+      navigate("/baseline-diagnosis");
+    }
+  }, [location, navigate, user]);
+
+  const saveResult = async (finalScore: number, answers: (string | null)[]) => {
+    setLoading(true);
+    try {
+      const response = await axiosInstance.post('/diagnosis/unauth', {
+        score: finalScore,
+        resultType: '기초 관계온도',
+        diagnosisType: 'BASELINE_TEMPERATURE',
+        answers, // Optional: for detailed analysis later
+      });
+      // 비회원 진단 ID를 로컬 스토리지에 저장
+      if (response.data && response.data.id) {
+        localStorage.setItem('unauthDiagnosisId', response.data.id);
+      }
+    } catch (error) {
+      console.error("Error saving diagnosis result:", error);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -391,14 +389,14 @@ const BaselineDiagnosisResult: React.FC = () => {
         
         <Description>{result.description}</Description>
 
-        {!isAuthenticated ? (
+        {!user ? (
           <>
             <LoginText>
               회원가입하고 파트너와 연결하면<br/>
               더 정확한 진단과 솔루션을 받을 수 있어요!
             </LoginText>
-            <ActionButton onClick={handleNextStep}>회원가입하고 이어하기</ActionButton>
-            <InviteButton onClick={handleShare}>결과 공유하기</InviteButton>
+            <ActionButton onClick={handleNextStep} disabled={loading}>회원가입하고 이어하기</ActionButton>
+            <InviteButton onClick={handleShare} disabled={loading}>결과 공유하기</InviteButton>
           </>
         ) : (
           <ActionButton onClick={() => navigate('/dashboard')}>대시보드로 이동</ActionButton>

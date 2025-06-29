@@ -108,7 +108,9 @@ const GenericDiagnosisResult: React.FC = () => {
     );
   }
 
-  const resultMessage = template.getResultMessage(diagnosis.score);
+  const resultMessage = template.getResultMessage
+    ? template.getResultMessage(diagnosis.score)
+    : '진단이 완료되었습니다.';
 
   return (
     <PageLayout title={template.title + " 결과"}>

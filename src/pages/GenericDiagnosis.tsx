@@ -132,6 +132,22 @@ const GenericDiagnosis: React.FC = () => {
     return <Container>잘못된 접근이거나 유효하지 않은 진단입니다.</Container>;
   }
 
+  if (template.questions.length === 0) {
+    return (
+      <Container>
+        <BackButton />
+        <Header>
+          <Logo src={logoImage} alt='Reconnect Logo' />
+          <Title>{template.title}</Title>
+          <Subtitle>{template.subtitle}</Subtitle>
+        </Header>
+        <QuestionCard>
+          <Question>진단 질문이 아직 준비되지 않았습니다.</Question>
+        </QuestionCard>
+      </Container>
+    );
+  }
+
   const currentQ = template.questions[currentQuestion];
 
   return (
@@ -140,7 +156,7 @@ const GenericDiagnosis: React.FC = () => {
       <Header>
         <Logo src={logoImage} alt="Reconnect Logo" />
         <Title>{template.title}</Title>
-        <Subtitle>{template.description}</Subtitle>
+        <Subtitle>{template.subtitle}</Subtitle>
       </Header>
 
       <ProgressBar 
@@ -153,11 +169,27 @@ const GenericDiagnosis: React.FC = () => {
       </QuestionCard>
 
       <ButtonContainer>
-        {currentQ.options.map((opt) => (
-          <Button key={opt.value} onClick={() => handleAnswer(opt.value)}>
-            {opt.text}
-          </Button>
-        ))}
+        {currentQ.options ? (
+          currentQ.options.map(opt => (
+            <Button key={opt.value} onClick={() => handleAnswer(opt.value)}>
+              {opt.text}
+            </Button>
+          ))
+        ) : currentQ.scores ? (
+          <>
+            <Button onClick={() => handleAnswer(currentQ.scores!.yes)}>
+              그렇다
+            </Button>
+            <Button onClick={() => handleAnswer(currentQ.scores!.neutral)}>
+              보통이다
+            </Button>
+            <Button onClick={() => handleAnswer(currentQ.scores!.no)}>
+              아니다
+            </Button>
+          </>
+        ) : (
+          <p>이 질문에 대한 선택지가 없습니다.</p>
+        )}
       </ButtonContainer>
     </Container>
   );

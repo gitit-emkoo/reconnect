@@ -118,7 +118,7 @@ const BaselineDiagnosis: React.FC = () => {
       setCurrentQuestion(currentQuestion + 1);
     } else {
       localStorage.setItem('hasVisited', 'true');
-      sessionStorage.setItem(
+      localStorage.setItem(
         'baselineDiagnosisAnswers',
         JSON.stringify(newAnswers),
       );

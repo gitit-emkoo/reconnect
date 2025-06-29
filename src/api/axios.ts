@@ -3,7 +3,7 @@ import { toKST } from '../utils/date';
 import useAuthStore from '../store/authStore';
 
 const axiosInstance = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || 'https://reconnect-backend.onrender.com/api',
+  baseURL: `${import.meta.env.VITE_API_URL || 'https://reconnect-backend.onrender.com'}/api`,
   withCredentials: true,
   headers: {
     'Content-Type': 'application/json',

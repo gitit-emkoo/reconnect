@@ -53,7 +53,7 @@ const useAuthStore = create<AuthState>()(
           return;
         }
         try {
-          const { data: user } = await axiosInstance.get<User>('/auth/me');
+          const { data: user } = await axiosInstance.get<User>('/users/me');
           set({ user, partner: user.partner ?? null, isLoading: false });
         } catch (error) {
           console.error('Authentication check failed', error);

@@ -315,22 +315,25 @@ const RegisterPage: React.FC = () => {
       return;
     }
     try {
-      // 비회원 진단 ID가 있으면 함께 전송
+      // 로컬 스토리지에서 비회원 진단 ID 가져오기
       const unauthDiagnosisId = localStorage.getItem('unauthDiagnosisId');
 
-      const payload = { ...data, unauthDiagnosisId };
-      delete (payload as any).confirmPassword;
+      const response = await axiosInstance.post('/auth/register', {
+        email: data.email,
+        password: data.password,
+        nickname: data.nickname,
+        unauthDiagnosisId: unauthDiagnosisId, // 요청에 ID 추가
+      });
 
-      await axiosInstance.post('/auth/register', payload);
-
-      alert("회원가입이 완료되었습니다! 로그인 페이지로 이동합니다.");
-      
-      // 로컬스토리지에서 임시 진단 결과 삭제
-      if (unauthDiagnosisId) {
-        localStorage.removeItem('unauthDiagnosisId');
+      if (response.data && response.data.accessToken) {
+        setAuth(response.data.user, response.data.accessToken);
+        // 성공적으로 연결되었으므로 로컬 스토리지에서 ID 제거
+        if (unauthDiagnosisId) {
+          localStorage.removeItem('unauthDiagnosisId');
+          localStorage.removeItem('baselineDiagnosisAnswers');
+        }
+        navigate('/dashboard');
       }
-
-      navigate('/login');
     } catch (error) {
       console.error(error);
       if (axios.isAxiosError(error)) {
