@@ -12,11 +12,13 @@ export interface Partner {
 
 export interface AuthState {
   user: User | null;
-  token: string | null;
+  partner: User | null;
+  accessToken: string | null;
   isAuthenticated: boolean;
   isLoading: boolean;
+  setAuth: (user: User | null, accessToken: string | null) => void;
+  clearAuth: () => void;
   setUser: (user: User | null) => void;
-  setToken: (token: string | null) => void;
   logout: () => void;
   checkAuth: (options?: { silent?: boolean }) => Promise<void>;
 }
@@ -25,55 +27,53 @@ const useAuthStore = create<AuthState>()(
   persist(
     (set, get) => ({
       user: null,
-      token: null,
+      partner: null,
+      accessToken: localStorage.getItem('accessToken'),
       isAuthenticated: false,
       isLoading: true,
       
-      setUser: (user) => set({ 
-        user, 
-        isAuthenticated: !!user, 
-        token: get().token 
-      }),
-
-      setToken: (token) => {
-        if (token) {
-          axiosInstance.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-          set({ token, isAuthenticated: true });
+      setAuth: (user, accessToken) => {
+        if (accessToken) {
+          axiosInstance.defaults.headers.common['Authorization'] = `Bearer ${accessToken}`;
+          set({ user, accessToken, partner: user?.partner ?? null, isAuthenticated: true, isLoading: false });
         } else {
           delete axiosInstance.defaults.headers.common['Authorization'];
-          set({ token: null, user: null, isAuthenticated: false });
+          set({ user: null, accessToken: null, partner: null, isAuthenticated: false, isLoading: false });
         }
       },
 
       logout: () => {
-        get().setToken(null);
+        get().setAuth(null, null);
       },
       
-      checkAuth: async (options) => {
-        if (!options?.silent) {
-          set({ isLoading: true });
-        }
-        const token = get().token;
-
-        if (!token) {
-          set({ user: null, isAuthenticated: false, isLoading: false });
+      checkAuth: async () => {
+        const accessToken = get().accessToken;
+        if (!accessToken) {
+          set({ isLoading: false, user: null, partner: null });
           return;
         }
-
         try {
-          axiosInstance.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-          const response = await axiosInstance.get('/users/me');
-          set({ user: response.data, isAuthenticated: true, isLoading: false });
+          const { data: user } = await axiosInstance.get<User>('/auth/me');
+          set({ user, partner: user.partner ?? null, isLoading: false });
         } catch (error) {
-          console.error("[checkAuth] Authentication check failed:", error);
-          get().logout(); // 토큰이 유효하지 않으면 로그아웃 처리
-          set({ isLoading: false });
+          console.error('Authentication check failed', error);
+          set({ isLoading: false, user: null, partner: null, accessToken: null });
+          localStorage.removeItem('accessToken');
         }
+      },
+
+      setUser: (user) => {
+        set({ user, partner: user?.partner ?? null });
+      },
+
+      clearAuth: () => {
+        localStorage.removeItem('accessToken');
+        set({ user: null, accessToken: null, partner: null });
       },
     }),
     {
       name: 'reconnect-auth-storage',
-      partialize: (state) => ({ token: state.token }),
+      partialize: (state) => ({ accessToken: state.accessToken }),
     }
   )
 );

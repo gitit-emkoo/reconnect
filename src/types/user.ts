@@ -17,10 +17,10 @@ export interface User {
     createdAt: string;
     updatedAt: string;
   };
-  provider: 'EMAIL' | 'KAKAO' | 'GOOGLE';
+  provider?: 'EMAIL' | 'KAKAO' | 'GOOGLE';
   socialId?: string;
-  createdAt: string;
-  updatedAt: string;
+  createdAt?: string;
+  updatedAt?: string;
   role?: 'USER' | 'ADMIN';
 }
 

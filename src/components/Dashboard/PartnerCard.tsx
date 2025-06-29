@@ -40,11 +40,9 @@ const PartnerCard: React.FC<PartnerCardProps> = ({ partner, user, coupleCreatedA
     <div style={{ fontWeight: 700, fontSize: '1.1rem', marginBottom: '0.5rem',marginTop: '1.4rem' }}>
       {partner.nickname} ❤️ {user.nickname}
     </div>
-    {coupleCreatedAt && (
-      <div style={{ color: '#E64A8D', fontWeight: 500, marginBottom: '0.5rem' }}>
-        파트너 연결일: {formatDate(coupleCreatedAt)}
-      </div>
-    )}
+    <div style={{ color: '#E64A8D', fontWeight: 500, marginBottom: '0.5rem' }}>
+      {coupleCreatedAt ? `파트너 연결일: ${formatDate(coupleCreatedAt)}` : '연결 정보를 불러오는 중...'}
+    </div>
     <div style={{ color: '#888', marginBottom: '1.2rem' }}>
       {activeChallengeTitle ? (
         <>

@@ -1,5 +1,6 @@
 import axiosInstance from './axios';
 import useAuthStore from '../store/authStore';
+import { User } from '../types/user';
 
 // 린트 에러를 해결하기 위해 타입을 다시 파일 내에 정의합니다.
 export interface PartnerInvite {
@@ -23,11 +24,11 @@ export interface PartnerInvite {
 export const partnerInvitesApi = {
   // 초대 코드 생성
   createInviteCode: async (): Promise<PartnerInvite> => {
-    const token = useAuthStore.getState().token;
-    if (!token) {
+    const accessToken = useAuthStore.getState().accessToken;
+    if (!accessToken) {
       throw new Error('No token found');
     }
-    console.log('[partnerInvitesApi.createInviteCode] accessToken:', token);
+    console.log('[partnerInvitesApi.createInviteCode] accessToken:', accessToken);
     console.log('[partnerInvitesApi.createInviteCode] axiosInstance default headers:', axiosInstance.defaults.headers);
     const { data } = await axiosInstance.post<PartnerInvite>('/partner-invites');
     console.log('[partnerInvitesApi.createInviteCode] response:', data);
@@ -41,9 +42,9 @@ export const partnerInvitesApi = {
   },
 
   // 초대 수락
-  acceptInvite: async (inviteId: string): Promise<{ couple: any; invite: PartnerInvite }> => {
-    const response = await axiosInstance.post<{ couple: any; invite: PartnerInvite }>(
-      `/partner-invites/${inviteId}/accept`
+  acceptInvite: async (code: string): Promise<{ inviter: User; invitee: User; inviterToken: string; inviteeToken: string }> => {
+    const response = await axiosInstance.post<{ inviter: User; invitee: User; inviterToken: string; inviteeToken: string }>(
+      `/partner-invites/accept`, { code }
     );
     return response.data;
   },
@@ -58,11 +59,11 @@ export const partnerInvitesApi = {
 
   // 내 초대 현황 조회
   getMyInvites: async (): Promise<PartnerInvite[]> => {
-    const token = useAuthStore.getState().token;
-    if (!token) {
+    const accessToken = useAuthStore.getState().accessToken;
+    if (!accessToken) {
       throw new Error('No token found');
     }
-    console.log('[partnerInvitesApi.getMyInvites] accessToken:', token);
+    console.log('[partnerInvitesApi.getMyInvites] accessToken:', accessToken);
     // axiosInstance의 Authorization 헤더 확인
     console.log('[partnerInvitesApi.getMyInvites] axiosInstance default headers:', axiosInstance.defaults.headers);
     try {

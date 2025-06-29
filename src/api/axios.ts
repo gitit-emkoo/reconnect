@@ -3,7 +3,7 @@ import { toKST } from '../utils/date';
 import useAuthStore from '../store/authStore';
 
 const axiosInstance = axios.create({
-  baseURL: 'https://reconnect-backend.onrender.com/api',
+  baseURL: import.meta.env.VITE_API_URL || 'https://reconnect-backend.onrender.com/api',
   withCredentials: true,
   headers: {
     'Content-Type': 'application/json',
@@ -36,9 +36,9 @@ const convertDates = (data: any): any => {
 axiosInstance.interceptors.request.use(
   (config) => {
     // Zustand 스토어에서 직접 토큰을 읽어옵니다.
-    const token = useAuthStore.getState().token;
-    if (token) {
-      config.headers['Authorization'] = `Bearer ${token}`;
+    const accessToken = useAuthStore.getState().accessToken;
+    if (accessToken) {
+      config.headers['Authorization'] = `Bearer ${accessToken}`;
     }
     return config;
   },
