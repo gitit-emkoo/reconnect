@@ -5,11 +5,17 @@ import ChallengeListModal from '../components/challenge/ChallengeListModal';
 import { Challenge } from '../api/challenge';
 import challengeApi from '../api/challenge';
 import NavigationBar from '../components/NavigationBar';
-import TabSwitcher, { Tab } from '../components/common/TabSwitcher';
+import TabSwitcher from '../components/common/TabSwitcher';
 import PartnerRequiredModal from '../components/common/PartnerRequiredModal';
 import ConfirmationModal from '../components/common/ConfirmationModal';
-import { formatInKST, isThisWeekKST } from '../utils/date';
+import {  isThisWeekKST } from '../utils/date';
 import useAuthStore from '../store/authStore';
+import ChallengeHistoryDetailModal from '../components/challenge/ChallengeHistoryDetailModal';
+
+// 뱃지 이미지 임포트
+import badge1 from '../assets/challenge (1).png';
+import badge2 from '../assets/challenge (2).png';
+import badge3 from '../assets/challenge (3).png';
 
 const PageContainer = styled.div`
   max-width: 800px;
@@ -132,79 +138,43 @@ const CategoryButton = styled.button<{ bg: string; color: string }>`
   &:hover { opacity: 0.92; }
 `;
 
-const ActiveChallengeCard = styled.div`
-  background: #f1f3f7;
-  border-radius: 1rem;
-  padding: 1.5rem;
-  margin-bottom: 2rem;
-  min-height: 110px;
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  justify-content: center;
-`;
-
 const HistoryList = styled.div`
   background: #f9fafb;
   border-radius: 1.2rem;
-  padding: 2rem 1.5rem;
+  padding: 2rem;
   min-height: 120px;
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-  gap: 1.2rem;
+  display: flex;
+  align-items: center;
 `;
 
-const HistoryItemCard = styled.div<{ success?: boolean }>`
+const HistoryCardMini = styled.div<{ success: boolean }>`
   background: #fff;
-  border-radius: 1rem;
-  box-shadow: 0 2px 8px #0001;
-  padding: 1.3rem 1.1rem 1.1rem 1.1rem;
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  border-left: 6px solid ${props => props.success ? '#7D5FFF' : '#FF6B81'};
-  position: relative;
-`;
-
-const HistoryTitle = styled.div`
-  font-size: 1.08rem;
-  font-weight: 700;
-  color: #222;
-  margin-bottom: 0.3rem;
+  border-radius: 50%;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
   display: flex;
   align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  width: 95px;
+  height: 95px;
+  transition: all 0.2s ease-in-out;
+  border: 2px solid ${({ success }) => (success ? '#4CAF50' : '#F44336')};
+
+  &:not(:first-child) {
+    margin-left: -30px;
+  }
+
+  &:hover {
+    transform: translateY(-5px) scale(1.05);
+    z-index: 10;
+  }
 `;
 
-const HistoryDesc = styled.div`
-  font-size: 0.97rem;
-  color: #666;
-  margin-bottom: 0.7rem;
-`;
-
-const HistoryFooter = styled.div`
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  width: 100%;
-  margin-top: auto;
-  padding-top: 0.5rem;
-`;
-
-const HistoryDate = styled.div`
-  font-size: 0.9rem;
-  color: #888;
-`;
-
-const HistoryFrequency = styled.div`
-  font-size: 0.9rem;
-  color: #555;
-  font-weight: 500;
-`;
-
-const HistoryIcon = styled.span<{ success?: boolean }>`
-  font-size: 1.25rem;
-  margin-right: 0.5rem;
-  color: ${props => props.success ? '#7D5FFF' : '#FF6B81'};
+const HistoryBadgeImage = styled.img`
+  width: 85px;
+  height: 85px;
+  border-radius: 50%;
+  object-fit: cover;
 `;
 
 const EmptyText = styled.div`
@@ -212,6 +182,17 @@ const EmptyText = styled.div`
   text-align: center;
   padding: 2.5rem 0;
 `;
+
+const SectionTitle = styled.h2`
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #333;
+  margin: 3rem 0 1.5rem 0;
+  border-top: 1px solid #eee;
+  padding-top: 2rem;
+`;
+
+const badgeImages = [badge1, badge2, badge3];
 
 const ChallengePage: React.FC = () => {
   const [activeChallenge, setActiveChallenge] = useState<Challenge | null>(null);
@@ -222,6 +203,8 @@ const ChallengePage: React.FC = () => {
   const [showPartnerRequiredModal, setShowPartnerRequiredModal] = useState(false);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [confirmModalMessage, setConfirmModalMessage] = useState('');
+  const [showHistoryDetailModal, setShowHistoryDetailModal] = useState(false);
+  const [selectedHistoryChallenge, setSelectedHistoryChallenge] = useState<Challenge | null>(null);
   const user = useAuthStore(state => state.user);
   const hasPartner = !!user?.partner?.id;
 
@@ -248,7 +231,6 @@ const ChallengePage: React.FC = () => {
       setShowPartnerRequiredModal(true);
       return;
     }
-
     setSelectedCategory(category);
     setIsModalOpen(true);
   };
@@ -273,62 +255,58 @@ const ChallengePage: React.FC = () => {
     }
   };
 
-  const isWeeklyCompleted = !!activeChallenge?.completedAt && isThisWeekKST(new Date(activeChallenge.completedAt));
-  
-  const isCurrentUserCompleted = 
-    !!activeChallenge &&
-    ((user?.id === activeChallenge.member1Id && activeChallenge.isCompletedByMember1) ||
-      (user?.id === activeChallenge.member2Id && activeChallenge.isCompletedByMember2));
+  const handleHistoryCardClick = (challenge: Challenge) => {
+    setSelectedHistoryChallenge(challenge);
+    setShowHistoryDetailModal(true);
+  };
 
-  const historyTabs: Tab[] = [
-    { key: 'success', label: '성공한 챌린지' },
-    { key: 'fail', label: '실패한 챌린지' },
-  ];
+  const currentHistory = historyTab === 'success' ? challengeHistory.completed : challengeHistory.failed;
+  
+  const isCurrentUserCompleted = !!(
+    activeChallenge &&
+    ((user?.id === activeChallenge.member1Id && activeChallenge.isCompletedByMember1) ||
+      (user?.id === activeChallenge.member2Id && activeChallenge.isCompletedByMember2))
+  );
+  
+  const isWeeklyCompleted = !!activeChallenge?.completedAt && isThisWeekKST(new Date(activeChallenge.completedAt));
+  const isChallengeActive = !!activeChallenge && !isWeeklyCompleted;
 
   const categoryDescriptions = {
-    DAILY_SHARE: { title: '데일리 공유', description: '매일의 작은 순간들을 나누며 가까워져요.' },
-    TOGETHER_ACT: { title: '함께하는 활동', description: '같이 요리하고, 산책하며 즐거운 시간을 보내세요.' },
-    EMOTION_EXPR: { title: '감정 표현', description: '서로의 마음에 귀 기울이는 연습을 해봐요.' },
-    MEMORY_BUILD: { title: '추억 쌓기', description: '사진첩을 만들거나, 특별한 날을 기념해보세요.' },
-    SELF_CARE: { title: '서로 돌보기', description: '서로를 챙겨주며 애정을 표현하는 시간.' },
-    GROW_TOGETHER: { title: '함께 성장', description: '미래를 계획하고, 같이 목표를 세워봐요.' },
+    DAILY_SHARE: { name: '데일리 공유', description: '매일의 작은 순간들을 나누며 가까워져요.' },
+    TOGETHER_ACT: { name: '함께하는 활동', description: '같이 요리하고, 산책하며 즐거운 시간을 보내세요.' },
+    EMOTION_EXPR: { name: '감정 표현', description: '서로의 마음에 귀 기울이는 연습을 해봐요.' },
+    MEMORY_BUILD: { name: '추억 쌓기', description: '사진첩을 만들거나, 특별한 날을 기념해보세요.' },
+    SELF_CARE: { name: '서로 돌보기', description: '서로를 챙겨주며 애정을 표현하는 시간.' },
+    GROW_TOGETHER: { name: '함께 성장', description: '미래를 계획하고, 같이 목표를 세워봐요.' },
   };
 
   return (
-    <PageContainer>
-      <Header>
-        <Title>챌린지</Title>
-        <Description>
-          파트너와 함께 다양한 챌린지에 도전하며 더 특별한 관계를 만들어보세요.
-        </Description>
-      </Header>
+    <>
+      <PageContainer>
+        <Header>
+          <Title>챌린지</Title>
+          <Description>
+            파트너와 함께 즐거운 챌린지를 통해 관계를 더욱 단단하게 만들어보세요.
+          </Description>
+        </Header>
 
-      <ActiveChallengeCard>
-        {activeChallenge ? (
-          <ActiveChallenge
-            challenge={activeChallenge}
-            onComplete={loadData}
-            isCurrentUserCompleted={isCurrentUserCompleted}
-            isWeeklyCompleted={isWeeklyCompleted}
-          />
-        ) : (
-          <span style={{ color: '#888', fontSize: '1.1rem' }}>
-            진행중인 챌린지가 없습니다
-          </span>
-        )}
-      </ActiveChallengeCard>
+        <SectionTitle style={{ marginTop: '1rem', paddingTop: 0, borderTop: 'none' }}>
+          🔥 진행 중인 챌린지
+        </SectionTitle>
+        <ActiveChallenge
+          challenge={activeChallenge}
+          onComplete={loadData}
+          isCurrentUserCompleted={isCurrentUserCompleted}
+          isWeeklyCompleted={isWeeklyCompleted}
+        />
 
-      <CategoryGrid>
-        {Object.entries(categoryStyles).map(([key, value]) => {
-          const categoryInfo = categoryDescriptions[key as keyof typeof categoryDescriptions];
-          return (
-            <CategoryCard
-              key={key}
-              bg={value.bg}
-            >
+        <SectionTitle>새로운 챌린지 시작하기</SectionTitle>
+        <CategoryGrid>
+          {Object.entries(categoryStyles).map(([key, value]) => (
+            <CategoryCard key={key} bg={value.bg}>
               <CategoryIcon>{value.icon}</CategoryIcon>
-              <CategoryTitle>{categoryInfo.title}</CategoryTitle>
-              <CategoryDescription>{categoryInfo.description}</CategoryDescription>
+              <CategoryTitle>{categoryDescriptions[key as Challenge['category']].name}</CategoryTitle>
+              <CategoryDescription>{categoryDescriptions[key as Challenge['category']].description}</CategoryDescription>
               <CategoryButton
                 bg={value.btnBg}
                 color={value.btnColor}
@@ -337,69 +315,57 @@ const ChallengePage: React.FC = () => {
                 {value.btnText}
               </CategoryButton>
             </CategoryCard>
-          );
-        })}
-      </CategoryGrid>
+          ))}
+        </CategoryGrid>
 
+        <SectionTitle>챌린지 기록</SectionTitle>
+        <TabSwitcher
+          tabs={[
+            { key: 'success', label: `성공 (${challengeHistory.completed.length})` },
+            { key: 'fail', label: `실패 (${challengeHistory.failed.length})` },
+          ]}
+          activeKey={historyTab}
+          onChange={key => setHistoryTab(key as 'success' | 'fail')}
+        />
+        <HistoryList>
+          {currentHistory.length > 0 ? (
+            currentHistory.map((c, i) => (
+              <HistoryCardMini key={i} onClick={() => handleHistoryCardClick(c)} success={historyTab === 'success'}>
+                <HistoryBadgeImage src={badgeImages[i % badgeImages.length] || badge1} alt={`${c.title} 뱃지`} />
+              </HistoryCardMini>
+            ))
+          ) : (
+            <EmptyText>아직 {historyTab === 'success' ? '성공한' : '실패한'} 챌린지가 없어요.</EmptyText>
+          )}
+        </HistoryList>
+      </PageContainer>
       {selectedCategory && (
         <ChallengeListModal
           isOpen={isModalOpen}
-          category={selectedCategory}
           onClose={() => setIsModalOpen(false)}
+          category={selectedCategory}
           onSelect={handleSelectChallenge}
-          isWeeklyCompleted={isWeeklyCompleted}
+          isChallengeActive={isChallengeActive}
         />
       )}
-
-      <TabSwitcher tabs={historyTabs} activeKey={historyTab} onChange={key => setHistoryTab(key as 'success' | 'fail')} />
-
-      <HistoryList>
-        {historyTab === 'success' ? (
-          challengeHistory.completed.length > 0 ? (
-            challengeHistory.completed.map(item => (
-              <HistoryItemCard key={item.id} success>
-                <HistoryTitle><HistoryIcon success>🏆</HistoryIcon> {item.title}</HistoryTitle>
-                <HistoryDesc>{item.description}</HistoryDesc>
-                <HistoryFooter>
-                  <HistoryFrequency>
-                    {item.isOneTime ? '1회' : `주 ${item.frequency}회`}
-                  </HistoryFrequency>
-                  <HistoryDate>{formatInKST(new Date(item.completedAt!), 'yyyy.MM.dd')} 완료</HistoryDate>
-                </HistoryFooter>
-              </HistoryItemCard>
-            ))
-          ) : <EmptyText>성공한 챌린지가 없습니다.</EmptyText>
-        ) : (
-          challengeHistory.failed.length > 0 ? (
-            challengeHistory.failed.map(item => (
-              <HistoryItemCard key={item.id}>
-                <HistoryTitle><HistoryIcon>😥</HistoryIcon> {item.title}</HistoryTitle>
-                <HistoryDesc>{item.description}</HistoryDesc>
-                <HistoryFooter>
-                  <HistoryFrequency>
-                    {item.isOneTime ? '1회' : `주 ${item.frequency}회`}
-                  </HistoryFrequency>
-                </HistoryFooter>
-              </HistoryItemCard>
-            ))
-          ) : <EmptyText>실패한 챌린지가 없습니다.</EmptyText>
-        )}
-      </HistoryList>
-      <NavigationBar />
-      <PartnerRequiredModal
-        open={showPartnerRequiredModal}
-        onClose={() => setShowPartnerRequiredModal(false)}
+      <PartnerRequiredModal open={showPartnerRequiredModal} onClose={() => setShowPartnerRequiredModal(false)} />
+      <ConfirmationModal
+        isOpen={showConfirmModal}
+        onRequestClose={() => setShowConfirmModal(false)}
+        onConfirm={() => {
+          // Placeholder for actual confirm action
+          setShowConfirmModal(false);
+        }}
+        message={confirmModalMessage}
+        showCancelButton={false}
       />
-      {showConfirmModal && (
-        <ConfirmationModal
-          isOpen={showConfirmModal}
-          message={confirmModalMessage}
-          onRequestClose={() => setShowConfirmModal(false)}
-          onConfirm={() => setShowConfirmModal(false)}
-          showCancelButton={false}
-        />
-      )}
-    </PageContainer>
+      <ChallengeHistoryDetailModal
+        isOpen={showHistoryDetailModal}
+        onClose={() => setShowHistoryDetailModal(false)}
+        challenge={selectedHistoryChallenge}
+      />
+      <NavigationBar />
+    </>
   );
 };
 

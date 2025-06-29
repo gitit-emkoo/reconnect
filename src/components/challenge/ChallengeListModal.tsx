@@ -126,10 +126,10 @@ interface Props {
   onClose: () => void;
   category: Challenge['category'];
   onSelect: (challenge: Challenge) => void;
-  isWeeklyCompleted: boolean;
+  isChallengeActive: boolean;
 }
 
-const ChallengeListModal: React.FC<Props> = ({ isOpen, onClose, category, onSelect, isWeeklyCompleted }) => {
+const ChallengeListModal: React.FC<Props> = ({ isOpen, onClose, category, onSelect, isChallengeActive }) => {
   const [challenges, setChallenges] = React.useState<Challenge[]>([]);
   const [isLoading, setIsLoading] = React.useState(true);
 
@@ -174,8 +174,8 @@ const ChallengeListModal: React.FC<Props> = ({ isOpen, onClose, category, onSele
                   <ChallengeTitle>{challenge.title}</ChallengeTitle>
                   <ChallengeDescription>{challenge.description}</ChallengeDescription>
                 </CardInfo>
-                <SelectButton onClick={() => onSelect(challenge)} disabled={isWeeklyCompleted}>
-                  {isWeeklyCompleted ? '주간 챌린지 완료' : '이 챌린지 시작'}
+                <SelectButton onClick={() => onSelect(challenge)} disabled={isChallengeActive}>
+                  {isChallengeActive ? '진행중인 챌린지 있음' : '이 챌린지 시작'}
                 </SelectButton>
               </ChallengeCard>
             ))

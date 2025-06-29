@@ -17,6 +17,7 @@ export interface Challenge {
   isCompletedByMember1: boolean;
   isCompletedByMember2: boolean;
   completedAt?: string;
+  updatedAt?: string;
 }
 
 export interface ChallengeHistory {

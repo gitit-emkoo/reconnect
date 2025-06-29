@@ -55,4 +55,9 @@ export const getLatestOverallScore = async (): Promise<Report | null> => {
   } catch (error) {
     return null;
   }
+};
+
+export const getMyReports = async (): Promise<ReportData[]> => {
+  const { data } = await axiosInstance.get('/reports/me');
+  return data;
 }; 

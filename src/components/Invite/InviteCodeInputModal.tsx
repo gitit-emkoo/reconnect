@@ -99,7 +99,7 @@ const InviteCodeInputModal: React.FC<InviteCodeInputModalProps> = ({ onClose }) 
     setIsLoading(true);
     setError(null);
     try {
-      const response = await partnerInvitesApi.acceptInvite(code);
+      const response = await partnerInvitesApi.respondToInvite(code);
       if (user?.id === response.invitee.id) {
         setAuth(response.invitee, response.inviteeToken);
       } else if (user?.id === response.inviter.id) {

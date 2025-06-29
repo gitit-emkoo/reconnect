@@ -5,23 +5,20 @@ export interface User {
   profileImageUrl?: string;
   anniversary?: string;
   birthdate?: string;
-  partner?: {
-    id: string;
-    nickname: string;
-    email: string;
-    imageUrl?: string;
-  };
+  partnerId?: string | null;
+  partner?: User;
+  coupleId?: string | null;
   couple?: {
     id: string;
-    status: string;
     createdAt: string;
-    updatedAt: string;
-  };
+  } | null;
+  temperature?: number;
   provider?: 'EMAIL' | 'KAKAO' | 'GOOGLE';
   socialId?: string;
   createdAt?: string;
   updatedAt?: string;
   role?: 'USER' | 'ADMIN';
+  socialProvider: string | null;
 }
 
 export interface ProfileUpdateResponse {
@@ -45,4 +42,8 @@ export interface PasswordChangeResponse {
 export interface PasswordChangeData {
   currentPassword: string;
   newPassword: string;
+}
+
+export interface UserProfile {
+  // ... existing code ...
 } 
