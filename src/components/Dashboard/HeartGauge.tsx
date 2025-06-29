@@ -68,14 +68,14 @@ const HeartGauge: React.FC<HeartGaugeProps> = ({ percentage, size = 120 }) => {
         strokeLinecap="round"
       />
       {/* 중앙 온도 텍스트 + 하트 */}
-      <text x={cx + 10} y={cy + 10} textAnchor="end" fontSize="28" fill="#333" fontWeight="bold">
-        {percent}°
+      <text x={cx + 24} y={cy + 10} textAnchor="end" fontSize="28" fill="#333" fontWeight="bold" margin-left="1rem">
+        {percent.toFixed(1)}°
       </text>
-      <g transform={`translate(${cx + 25},${cy + 2})`}>
+      <g transform={`translate(${cx + 6},${cy + 2})`}>
         <path
           d="M12 21s-6.5-4.35-9-7.88C-1.5 8.5 2.5 3.5 7.5 5.5c2.1.8 3.5 2.7 4.5 4.5 1-1.8 2.4-3.7 4.5-4.5C21.5 3.5 25.5 8.5 21 13.12 18.5 16.65 12 21 12 21z"
           fill="#FF4B4B"
-          transform="scale(0.7) translate(-8,-8)"
+          transform="scale(0.7) translate(24,-8)"
         />
       </g>
     </svg>

@@ -36,17 +36,9 @@ export const partnerInvitesApi = {
   },
 
   // 초대 코드로 응답
-  respondToInvite: async (code: string): Promise<{ message: string; user: any; accessToken: string }> => {
+  respondToInvite: async (code: string): Promise<{ inviter: User; invitee: User; inviterToken: string; inviteeToken: string }> => {
     const { data } = await axiosInstance.post('/partner-invites/respond', { code });
     return data;
-  },
-
-  // 초대 수락
-  acceptInvite: async (code: string): Promise<{ inviter: User; invitee: User; inviterToken: string; inviteeToken: string }> => {
-    const response = await axiosInstance.post<{ inviter: User; invitee: User; inviterToken: string; inviteeToken: string }>(
-      `/partner-invites/accept`, { code }
-    );
-    return response.data;
   },
 
   // 초대 거절

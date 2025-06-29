@@ -3,7 +3,7 @@ import styled from 'styled-components';
 
 interface TemperatureDescriptionProps {
   score: number;
-  reason: string;
+  reason?: string;
 }
 
 const temperatureLevels = [
