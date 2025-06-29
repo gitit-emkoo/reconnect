@@ -347,9 +347,12 @@ const LoginPage: React.FC = () => {
   const onSubmitEmailLogin: SubmitHandler<LoginFormData> = async (data) => {
     setLoginError('');
     try {
-      const response = await axiosInstance.post<{ user: User; accessToken: string }>('/auth/login', data);
+      const response = await axiosInstance.post<{ user: User; accessToken: string }>(
+        '/auth/login',
+        data
+      );
       await handleSuccessfulLogin(response.data.user, response.data.accessToken);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Email login failed:', error);
       if (axios.isAxiosError(error) && error.response) {
         if (error.response.status === 401) {
@@ -366,7 +369,10 @@ const LoginPage: React.FC = () => {
   const handleSocialLoginSuccess = async (googleAccessToken: string) => {
     setLoginError('');
     try {
-      const response = await axiosInstance.post<{ user: User; accessToken: string }>('/auth/google/login', { token: googleAccessToken });
+      const response = await axiosInstance.post<{ user: User; accessToken: string }>(
+        '/auth/google/login',
+        { token: googleAccessToken }
+      );
       await handleSuccessfulLogin(response.data.user, response.data.accessToken);
     } catch (error) {
       console.error('Google login failed:', error);

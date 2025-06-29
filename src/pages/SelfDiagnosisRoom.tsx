@@ -5,6 +5,7 @@ import PageLayout from '../components/Layout/PageLayout';
 import useAuthStore from '../store/authStore';
 import { getDiagnosisHistory } from '../api/diagnosis';
 import { DIAGNOSIS_TEMPLATES } from '../templates/diagnosisTemplates';
+import BrainIcon from '../assets/Icon_Brain.png';
 
 const Badge = styled.span`
   background-color: #ff4d4f;
@@ -17,15 +18,8 @@ const Badge = styled.span`
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
 `;
 
-const Strikethrough = styled.span`
-  text-decoration: line-through;
-  color: #aaa;
-  margin: 0 0.5rem;
-  font-weight: normal;
-`;
-
 const FreeText = styled.span`
-  color: #ff4d4f;
+  color:rgb(255, 193, 194);
   font-weight: bold;
 `;
 
@@ -40,11 +34,28 @@ const Section = styled.div`
   border: 1px solid #eee;
 `;
 
-const Title = styled.h2`
-  font-size: 1.5rem;
-  font-weight: 700;
+const HeaderContainer = styled.div`
+  display: flex;
+  align-items: center;
   margin-bottom: 1.5rem;
+`;
+
+const TextContainer = styled.div`
+  display: flex;
+  flex-direction: column;
+`;
+
+const Title = styled.h2`
+  font-size: 1.2rem;
+  font-weight: 700;
+  margin: 0;
   color: #333;
+`;
+
+const Icon = styled.img`
+  width: 56px;
+  height: 56px;
+  margin-right: 1.25rem;
 `;
 
 const DiagnosisList = styled.ul`
@@ -80,6 +91,13 @@ const ItemInfo = styled.div`
   gap: 0.25rem;
 `;
 
+const ItemSubtitle = styled.p`
+  font-size: 0.9rem;
+  color: #666;
+  margin-top: 0.5rem;
+  margin-bottom: 0;
+`;
+
 const ItemDate = styled.span`
   font-size: 0.9rem;
   color: #666;
@@ -88,7 +106,7 @@ const ItemDate = styled.span`
 const ItemScore = styled.span`
   font-size: 1.1rem;
   font-weight: 600;
-  color: #7c3aed;
+  color: #785cd2;
 `;
 
 const NoHistory = styled.p`
@@ -107,7 +125,7 @@ const ButtonContainer = styled.div`
 
 const ToggleButton = styled.button`
   background: #f0e9ff;
-  color: #7c3aed;
+  color: #785cd2;
   border: 1px solid #dcd1f3;
   padding: 0.5rem 1rem;
   border-radius: 8px;
@@ -121,15 +139,15 @@ const ToggleButton = styled.button`
 `;
 
 const CTA = styled.button`
-  background: linear-gradient(135deg, #8e44ad, #7c3aed);
+  background: linear-gradient(135deg, #ff69b4, #785cd2);
   color: #fff;
   border: none;
-  padding: 0.9rem 1.75rem;
+  padding: 0.7rem 1.75rem;
   border-radius: 8px;
   font-weight: 600;
   cursor: pointer;
   width: 100%;
-  font-size: 1.1rem;
+  font-size: 1rem;
   box-shadow: 0 4px 15px rgba(124, 58, 237, 0.3);
   transition: all 0.3s ease;
   display: flex;
@@ -197,9 +215,16 @@ const SelfDiagnosisRoom: React.FC = () => {
 
   return (
     <PageLayout title="자기이해 진단실">
+      <div style={{fontSize:'0.8rem', color:'#666', marginBottom:'1rem'}}>본 테스트 결과는 상담 및 필요한 법적 자문시 핵심 기초자료로 사용됩니다. 정확한 분석을 위해 솔직하고 있는 그대로 응답해 주세요.</div>
       {sortedTemplates.map((tpl)=>(
         <Section key={tpl.id}>
-          <Title>📝 {tpl.title}</Title>
+          <HeaderContainer>
+            <Icon src={BrainIcon} alt="진단 아이콘" />
+            <TextContainer>
+              <Title>{tpl.title}</Title>
+              <ItemSubtitle>{tpl.subtitle}</ItemSubtitle>
+            </TextContainer>
+          </HeaderContainer>
           { (histories[tpl.id]?.length ?? 0) > 0 ? (
             <>
               <DiagnosisList>
@@ -230,16 +255,15 @@ const SelfDiagnosisRoom: React.FC = () => {
             <CTA onClick={()=>{
               navigate(`/generic-diagnosis/${tpl.id}`);
             }}>
-              {tpl.id === 'marriage' ? (
+              {tpl.price === '무료(이벤트)' ? (
                 <>
-                  <span>이벤트 한정</span>
-                  <Strikethrough>100,000원</Strikethrough>
-                  <FreeText>무료!</FreeText>
+                  <Badge>이벤트</Badge>
+                  <FreeText>무료로 시작하기</FreeText>
                 </>
               ) : (
                 <>
                   <Badge>유료</Badge>
-                  <span>2,900원에 시작하기</span>
+                  <span>{tpl.price}원</span>
                 </>
               )}
             </CTA>
