@@ -48,7 +48,6 @@ import AnnouncementsPage from './pages/AnnouncementsPage';
 import PostWritePage from './pages/PostWritePage';
 import PostDetailPage from './pages/PostDetailPage';
 import PostEditPage from './pages/PostEditPage';
-import MarriageDiagnosis from './pages/MarriageDiagnosis';
 import ContentAdmin from './pages/ContentAdmin';
 import SelfDiagnosisRoom from './pages/SelfDiagnosisRoom';
 import GenericDiagnosis from './pages/GenericDiagnosis';
@@ -83,7 +82,7 @@ const NotificationHooks = () => {
     retry: 1,
     throwOnError: false,
   });
-  useEmotionCardNotifications(receivedMessages);
+  useEmotionCardNotifications(receivedMessages || []);
 
   // 챌린지 알림
   useChallengeNotifications();
@@ -148,7 +147,6 @@ const App = () => {
             <Route path="/expert" element={<ProtectedRoute><ExpertPage /></ProtectedRoute>} />
             <Route path="/expert/self-diagnosis" element={<ProtectedRoute><SelfDiagnosisRoom /></ProtectedRoute>} />
             <Route path="/profile/edit" element={<ProtectedRoute><ProfileEditPage /></ProtectedRoute>} />
-            <Route path="/marriage-diagnosis" element={<ProtectedRoute><MarriageDiagnosis /></ProtectedRoute>} />
             <Route path="/generic-diagnosis/:diagnosisId" element={<ProtectedRoute><GenericDiagnosis /></ProtectedRoute>} />
             <Route path="/generic-diagnosis-result/:diagnosisId" element={<ProtectedRoute><GenericDiagnosisResult /></ProtectedRoute>} />
 

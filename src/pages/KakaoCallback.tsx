@@ -1,9 +1,10 @@
 import React, { useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import axios from 'axios';
 import styled from 'styled-components';
 import useAuthStore from '../store/authStore';
 import { type User } from '../types/user';
+import axios from 'axios';
+import axiosInstance from '../api/axios';
 
 const Container = styled.div`
   display: flex;
@@ -22,8 +23,7 @@ const KakaoCallback: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const isRegister = location.pathname.includes('register');
-  const setToken = useAuthStore((state) => state.setToken);
-  const setUser = useAuthStore((state) => state.setUser);
+  const setAuth = useAuthStore((state) => state.setAuth);
 
   useEffect(() => {
     const handleKakaoCallback = async () => {
@@ -41,39 +41,20 @@ const KakaoCallback: React.FC = () => {
       }
 
       try {
-        const backendUrl = import.meta.env.VITE_APP_API_URL;
         const endpoint = isRegister ? '/auth/kakao/register' : '/auth/kakao/login';
         
-        console.log('백엔드 URL:', backendUrl);
         console.log('요청 엔드포인트:', endpoint);
-        console.log('전체 요청 URL:', `${backendUrl}${endpoint}`);
+        console.log('전체 요청 URL:', `${import.meta.env.VITE_APP_API_URL}${endpoint}`);
         
-        const response = await axios.post(
-          `${backendUrl}${endpoint}`,
-          { code },
-          {
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            withCredentials: true
-          }
+        const response = await axiosInstance.post<{ user: User; accessToken: string }>(
+          endpoint,
+          { code }
         );
 
-        console.log('백엔드 응답:', response.data);
-
-        const { data } = response;
-        if (data.accessToken) {
-          setToken(data.accessToken);
+        const { user, accessToken } = response.data;
+        if (accessToken) {
+          setAuth(user, accessToken);
           console.log('액세스 토큰 저장됨');
-          const user: User = {
-            id: data.userId || '',
-            email: data.userEmail || '',
-            nickname: data.userNickname,
-            provider: 'KAKAO',
-            createdAt: new Date().toISOString(),
-            updatedAt: new Date().toISOString(),
-          };
-          setUser(user);
           console.log('사용자 정보 저장됨');
           navigate('/dashboard', { replace: true });
         } else {
@@ -97,16 +78,11 @@ const KakaoCallback: React.FC = () => {
       } catch (error) {
         console.error('카카오 인증 상세 에러:', error);
         if (axios.isAxiosError(error)) {
-          console.error('에러 응답:', error.response?.data);
-          console.error('에러 상태:', error.response?.status);
-          console.error('에러 헤더:', error.response?.headers);
-          
           if (error.response?.status === 409) {
             alert('이미 가입된 계정입니다. 로그인 페이지로 이동합니다.');
-            navigate('/login');
-            return;
+          } else {
+            alert(error.response?.data?.message || '카카오 인증 중 오류가 발생했습니다.');
           }
-          alert(error.response?.data?.message || '카카오 인증 중 오류가 발생했습니다.');
         } else {
           alert('알 수 없는 오류가 발생했습니다.');
         }
@@ -115,7 +91,7 @@ const KakaoCallback: React.FC = () => {
     };
 
     handleKakaoCallback();
-  }, [navigate, location, isRegister, setToken, setUser]);
+  }, [navigate, location, isRegister, setAuth]);
 
   return (
     <Container>

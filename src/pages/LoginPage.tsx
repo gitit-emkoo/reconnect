@@ -295,10 +295,13 @@ const SocialLoginButton: React.FC<{
 );
 
 const LoginPage: React.FC = () => {
-  const [showPassword, setShowPassword] = useState(false);
-  const [loginError, setLoginError] = useState('');
   const navigate = useNavigate();
   const location = useLocation();
+  const { setAuth } = useAuthStore();
+  const from = location.state?.from?.pathname || '/dashboard';
+
+  const [passwordShown, setPasswordShown] = useState(false);
+  const [loginError, setLoginError] = useState('');
 
   const {
     register,
@@ -308,71 +311,79 @@ const LoginPage: React.FC = () => {
     resolver: zodResolver(loginSchema),
   });
 
-  const setToken = useAuthStore((state) => state.setToken);
-  const setUser = useAuthStore((state) => state.setUser);
-
-  const handleSuccessfulLogin = async (token: string, user: User, options?: { isSocial?: boolean }) => {
-    // 1. Zustand 스토어에 토큰과 유저 정보 저장
-    setToken(token);
-    setUser(user);
-
-    // 2. localStorage에서 비회원 진단 결과 확인 및 서버 전송
+  const handleSuccessfulLogin = async (user: User, token: string) => {
+    setAuth(user, token);
+    
+    // 비회원 진단 결과 마이그레이션 (Fire-and-forget)
     const unauthDiagnosisRaw = localStorage.getItem('diagnosisResult');
     if (unauthDiagnosisRaw) {
       try {
         const { score, createdAt } = JSON.parse(unauthDiagnosisRaw);
-        // 새로운 API 엔드포인트로 비동기 전송 (fire-and-forget)
-        axiosInstance.post('/diagnosis/unauth', { score, createdAt })
-          .catch((error) => console.error('비회원 진단 결과 연동 실패:', error));
+        axiosInstance.post('/diagnosis/unauth', { score, createdAt }, {
+          headers: { Authorization: `Bearer ${token}` }
+        }).catch(err => console.error("Failed to migrate unauth diagnosis", err));
         localStorage.removeItem('diagnosisResult');
-      } catch (error) {
-        console.error('비회원 진단 결과 파싱 실패:', error);
+      } catch (err) {
+        console.error("Failed to parse unauth diagnosis", err);
       }
     }
 
-    // 3. 페이지 이동
-    const from = location.state?.from?.pathname || '/dashboard';
-    const navigateState = options?.isSocial ? { state: { fromSocialLogin: true } } : {};
-    navigate(from, { ...navigateState, replace: true });
+    // 온보딩 완료 여부 확인
+    try {
+      await axiosInstance.get('/diagnosis/my-latest', {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      navigate(from, { replace: true });
+    } catch (error) {
+      if (axios.isAxiosError(error) && error.response?.status === 404) {
+        navigate('/onboarding/1', { replace: true });
+      } else {
+        console.error('Failed to check for latest diagnosis, navigating to dashboard', error);
+        navigate('/dashboard', { replace: true });
+      }
+    }
   };
 
   const onSubmitEmailLogin: SubmitHandler<LoginFormData> = async (data) => {
     setLoginError('');
     try {
-      const response = await axiosInstance.post<{ accessToken: string; user: User }>('/auth/login', data);
-      await handleSuccessfulLogin(response.data.accessToken, response.data.user);
+      const response = await axiosInstance.post<{ user: User; accessToken: string }>('/auth/login', data);
+      await handleSuccessfulLogin(response.data.user, response.data.accessToken);
     } catch (error) {
-      console.error("Login error:", error);
-      let errorMessage = '로그인에 실패했습니다. 다시 시도해 주세요.';
-      if (axios.isAxiosError(error) && error.response?.status === 401) {
-        errorMessage = '이메일 또는 비밀번호가 올바르지 않습니다.';
+      console.error('Email login failed:', error);
+      if (axios.isAxiosError(error) && error.response) {
+        if (error.response.status === 401) {
+          setLoginError('이메일 또는 비밀번호가 올바르지 않습니다.');
+        } else {
+          setLoginError(`오류가 발생했습니다: ${error.response.data.message || '다시 시도해주세요.'}`);
+        }
+      } else {
+        setLoginError('네트워크 오류가 발생했습니다. 잠시 후 다시 시도해주세요.');
       }
-      setLoginError(errorMessage);
     }
   };
 
   const handleSocialLoginSuccess = async (googleAccessToken: string) => {
     setLoginError('');
     try {
-      const response = await axiosInstance.post<{ accessToken: string; user: User }>('/auth/google/login', { accessToken: googleAccessToken });
-      await handleSuccessfulLogin(response.data.accessToken, response.data.user, { isSocial: true });
+      const response = await axiosInstance.post<{ user: User; accessToken: string }>('/auth/google/login', { token: googleAccessToken });
+      await handleSuccessfulLogin(response.data.user, response.data.accessToken);
     } catch (error) {
-      console.error('Social login error:', error);
-      setLoginError('소셜 로그인에 실패했습니다.');
+      console.error('Google login failed:', error);
+      setLoginError('구글 로그인에 실패했습니다. 다시 시도해주세요.');
     }
   };
 
   const googleLogin = useGoogleLogin({
     onSuccess: (tokenResponse) => handleSocialLoginSuccess(tokenResponse.access_token),
     onError: () => {
-      setLoginError('Google 로그인에 실패했습니다.');
+      setLoginError('구글 로그인 중 오류가 발생했습니다.');
     },
   });
 
   const handleKakaoLogin = () => {
     window.location.href = getKakaoLoginUrl();
   };
-
 
   return (
     <Container>
@@ -414,11 +425,11 @@ const LoginPage: React.FC = () => {
         <InputWrapper>
           <StyledInput 
             {...register('password')}
-            type={showPassword ? 'text' : 'password'}
+            type={passwordShown ? 'text' : 'password'}
             placeholder="비밀번호"
           />
-          <PasswordToggle type="button" onClick={() => setShowPassword(!showPassword)}>
-            {showPassword ? <OpenEye /> : <CloseEye />}
+          <PasswordToggle type="button" onClick={() => setPasswordShown(!passwordShown)}>
+            {passwordShown ? <OpenEye /> : <CloseEye />}
           </PasswordToggle>
         </InputWrapper>
         {errors.password && <FieldErrorMessage>{errors.password.message}</FieldErrorMessage>}

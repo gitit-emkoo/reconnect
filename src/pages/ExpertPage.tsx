@@ -84,14 +84,14 @@ const ExpertPage: React.FC = () => {
               <CardDesc>검증된 이론과 AI 분석으로 설계된 자기 이해 진단</CardDesc>
             </CardText>
           </Card>
-          <Card onClick={() => navigate('/diagnosis/stress')} style={{cursor:'pointer'}}>
+          <Card onClick={handleComingSoon} style={{cursor:'pointer'}}>
             <CardImg src={ImgCounseling} alt="감정심리 상담실" />
             <CardText>
               <CardTitle>감정심리 상담실</CardTitle>
               <CardDesc>정서적 회복이 필요한 분</CardDesc>
             </CardText>
           </Card>
-          <Card onClick={() => navigate('/diagnosis/happiness')} style={{cursor:'pointer'}}>
+          <Card onClick={handleComingSoon} style={{cursor:'pointer'}}>
             <CardImg src={ImgBeads} alt="인연궁합 상담실" />
             <CardText>
               <CardTitle>인연궁합 상담실</CardTitle>
