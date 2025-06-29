@@ -250,8 +250,7 @@ const RegisterPage: React.FC = () => {
   const { register, handleSubmit, formState: { errors, isSubmitting } } = useForm<RegisterFormData>({
     resolver: zodResolver(registerSchema),
   });
-  const setToken = useAuthStore((state) => state.setToken);
-  const setUser = useAuthStore((state) => state.setUser);
+  const setAuth = useAuthStore((state) => state.setAuth);
 
   const googleLogin = useGoogleLogin({
     onSuccess: async (tokenResponse) => {
@@ -271,15 +270,16 @@ const RegisterPage: React.FC = () => {
         );
 
         const data = response.data;
-        if (data.accessToken) {
-          setToken(data.accessToken);
+        if (data.accessToken && data.user) {
+          setAuth(data.accessToken, data.user);
+          console.log("구글 회원가입 성공! 🎉", data);
+          alert('구글 회원가입이 완료되었습니다. 로그인 페이지로 이동합니다.');
+          navigate('/login');
+        } else {
+          // 데이터 구조가 예상과 다를 경우에 대한 처리
+          console.error("서버 응답에 accessToken 또는 user 정보가 없습니다.", data);
+          alert('회원가입 처리 중 문제가 발생했습니다. 다시 시도해 주세요.');
         }
-        if (data.user) {
-          setUser(data.user);
-        }
-        console.log("구글 회원가입 성공! 🎉", data);
-        alert('구글 회원가입이 완료되었습니다. 로그인 페이지로 이동합니다.');
-        navigate('/login');
       } catch (error) {
         console.error('구글 회원가입 에러:', error);
         

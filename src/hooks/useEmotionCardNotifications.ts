@@ -1,39 +1,25 @@
 import { useEffect, useRef } from 'react';
-import useNotificationStore, { NotificationState } from '../store/notificationsStore';
-import { SentMessage } from '../pages/EmotionCard';
+import useNotificationStore from '../store/notificationsStore';
+import { SentMessage as Message } from '../pages/EmotionCard';
 
-export const useEmotionCardNotifications = (receivedMessages: SentMessage[] | undefined) => {
-  const addNotification = useNotificationStore((state: NotificationState) => state.addNotification);
-  const notifications = useNotificationStore((state: NotificationState) => state.notifications);
-  const prevReceivedIds = useRef<string[] | null>(null);
+// 이전 값을 기억하는 커스텀 훅
+function usePrevious<T>(value: T): T | undefined {
+  const ref = useRef<T | undefined>(undefined);
+  useEffect(() => {
+    ref.current = value;
+  });
+  return ref.current;
+}
+
+export function useEmotionCardNotifications(receivedMessages: Message[]) {
+  const { fetchNotifications } = useNotificationStore();
+  const prevMessageCount = usePrevious(receivedMessages.length);
 
   useEffect(() => {
-    if (receivedMessages && receivedMessages.length > 0) {
-      if (prevReceivedIds.current === null) {
-        // First load, just store the IDs
-        prevReceivedIds.current = receivedMessages.map(msg => msg.id);
-        return;
-      }
-
-      // Find new messages
-      const newCards = receivedMessages.filter(msg => !prevReceivedIds.current!.includes(msg.id));
-      
-      newCards.forEach(() => {
-        const message = '새 감정카드가 도착했어요!';
-        const url = '/emotion-card?tab=received';
-
-        const lastNotification = notifications[notifications.length - 1];
-        if (lastNotification?.message === message && lastNotification?.url === url) {
-            return;
-        }
-
-        addNotification(message, url);
-      });
-
-      // Update the stored IDs
-      if (newCards.length > 0) {
-        prevReceivedIds.current = receivedMessages.map(msg => msg.id);
-      }
+    // 이전 메시지 개수보다 현재 메시지 개수가 많아졌다면, 새로운 메시지가 도착한 것
+    if (prevMessageCount !== undefined && receivedMessages.length > prevMessageCount) {
+      // 서버로부터 최신 알림 목록을 다시 불러옴
+      fetchNotifications();
     }
-  }, [receivedMessages, addNotification, notifications]);
-};
+  }, [receivedMessages, prevMessageCount, fetchNotifications]);
+}

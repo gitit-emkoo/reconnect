@@ -82,7 +82,7 @@ const NotificationHooks = () => {
     retry: 1,
     throwOnError: false,
   });
-  useEmotionCardNotifications(receivedMessages);
+  useEmotionCardNotifications(receivedMessages || []);
 
   // 챌린지 알림
   useChallengeNotifications();

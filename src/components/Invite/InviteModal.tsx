@@ -1,9 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
 import { partnerInvitesApi, type PartnerInvite } from '../../api/partnerInvites';
-import useAuthStore from '../../store/authStore';
-import axiosInstance from '../../api/axios';
-import type { AxiosError } from 'axios';
 
 // 모달 스타일링
 
@@ -121,43 +118,28 @@ export const InviteModal: React.FC<InviteModalProps> = ({ onClose }) => {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    loadInvite();
-  }, []);
-
-  const loadInvite = async () => {
-    try {
+    const fetchInviteCode = async () => {
       setIsLoading(true);
-      // 콘솔: accessToken, useAuthStore 상태
-      const token = useAuthStore.getState().token;
-      console.log('[InviteModal] token:', token);
-      console.log('[InviteModal] useAuthStore:', useAuthStore.getState());
-      // 콘솔: axiosInstance Authorization 헤더
-      console.log('[InviteModal] axiosInstance default headers:', axiosInstance.defaults.headers);
-      const invites = await partnerInvitesApi.getMyInvites();
-      const pendingInvite = invites.find(inv => inv.status === 'PENDING');
-      if (pendingInvite) {
-        setInvite(pendingInvite);
-      } else {
-        // 새로운 초대 코드 생성
-        const newInvite = await partnerInvitesApi.createInviteCode();
-        setInvite(newInvite);
+      try {
+        const response = await partnerInvitesApi.createInviteCode();
+        setInvite(response);
+      } catch (err: any) {
+        if (err.response?.data?.message) {
+          setError(err.response.data.message);
+        } else {
+          setError('초대 코드를 불러오는 데 실패했습니다.');
+        }
+      } finally {
+        setIsLoading(false);
       }
-    } catch (err) {
-      let errorMsg = '초대 코드를 불러오는데 실패했습니다.';
-      if (typeof err === 'string') {
-        errorMsg = err;
-      } else if (
-        (err as AxiosError<{ message?: string }>).isAxiosError &&
-        (err as AxiosError<{ message?: string }>).response?.data?.message
-      ) {
-        errorMsg = (err as AxiosError<{ message?: string }>).response!.data!.message!;
-      }
-      setError(errorMsg);
-      console.error('Failed to load invite:', err);
-    } finally {
-      setIsLoading(false);
-    }
-  };
+    };
+    
+    // 이전에 생성한 코드가 있는지 확인하는 로직 (선택적)
+    // 예: const existingCode = useAuthStore.getState().user?.inviteCode;
+    // if(existingCode) { setInviteCode(existingCode); } else { fetchInviteCode(); }
+    fetchInviteCode();
+
+  }, []);
 
   const handleCopyCode = async () => {
     if (!invite) return;

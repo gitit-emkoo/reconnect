@@ -153,7 +153,7 @@ const SelfDiagnosisRoom: React.FC = () => {
   const navigate = useNavigate();
   const [histories, setHistories] = useState<Record<string, DiagnosisHistoryItem[]>>({});
   const [showAllMap, setShowAllMap] = useState<Record<string, boolean>>({});
-  const token = useAuthStore(state=>state.token);
+  const accessToken = useAuthStore(state=>state.accessToken);
 
   // marriage를 항상 위로 오도록 정렬
   const sortedTemplates = [...DIAGNOSIS_TEMPLATES].sort((a, b) => {
@@ -167,7 +167,7 @@ const SelfDiagnosisRoom: React.FC = () => {
       const resultMap: Record<string, DiagnosisHistoryItem[]> = {};
 
       // 서버 history if login
-      if (token) {
+      if (accessToken) {
         const serverHistory = await getDiagnosisHistory();
         serverHistory.forEach((d) => {
           const arr = resultMap[d.resultType] || [];
@@ -193,7 +193,7 @@ const SelfDiagnosisRoom: React.FC = () => {
       setHistories(resultMap);
     };
     init();
-  }, [token]);
+  }, [accessToken]);
 
   return (
     <PageLayout title="자기이해 진단실">

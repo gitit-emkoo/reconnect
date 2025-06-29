@@ -3,7 +3,6 @@ import styled from 'styled-components';
 import { partnerInvitesApi } from '../../api/partnerInvites';
 import useAuthStore from '../../store/authStore';
 import ConfirmationModal from '../common/ConfirmationModal';
-import ActionButton from '../common/ActionButton';
 import LoadingSpinner from '../common/LoadingSpinner';
 
 const ModalBackdrop = styled.div`
@@ -74,11 +73,6 @@ const SubmitButton = styled.button`
     background: #ccc;
     cursor: not-allowed;
   }
-`;
-
-const StatusMessage = styled.div`
-  margin: 1rem 0;
-  color: #666;
 `;
 
 const ErrorMessage = styled.div`
