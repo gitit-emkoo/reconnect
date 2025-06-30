@@ -112,8 +112,8 @@ const PostDetailMain: React.FC<PostDetailMainProps> = ({ post, user, onEdit, onD
     {/* 본인 글일 때만 수정/삭제 버튼 노출 */}
     {user && post && (user.id === (post as any).authorId) && (
       <div style={{ marginTop: '1rem', display: 'flex', gap: '0.5rem' }}>
-        <button onClick={onEdit} style={{ background: '#ffe0e0', color: '#d63384', border: 'none', borderRadius: '0.5rem', padding: '0.4rem 1.2rem', fontWeight: 600, cursor: 'pointer' }}>수정</button>
-        <button onClick={onDelete} style={{ background: '#f8d7da', color: '#721c24', border: 'none', borderRadius: '0.5rem', padding: '0.4rem 1.2rem', fontWeight: 600, cursor: 'pointer' }}>삭제</button>
+        <button onClick={onEdit} style={{ background: '#785cd2', color: '#ffffff', border: 'none', borderRadius: '0.5rem', padding: '0.4rem 1.2rem', fontWeight: 600, cursor: 'pointer' }}>수정</button>
+        <button onClick={onDelete} style={{ background: '#ff69b4', color: '#ffffff', border: 'none', borderRadius: '0.5rem', padding: '0.4rem 1.2rem', fontWeight: 600, cursor: 'pointer' }}>삭제</button>
       </div>
     )}
     <PostContent dangerouslySetInnerHTML={{ __html: post.content }} />

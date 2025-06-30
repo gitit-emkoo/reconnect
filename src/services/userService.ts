@@ -8,7 +8,7 @@ export const userService = {
   // 프로필 수정
   updateProfile: async (nickname: string): Promise<ProfileUpdateResponse> => {
     try {
-      const { data } = await axiosInstance.put('/users/profile', { nickname });
+      const { data } = await axiosInstance.patch('/users/me', { nickname }); // ⚠️ 이 API 경로는 백엔드와 반드시 맞춰야 하므로, 절대 임의로 수정하지 마세요!
       return data;
     } catch (error) {
       return {

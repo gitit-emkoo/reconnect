@@ -3,6 +3,9 @@ import styled from 'styled-components';
 import { Challenge } from '../../api/challenge';
 import challengeApi from '../../api/challenge';
 import LoadingSpinner from '../common/LoadingSpinner';
+import badge1 from '../../assets/challenge (1).png';
+import badge2 from '../../assets/challenge (2).png';
+import badge3 from '../../assets/challenge (3).png';
 
 const ModalOverlay = styled.div`
   position: fixed;
@@ -69,7 +72,6 @@ const ChallengeCard = styled.div`
   padding: 1.5rem;
   display: flex;
   flex-direction: column;
-  gap: 1rem;
   border: 1px solid #f1f3f5;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
   transition: transform 0.2s ease, box-shadow 0.2s ease;
@@ -80,22 +82,15 @@ const ChallengeCard = styled.div`
   }
 `;
 
-const CardInfo = styled.div`
-  flex: 1;
-`;
 
 const ChallengeTitle = styled.h3`
   font-size: 1.1rem;
   font-weight: 600;
   color: #343a40;
   margin: 0 0 0.5rem 0;
+  text-align: left;
 `;
 
-const ChallengeDescription = styled.p`
-  font-size: 0.9rem;
-  color: #868e96;
-  margin: 0;
-`;
 
 const SelectButton = styled.button`
   background: #7048e8;
@@ -103,7 +98,8 @@ const SelectButton = styled.button`
   border: none;
   border-radius: 0.7rem;
   padding: 0.7rem 0;
-  width: 100%;
+  width: 200px;
+  flex: 0 0 auto;
   font-weight: 600;
   font-size: 1rem;
   cursor: pointer;
@@ -120,6 +116,26 @@ const SelectButton = styled.button`
   }
 `;
 
+const BadgeImage = styled.img`
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  object-fit: cover;
+  background: #f1f3f5;
+`;
+
+const CardRow = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 10px;
+`;
+
+const CountText = styled.span`
+  color: #888;
+  font-size: 15px;
+  flex: 1;
+  min-width: 0;
+`;
 
 interface Props {
   isOpen: boolean;
@@ -132,6 +148,8 @@ interface Props {
 const ChallengeListModal: React.FC<Props> = ({ isOpen, onClose, category, onSelect, isChallengeActive }) => {
   const [challenges, setChallenges] = React.useState<Challenge[]>([]);
   const [isLoading, setIsLoading] = React.useState(true);
+
+  const badgeImages = [badge1, badge2, badge3];
 
   React.useEffect(() => {
     if (isOpen) {
@@ -168,17 +186,25 @@ const ChallengeListModal: React.FC<Props> = ({ isOpen, onClose, category, onSele
               이 카테고리에는 아직 챌린지가 없어요.
             </div>
           ) : (
-            challenges.map(challenge => (
-              <ChallengeCard key={challenge.id}>
-                <CardInfo>
-                  <ChallengeTitle>{challenge.title}</ChallengeTitle>
-                  <ChallengeDescription>{challenge.description}</ChallengeDescription>
-                </CardInfo>
-                <SelectButton onClick={() => onSelect(challenge)} disabled={isChallengeActive}>
-                  {isChallengeActive ? '진행중인 챌린지 있음' : '이 챌린지 시작'}
-                </SelectButton>
-              </ChallengeCard>
-            ))
+            challenges.map((challenge, idx) => {
+              const badgeUrl = badgeImages[idx % badgeImages.length];
+              return (
+                <ChallengeCard key={challenge.id}>
+                  <CardRow>
+                    <BadgeImage src={badgeUrl} alt="뱃지" />
+                    <ChallengeTitle>{challenge.title}</ChallengeTitle>
+                  </CardRow>
+                  <CardRow style={{ marginLeft: 16}}>
+                    <CountText>
+                      {challenge.description ? challenge.description : `수행 ${(challenge as any).frequency ?? 1}회`}
+                    </CountText>
+                    <SelectButton onClick={() => onSelect(challenge)} disabled={isChallengeActive}>
+                      {isChallengeActive ? '진행중인 챌린지 있음' : '이 챌린지 시작'}
+                    </SelectButton>
+                  </CardRow>
+                </ChallengeCard>
+              );
+            })
           )}
         </ChallengeList>
       </ModalContent>

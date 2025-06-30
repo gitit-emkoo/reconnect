@@ -26,21 +26,21 @@ const PollVoteBox: React.FC<PollVoteBoxProps> = React.memo(({ post, user }) => {
   const queryClient = useQueryClient();
   const [error, setError] = useState<string | null>(null);
   
-  const localVotes = useMemo(() => post.votes || [], [post.votes]);
+  const localVotes = useMemo(() => Array.isArray(post.votes) ? post.votes : [], [post.votes]);
   const myVote = useMemo(() => 
     userId ? localVotes.find((v: PollVote) => v.userId === userId) : undefined,
     [userId, localVotes]
   );
 
   const voteMutation = useMutation({
-    mutationFn: async (choiceIdx: number) => {
+    mutationFn: async (optionText: string) => {
       if (!userId) {
         throw new Error('로그인이 필요합니다.');
       }
-      const { data } = await axiosInstance.post(`/community/posts/${post.id}/vote`, { choice: choiceIdx });
+      const { data } = await axiosInstance.post(`/community/posts/${post.id}/vote`, { choice: optionText });
       return data;
     },
-    onMutate: async (choiceIdx: number) => {
+    onMutate: async (optionText: string) => {
       if (!userId) return;
 
       await queryClient.cancelQueries({ queryKey: ['post', post.id] });
@@ -48,29 +48,25 @@ const PollVoteBox: React.FC<PollVoteBoxProps> = React.memo(({ post, user }) => {
 
       queryClient.setQueryData(['post', post.id], (old: any) =>
         produce(old, (draft: Draft<Post>) => {
-          let votes = draft.votes || [];
+          let votes = Array.isArray(draft.votes) ? draft.votes : [];
           const existingVoteIndex = votes.findIndex((v: PollVote) => v.userId === userId);
 
           if (existingVoteIndex > -1) {
-            if (votes[existingVoteIndex].choice === choiceIdx) {
+            if (votes[existingVoteIndex].choice === optionText) {
               votes.splice(existingVoteIndex, 1);
             } else {
-              votes[existingVoteIndex].choice = choiceIdx;
+              votes[existingVoteIndex].choice = optionText;
             }
           } else {
-            votes.push({ userId, choice: choiceIdx });
+            votes.push({ userId, choice: optionText });
           }
           draft.votes = votes;
         })
       );
       return { previousPost };
     },
-    onSuccess: (data: PollVote[]) => {
-      queryClient.setQueryData(['post', post.id], (old: any) =>
-        produce(old, (draft: Draft<Post>) => {
-          draft.votes = data;
-        })
-      );
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['post', post.id] });
     },
     onError: (err: Error, _variables, context) => {
       setError(err.message);
@@ -83,25 +79,26 @@ const PollVoteBox: React.FC<PollVoteBoxProps> = React.memo(({ post, user }) => {
     }
   });
 
-  const handleVote = useCallback((choiceIdx: number) => {
-    if (!user) {
-      alert('투표를 하려면 로그인이 필요합니다.');
+  const handleVote = useCallback((optionText: string) => {
+    if (!userId) {
+      alert('로그인이 필요합니다.');
       return;
     }
-    voteMutation.mutate(choiceIdx);
-  }, [user, voteMutation]);
+    voteMutation.mutate(optionText);
+  }, [userId, voteMutation]);
 
   const renderVoteOptions = useMemo(() => 
-    post.poll?.options.map((opt, idx) => {
+    post.poll?.options.map((opt) => {
       const totalVotes = localVotes.length;
-      const votesForOption = localVotes.filter((v: PollVote) => v.choice === idx + 1).length;
+      const votesForOption = localVotes.filter((v: PollVote) => v.choice === opt.text).length;
       const percent = totalVotes > 0 ? Math.round((votesForOption / totalVotes) * 100) : 0;
-      const isMyChoice = myVote && myVote.choice === idx + 1;
+      const isMyChoice = myVote && myVote.choice === opt.text;
       
       return (
         <div key={opt.id} style={{ flex: 1, textAlign: 'center' }}>
           <button
-            onClick={() => handleVote(idx + 1)}
+            onClick={() => { if (!isMyChoice && !voteMutation.isPending) handleVote(opt.text); }}
+            disabled={voteMutation.isPending}
             style={{
               width: '100%',
               padding: '0.8rem 0',
@@ -111,28 +108,28 @@ const PollVoteBox: React.FC<PollVoteBoxProps> = React.memo(({ post, user }) => {
               color: '#52C41A',
               fontWeight: 600,
               fontSize: '1rem',
-              cursor: 'pointer',
+              cursor: voteMutation.isPending ? 'not-allowed' : 'pointer',
               marginBottom: '0.5rem',
               transition: 'all 0.2s',
             }}
           >
             {opt.text}
-            {isMyChoice && <span style={{ marginLeft: 8, fontSize: '0.95rem', color: '#388e3c' }}>(내 선택)</span>}
+            {isMyChoice && <span style={{ marginLeft: 8, fontSize: '0.95rem', color: ' #785cd2' }}>(내 선택)</span>}
           </button>
           <div style={{ height: 12, background: '#e0e0e0', borderRadius: 6, overflow: 'hidden', marginBottom: 4 }}>
-            <div style={{ width: `${percent}%`, height: '100%', background: '#52C41A', transition: 'width 0.3s' }} />
+            <div style={{ width: `${percent}%`, height: '100%', background: ' #785cd2', transition: 'width 0.3s' }} />
           </div>
           <div style={{ fontSize: '0.95rem', color: '#333' }}>{votesForOption}표 ({percent}%)</div>
         </div>
       );
     }),
-    [post.poll?.options, localVotes, myVote, handleVote]
+    [post.poll?.options, localVotes, myVote, handleVote, voteMutation.isPending]
   );
 
   return (
     <PollContainer>
       <ErrorModal open={!!error} message={error || ''} onClose={() => setError(null)} />
-      <div style={{ fontWeight: 700, fontSize: '1.1rem', marginBottom: '1rem', color: '#52C41A' }}>
+      <div style={{ fontWeight: 700, fontSize: '1.1rem', marginBottom: '1rem', color: 'rgv #785cd2' }}>
         {post.poll.question}
       </div>
       <div style={{ display: 'flex', gap: '1.2rem', marginBottom: '1.2rem' }}>

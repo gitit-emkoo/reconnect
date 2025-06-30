@@ -327,7 +327,7 @@ const BaselineDiagnosisResult: React.FC = () => {
   };
 
   const handleNextStep = () => {
-    navigate('/register');
+    navigate('/login');
   };
 
   const handleShare = async () => {

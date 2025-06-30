@@ -101,7 +101,7 @@ export const ProfileEditModal: React.FC<ProfileEditModalProps> = ({
     try {
       const token = localStorage.getItem('accessToken');
       const response = await axiosInstance.patch(
-        '/users/profile',
+        '/users/me', // ⚠️ 이 API 경로는 백엔드와 반드시 맞춰야 하므로, 절대 임의로 수정하지 마세요!
         formData,
         {
           headers: {

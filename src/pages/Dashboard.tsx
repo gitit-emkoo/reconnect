@@ -23,6 +23,7 @@ import MainMenu from '../components/Dashboard/MainMenu';
 import DashboardCalendar from '../components/Dashboard/DashboardCalendar';
 import Popup from '../components/common/Popup';
 import logoImage from '../assets/Logo.png';
+import { useReportData } from '../hooks/useReportData';
 
 const getEmotionByTemperature = (temp: number): string => {
   if (temp > 80) return "타오르는 불꽃 🔥";
@@ -157,6 +158,7 @@ const Dashboard: React.FC = () => {
   } = useDashboardData();
   const { checkAuth } = useAuthStore();
   const { fetchNotifications } = useNotificationStore();
+  const { latestScore } = useReportData();
 
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
   const [isInputModalOpen, setIsInputModalOpen] = useState(false);
@@ -240,7 +242,7 @@ const Dashboard: React.FC = () => {
     }
   };
 
-  const heartPercent = temperature ?? latestDiagnosis?.score ?? 61;
+  const heartPercent = latestScore ?? temperature ?? latestDiagnosis?.score ?? 61;
   const emotion = getEmotionByTemperature(heartPercent);
   
   const getDiaryStatusForDate = (dateString: string) => ({
@@ -422,7 +424,7 @@ const Dashboard: React.FC = () => {
           userId={user.id}
           scheduleMap={scheduleMap}
           onDeleteSchedule={handleDeleteSchedule}
-          onDateClick={(date) => { setScheduleDate(date); setIsScheduleModalOpen(true); }}
+          onDateClick={setScheduleDate}
         />
         
         <MenuCard style={{ marginTop: '2rem' }} onClick={() => handleFeatureClick("/onboarding")}>
