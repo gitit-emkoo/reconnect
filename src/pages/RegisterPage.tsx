@@ -361,7 +361,6 @@ const RegisterPage: React.FC = () => {
         구글로 회원가입
       </SocialLoginButton>
       <SocialLoginButton $isKakao onClick={handleKakaoRegister}>
-        <img src="https://developers.kakao.com/assets/img/about/logos/kakaotalk/kakaotalk_symbol_black.png" alt="Kakao logo" />
         카카오톡으로 회원가입
       </SocialLoginButton>
 
@@ -371,21 +370,20 @@ const RegisterPage: React.FC = () => {
         {apiError && <ErrorMessage style={{ textAlign: 'center', marginBottom: '1rem' }}>{apiError}</ErrorMessage>}
         <InputWrapper>
           <Input
-            type="text"
-            placeholder="닉네임"
-            {...register('nickname')}
-          />
-        </InputWrapper>
-        {errors.nickname && <ErrorMessage>{errors.nickname.message}</ErrorMessage>}
-        
-        <InputWrapper>
-          <Input
             type="email"
             placeholder="이메일"
             {...register('email')}
           />
         </InputWrapper>
         {errors.email && <ErrorMessage>{errors.email.message}</ErrorMessage>}
+        <InputWrapper>
+          <Input
+            type="text"
+            placeholder="닉네임"
+            {...register('nickname')}
+          />
+        </InputWrapper>
+        {errors.nickname && <ErrorMessage>{errors.nickname.message}</ErrorMessage>}
 
         <InputWrapper>
           <Input
