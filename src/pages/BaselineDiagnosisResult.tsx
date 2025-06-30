@@ -3,7 +3,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 import styled from "styled-components";
 import axiosInstance from "../api/axios";
 import BackButton from '../components/common/BackButton';
-import { diagnosisQuestions, MAX_SCORE } from "../config/baselineDiagnosisQuestions";
+import { MAX_SCORE } from "../config/baselineDiagnosisQuestions";
 import useAuthStore from '../store/authStore';
 import ConfirmationModal from '../components/common/ConfirmationModal';
 import newLogo from '../assets/favicon.png';
@@ -265,53 +265,47 @@ const getResultByTemperature = (temp: number) => {
   return resultData[roundedTemp as keyof typeof resultData] || resultData[0];
 };
 
-const calculateScore = (answers: (string | null)[]) => {
-  let calculatedScore = 0;
-  answers.forEach((answer: string | null, index: number) => {
-    const question = diagnosisQuestions[index];
-    if (question && answer) {
-      const key = answer === 'unknown' ? 'neutral' : (answer as 'yes' | 'no');
-      if (question.scores.hasOwnProperty(key)) {
-        calculatedScore += question.scores[key];
-      }
-    }
-  });
-  return Math.round((calculatedScore / MAX_SCORE) * 100);
-};
-
 const BaselineDiagnosisResult: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const [score, setScore] = useState<number>(0);
+  const { user, isAuthenticated } = useAuthStore();
   const [showModal, setShowModal] = useState(false);
-  const { user } = useAuthStore();
   const [loading, setLoading] = useState(false);
   
+  const { answers, score: rawScore } = location.state || { answers: [], score: 0 };
+  const temperature = Math.round((rawScore / MAX_SCORE) * 100);
+  const result = getResultByTemperature(temperature);
+
   useEffect(() => {
-    if (location.state && location.state.answers) {
-      const { answers } = location.state;
-      const finalScore = calculateScore(answers);
-      setScore(finalScore);
-      // 비회원일 때만 결과를 저장합니다.
-      if (!user) {
-        saveResult(finalScore, answers);
-      }
-    } else {
-      navigate("/baseline-diagnosis");
+    if (!isAuthenticated && rawScore > 0) {
+      const diagnosisResult = {
+        score: temperature,
+        answers: answers,
+      };
+      localStorage.setItem('baselineDiagnosisAnswers', JSON.stringify(diagnosisResult));
+    } else if (isAuthenticated && rawScore > 0) {
+      saveResult(temperature, answers);
     }
-  }, [location, navigate, user]);
+  }, [isAuthenticated, rawScore, answers, temperature]);
 
   const saveResult = async (finalScore: number, answers: (string | null)[]) => {
     setLoading(true);
     try {
-      const response = await axiosInstance.post('/diagnosis/unauth', {
+      const endpoint = isAuthenticated ? '/diagnosis' : '/diagnosis/unauth';
+      
+      const payload: any = {
         score: finalScore,
         resultType: '기초 관계온도',
         diagnosisType: 'BASELINE_TEMPERATURE',
-        answers, // Optional: for detailed analysis later
-      });
-      // 비회원 진단 ID를 로컬 스토리지에 저장
-      if (response.data && response.data.id) {
+      };
+
+      if (isAuthenticated) {
+        payload.answers = answers;
+      }
+
+      const response = await axiosInstance.post(endpoint, payload);
+
+      if (!isAuthenticated && response.data && response.data.id) {
         localStorage.setItem('unauthDiagnosisId', response.data.id);
       }
     } catch (error) {
@@ -321,17 +315,14 @@ const BaselineDiagnosisResult: React.FC = () => {
     }
   };
 
-  const result = getResultByTemperature(score);
-  const temperatureDifference = score - 61; // 평균 대신 초기값 61과 비교
+  const temperatureDifference = temperature - 61;
 
   const handleBack = () => {
     setShowModal(true);
   };
 
   const handleConfirmBack = () => {
-    localStorage.removeItem('unauthDiagnosisId'); // 이전 키도 제거
-    localStorage.removeItem('baselineDiagnosisResult');
-    sessionStorage.removeItem('baselineDiagnosisAnswers');
+    localStorage.removeItem('baselineDiagnosisAnswers');
     navigate('/diagnosis', { replace: true });
   };
 
@@ -342,14 +333,13 @@ const BaselineDiagnosisResult: React.FC = () => {
   const handleShare = async () => {
     const shareData = {
       title: '리커넥트 관계온도 진단 결과',
-      text: `저의 관계온도는 ${score}점이에요! 당신의 점수도 확인해보세요!`,
+      text: `저의 관계온도는 ${temperature}점이에요! 당신의 점수도 확인해보세요!`,
       url: window.location.href,
     };
     try {
       if (navigator.share) {
         await navigator.share(shareData);
       } else {
-        // navigator.share를 지원하지 않는 경우 (예: 데스크톱)
         alert('공유 기능은 모바일에서만 지원됩니다.');
       }
     } catch (error) {
@@ -357,13 +347,6 @@ const BaselineDiagnosisResult: React.FC = () => {
     }
   };
 
-  if (!location.state?.answers) {
-    const storedAnswers = sessionStorage.getItem('baselineDiagnosisAnswers');
-    if (!storedAnswers) {
-      return null; // 리디렉션 중이므로 렌더링하지 않음
-    }
-  }
-  
   return (
     <Container>
       <ImageSection>
@@ -378,13 +361,13 @@ const BaselineDiagnosisResult: React.FC = () => {
         <TemperatureBar>
           <TopSection>
             <TemperatureText>우리의 관계 온도</TemperatureText>
-            <TemperatureValue>{score}<span>°C</span></TemperatureValue>
+            <TemperatureValue>{temperature}<span>°C</span></TemperatureValue>
           </TopSection>
-          <TemperatureMeter temperature={score} />
+          <TemperatureMeter temperature={temperature} />
         </TemperatureBar>
         
         <PercentageText>
-          당신의 관계 온도는 평균보다 <StyledComparison {...(temperatureDifference > 0 ? { color: '#FF1493', isBold: true } : { color: '#4169E1', isBold: false })}>{Math.abs(temperatureDifference)}°C</StyledComparison> {temperatureDifference > 0 ? '높아요🥰' : '낮아요😢'}.
+          당신의 관계 온도는 평균보다 <StyledComparison {...(temperatureDifference > 0 ? { color: '#FF1493', isBold: true } : { color: '#4169E1', isBold: false })}>{Math.abs(temperatureDifference)}°C</StyledComparison> {temperatureDifference > 0 ? '높아요🥰' : '낮아요😢'}
         </PercentageText>
         
         <Description>{result.description}</Description>

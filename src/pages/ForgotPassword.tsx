@@ -4,6 +4,7 @@ import styled from 'styled-components';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
+import axiosInstance from '../api/axios';
 
 const Container = styled.div`
   display: flex;
@@ -114,20 +115,7 @@ const ForgotPassword: React.FC = () => {
 
   const onSubmit = async (data: ForgotPasswordFormData) => {
     try {
-      const backendUrl = import.meta.env.VITE_APP_API_URL || 'http://localhost:3000';
-      const response = await fetch(`${backendUrl}/users/forgot-password`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(data),
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || '비밀번호 재설정 이메일 발송 실패');
-      }
-
+      await axiosInstance.post('/users/forgot-password', { email: data.email });
       alert('비밀번호 재설정 링크가 이메일로 발송되었습니다.');
       navigate('/login');
     } catch (error: any) {
