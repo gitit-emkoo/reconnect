@@ -8,6 +8,20 @@ import logoImage from '../assets/Logo.png';
 
 const questions = diagnosisQuestions;
 
+const calculateScore = (answers: (string | null)[]) => {
+  let calculatedScore = 0;
+  answers.forEach((answer: string | null, index: number) => {
+    const question = diagnosisQuestions[index];
+    if (question && answer) {
+      const key = answer === 'unknown' ? 'neutral' : (answer as 'yes' | 'no');
+      if (question.scores.hasOwnProperty(key)) {
+        calculatedScore += question.scores[key];
+      }
+    }
+  });
+  return calculatedScore;
+};
+
 const Container = styled.div`
   display: flex;
   flex-direction: column;
@@ -117,12 +131,8 @@ const BaselineDiagnosis: React.FC = () => {
     if (currentQuestion < questions.length - 1) {
       setCurrentQuestion(currentQuestion + 1);
     } else {
-      localStorage.setItem('hasVisited', 'true');
-      localStorage.setItem(
-        'baselineDiagnosisAnswers',
-        JSON.stringify(newAnswers),
-      );
-      navigate('/diagnosis/result', { state: { answers: newAnswers } });
+      const finalScore = calculateScore(newAnswers);
+      navigate('/diagnosis/result', { state: { answers: newAnswers, score: finalScore } });
     }
   };
 

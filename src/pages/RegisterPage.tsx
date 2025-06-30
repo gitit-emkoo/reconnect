@@ -11,12 +11,7 @@ import { getKakaoRegisterUrl } from '../utils/socialAuth';
 import axios from 'axios';
 import axiosInstance from '../api/axios';
 import useAuthStore from '../store/authStore';
-
-interface UnauthDiagnosisResult {
-  score: number;
-  resultType: string;
-  createdAt: string;
-}
+import ConfirmationModal from '../components/common/ConfirmationModal';
 
 const Container = styled.div`
   display: flex;
@@ -246,124 +241,112 @@ const AlreadyMember = styled.div`
   }
 `;
 
+const getUnauthDiagnosisData = () => {
+  const unauthResult = localStorage.getItem('baselineDiagnosisAnswers');
+  if (unauthResult) {
+    try {
+      const { score, answers } = JSON.parse(unauthResult);
+      return { unauthDiagnosis: { score, answers } };
+    } catch (e) {
+      console.error('Failed to parse unauth diagnosis data', e);
+      return {};
+    }
+  }
+  return {};
+};
+
 const RegisterPage: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { answers } = location.state || {};
-  const [showPassword, setShowPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const [isChecked, setIsChecked] = useState(false);
-  const [unauthDiagnosis, setUnauthDiagnosis] = useState<UnauthDiagnosisResult | null>(null);
-  const { register, handleSubmit, formState: { errors, isSubmitting } } = useForm<RegisterFormData>({
+  const [passwordShown, setPasswordShown] = useState(false);
+  const [confirmPasswordShown, setConfirmPasswordShown] = useState(false);
+  const [agreedToTerms, setAgreedToTerms] = useState(false);
+  const [showDiagnosisModal, setShowDiagnosisModal] = useState(false);
+  const [apiError, setApiError] = useState<string | null>(null);
+  const { setAuth } = useAuthStore();
+  const from = location.state?.from?.pathname || '/dashboard';
+
+  const {
+    register,
+    handleSubmit,
+    formState: { errors, isSubmitting },
+  } = useForm<RegisterFormData>({
     resolver: zodResolver(registerSchema),
   });
-  const setAuth = useAuthStore((state) => state.setAuth);
 
   useEffect(() => {
-    const savedResult = localStorage.getItem('unauthDiagnosisResult');
-    if (savedResult) {
-      try {
-        const parsedResult = JSON.parse(savedResult);
-        setUnauthDiagnosis(parsedResult);
-        console.log('불러온 비회원 진단 결과:', parsedResult);
-      } catch (error) {
-        console.error('비회원 진단 결과 파싱 실패:', error);
-      }
+    const unauthResult = localStorage.getItem('baselineDiagnosisAnswers');
+    if (!unauthResult) {
+      setShowDiagnosisModal(true);
     }
   }, []);
+
+  const handleConfirmDiagnosis = () => {
+    navigate('/diagnosis');
+  };
 
   const googleLogin = useGoogleLogin({
     onSuccess: async (tokenResponse) => {
       try {
-        const response = await axiosInstance.post(
-          `/auth/google/register`,
-          { 
-            access_token: tokenResponse.access_token,
-            answers,
-          },
-          { 
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            withCredentials: true 
-          }
-        );
+        const userInfoResponse = await axios.get('https://www.googleapis.com/oauth2/v3/userinfo', {
+          headers: { Authorization: `Bearer ${tokenResponse.access_token}` },
+        });
 
-        const data = response.data;
-        if (data.accessToken && data.user) {
-          setAuth(data.accessToken, data.user);
-          console.log("구글 회원가입 성공! 🎉", data);
-          alert('구글 회원가입이 완료되었습니다. 로그인 페이지로 이동합니다.');
-          navigate('/login');
-        } else {
-          // 데이터 구조가 예상과 다를 경우에 대한 처리
-          console.error("서버 응답에 accessToken 또는 user 정보가 없습니다.", data);
-          alert('회원가입 처리 중 문제가 발생했습니다. 다시 시도해 주세요.');
-        }
-      } catch (error) {
-        console.error('구글 회원가입 에러:', error);
-        
-        if (axios.isAxiosError(error)) {
-          // 409 Conflict - 이미 가입된 사용자
-          if (error.response?.status === 409) {
-            alert('이미 가입된 이메일입니다. 로그인 페이지로 이동합니다.');
-            navigate('/welcome');
-            return;
-          }
+        const { email, name: nickname, sub: googleId } = userInfoResponse.data;
 
-          // 기타 에러
-          alert(error.response?.data?.message || '구글 회원가입 중 오류가 발생했습니다.');
-        } else {
-          alert('알 수 없는 오류가 발생했습니다.');
-        }
+        const payload: any = {
+          email,
+          nickname,
+          googleId,
+          ...getUnauthDiagnosisData(),
+        };
+
+        const response = await axiosInstance.post('/auth/google', payload);
+        const { accessToken, user } = response.data;
+        setAuth(accessToken, user);
+        navigate(from, { replace: true });
+      } catch (error: any) {
+        console.error('Google login error:', error);
+        setApiError(error.response?.data?.message || '구글 로그인에 실패했습니다.');
       }
     },
-    onError: () => {
-      alert('구글 회원가입 중 오류가 발생했습니다.');
-    }
+    onError: (error) => {
+      console.error('Google login failed:', error);
+      setApiError('구글 로그인 과정에서 오류가 발생했습니다.');
+    },
   });
 
   const handleKakaoRegister = () => {
-    const kakaoUrl = getKakaoRegisterUrl();
-    const finalUrl = answers ? `${kakaoUrl}&state=${answers}` : kakaoUrl;
-    window.location.href = finalUrl;
+    window.location.href = getKakaoRegisterUrl();
   };
 
   const onSubmit = async (data: RegisterFormData) => {
-    if (!isChecked) {
-      alert("이용약관 및 개인정보 처리방침에 동의해 주세요.");
+    if (!agreedToTerms) {
+      setApiError('이용약관 및 개인정보 처리방침에 동의해야 합니다.');
       return;
     }
+    setApiError(null);
     try {
       const payload = {
-        ...data,
-        unauthDiagnosis, // 진단 결과가 있으면 함께 보냄
+        email: data.email,
+        password: data.password,
+        nickname: data.nickname,
+        ...getUnauthDiagnosisData(),
       };
-
-      const response = await axiosInstance.post('/auth/register', payload);
-
-      const { user, token } = response.data;
-      useAuthStore.getState().login(user, token);
       
-      // 회원가입 성공 후 로컬 스토리지에서 비회원 진단 결과 삭제
-      if (unauthDiagnosis) {
-        localStorage.removeItem('unauthDiagnosisResult');
-      }
+      const response = await axiosInstance.post('/auth/register', payload);
+      const { accessToken, user } = response.data;
+      setAuth(accessToken, user);
+      
+      localStorage.removeItem('baselineDiagnosisAnswers');
 
-      navigate('/dashboard');
-
-    } catch (error) {
+      navigate(from, { replace: true });
+    } catch (error: any) {
       console.error(error);
-      if (axios.isAxiosError(error)) {
-        if (error.response) {
-          if (error.response.status === 409) {
-            alert("이미 사용 중인 이메일입니다.");
-          } else {
-            alert("회원가입 중 오류가 발생했습니다.");
-          }
-        } else {
-          alert("알 수 없는 오류가 발생했습니다.");
-        }
+      if (error.response?.data?.message) {
+        setApiError(error.response.data.message);
+      } else {
+        setApiError('회원가입에 실패했습니다. 잠시 후 다시 시도해주세요.');
       }
     }
   };
@@ -373,75 +356,89 @@ const RegisterPage: React.FC = () => {
       <BackButton onClick={() => navigate(-1)}>←</BackButton>
       <Title>회원가입</Title>
       
-      <SocialLoginButton $isKakao onClick={handleKakaoRegister}>
-        카카오톡으로 회원가입
-      </SocialLoginButton>
-      
       <SocialLoginButton onClick={() => googleLogin()}>
+        <img src="https://upload.wikimedia.org/wikipedia/commons/c/c1/Google_%22G%22_logo.svg" alt="Google logo" />
         구글로 회원가입
       </SocialLoginButton>
+      <SocialLoginButton $isKakao onClick={handleKakaoRegister}>
+        <img src="https://developers.kakao.com/assets/img/about/logos/kakaotalk/kakaotalk_symbol_black.png" alt="Kakao logo" />
+        카카오톡으로 회원가입
+      </SocialLoginButton>
 
-      <Divider>이메일로 회원가입</Divider>
+      <Divider>또는 이메일로 회원가입</Divider>
 
-        <Form onSubmit={handleSubmit(onSubmit)}>
+      <Form onSubmit={handleSubmit(onSubmit)}>
+        {apiError && <ErrorMessage style={{ textAlign: 'center', marginBottom: '1rem' }}>{apiError}</ErrorMessage>}
         <InputWrapper>
-            <Input
-              type="email"
-            placeholder="이메일을 입력하세요"
-              {...register('email')}
-            />
-        </InputWrapper>
-            {errors.email && <ErrorMessage>{errors.email.message}</ErrorMessage>}
-
-        <InputWrapper>
-            <Input
+          <Input
             type="text"
-            placeholder="닉네임을 입력하세요"
+            placeholder="닉네임"
             {...register('nickname')}
           />
         </InputWrapper>
-            {errors.nickname && <ErrorMessage>{errors.nickname.message}</ErrorMessage>}
+        {errors.nickname && <ErrorMessage>{errors.nickname.message}</ErrorMessage>}
+        
+        <InputWrapper>
+          <Input
+            type="email"
+            placeholder="이메일"
+            {...register('email')}
+          />
+        </InputWrapper>
+        {errors.email && <ErrorMessage>{errors.email.message}</ErrorMessage>}
 
         <InputWrapper>
-            <Input
-            type={showPassword ? 'text' : 'password'}
+          <Input
+            type={passwordShown ? 'text' : 'password'}
             placeholder="비밀번호"
-              {...register('password')}
-            />
-          <PasswordToggle type="button" onClick={() => setShowPassword(!showPassword)}>
-            {!showPassword ? <CloseEye /> : <OpenEye />}
+            {...register('password')}
+          />
+          <PasswordToggle type="button" onClick={() => setPasswordShown(!passwordShown)}>
+            {!passwordShown ? <CloseEye /> : <OpenEye />}
           </PasswordToggle>
         </InputWrapper>
-            {errors.password && <ErrorMessage>{errors.password.message}</ErrorMessage>}
+        {errors.password && <ErrorMessage>{errors.password.message}</ErrorMessage>}
 
         <InputWrapper>
-            <Input
-            type={showConfirmPassword ? 'text' : 'password'}
+          <Input
+            type={confirmPasswordShown ? 'text' : 'password'}
             placeholder="비밀번호 확인"
-              {...register('confirmPassword')}
-            />
-          <PasswordToggle type="button" onClick={() => setShowConfirmPassword(!showConfirmPassword)}>
-            {!showConfirmPassword ? <CloseEye /> : <OpenEye />}
+            {...register('confirmPassword')}
+          />
+          <PasswordToggle type="button" onClick={() => setConfirmPasswordShown(!confirmPasswordShown)}>
+            {!confirmPasswordShown ? <CloseEye /> : <OpenEye />}
           </PasswordToggle>
         </InputWrapper>
-            {errors.confirmPassword && <ErrorMessage>{errors.confirmPassword.message}</ErrorMessage>}
+        {errors.confirmPassword && <ErrorMessage>{errors.confirmPassword.message}</ErrorMessage>}
 
-        <CheckboxWrapper onClick={() => setIsChecked(!isChecked)}>
-          <CustomCheckbox $isChecked={isChecked} />
+        <CheckboxWrapper onClick={() => setAgreedToTerms(!agreedToTerms)}>
+          <CustomCheckbox $isChecked={agreedToTerms} />
           <CheckboxLabel>
             <a onClick={(e) => {
               e.stopPropagation();
               navigate('/terms');
-            }}>약관</a>에 동의합니다
+            }}>이용약관</a> 및 <a onClick={(e) => {
+              e.stopPropagation();
+              navigate('/privacy');
+            }}>개인정보 처리방침</a>에 동의합니다.
           </CheckboxLabel>
         </CheckboxWrapper>
 
         <RegisterButton type="submit" disabled={isSubmitting}>
-          {isSubmitting ? '가입중.....' : '회원 가입하기'}
+          {isSubmitting ? '가입 중...' : '회원가입'}
         </RegisterButton>
-        </Form>
+      </Form>
 
-        <AlreadyMember>이미 회원이신가요? <a onClick={() => navigate('/login')}>로그인</a></AlreadyMember>
+      <AlreadyMember>이미 회원이신가요? <a onClick={() => navigate('/login')}>로그인</a></AlreadyMember>
+
+      <ConfirmationModal
+        isOpen={showDiagnosisModal}
+        onRequestClose={() => setShowDiagnosisModal(false)}
+        onConfirm={handleConfirmDiagnosis}
+        message="관계온도 진단 기록이 없습니다. 정확한 진단을 위해 먼저 관계온도 진단을 진행해주세요."
+        confirmButtonText="진단하러 가기"
+        showCancelButton={false}
+      />
     </Container>
   );
 };
