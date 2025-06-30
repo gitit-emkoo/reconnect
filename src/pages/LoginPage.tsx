@@ -312,7 +312,7 @@ const LoginPage: React.FC = () => {
   });
 
   const handleSuccessfulLogin = async (user: User, token: string) => {
-    setAuth(user, token);
+    setAuth(token, user);
     
     // 비회원 진단 결과 마이그레이션 (Fire-and-forget)
     const unauthDiagnosisRaw = localStorage.getItem('diagnosisResult');
@@ -351,7 +351,13 @@ const LoginPage: React.FC = () => {
         '/auth/login',
         data
       );
-      await handleSuccessfulLogin(response.data.user, response.data.accessToken);
+      const { user, accessToken: token } = response.data;
+      if (user && token) {
+        setAuth(token, user);
+        navigate('/dashboard');
+      } else {
+        setLoginError('로그인에 실패했습니다. 응답 데이터가 올바르지 않습니다.');
+      }
     } catch (error: any) {
       console.error('Email login failed:', error);
       if (axios.isAxiosError(error) && error.response) {
@@ -371,7 +377,7 @@ const LoginPage: React.FC = () => {
     try {
       const response = await axiosInstance.post<{ user: User; accessToken: string }>(
         '/auth/google/login',
-        { token: googleAccessToken }
+        { accessToken: googleAccessToken }
       );
       await handleSuccessfulLogin(response.data.user, response.data.accessToken);
     } catch (error) {

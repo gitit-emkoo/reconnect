@@ -52,8 +52,8 @@ const KakaoCallback: React.FC = () => {
         );
 
         const { user, accessToken } = response.data;
-        if (accessToken) {
-          setAuth(user, accessToken);
+        if (user && accessToken) {
+          setAuth(accessToken, user);
           console.log('액세스 토큰 저장됨');
           console.log('사용자 정보 저장됨');
           navigate('/dashboard', { replace: true });

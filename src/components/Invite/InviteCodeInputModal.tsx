@@ -101,9 +101,9 @@ const InviteCodeInputModal: React.FC<InviteCodeInputModalProps> = ({ onClose }) 
     try {
       const response = await partnerInvitesApi.respondToInvite(code);
       if (user?.id === response.invitee.id) {
-        setAuth(response.invitee, response.inviteeToken);
+        setAuth(response.inviteeToken, response.invitee);
       } else if (user?.id === response.inviter.id) {
-        setAuth(response.inviter, response.inviterToken);
+        setAuth(response.inviterToken, response.inviter);
       }
       setShowSuccessModal(true);
     } catch (err) {

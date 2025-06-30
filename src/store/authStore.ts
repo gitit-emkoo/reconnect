@@ -16,11 +16,12 @@ export interface AuthState {
   accessToken: string | null;
   isAuthenticated: boolean;
   isLoading: boolean;
-  setAuth: (user: User | null, accessToken: string | null) => void;
-  clearAuth: () => void;
-  setUser: (user: User | null) => void;
+  login: (user: User, accessToken: string) => void;
   logout: () => void;
+  setAuth: (accessToken: string | null, user: User | null) => void;
   checkAuth: (options?: { silent?: boolean }) => Promise<void>;
+  setUser: (user: User | null) => void;
+  clearAuth: () => void;
 }
 
 const useAuthStore = create<AuthState>()(
@@ -32,7 +33,7 @@ const useAuthStore = create<AuthState>()(
       isAuthenticated: false,
       isLoading: true,
       
-      setAuth: (user, accessToken) => {
+      setAuth: (accessToken, user) => {
         if (accessToken) {
           axiosInstance.defaults.headers.common['Authorization'] = `Bearer ${accessToken}`;
           set({ user, accessToken, partner: user?.partner ?? null, isAuthenticated: true, isLoading: false });
@@ -69,6 +70,10 @@ const useAuthStore = create<AuthState>()(
       clearAuth: () => {
         localStorage.removeItem('accessToken');
         set({ user: null, accessToken: null, partner: null });
+      },
+
+      login: (user, accessToken) => {
+        set({ user, accessToken, isAuthenticated: true });
       },
     }),
     {
