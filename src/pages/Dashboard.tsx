@@ -422,7 +422,7 @@ const Dashboard: React.FC = () => {
           userId={user.id}
           scheduleMap={scheduleMap}
           onDeleteSchedule={handleDeleteSchedule}
-          onDateClick={(date) => { setScheduleDate(date); setIsScheduleModalOpen(true); }}
+          onDateClick={setScheduleDate}
         />
         
         <MenuCard style={{ marginTop: '2rem' }} onClick={() => handleFeatureClick("/onboarding")}>
