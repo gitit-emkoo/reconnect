@@ -35,20 +35,30 @@ const Title = styled.h2`
   color: #333;
 `;
 
-
-const ShareButton = styled.button<{ bg: string; textColor?: string }>`
-  background: ${({ bg }) => bg}; // 그라데이션을 위해 background 사용
-  color: ${({ textColor }) => textColor || 'white'}; // textColor prop 또는 기본 흰색
+const CommonButton = styled.button`
+  width: 100%;
   padding: 0.75rem 1.5rem;
   border: none;
-  border-radius: 0.75rem;
+  border-radius: 0.5rem;
   font-size: 1rem;
-  font-weight: 500; // 두께 추가
+  font-weight: bold;
   cursor: pointer;
-  transition: opacity 0.2s ease;
+  margin-bottom: 1rem;
+  transition: opacity 0.2s;
   &:hover {
     opacity: 0.9;
   }
+`;
+
+const CopyButton = styled(CommonButton)`
+  background-color: #E64A8D;
+  color: white;
+`;
+
+const ShareButton = styled(CommonButton)<{ bgColor: string; textColor?: string }>`
+  background: ${({ bgColor }) => bgColor};
+  color: ${({ textColor }) => textColor || 'white'};
+  margin-bottom: 0;
 `;
 
 const ModalBackdrop = styled.div`
@@ -75,29 +85,14 @@ const CodeContainer = styled.div`
 const Code = styled.div`
   font-size: 1.5rem;
   font-weight: bold;
-  color: #E64A8D;
+  color: #785cd2;
   margin: 1rem 0;
   letter-spacing: 0.2rem;
 `;
 
-const CopyButton = styled.button`
-  background-color: #E64A8D;
-  color: white;
-  padding: 0.75rem 1.5rem;
-  border: none;
-  border-radius: 0.5rem;
-  font-weight: bold;
-  cursor: pointer;
-  width: 100%;
-  margin-bottom: 1rem;
-
-  &:hover {
-    background-color: #c33764;
-  }
-`;
-
 const StatusMessage = styled.div`
   text-align: center;
+  font-size: 0.8rem;
   margin: 1rem 0;
   color: #666;
 `;
@@ -221,8 +216,8 @@ export const InviteModal: React.FC<InviteModalProps> = ({ onClose }) => {
               초대 코드 복사하기
             </CopyButton>
             
-            <ShareButton onClick={handleShare}bg='#FEE500'>
-              카카오톡으로 공유하기
+            <ShareButton onClick={handleShare} bgColor="#FEE500" textColor="#191919">
+              공유하기
             </ShareButton>
 
             <StatusMessage>

@@ -8,17 +8,7 @@ export const userService = {
   // 프로필 수정
   updateProfile: async (nickname: string): Promise<ProfileUpdateResponse> => {
     try {
-      const token = getAuthToken();
-      const response = await fetch(`${API_URL}api/users/profile`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify({ nickname })
-      });
-
-      const data = await response.json();
+      const { data } = await axiosInstance.put('/users/profile', { nickname });
       return data;
     } catch (error) {
       return {
