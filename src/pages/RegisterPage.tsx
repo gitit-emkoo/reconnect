@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import styled from 'styled-components';
 import { useForm } from 'react-hook-form';
@@ -11,6 +11,12 @@ import { getKakaoRegisterUrl } from '../utils/socialAuth';
 import axios from 'axios';
 import axiosInstance from '../api/axios';
 import useAuthStore from '../store/authStore';
+
+interface UnauthDiagnosisResult {
+  score: number;
+  resultType: string;
+  createdAt: string;
+}
 
 const Container = styled.div`
   display: flex;
@@ -247,10 +253,24 @@ const RegisterPage: React.FC = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isChecked, setIsChecked] = useState(false);
+  const [unauthDiagnosis, setUnauthDiagnosis] = useState<UnauthDiagnosisResult | null>(null);
   const { register, handleSubmit, formState: { errors, isSubmitting } } = useForm<RegisterFormData>({
     resolver: zodResolver(registerSchema),
   });
   const setAuth = useAuthStore((state) => state.setAuth);
+
+  useEffect(() => {
+    const savedResult = localStorage.getItem('unauthDiagnosisResult');
+    if (savedResult) {
+      try {
+        const parsedResult = JSON.parse(savedResult);
+        setUnauthDiagnosis(parsedResult);
+        console.log('불러온 비회원 진단 결과:', parsedResult);
+      } catch (error) {
+        console.error('비회원 진단 결과 파싱 실패:', error);
+      }
+    }
+  }, []);
 
   const googleLogin = useGoogleLogin({
     onSuccess: async (tokenResponse) => {
@@ -315,25 +335,23 @@ const RegisterPage: React.FC = () => {
       return;
     }
     try {
-      // 로컬 스토리지에서 비회원 진단 ID 가져오기
-      const unauthDiagnosisId = localStorage.getItem('unauthDiagnosisId');
+      const payload = {
+        ...data,
+        unauthDiagnosis, // 진단 결과가 있으면 함께 보냄
+      };
 
-      const response = await axiosInstance.post('/auth/register', {
-        email: data.email,
-        password: data.password,
-        nickname: data.nickname,
-        unauthDiagnosisId: unauthDiagnosisId, // 요청에 ID 추가
-      });
+      const response = await axiosInstance.post('/auth/register', payload);
 
-      if (response.data && response.data.accessToken) {
-        setAuth(response.data.user, response.data.accessToken);
-        // 성공적으로 연결되었으므로 로컬 스토리지에서 ID 제거
-        if (unauthDiagnosisId) {
-          localStorage.removeItem('unauthDiagnosisId');
-          localStorage.removeItem('baselineDiagnosisAnswers');
-        }
-        navigate('/dashboard');
+      const { user, token } = response.data;
+      useAuthStore.getState().login(user, token);
+      
+      // 회원가입 성공 후 로컬 스토리지에서 비회원 진단 결과 삭제
+      if (unauthDiagnosis) {
+        localStorage.removeItem('unauthDiagnosisResult');
       }
+
+      navigate('/dashboard');
+
     } catch (error) {
       console.error(error);
       if (axios.isAxiosError(error)) {
