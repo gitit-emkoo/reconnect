@@ -1,6 +1,6 @@
 export interface PollVote {
   userId: string;
-  choice: number;
+  choice: string;
 }
 
 export interface Poll {
