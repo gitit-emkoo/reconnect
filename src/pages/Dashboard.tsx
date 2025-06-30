@@ -9,7 +9,6 @@ import useNotificationStore from '../store/notificationsStore';
 import { useEmotionCardNotifications } from '../hooks/useEmotionCardNotifications';
 import { formatInKST } from '../utils/date';
 import { scheduleApi, Schedule } from '../api/schedule';
-
 import NavigationBar from '../components/NavigationBar';
 import LoadingSpinner from '../components/common/LoadingSpinner';
 import ConfirmationModal from '../components/common/ConfirmationModal';
@@ -23,7 +22,6 @@ import HeartGauge from '../components/Dashboard/HeartGauge';
 import MainMenu from '../components/Dashboard/MainMenu';
 import DashboardCalendar from '../components/Dashboard/DashboardCalendar';
 import Popup from '../components/common/Popup';
-
 import logoImage from '../assets/Logo.png';
 
 const getEmotionByTemperature = (temp: number): string => {
@@ -242,7 +240,7 @@ const Dashboard: React.FC = () => {
     }
   };
 
-  const heartPercent = temperature?.overallScore ?? latestDiagnosis?.score ?? 61;
+  const heartPercent = temperature ?? latestDiagnosis?.score ?? 61;
   const emotion = getEmotionByTemperature(heartPercent);
   
   const getDiaryStatusForDate = (dateString: string) => ({

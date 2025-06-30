@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import styled from 'styled-components';
 import { partnerInvitesApi } from '../../api/partnerInvites';
 import useAuthStore from '../../store/authStore';
-import ConfirmationModal from '../common/ConfirmationModal';
+
 import LoadingSpinner from '../common/LoadingSpinner';
 
 const ModalBackdrop = styled.div`
@@ -89,7 +89,6 @@ const InviteCodeInputModal: React.FC<InviteCodeInputModalProps> = ({ onClose }) 
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const { user, setAuth } = useAuthStore();
-  const [showSuccessModal, setShowSuccessModal] = useState(false);
 
   const handleSubmit = async () => {
     if (!code.trim()) {
@@ -100,34 +99,29 @@ const InviteCodeInputModal: React.FC<InviteCodeInputModalProps> = ({ onClose }) 
     setError(null);
     try {
       const response = await partnerInvitesApi.respondToInvite(code);
-      if (user?.id === response.invitee.id) {
-        setAuth(response.inviteeToken, response.invitee);
-      } else if (user?.id === response.inviter.id) {
-        setAuth(response.inviterToken, response.inviter);
+
+      // 현재 사용자가 초대한 사람인지, 초대받은 사람인지 확인하여
+      // 그에 맞는 토큰과 유저 정보로 인증 상태를 업데이트합니다.
+      const currentUserIsInviter = user?.id === response.inviter.id;
+      const token = currentUserIsInviter ? response.inviterToken : response.inviteeToken;
+      const updatedUser = currentUserIsInviter ? response.inviter : response.invitee;
+
+      setAuth(token, updatedUser);
+
+      alert('파트너와 성공적으로 연결되었습니다!');
+      onClose();
+      window.location.reload(); 
+
+    } catch (err: any) {
+       if (err.response?.data?.message) {
+        setError(err.response.data.message);
+      } else {
+        setError("코드가 유효하지 않거나 만료되었습니다. 다시 확인해주세요.");
       }
-      setShowSuccessModal(true);
-    } catch (err) {
-      setError("코드가 유효하지 않거나 만료되었습니다. 다시 확인해주세요.");
     } finally {
       setIsLoading(false);
     }
   };
-
-  const handleCloseSuccessModal = () => {
-    setShowSuccessModal(false);
-    onClose();
-  };
-
-  if (showSuccessModal) {
-    return (
-      <ConfirmationModal
-        isOpen={showSuccessModal}
-        onRequestClose={handleCloseSuccessModal}
-        message="파트너와 성공적으로 연결되었습니다!"
-        onConfirm={handleCloseSuccessModal}
-      />
-    );
-  }
 
   return (
     <ModalBackdrop onClick={onClose}>

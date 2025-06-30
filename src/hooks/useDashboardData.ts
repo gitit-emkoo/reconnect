@@ -3,11 +3,11 @@ import useAuthStore from '../store/authStore';
 import { fetchDiaries } from '../api/diary';
 import { fetchSentMessages, fetchReceivedMessages } from '../pages/EmotionCard';
 import { getLatestDiagnosisResult } from '../api/diagnosis';
-import { getLatestOverallScore } from '../api/report';
 import challengeApi from '../api/challenge';
 
 export const useDashboardData = () => {
   const { user, partner } = useAuthStore();
+  const temperature = user?.temperature;
 
   const { data: diaryList = [], isLoading: isDiaryLoading } = useQuery({
     queryKey: ['diaries', user?.id],
@@ -34,19 +34,13 @@ export const useDashboardData = () => {
     enabled: !!user,
   });
 
-  const { data: temperature, isLoading: isReportLoading } = useQuery({
-    queryKey: ['temperature', user?.id],
-    queryFn: getLatestOverallScore,
-    enabled: !!partner,
-  });
-
   const { data: activeChallenge, isLoading: isChallengeLoading } = useQuery({
     queryKey: ['activeChallenge', user?.id],
     queryFn: () => challengeApi.getActiveChallenge(),
     enabled: !!partner,
   });
   
-  const isLoading = isDiaryLoading || isSentMessagesLoading || isReceivedMessagesLoading || isDiagnosisLoading || isReportLoading || isChallengeLoading;
+  const isLoading = isDiaryLoading || isSentMessagesLoading || isReceivedMessagesLoading || isDiagnosisLoading || isChallengeLoading;
 
   return {
     user,

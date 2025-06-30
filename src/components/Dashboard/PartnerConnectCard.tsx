@@ -2,29 +2,33 @@ import React from 'react';
 import styled from 'styled-components';
 
 const Card = styled.div`
-  background:rgb(205, 205, 205);
-  border-radius: 1.2rem;
-  padding: 2rem 1.5rem;
+  background: #f5f5f7;
+  border-radius: 1rem;
+  padding: 1.1rem 1rem;
   text-align: center;
-  margin-top: 1.5rem;
+  margin-top: 1rem;
+  max-width: 320px;
+  margin-left: auto;
+  margin-right: auto;
 `;
 
 const Button = styled.button`
   display: block;
   width: 100%;
-  margin: 0.5rem 0;
-  padding: 1rem;
-  border-radius: 2rem;
+  margin: 0.4rem 0;
+  padding: 0.7rem 0;
+  border-radius: 1.5rem;
   border: none;
-  font-size: 1.1rem;
+  font-size: 1rem;
   font-weight: 600;
   background: #785cd2;
   color: #fff;
   cursor: pointer;
+  transition: background 0.2s, color 0.2s;
   &:last-child {
     background: #fff;
     color: #785cd2;
-    border: 2px solidrgb(159, 130, 254);
+    border: 2px solid #9f82fe;
   }
 `;
 
@@ -35,7 +39,7 @@ interface PartnerConnectCardProps {
 
 const PartnerConnectCard: React.FC<PartnerConnectCardProps> = ({ onShareClick, onInputClick }) => (
   <Card>
-    <div style={{ fontWeight: 600, marginBottom: '1rem' }}>
+    <div style={{ fontWeight: 600, fontSize: '1rem', marginBottom: '0.7rem' }}>
       우리, 더 가까워지려면 연결해볼까요?
     </div>
     <Button onClick={onShareClick}>코드 공유하기</Button>
