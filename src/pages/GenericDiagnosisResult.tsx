@@ -37,7 +37,7 @@ const ScoreLabel = styled.p`
 `;
 
 const Message = styled.p`
-  font-size: 0.8rem;
+  font-size: 0.9rem;
   margin-bottom: 2.5rem;
   line-height: 1.7;
   color: #333;

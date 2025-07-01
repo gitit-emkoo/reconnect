@@ -24,6 +24,7 @@ import DashboardCalendar from '../components/Dashboard/DashboardCalendar';
 import Popup from '../components/common/Popup';
 import logoImage from '../assets/Logo.png';
 import { useReportData } from '../hooks/useReportData';
+import SkeletonHeartGauge from '../components/common/SkeletonHeartGauge';
 
 const getEmotionByTemperature = (temp: number): string => {
   if (temp > 80) return "타오르는 불꽃 🔥";
@@ -148,8 +149,6 @@ const Dashboard: React.FC = () => {
   const { 
     user, 
     partner, 
-    latestDiagnosis, 
-    temperature, 
     activeChallenge, 
     isLoading, 
     receivedMessages, 
@@ -158,7 +157,7 @@ const Dashboard: React.FC = () => {
   } = useDashboardData();
   const { checkAuth } = useAuthStore();
   const { fetchNotifications } = useNotificationStore();
-  const { latestScore } = useReportData();
+  const { latestScore, loading:  hasLoadedOnce } = useReportData();
 
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
   const [isInputModalOpen, setIsInputModalOpen] = useState(false);
@@ -242,7 +241,7 @@ const Dashboard: React.FC = () => {
     }
   };
 
-  const heartPercent = latestScore ?? temperature ?? latestDiagnosis?.score ?? 61;
+  const heartPercent = latestScore ?? 0;
   const emotion = getEmotionByTemperature(heartPercent);
   
   const getDiaryStatusForDate = (dateString: string) => ({
@@ -350,15 +349,18 @@ const Dashboard: React.FC = () => {
     <>
       <Container>
         <Header>
-          <Logo src={logoImage} alt="리커넥트 로고" />
+          <Logo src={logoImage} alt="리커넥트 로고" onClick={() => navigate('/')} />
           <NotificationBell />
         </Header>
         <TopSection>
           <Left>
-            <HeartGauge percentage={heartPercent} size={120} />
+            {!hasLoadedOnce
+              ? <SkeletonHeartGauge size={120} />
+              : <HeartGauge percentage={latestScore ?? 0} size={120} />
+            }
           </Left>
           <Right>
-            <WelcomeUserSection user={user} heartPercent={heartPercent} emotion={emotion} />
+            <WelcomeUserSection user={user} heartPercent={latestScore ?? 0} emotion={emotion} />
           </Right>
         </TopSection>
 

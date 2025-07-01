@@ -11,6 +11,7 @@ export const useReportData = () => {
     const [error, setError] = useState<string | null>(null);
     const [selectedWeekValue, setSelectedWeekValue] = useState<string>('');
     const [latestScore, setLatestScore] = useState<number>(61);
+    const [hasLoadedOnce, setHasLoadedOnce] = useState(false);
 
     const hasPartner = !!user?.partnerId;
 
@@ -51,6 +52,10 @@ export const useReportData = () => {
         fetchData();
     }, [fetchData]);
 
+    useEffect(() => {
+        if (!loading && !hasLoadedOnce) setHasLoadedOnce(true);
+    }, [loading, hasLoadedOnce]);
+
     const handleWeekChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
         setSelectedWeekValue(e.target.value);
     };
@@ -66,6 +71,7 @@ export const useReportData = () => {
 
     return {
         loading,
+        hasLoadedOnce,
         error,
         reports,
         currentReport,
