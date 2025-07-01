@@ -461,11 +461,11 @@ const Dashboard: React.FC = () => {
         title="무료진단 혜택받기"
         emoji="🎁"
         description={<>
-          리포트 메뉴를 선택하고<br />
-          결혼진단 메뉴를 선택하세요
+          결혼생활 진단은 <br /> 건강한 부부관계를 위한 <br />첫걸음 입니다. <br />
+          지금 바로 시작하세요!
         </>}
         buttonText="❤️ 무료진단 받기"
-        onButtonClick={() => { setShowPopup(false); navigate('/report'); }}
+        onButtonClick={() => { setShowPopup(false); navigate('/expert/self-diagnosis'); }}
         todayKey={todayKey}
       />
     </>

@@ -356,7 +356,7 @@ const BaselineDiagnosisResult: React.FC = () => {
       <ContentSection>
         <TitleContainer>
           <Icon src={newLogo} alt="icon" />
-          <Title>기초 관계온도 진단 결과</Title>
+          <Title>{result.title}</Title>
         </TitleContainer>
         <TemperatureBar>
           <TopSection>
@@ -367,7 +367,7 @@ const BaselineDiagnosisResult: React.FC = () => {
         </TemperatureBar>
         
         <PercentageText>
-          당신의 관계 온도는 평균보다 <StyledComparison {...(temperatureDifference > 0 ? { color: '#FF1493', isBold: true } : { color: '#4169E1', isBold: false })}>{Math.abs(temperatureDifference)}°C</StyledComparison> {temperatureDifference > 0 ? '높아요🥰' : '낮아요😢'}
+          우리 커플의 관계는 평균보다 <StyledComparison {...(temperatureDifference > 0 ? { color: '#FF1493', isBold: true } : { color: '#4169E1', isBold: false })}>{Math.abs(temperatureDifference)}°C</StyledComparison> {temperatureDifference > 0 ? '높은 온도입니다🥰' : '낮은 온도입니다😢'}
         </PercentageText>
         
         <Description>{result.description}</Description>
@@ -375,11 +375,12 @@ const BaselineDiagnosisResult: React.FC = () => {
         {!user ? (
           <>
             <LoginText>
-              회원가입하고 파트너와 연결하면<br/>
-              더 정확한 진단과 솔루션을 받을 수 있어요!
+            {/* ⚠️텍스트 절대 바꾸지 말기!!! */}
+              딱 2주, 전문진단 서비스 무료 이벤트<br/>
+              (5만원 상당)
             </LoginText>
-            <ActionButton onClick={handleNextStep} disabled={loading}>회원가입하고 이어하기</ActionButton>
-            <InviteButton onClick={handleShare} disabled={loading}>결과 공유하기</InviteButton>
+            <ActionButton onClick={handleNextStep} disabled={loading}>결혼생활 진단 시작하기</ActionButton>
+            <InviteButton onClick={handleShare} disabled={loading}>파트너에게 테스트 요청하기</InviteButton>
           </>
         ) : (
           <ActionButton onClick={() => navigate('/dashboard')}>대시보드로 이동</ActionButton>

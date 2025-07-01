@@ -4,6 +4,7 @@ import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import PageLayout from '../components/Layout/PageLayout';
 import { DIAGNOSIS_TEMPLATES } from '../templates/diagnosisTemplates';
 import axios from '../api/axios';
+import Image  from '../assets/Icon_Brain.png';
 
 const ResultWrapper = styled.div`
   display: flex;
@@ -20,20 +21,27 @@ const ResultCard = styled.div`
   border-radius: 1.5rem;
   padding: 3rem 2.5rem;
   width: 100%;
-  max-width: 500px;
+  height: 100%;
   box-shadow: 0 8px 30px rgba(0,0,0,0.1);
   margin-bottom: 2rem;
 `;
 
+const ResultImage = styled.img`
+  width: 80px;
+  height: 80px;
+  object-fit: contain;
+  margin-bottom: 1.5rem;
+`;
+
 const Score = styled.h2`
-  font-size: 4rem;
+  font-size: 3.5rem;
   font-weight: 800;
   color: #7c3aed;
   margin-bottom: 1rem;
 `;
 
 const ScoreLabel = styled.p`
-  font-size: 1.2rem;
+  font-size: 1rem;
   color: #555;
   margin-bottom: 2rem;
 `;
@@ -112,13 +120,25 @@ const GenericDiagnosisResult: React.FC = () => {
     ? template.getResultMessage(diagnosis.score)
     : '진단이 완료되었습니다.';
 
+  // 제목/설명 분리 ("제목\n설명" 형태)
+  let resultTitle = '';
+  let resultDesc = '';
+  if (resultMessage.includes('\n')) {
+    [resultTitle, resultDesc] = resultMessage.split('\n');
+  } else {
+    resultTitle = resultMessage;
+    resultDesc = '';
+  }
+
   return (
     <PageLayout title={template.title + " 결과"}>
       <ResultWrapper>
         <ResultCard>
-          <ScoreLabel>나의 점수는?</ScoreLabel>
+          <ResultImage src={Image} alt="진단 결과 이미지" />
+          <ScoreLabel>나의 진단 결과는?</ScoreLabel>
           <Score>{diagnosis.score}점</Score>
-          <Message>{resultMessage}</Message>
+          <h3 style={{ fontWeight: 700, fontSize: '1rem', margin: '1.2rem 0 0.7rem', color: '#7c3aed' }}>{resultTitle}</h3>
+          <Message>{resultDesc}</Message>
         </ResultCard>
         <ActionButton onClick={() => navigate('/expert/self-diagnosis')}>
           진단실로 이동하기

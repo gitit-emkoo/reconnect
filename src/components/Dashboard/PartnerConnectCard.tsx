@@ -2,12 +2,12 @@ import React from 'react';
 import styled from 'styled-components';
 
 const Card = styled.div`
-  background: #f5f5f7;
+  background:rgb(237, 234, 250);
   border-radius: 1rem;
   padding: 1.1rem 1rem;
   text-align: center;
   margin-top: 1rem;
-  max-width: 320px;
+  width: 100%;
   margin-left: auto;
   margin-right: auto;
 `;
@@ -39,10 +39,16 @@ interface PartnerConnectCardProps {
 
 const PartnerConnectCard: React.FC<PartnerConnectCardProps> = ({ onShareClick, onInputClick }) => (
   <Card>
-    <div style={{ fontWeight: 600, fontSize: '1rem', marginBottom: '0.7rem' }}>
-      우리, 더 가까워지려면 연결해볼까요?
+    <div style={{ fontWeight: 600, fontSize: '1rem', marginBottom: '0.7rem', color: '#785cd2' }}>
+      파트너와 연결하고 감정여정을 시작하세요!
     </div>
-    <Button onClick={onShareClick}>코드 공유하기</Button>
+    <div style={{ fontSize: '0.8rem', color: '#666', marginTop: '0.5rem' }}>
+      파트너에게 연결을 요청하려면
+    </div>
+    <Button onClick={onShareClick}>연결코드 공유하기</Button>
+    <div style={{ fontSize: '0.8rem', color: '#666', marginTop: '0.5rem' }}>
+      파트너로부터 코드를 받았다면
+    </div>
     <Button onClick={onInputClick}>초대코드 입력하기</Button>
   </Card>
 );

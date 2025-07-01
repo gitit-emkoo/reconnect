@@ -253,10 +253,10 @@ const Report: React.FC = () => {
             <Header><WeekInfo>주간 리포트</WeekInfo></Header>
             <RelationshipTemperature score={latestScore} />
             <NoDataPlaceholder
-              title="첫 리포트가 생성되고 있어요"
+              title="관계리포트는 주1회 발행됩니다."
               text="다양한 활동으로 관계 온도를 높여보세요!"
-              buttonText="추천활동 : 챌린지 시작하기"
-              onNavigate={() => navigate('/challenge')}
+              buttonText="추천활동 : 감정카드 보내기기"
+              onNavigate={() => navigate('/emotion-card')}
             />
             <WeeklyActivitySummary report={null} previousReport={null} />
           </>
@@ -269,8 +269,9 @@ const Report: React.FC = () => {
           <Header><WeekInfo>리포트</WeekInfo></Header>
           <RelationshipTemperature score={latestScore} />
           <NoDataPlaceholder
-            title="파트너와 연결하고 리포트를 받아보세요"
-            text="파트너와 함께 관계를 성장시키고 주간 리포트로 관계의 변화를 확인해보세요."
+            title="함께한 노력들이
+            '우리 리포트'로 쌓여 갑니다."
+            text="지금부터 더 따뜻한 관계를 만들어 보세요."
             buttonText="파트너 초대하기"
             onNavigate={() => navigate('/dashboard')}
           />
