@@ -153,11 +153,12 @@ const Dashboard: React.FC = () => {
     isLoading, 
     receivedMessages, 
     diaryList,
-    sentMessages 
+    sentMessages,
+    isHeartGaugeLoading
   } = useDashboardData();
   const { checkAuth } = useAuthStore();
   const { fetchNotifications } = useNotificationStore();
-  const { latestScore, loading:  hasLoadedOnce } = useReportData();
+  const { latestScore } = useReportData();
 
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
   const [isInputModalOpen, setIsInputModalOpen] = useState(false);
@@ -354,7 +355,7 @@ const Dashboard: React.FC = () => {
         </Header>
         <TopSection>
           <Left>
-            {!hasLoadedOnce
+            {isHeartGaugeLoading
               ? <SkeletonHeartGauge size={120} />
               : <HeartGauge percentage={latestScore ?? 0} size={120} />
             }
