@@ -43,7 +43,7 @@ const NavButton = styled.button<NavButtonProps>`
   opacity: ${props => (props.disabled ? 0.5 : 1)};
   transition: color 0.2s ease-in-out, stroke 0.2s ease-in-out;
 
-  color: ${props => (props.disabled ? '#ccc' : props.$isActive ? '#4169E1' : '#6b7280')};
+  color: ${props => (props.disabled ? '#ccc' : props.$isActive ? '#785CD2' : '#6b7280')};
   
   svg {
     width: 24px;
@@ -53,7 +53,7 @@ const NavButton = styled.button<NavButtonProps>`
       props.disabled 
         ? '#ccc' 
         : props.$isActive 
-          ? '#4169E1'
+          ? '#785CD2'
           : '#6b7280'};
     stroke: none;
     transition: stroke 0.2s ease-in-out;
@@ -62,22 +62,10 @@ const NavButton = styled.button<NavButtonProps>`
   ${props => 
     props.$isActive && !props.disabled 
     ? `
-        background-image: linear-gradient(to right, #FF69B4, #4169E1);
         background-clip: text;
         -webkit-background-clip: text;
       ` 
     : ``}
-
-  &:hover {
-    ${props => 
-      !props.$isActive && !props.disabled 
-      ? `
-          color: #FF69B4; 
-          svg {
-            stroke: rgb(245, 119, 241);
-            fill: none;
-          }
-        ` 
       : ''}
   }
 `;

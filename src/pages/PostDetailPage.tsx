@@ -58,22 +58,18 @@ interface Post {
 const Container = styled.div`
   background-color: #f8f9fa;
   min-height: 100vh;
-  padding: 1.5rem 1rem 5rem 1rem;
+  padding: 1.5rem 1rem 3rem 1rem;
 `;
 
 const PostContainer = styled.div`
-  background: white;
-  padding: 2rem;
-  border-radius: 0.5rem;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  
+  padding: 3rem 2rem 1rem;
+  
 `;
 
 const CommentsSection = styled.div`
-  margin-top: 2rem;
-  background: white;
-  padding: 2rem;
-  border-radius: 0.5rem;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  padding: 0 2rem 1rem;
+  
 `;
 
 const CommentsTitle = styled.h3`
@@ -121,8 +117,8 @@ const CommentList = styled.div`
 `;
 
 const CommentItem = styled.div`
-  padding: 1.5rem 0;
-  border-top: 1px solid #f1f3f5;
+  padding: 0.5rem 0;
+  
 `;
 
 const CommentHeader = styled.div`
@@ -301,7 +297,7 @@ const PostDetailPage: React.FC = () => {
             {!comment.parentId && (
               <div style={{ marginTop: '0.5rem' }}>
                 <button
-                  style={{ fontSize: '0.9rem', color: '#8d6e63', background: 'none', border: 'none', cursor: 'pointer' }}
+                  style={{ fontSize: '0.9rem', color: '#785CD2', background: 'none', border: 'none', cursor: 'pointer' }}
                   onClick={() => setReplyOpen((prev) => ({ ...prev, [comment.id]: !prev[comment.id] }))}
                 >
                   답글 달기
@@ -353,8 +349,8 @@ const PostDetailPage: React.FC = () => {
         </CommentsSection>
 
         {/* 최신글 목록 */}
-        <div style={{ marginTop: '3rem', background: '#fff', borderRadius: '0.5rem', boxShadow: '0 2px 8px rgba(0,0,0,0.04)', padding: '2rem' }}>
-          <h2 style={{ fontSize: '1.2rem', fontWeight: 700, marginBottom: '1.2rem', color: '#343a40' }}>최신글</h2>
+        <div style={{  padding: '0 2rem 1rem', borderTop: '1px solid #f1f3f5' }}>
+          <h2 style={{ fontSize: '1.2rem', fontWeight: 700, margin: '2rem 0 1.2rem', color: '#343a40' }}>최신글</h2>
           <LatestPostList
             posts={latestPosts}
             currentId={id}

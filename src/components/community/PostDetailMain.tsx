@@ -76,8 +76,8 @@ const PostContent = styled.div`
 `;
 const TagBadge = styled.span`
   display: inline-block;
-  background: #ffe0f0;
-  color: #d63384;
+  background:rgb(243, 243, 243);
+  color:rgb(63, 63, 63);
   font-size: 0.85rem;
   font-weight: 500;
   border-radius: 0.75rem;

@@ -96,7 +96,7 @@ const SearchInput = styled.input`
 
 const SearchButton = styled.button`
   padding: 0 1.2rem;
-  background-color: #495057;
+  background-color: #785CD2;
   color: white;
   border: none;
   border-radius: 0.5rem;
@@ -332,7 +332,7 @@ const Community: React.FC = () => {
         
         <SearchBarContainer>
           <SearchInput
-            placeholder="궁금한 것을 검색해보세요." 
+            placeholder="제목, 내용, 태그를 검색해보세요." 
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             onKeyDown={handleKeyDown}

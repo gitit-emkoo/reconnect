@@ -25,7 +25,7 @@ interface LatestPostListProps {
 }
 
 const PostListItem = styled.div`
-  padding: 1rem 1.2rem;
+  padding: 1rem 0 1rem;
   border-bottom: 1px solid #f1f3f5;
 
   &:last-child {
