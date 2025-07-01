@@ -28,7 +28,7 @@ const PollVoteBox: React.FC<PollVoteBoxProps> = React.memo(({ post, user }) => {
   
   const localVotes = useMemo(() => Array.isArray(post.votes) ? post.votes : [], [post.votes]);
   const myVote = useMemo(() => 
-    userId ? localVotes.find((v: PollVote) => v.userId === userId) : undefined,
+    userId ? localVotes.find((v) => (v as any).userId === userId || (v as any).authorId === userId) : undefined,
     [userId, localVotes]
   );
 
@@ -90,9 +90,9 @@ const PollVoteBox: React.FC<PollVoteBoxProps> = React.memo(({ post, user }) => {
   const renderVoteOptions = useMemo(() => 
     post.poll?.options.map((opt) => {
       const totalVotes = localVotes.length;
-      const votesForOption = localVotes.filter((v: PollVote) => v.choice === opt.text).length;
+      const votesForOption = localVotes.filter((v) => (v as any).option === opt.text).length;
       const percent = totalVotes > 0 ? Math.round((votesForOption / totalVotes) * 100) : 0;
-      const isMyChoice = myVote && myVote.choice === opt.text;
+      const isMyChoice = myVote && (myVote as any).option === opt.text;
       
       return (
         <div key={opt.id} style={{ flex: 1, textAlign: 'center' }}>
