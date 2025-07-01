@@ -442,6 +442,7 @@ const Dashboard: React.FC = () => {
         message="파트너 연결이 필요한 기능입니다. 파트너를 연결해주세요."
         onConfirm={() => setShowDiscardModal(false)}
         confirmButtonText="확인"
+        showCancelButton={false}
       />
       {renderScheduleModal()}
 

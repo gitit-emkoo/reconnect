@@ -9,22 +9,12 @@ import Image  from '../assets/Icon_Brain.png';
 const ResultWrapper = styled.div`
   display: flex;
   flex-direction: column;
-  justify-content: center;
   align-items: center;
   height: calc(100vh - 120px); /* 헤더, 네비게이션바 높이 제외 */
   text-align: center;
   padding: 2rem;
 `;
 
-const ResultCard = styled.div`
-  background: #fff;
-  border-radius: 1.5rem;
-  padding: 3rem 2.5rem;
-  width: 100%;
-  height: 100%;
-  box-shadow: 0 8px 30px rgba(0,0,0,0.1);
-  margin-bottom: 2rem;
-`;
 
 const ResultImage = styled.img`
   width: 80px;
@@ -34,7 +24,7 @@ const ResultImage = styled.img`
 `;
 
 const Score = styled.h2`
-  font-size: 3.5rem;
+  font-size: 2.5rem;
   font-weight: 800;
   color: #7c3aed;
   margin-bottom: 1rem;
@@ -47,7 +37,7 @@ const ScoreLabel = styled.p`
 `;
 
 const Message = styled.p`
-  font-size: 1.1rem;
+  font-size: 0.8rem;
   margin-bottom: 2.5rem;
   line-height: 1.7;
   color: #333;
@@ -107,10 +97,10 @@ const GenericDiagnosisResult: React.FC = () => {
     return (
       <PageLayout title="진단 결과">
         <ResultWrapper>
-          <ResultCard>
+          
             <Message>결과를 불러올 수 없습니다. 다시 시도해주세요.</Message>
             <ActionButton onClick={() => navigate('/expert/self-diagnosis')}>진단실로 이동하기</ActionButton>
-          </ResultCard>
+          
         </ResultWrapper>
       </PageLayout>
     );
@@ -133,13 +123,13 @@ const GenericDiagnosisResult: React.FC = () => {
   return (
     <PageLayout title={template.title + " 결과"}>
       <ResultWrapper>
-        <ResultCard>
+        
           <ResultImage src={Image} alt="진단 결과 이미지" />
           <ScoreLabel>나의 진단 결과는?</ScoreLabel>
           <Score>{diagnosis.score}점</Score>
           <h3 style={{ fontWeight: 700, fontSize: '1rem', margin: '1.2rem 0 0.7rem', color: '#7c3aed' }}>{resultTitle}</h3>
           <Message>{resultDesc}</Message>
-        </ResultCard>
+        
         <ActionButton onClick={() => navigate('/expert/self-diagnosis')}>
           진단실로 이동하기
         </ActionButton>
