@@ -1,3 +1,9 @@
+/**
+ * [프론트엔드] userService.ts
+ * - 이 파일은 "백엔드 API에 요청을 보내는 함수"들을 모아둔 서비스입니다.
+ * - 실제 데이터 처리(비밀번호 변경, DB 저장 등)는 백엔드에서 이루어집니다.
+ * - 예: 비밀번호 변경, 내 정보 조회, 닉네임 변경 등 API 호출 함수 제공
+ */
 import type { User, ProfileUpdateResponse, PasswordChangeResponse, PasswordChangeData } from '../types/user';
 import { getAuthToken } from '../utils/auth';
 import axiosInstance from '../api/axios';
@@ -25,8 +31,8 @@ export const userService = {
   changePassword: async (passwordData: PasswordChangeData): Promise<PasswordChangeResponse> => {
     try {
       const token = getAuthToken();
-      const response = await fetch(`${API_URL}/users/password`, {
-        method: 'PUT',
+      const response = await fetch(`${API_URL}/api/users/me/password`, {
+        method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`

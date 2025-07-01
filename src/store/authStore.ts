@@ -36,9 +36,11 @@ const useAuthStore = create<AuthState>()(
       setAuth: (accessToken, user) => {
         if (accessToken) {
           axiosInstance.defaults.headers.common['Authorization'] = `Bearer ${accessToken}`;
+          localStorage.setItem('accessToken', accessToken);
           set({ user, accessToken, partner: user?.partner ?? null, isAuthenticated: true, isLoading: false });
         } else {
           delete axiosInstance.defaults.headers.common['Authorization'];
+          localStorage.removeItem('accessToken');
           set({ user: null, accessToken: null, partner: null, isAuthenticated: false, isLoading: false });
         }
       },

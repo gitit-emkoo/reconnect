@@ -186,22 +186,23 @@ const TagInputWrapper = styled.div`
   }
 `;
 
-const EditorDivider = styled.hr`
-  border: none;
-  border-top: 1px solid #eee;
-  margin: 2rem 0 1.2rem 0;
-`;
-
 const PollOptionInput = styled.input`
-  width: 90px;
-  min-width: 60px;
-  max-width: 120px;
+  flex: 1;
+  min-width: 0;
+  width: 100%;
+  max-width: unset;
   padding: 0.5rem 0.6rem;
   font-size: 1rem;
   border-radius: 0.4rem;
   border: 1px solid #eee;
   text-align: center;
   box-sizing: border-box;
+  transition: border-color 0.2s;
+  &:focus {
+    outline: none;
+    border-color: #785CD2;
+    box-shadow: 0 0 0 2px #e6e0fa;
+  }
 `;
 
 const PostWritePage: React.FC = () => {
@@ -343,19 +344,19 @@ const PostWritePage: React.FC = () => {
                         draftKey="custom_rich_text_editor_draft_new"
                     />
                     {error && <p style={{ color: 'red', textAlign: 'center', marginTop: '0.5rem' }}>제목과 본문을 모두 작성해주세요.</p>}
-                    <EditorDivider />
+                   
                     {/* 찬반토론 카테고리일 때만 투표 입력 UI */}
                     {selectedCategoryName === '찬반토론' && (
-                      <div style={{ margin: '1.2rem 0 1.5rem 0', padding: '1rem', background: '#f8f9fa', borderRadius: '0.5rem' }}>
-                        <div style={{ fontWeight: 600, fontSize: '1.05rem', marginBottom: '0.7rem', color: '#8A2BE2' }}>투표 항목 (찬반토론)</div>
+                      <div style={{ padding: '1rem', background: '#f8f9fa', borderRadius: '0.5rem' }}>
+                        <div style={{ fontWeight: 600, fontSize: '1.05rem', marginBottom: '0.7rem', color: '#785CD2' }}>투표 항목 (찬반토론)</div>
                         <input
                           type="text"
                           value={pollQuestion}
                           onChange={e => setPollQuestion(e.target.value)}
-                          placeholder="투표 질문을 입력하세요 (예: 이 정책에 찬성하십니까?)"
+                          placeholder="질문을 입력하세요 (예: 어떻게 생각하세요?)"
                           style={{ width: '100%', fontSize: '1rem', padding: '0.6rem', borderRadius: '0.4rem', border: '1px solid #eee', marginBottom: '0.7rem' }}
                         />
-                        <div style={{ display: 'flex', gap: '0.7rem' }}>
+                        <div style={{ display: 'flex', gap: '0.7rem', width: '100%' }}>
                           {pollOptions.map((opt, idx) => (
                             <PollOptionInput
                               key={idx}

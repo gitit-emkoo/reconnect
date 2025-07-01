@@ -99,12 +99,12 @@ const CommentTextarea = styled.textarea`
     min-height: 40px;
     &:focus {
         outline: none;
-        border-color: #8d6e63;
+        border-color: #785CD2;
     }
 `;
 
 const CommentSubmitButton = styled.button`
-    background-color: #8d6e63;
+    background-color: #785CD2;
     color: white;
     padding: 0.5rem 1rem;
     font-weight: 500;
@@ -112,7 +112,7 @@ const CommentSubmitButton = styled.button`
     border-radius: 0.5rem;
     cursor: pointer;
     &:hover {
-        background-color: #6d4c41;
+        background-color: #785CD2;
     }
 `;
 

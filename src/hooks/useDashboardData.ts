@@ -41,6 +41,7 @@ export const useDashboardData = () => {
   });
   
   const isLoading = isDiaryLoading || isSentMessagesLoading || isReceivedMessagesLoading || isDiagnosisLoading || isChallengeLoading;
+  const isHeartGaugeLoading = isDiagnosisLoading || !user;
 
   return {
     user,
@@ -52,5 +53,6 @@ export const useDashboardData = () => {
     temperature,
     activeChallenge,
     isLoading,
+    isHeartGaugeLoading,
   };
 }; 

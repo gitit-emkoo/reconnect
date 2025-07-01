@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import styled from 'styled-components';
 import { userService } from '../../services/userService';
 import { toast } from 'react-toastify';
+import { ReactComponent as CloseEye } from '../../assets/Icon_CloseEye.svg';
+import { ReactComponent as OpenEye } from '../../assets/Icon_OpenEye.svg';
 
 interface PasswordChangeModalProps {
   isOpen: boolean;
@@ -136,6 +138,32 @@ const StyledButton = styled.button`
   }
 `;
 
+const PasswordToggle = styled.button`
+  position: absolute;
+  right: 1rem;
+  top: 60%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+
+  svg {
+    width: 100%;
+    height: 100%;
+    opacity: 0.5;
+    transition: opacity 0.2s;
+  }
+
+  &:hover svg {
+    opacity: 0.8;
+  }
+`;
 
 export const PasswordChangeModal: React.FC<PasswordChangeModalProps> = ({ isOpen, onClose }) => {
   const [currentPassword, setCurrentPassword] = useState('');
@@ -143,6 +171,9 @@ export const PasswordChangeModal: React.FC<PasswordChangeModalProps> = ({ isOpen
   const [confirmPassword, setConfirmPassword] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState('');
+  const [showCurrentPassword, setShowCurrentPassword] = useState(false);
+  const [showNewPassword, setShowNewPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const resetForm = () => {
     setCurrentPassword('');
@@ -150,6 +181,9 @@ export const PasswordChangeModal: React.FC<PasswordChangeModalProps> = ({ isOpen
     setConfirmPassword('');
     setError('');
     setIsSubmitting(false);
+    setShowCurrentPassword(false);
+    setShowNewPassword(false);
+    setShowConfirmPassword(false);
   };
 
   const handleClose = () => {
@@ -222,40 +256,49 @@ export const PasswordChangeModal: React.FC<PasswordChangeModalProps> = ({ isOpen
         <CloseButton onClick={handleClose}>&times;</CloseButton>
         <Title>비밀번호 변경</Title>
         <Form onSubmit={handleSubmit}>
-          <InputGroup>
+          <InputGroup style={{ position: 'relative' }}>
             <Label htmlFor="currentPassword">현재 비밀번호</Label>
             <Input
-              type="password"
+              type={showCurrentPassword ? 'text' : 'password'}
               id="currentPassword"
               value={currentPassword}
               onChange={(e) => setCurrentPassword(e.target.value)}
               required
             />
+            <PasswordToggle type="button" onClick={() => setShowCurrentPassword(v => !v)} tabIndex={-1}>
+              {showCurrentPassword ? <OpenEye /> : <CloseEye />}
+            </PasswordToggle>
           </InputGroup>
 
-          <InputGroup>
+          <InputGroup style={{ position: 'relative' }}>
             <Label htmlFor="newPassword">새 비밀번호</Label>
             <Input
-              type="password"
+              type={showNewPassword ? 'text' : 'password'}
               id="newPassword"
               value={newPassword}
               onChange={(e) => setNewPassword(e.target.value)}
               required
             />
+            <PasswordToggle type="button" onClick={() => setShowNewPassword(v => !v)} tabIndex={-1}>
+              {showNewPassword ? <OpenEye /> : <CloseEye />}
+            </PasswordToggle>
             <HelperText>
               8자 이상, 영문, 숫자, 특수문자를 포함해야 합니다.
             </HelperText>
           </InputGroup>
 
-          <InputGroup>
+          <InputGroup style={{ position: 'relative' }}>
             <Label htmlFor="confirmPassword">새 비밀번호 확인</Label>
             <Input
-              type="password"
+              type={showConfirmPassword ? 'text' : 'password'}
               id="confirmPassword"
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
               required
             />
+            <PasswordToggle type="button" onClick={() => setShowConfirmPassword(v => !v)} tabIndex={-1}>
+              {showConfirmPassword ? <OpenEye /> : <CloseEye />}
+            </PasswordToggle>
           </InputGroup>
 
           {error && (
