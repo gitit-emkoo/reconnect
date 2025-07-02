@@ -278,19 +278,16 @@ const EmotionCard: React.FC = () => {
 
   useEffect(() => {
     let interval: NodeJS.Timeout | null = null;
-    if (user && !user.partner?.id) {
+    // partnerId 또는 coupleId가 없으면 주기적으로 user 정보 fetch
+    if (user && (!user.partner?.id || !user.couple?.id)) {
       interval = setInterval(async () => {
         try {
           const updatedUser = await userService.getMyProfile();
           useAuthStore.getState().setUser(updatedUser);
-        } catch (e) {
-          // 무시
-        }
+        } catch (e) { /* 무시 */ }
       }, 5000);
     }
-    return () => {
-      if (interval) clearInterval(interval);
-    };
+    return () => { if (interval) clearInterval(interval); };
   }, [user]);
 
   if (sentError || receivedError) {

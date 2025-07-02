@@ -7,6 +7,7 @@ export interface Agreement {
   content: string;
   date: string;
   partnerName: string;
+  authorName?: string;
 }
 
 interface AgreementListProps {
@@ -62,7 +63,6 @@ const EmptyText = styled.div`
 const AgreementList: React.FC<AgreementListProps> = ({ agreements, onView, onDownload }) => {
   return (
     <ListContainer>
-      <h2 style={{ textAlign: 'center', color: '#333' }}>📄 우리의 합의서</h2>
       {agreements.length === 0 && (
         <EmptyText>아직 등록된 합의서가 없습니다.</EmptyText>
       )}
@@ -72,8 +72,8 @@ const AgreementList: React.FC<AgreementListProps> = ({ agreements, onView, onDow
           <Content>{agreement.content}</Content>
           <Meta>✔️ 합의일: {agreement.date} | 동의자: {agreement.partnerName}</Meta>
           <Actions>
-            <Btn primary onClick={() => onView(agreement)}>📖 자세히 보기</Btn>
-            <Btn onClick={() => onDownload(agreement)}>📥 PDF 저장</Btn>
+            <Btn primary onClick={() => onView(agreement)}>확인하기기</Btn>
+            <Btn onClick={() => onDownload(agreement)}>PDF 저장</Btn>
           </Actions>
         </Card>
       ))}
