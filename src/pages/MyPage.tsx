@@ -162,6 +162,40 @@ const MyPage: React.FC = () => {
           <UserInfoText>
             <strong>연결된 파트너:</strong> {user?.partner?.nickname || '없음'}
           </UserInfoText>
+          <div style={{ display: 'flex', gap: '0.7rem', marginTop: '1.2rem', justifyContent: 'center' }}>
+            <button
+              style={{
+                background: '#4a6cf7', color: 'white', border: 'none', borderRadius: '8px', padding: '0.7rem 1.2rem', fontWeight: 600, fontSize: '1rem', cursor: 'pointer', minWidth: 80
+              }}
+              onClick={() => navigate('/agreement')}
+            >
+              🤝 합의서
+            </button>
+            <button
+              style={{
+                background: '#6b8afd', color: 'white', border: 'none', borderRadius: '8px', padding: '0.7rem 1.2rem', fontWeight: 600, fontSize: '1rem', cursor: 'pointer', minWidth: 80
+              }}
+              onClick={() => navigate('/track')}
+            >
+              📊 트랙
+            </button>
+            <button
+              style={{
+                background: '#f7b731', color: 'white', border: 'none', borderRadius: '8px', padding: '0.7rem 1.2rem', fontWeight: 600, fontSize: '1rem', cursor: 'pointer', minWidth: 80
+              }}
+              onClick={() => navigate('/point')}
+            >
+              🪙 포인트
+            </button>
+            <button
+              style={{
+                background: '#00b894', color: 'white', border: 'none', borderRadius: '8px', padding: '0.7rem 1.2rem', fontWeight: 600, fontSize: '1rem', cursor: 'pointer', minWidth: 80
+              }}
+              onClick={() => navigate('/subscribe')}
+            >
+              💳 구독
+            </button>
+          </div>
         </Section>
 
         <Section style={{ textAlign: 'left' }}> {/* 설정 섹션은 내부 텍스트 왼쪽 정렬 */}
