@@ -5,6 +5,7 @@ import AgreementModal from '../components/agreement/AgreementModal';
 import NavigationBar from '../components/NavigationBar';
 import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';
+import useAuthStore from '../store/authStore';
 
 const Container = styled.div`
   background-color: white;
@@ -36,17 +37,10 @@ const PreviewModalBox = styled.div`
 const sampleAgreements: Agreement[] = [
   {
     id: 'sample1',
-    title: '🗣 감정 표현 방식',
-    content: '매주 일요일 저녁, 30분간 감정 공유 시간을 갖기로 함',
+    title: '감정 표현 방식',
+    content: '이번주 부터 매주 일요일 저녁, 30분간 감정 공유 시간을 갖기로 함함',
     date: '2025년 7월 2일',
     partnerName: '이몽룡',
-  },
-  {
-    id: 'sample2',
-    title: '📱 휴대폰 사용 규칙',
-    content: '저녁 9시 이후에는 침실에서 핸드폰 사용 자제하기',
-    date: '2025년 6월 17일',
-    partnerName: '김지은',
   },
 ];
 
@@ -55,10 +49,10 @@ const AgreementPage: React.FC = () => {
   const [agreements, setAgreements] = useState<Agreement[]>([]); // 실제 작성 리스트는 비워둠
   const [previewAgreement, setPreviewAgreement] = useState<Agreement | null>(null);
   const pdfRef = useRef<HTMLDivElement>(null);
-
-  // TODO: 실제 로그인 유저/파트너 정보로 대체
-  const myName = '홍길동';
-  const partnerName = '이몽룡';
+  const user = useAuthStore((state) => state.user);
+  const myName = user?.nickname || '';
+  const partnerName = user?.partner?.nickname || '';
+  const [showSample, setShowSample] = useState(false);
 
   // 샘플 PDF 다운로드
   const handleDownloadPdf = async (agreement: Agreement) => {
@@ -71,7 +65,12 @@ const AgreementPage: React.FC = () => {
       const heightPx = 500;
       const pdf = new jsPDF({ orientation: 'portrait', unit: 'px', format: [widthPx, heightPx] });
       pdf.addImage(imgData, 'PNG', 0, 0, widthPx, heightPx);
-      pdf.save('agreement-sample.pdf');
+      // 파일명: reconnect_YYYYMMDD_HHmmss_커플아이디.pdf
+      const now = new Date();
+      const pad = (n: number) => n.toString().padStart(2, '0');
+      const dateStr = `${now.getFullYear()}${pad(now.getMonth()+1)}${pad(now.getDate())}_${pad(now.getHours())}${pad(now.getMinutes())}${pad(now.getSeconds())}`;
+      const coupleId = user?.couple?.id || 'samplecouple';
+      pdf.save(`reconnect_${dateStr}_${coupleId}.pdf`);
     }, 300); // 모달 렌더링 후 캡처
   };
 
@@ -83,7 +82,7 @@ const AgreementPage: React.FC = () => {
           style={{
             display: 'block',
             margin: '1.5rem auto 2rem',
-            background: '#4a6cf7',
+            background: '#785cd2',
             color: 'white',
             border: 'none',
             borderRadius: '8px',
@@ -94,14 +93,17 @@ const AgreementPage: React.FC = () => {
           }}
           onClick={() => setIsModalOpen(true)}
         >
-          ✍️ 합의서 작성하기
+          합의서 작성하기
         </button>
-        <AgreementList agreements={agreements} onView={() => {}} onDownload={() => {}} />
-
-        {/* 샘플 리스트 */}
-        <div style={{ marginTop: '2.5rem' }}>
-          <h3 style={{ textAlign: 'center', color: '#333', marginBottom: 16 }}>샘플 합의서 리스트</h3>
-          {sampleAgreements.map((agreement) => (
+        {/* 샘플 리스트 토글 */}
+        <div style={{ marginTop: '1.5rem' }}>
+          <h3
+            style={{ textAlign: 'center', color: '#333', marginBottom: 16, cursor: 'pointer', userSelect: 'none' }}
+            onClick={() => setShowSample(v => !v)}
+          >
+            샘플 합의서 보기 ▾
+          </h3>
+          {showSample && sampleAgreements.map((agreement) => (
             <div key={agreement.id} style={{ background: '#f8f9fc', borderRadius: 8, padding: '1.2rem', marginBottom: 16, boxShadow: '0 1px 4px rgba(0,0,0,0.04)' }}>
               <div style={{ fontWeight: 600, fontSize: '1.1rem', color: '#222' }}>{agreement.title}</div>
               <div style={{ color: '#555', marginTop: '0.5rem' }}>{agreement.content}</div>
@@ -110,22 +112,22 @@ const AgreementPage: React.FC = () => {
               </div>
               <div style={{ marginTop: '1rem', display: 'flex', gap: '0.7rem' }}>
                 <button
-                  style={{ padding: '0.5rem 0.8rem', fontSize: '0.9rem', borderRadius: 6, border: 'none', background: '#4a6cf7', color: 'white', cursor: 'pointer' }}
+                  style={{ padding: '0.5rem 0.8rem', fontSize: '0.9rem', borderRadius: 6, border: 'none', background: '#785cd2', color: 'white', cursor: 'pointer' }}
                   onClick={() => setPreviewAgreement(agreement)}
                 >
-                  📖 미리보기
+                  미리보기
                 </button>
                 <button
                   style={{ padding: '0.5rem 0.8rem', fontSize: '0.9rem', borderRadius: 6, border: 'none', background: '#e0e0e0', color: '#333', cursor: 'pointer' }}
                   onClick={() => handleDownloadPdf(agreement)}
                 >
-                  📥 PDF로 저장
+                  PDF로 저장
                 </button>
               </div>
             </div>
           ))}
         </div>
-
+        <AgreementList agreements={agreements} onView={() => {}} onDownload={() => {}} />
         <AgreementModal
           isOpen={isModalOpen}
           onClose={() => setIsModalOpen(false)}

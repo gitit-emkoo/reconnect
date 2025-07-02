@@ -8,8 +8,6 @@ interface AgreementModalProps {
   onCreate: (agreement: Agreement) => void;
   myName: string;
   partnerName?: string;
-  myId?: string;
-  partnerId?: string;
 }
 
 const Overlay = styled.div`
@@ -43,75 +41,15 @@ const ModalBox = styled.div`
   }
 `;
 
-const PdfBox = styled.div`
-  background: #fff;
-  padding: 2rem;
-  border-radius: 10px;
-  width: 100%;
-  max-width: 350px;
-  min-width: 0;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.08);
-  flex: 1;
-  @media (max-width: 700px) {
-    padding: 1rem;
-    max-width: 100%;
-  }
-`;
-
-const Section = styled.div`
-  margin-top: 1.3rem;
-`;
-const Label = styled.div`
-  font-weight: bold;
-  color: #444;
-  margin-bottom: 0.3rem;
-`;
-const Value = styled.div`
-  padding: 0.8rem 1rem;
-  background: #f1f3f6;
-  border-radius: 6px;
-  color: #333;
-`;
-const Footer = styled.div`
-  text-align: center;
-  font-size: 0.9rem;
-  color: #777;
-  margin-top: 2rem;
-`;
-const FormBox = styled.form`
-  flex: 1;
-  min-width: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 1.1rem;
-  @media (max-width: 700px) {
-    min-width: 0;
-  }
-`;
-const Input = styled.input`
-  width: 100%;
-  padding: 0.6rem;
-  border-radius: 6px;
-  border: 1px solid #ddd;
-  margin-top: 4px;
-`;
-const Textarea = styled.textarea`
-  width: 100%;
-  padding: 0.6rem;
-  border-radius: 6px;
-  border: 1px solid #ddd;
-  margin-top: 4px;
-  min-height: 70px;
-`;
 const BtnRow = styled.div`
   display: flex;
   gap: 8px;
   margin-top: 1.2rem;
 `;
-const Btn = styled.button<{primary?: boolean}>`
+const Btn = styled.button<{ $primary?: boolean }>`
   flex: 1;
-  background: ${p => p.primary ? '#4a6cf7' : '#eee'};
-  color: ${p => p.primary ? 'white' : '#333'};
+  background: ${p => p.$primary ? '#4a6cf7' : '#eee'};
+  color: ${p => p.$primary ? 'white' : '#333'};
   border: none;
   border-radius: 8px;
   padding: 0.7rem 0;
@@ -120,96 +58,80 @@ const Btn = styled.button<{primary?: boolean}>`
   cursor: pointer;
 `;
 
-const AgreementModal: React.FC<AgreementModalProps> = ({ isOpen, onClose, onCreate, myName, partnerName, myId, partnerId }) => {
+const AgreementModal: React.FC<AgreementModalProps> = ({ isOpen, onClose, onCreate, myName, partnerName }) => {
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
-  const [date, setDate] = useState('');
+  const [author, setAuthor] = useState(myName || '');
+  const [partner, setPartner] = useState(partnerName || '');
 
+  // 현재 날짜시간 (YYYY-MM-DD HH:mm)
   const now = new Date();
-  const nowStr = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')} ${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')} (KST)`;
+  const pad = (n: number) => n.toString().padStart(2, '0');
+  const nowStr = `${now.getFullYear()}-${pad(now.getMonth()+1)}-${pad(now.getDate())} ${pad(now.getHours())}:${pad(now.getMinutes())} (KST)`;
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!title || !content || !date) return;
+    if (!title || !content || !author || !partner) return;
     onCreate({
       id: Date.now().toString(),
       title,
       content,
-      date,
-      partnerName: partnerName || '-',
+      date: nowStr,
+      partnerName: partner,
+      authorName: author,
     });
     setTitle('');
     setContent('');
-    setDate('');
+    setAuthor(myName || '');
+    setPartner(partnerName || '');
   };
 
   if (!isOpen) return null;
 
   return (
     <Overlay>
-      <ModalBox>
-        <PdfBox>
-          <h2 style={{ textAlign: 'center', color: '#333' }}>🤝 공동 약속서</h2>
-          <Section>
-            <Label>약속 주제</Label>
-            <Value>{title || '약속 주제를 입력하세요'}</Value>
-          </Section>
-          <Section>
-            <Label>약속 내용</Label>
-            <Value>{content || '약속 내용을 입력하세요'}</Value>
-          </Section>
-          <Section>
-            <Label>시작일</Label>
-            <Value>{date ? date.replace(/-/g, '년 ').replace(/(\d{2})$/, '$1일') : 'YYYY-MM-DD'}</Value>
-          </Section>
-          <Section>
-            <Label>작성자</Label>
-            <Value>{myName}{myId ? ` (ID: ${myId})` : ''}</Value>
-          </Section>
-          <Section>
-            <Label>동의자</Label>
-            <Value>{partnerName || '파트너 없음'}{partnerId ? ` (ID: ${partnerId})` : ''}</Value>
-          </Section>
-          <Section>
-            <Label>작성일 및 서명시간</Label>
-            <Value>{nowStr}</Value>
-          </Section>
-          <Footer>* 본 문서는 리커넥트 앱 내 사용자 간 심리적 합의 기록용으로 작성되었습니다.</Footer>
-        </PdfBox>
-        <FormBox onSubmit={handleSubmit}>
-          <div>
-            <Label>약속 주제</Label>
-            <Input
-              type="text"
-              value={title}
-              onChange={e => setTitle(e.target.value)}
-              placeholder="예: 감정 표현 방식"
-              required
-            />
+      <ModalBox style={{ maxWidth: 700, background: '#fff', boxShadow: '0 2px 6px rgba(0,0,0,0.08)' }}>
+        <form style={{ width: '100%' }} onSubmit={handleSubmit}>
+          <h2 style={{ textAlign: 'center', color: '#333' }}>공동 약속서</h2>
+
+          <div className="section" style={{ marginTop: '2rem' }}>
+            <div className="label" style={{ fontWeight: 'bold', color: '#444', marginBottom: 4 }}>약속 주제</div>
+            <input className="value" style={{ width: '100%', padding: '0.8rem 1rem', background: '#f1f3f6', borderRadius: 6, color: '#333', border: 'none', marginBottom: 0 }}
+              type="text" value={title} onChange={e => setTitle(e.target.value)} placeholder="약속 주제를 입력하세요" required />
           </div>
-          <div>
-            <Label>약속 내용</Label>
-            <Textarea
-              value={content}
-              onChange={e => setContent(e.target.value)}
-              placeholder="약속 내용을 입력하세요"
-              required
-            />
+
+          <div className="section" style={{ marginTop: '2rem' }}>
+            <div className="label" style={{ fontWeight: 'bold', color: '#444', marginBottom: 4 }}>약속 내용</div>
+            <textarea className="value" style={{ width: '100%', padding: '0.8rem 1rem', background: '#f1f3f6', borderRadius: 6, color: '#333', border: 'none', minHeight: 70 }}
+              value={content} onChange={e => setContent(e.target.value)} placeholder="약속 내용을 입력하세요" required />
           </div>
-          <div>
-            <Label>시작일</Label>
-            <Input
-              type="date"
-              value={date}
-              onChange={e => setDate(e.target.value)}
-              required
-            />
+
+          <div className="section" style={{ marginTop: '2rem' }}>
+            <div className="label" style={{ fontWeight: 'bold', color: '#444', marginBottom: 4 }}>작성자</div>
+            <input className="value" style={{ width: '100%', padding: '0.8rem 1rem', background: '#f1f3f6', borderRadius: 6, color: '#333', border: 'none' }}
+              type="text" value={author} onChange={e => setAuthor(e.target.value)} placeholder="작성자 이름을 입력하세요" required />
           </div>
+
+          <div className="section" style={{ marginTop: '2rem' }}>
+            <div className="label" style={{ fontWeight: 'bold', color: '#444', marginBottom: 4 }}>동의자</div>
+            <input className="value" style={{ width: '100%', padding: '0.8rem 1rem', background: '#f1f3f6', borderRadius: 6, color: '#333', border: 'none' }}
+              type="text" value={partner} onChange={e => setPartner(e.target.value)} placeholder="동의자 이름을 입력하세요" required />
+          </div>
+
+          <div className="section" style={{ marginTop: '2rem' }}>
+            <div className="label" style={{ fontWeight: 'bold', color: '#444', marginBottom: 4 }}>작성일 및 서명시간</div>
+            <div className="value" style={{ width: '100%', padding: '0.8rem 1rem', background: '#f1f3f6', borderRadius: 6, color: '#333', border: 'none' }}>{nowStr}</div>
+          </div>
+
+          <div className="footer" style={{ textAlign: 'center', fontSize: '0.9rem', color: '#777', marginTop: '2rem' }}>
+            * 본 문서는 리커넥트 앱 내 사용자 간 심리적 합의 기록용으로 작성되었습니다.
+          </div>
+
           <BtnRow>
-            <Btn primary type="submit">저장</Btn>
+            <Btn $primary type="submit">저장</Btn>
             <Btn type="button" onClick={onClose}>취소</Btn>
           </BtnRow>
-        </FormBox>
+        </form>
       </ModalBox>
     </Overlay>
   );
