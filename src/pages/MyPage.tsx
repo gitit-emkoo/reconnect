@@ -10,10 +10,10 @@ import ConfirmationModal from "../components/common/ConfirmationModal";
 import { getUserAvatar } from "../utils/avatar";
 
 const Container = styled.div`
-  background-color: white; /* 배경 흰색으로 변경 */
+  background-color: white; 
   min-height: 100vh;
   padding: 2rem;
-  padding-bottom: 70px; /* NavigationBar 높이만큼 패딩 추가 */
+  padding-bottom: 70px; 
 `;
 
 const Title = styled.h2`
@@ -24,12 +24,12 @@ const Title = styled.h2`
 `;
 
 const Section = styled.div`
-  background-color: transparent; /* 섹션 배경 투명하게 변경 */
-  border-radius: 0; /* 모서리 둥글기 제거 */
+  background-color: transparent; 
+  border-radius: 0; 
   padding: 1.5rem;
-  /* box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05); */ /* 그림자 제거 */
+ 
   margin-bottom: 1.5rem;
-  text-align: center; /* 이미지와 텍스트 중앙 정렬을 위해 추가 */
+  text-align: center; 
 `;
 
 const ProfileImageContainer = styled.div`
@@ -37,8 +37,8 @@ const ProfileImageContainer = styled.div`
   height: 120px;
   border-radius: 50%;
   overflow: hidden;
-  margin: 0 auto 1rem auto; /* 상하 마진 및 좌우 중앙 정렬 */
-  border: 3px solid #FF69B4; /* 핑크색 테두리 */
+  margin: 0 auto 1rem auto; 
+  border: 3px solid #FF69B4; 
   img {
     width: 100%;
     height: 100%;
@@ -59,16 +59,16 @@ const UserInfoText = styled.p`
   margin-bottom: 0.3rem;
   strong {
     font-weight: 500;
-    color: #FF69B4; /* 핑크 포인트 */
+    color: #FF69B4; 
   }
 `;
 
 const SectionTitle = styled.h3`
   font-size: 1.25rem;
-  color: #4A4A4A; /* 진한 회색으로 변경 */
-  font-weight: 600; /* 폰트 두께 추가 (이미 있을 수 있지만 명시) */
+  color: #4A4A4A; 
+  font-weight: 600; 
   margin-bottom: 1rem;
-  /* text-align: left; MyPage 컴포넌트 내에서 Section에 직접 style prop으로 적용 중 */
+  
 `;
 
 const SettingsListContainer = styled.div`
@@ -79,10 +79,10 @@ const SettingItem = styled.div< { disabled?: boolean } >`
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 1rem 0.5rem; /* 상하 패딩, 좌우 약간의 패딩 */
+  padding: 1rem 0.5rem; 
   font-size: 1rem;
-  color: ${(props) => (props.disabled ? '#bbb' : '#777')}; /* 비활성화 시 더 연한 회색, 기본은 연한 회색으로 변경 */
-  border-bottom: 1px solid #eee; /* 항목 간 구분선 */
+  color: ${(props) => (props.disabled ? '#bbb' : '#777')}; 
+  border-bottom: 1px solid #eee; 
   cursor: ${(props) => (props.disabled ? 'default' : 'pointer')};
   transition: background-color 0.2s ease-in-out;
 
@@ -94,13 +94,11 @@ const SettingItem = styled.div< { disabled?: boolean } >`
     border-bottom: none;
   }
 
-  span { /* 오른쪽 '>' 아이콘을 위한 공간 (실제 아이콘은 ::after로 추가) */
+  span { 
     color: #aaa;
     font-weight: bold;
   }
 
-  /* 실제 아이콘을 사용하려면 라이브러리(예: react-icons)를 사용하거나 SVG를 직접 넣는 것이 좋습니다. */
-  /* 여기서는 간단히 텍스트로 처리합니다. */
 `;
 
 const MyPage: React.FC = () => {
@@ -169,7 +167,7 @@ const MyPage: React.FC = () => {
               }}
               onClick={() => navigate('/agreement')}
             >
-              🤝 합의서
+              합의서
             </button>
             <button
               style={{
@@ -177,7 +175,7 @@ const MyPage: React.FC = () => {
               }}
               onClick={() => navigate('/track')}
             >
-              📊 트랙
+              트랙
             </button>
             <button
               style={{
@@ -185,7 +183,7 @@ const MyPage: React.FC = () => {
               }}
               onClick={() => navigate('/point')}
             >
-              🪙 포인트
+              포인트
             </button>
             <button
               style={{
@@ -193,7 +191,7 @@ const MyPage: React.FC = () => {
               }}
               onClick={() => navigate('/subscribe')}
             >
-              💳 구독
+              구독
             </button>
           </div>
         </Section>

@@ -50,7 +50,7 @@ const Container = styled.div`
   margin: 0 auto;
   position: relative;
   padding-bottom: 80px;
-  padding-top: 80px; /* 뒤로가기 버튼을 위한 여백 추가 */
+  padding-top: 80px; 
 
   @media (min-width: 1024px) {
     display: grid;

@@ -2,6 +2,7 @@ import React, { useState, useRef } from 'react';
 import styled from 'styled-components';
 import AgreementList, { Agreement } from '../components/agreement/AgreementList';
 import AgreementModal from '../components/agreement/AgreementModal';
+import QRCodeGenerator from '../components/agreement/QRCodeGenerator';
 import NavigationBar from '../components/NavigationBar';
 import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';
@@ -78,23 +79,38 @@ const AgreementPage: React.FC = () => {
     <>
       <Container>
         <Title>우리의 합의서</Title>
-        <button
-          style={{
-            display: 'block',
-            margin: '1.5rem auto 2rem',
-            background: '#785cd2',
-            color: 'white',
-            border: 'none',
-            borderRadius: '8px',
-            padding: '0.8rem 2.2rem',
-            fontWeight: 600,
-            fontSize: '1.08rem',
-            cursor: 'pointer',
-          }}
-          onClick={() => setIsModalOpen(true)}
-        >
-          합의서 작성하기
-        </button>
+        <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center', margin: '1.5rem auto 2rem' }}>
+          <button
+            style={{
+              background: '#785cd2',
+              color: 'white',
+              border: 'none',
+              borderRadius: '8px',
+              padding: '0.8rem 2.2rem',
+              fontWeight: 600,
+              fontSize: '1.08rem',
+              cursor: 'pointer',
+            }}
+            onClick={() => setIsModalOpen(true)}
+          >
+            합의서 작성하기
+          </button>
+          <button
+            style={{
+              background: '#28a745',
+              color: 'white',
+              border: 'none',
+              borderRadius: '8px',
+              padding: '0.8rem 2.2rem',
+              fontWeight: 600,
+              fontSize: '1.08rem',
+              cursor: 'pointer',
+            }}
+            onClick={() => window.location.href = '/agreement-verification'}
+          >
+            🔐 합의서 인증
+          </button>
+        </div>
         {/* 샘플 리스트 토글 */}
         <div style={{ marginTop: '1.5rem' }}>
           <h3
@@ -152,12 +168,8 @@ const AgreementPage: React.FC = () => {
                 <div style={{ padding: '0.8rem 1rem', background: '#f1f3f6', borderRadius: 6, color: '#333' }}>{previewAgreement.content}</div>
               </div>
               <div style={{ marginTop: '2rem' }}>
-                <div style={{ fontWeight: 'bold', color: '#444', marginBottom: '0.3rem' }}>시작일</div>
-                <div style={{ padding: '0.8rem 1rem', background: '#f1f3f6', borderRadius: 6, color: '#333' }}>{previewAgreement.date}</div>
-              </div>
-              <div style={{ marginTop: '2rem' }}>
                 <div style={{ fontWeight: 'bold', color: '#444', marginBottom: '0.3rem' }}>작성자</div>
-                <div style={{ padding: '0.8rem 1rem', background: '#f1f3f6', borderRadius: 6, color: '#333' }}>홍길동 (ID: hk2024)</div>
+                <div style={{ padding: '0.8rem 1rem', background: '#f1f3f6', borderRadius: 6, color: '#333' }}>{previewAgreement.authorName || '홍길동'} (ID: hk2024)</div>
               </div>
               <div style={{ marginTop: '2rem' }}>
                 <div style={{ fontWeight: 'bold', color: '#444', marginBottom: '0.3rem' }}>동의자</div>
@@ -165,10 +177,56 @@ const AgreementPage: React.FC = () => {
               </div>
               <div style={{ marginTop: '2rem' }}>
                 <div style={{ fontWeight: 'bold', color: '#444', marginBottom: '0.3rem' }}>작성일 및 서명시간</div>
-                <div style={{ padding: '0.8rem 1rem', background: '#f1f3f6', borderRadius: 6, color: '#333' }}>{new Date().toLocaleString('ko-KR')} (KST)</div>
+                <div style={{ padding: '0.8rem 1rem', background: '#f1f3f6', borderRadius: 6, color: '#333' }}>{previewAgreement.date}</div>
               </div>
+              
+              {/* 서명 섹션 */}
+              {(previewAgreement.authorSignature || previewAgreement.partnerSignature) && (
+                <div style={{ marginTop: '2rem' }}>
+                  <div style={{ fontWeight: 'bold', color: '#444', marginBottom: '0.3rem' }}>서명</div>
+                  <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
+                    {previewAgreement.authorSignature && (
+                      <div style={{ flex: 1, minWidth: '120px' }}>
+                        <div style={{ fontSize: '0.8rem', color: '#666', marginBottom: '0.3rem' }}>작성자 서명</div>
+                        <img 
+                          src={previewAgreement.authorSignature} 
+                          alt="작성자 서명" 
+                          style={{ width: '100%', height: '60px', objectFit: 'contain', border: '1px solid #ddd', borderRadius: 4 }}
+                        />
+                      </div>
+                    )}
+                    {previewAgreement.partnerSignature && (
+                      <div style={{ flex: 1, minWidth: '120px' }}>
+                        <div style={{ fontSize: '0.8rem', color: '#666', marginBottom: '0.3rem' }}>동의자 서명</div>
+                        <img 
+                          src={previewAgreement.partnerSignature} 
+                          alt="동의자 서명" 
+                          style={{ width: '100%', height: '60px', objectFit: 'contain', border: '1px solid #ddd', borderRadius: 4 }}
+                        />
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+              
+              {/* QR 인증 마크 */}
+              {previewAgreement.agreementHash && (
+                <div style={{ marginTop: '2rem', textAlign: 'center' }}>
+                  <QRCodeGenerator 
+                    agreement={previewAgreement} 
+                    size={100} 
+                    showVerificationInfo={false}
+                  />
+                </div>
+              )}
+              
               <div style={{ textAlign: 'center', fontSize: '0.9rem', color: '#777', marginTop: '2rem' }}>
                 * 본 문서는 리커넥트 앱 내 사용자 간 심리적 합의 기록용으로 작성되었습니다.
+                {previewAgreement.agreementHash && (
+                  <div style={{ marginTop: '0.5rem', fontSize: '0.8rem' }}>
+                    인증 해시: {previewAgreement.agreementHash.substring(0, 8)}...
+                  </div>
+                )}
               </div>
             </PreviewModalBox>
           </div>
