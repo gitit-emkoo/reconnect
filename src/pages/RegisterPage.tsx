@@ -301,7 +301,7 @@ const RegisterPage: React.FC = () => {
           ...getUnauthDiagnosisData(),
         };
 
-        const response = await axiosInstance.post('/auth/google', payload);
+        const response = await axiosInstance.post('/auth/google/register', payload);
         const { accessToken, user } = response.data;
         setAuth(accessToken, user);
         navigate(from, { replace: true });

@@ -18,6 +18,7 @@ import EmotionCardForm from "../components/emotioncard/EmotionCardForm";
 import EmotionCardList from "../components/emotioncard/EmotionCardList";
 import EmotionCardDetailModal from "../components/emotioncard/EmotionCardDetailModal";
 import axios from 'axios';
+import { userService } from '../services/userService';
 
 // SentMessage 타입 정의 (백엔드 응답 기준)
 export interface SentMessage {
@@ -103,6 +104,7 @@ const EmotionCard: React.FC = () => {
   } = useQuery<SentMessage[]>({
     queryKey: ['sentMessages', myId, partnerId],
     queryFn: async () => {
+      if (!partnerId) return [];
       try {
         return await fetchSentMessages();
       } catch (error: any) {
@@ -112,7 +114,7 @@ const EmotionCard: React.FC = () => {
         throw error;
       }
     },
-    enabled: !!partnerId,
+    enabled: !!partnerId, // partnerId 없으면 아예 호출하지 않음
   });
 
   // 받은 메시지 쿼리 (유저 없으면 비활성화)
@@ -124,8 +126,8 @@ const EmotionCard: React.FC = () => {
   } = useQuery<SentMessage[]>({
     queryKey: ['receivedMessages', myId],
     queryFn: () => fetchReceivedMessages(),
-    enabled: !!myId,
-    refetchInterval: 5000, // 5초마다 자동 갱신
+    enabled: !!myId && !!partnerId, // partnerId 없으면 아예 호출하지 않음
+    refetchInterval: !!partnerId ? 5000 : false, // partnerId 없으면 폴링도 안 함
   });
 
   // 커스텀 훅 사용 -> App.tsx로 이동
@@ -274,6 +276,23 @@ const EmotionCard: React.FC = () => {
   }, [receivedMessages]);
   */
 
+  useEffect(() => {
+    let interval: NodeJS.Timeout | null = null;
+    if (user && !user.partner?.id) {
+      interval = setInterval(async () => {
+        try {
+          const updatedUser = await userService.getMyProfile();
+          useAuthStore.getState().setUser(updatedUser);
+        } catch (e) {
+          // 무시
+        }
+      }, 5000);
+    }
+    return () => {
+      if (interval) clearInterval(interval);
+    };
+  }, [user]);
+
   if (sentError || receivedError) {
     return (
       <PageContainer style={{ textAlign: 'center', paddingTop: '4rem' }}>
@@ -293,10 +312,6 @@ const EmotionCard: React.FC = () => {
         <ContentWrapper>
           <ErrorMessage>파트너가 연결되어야 감정카드를 사용할 수 있습니다.</ErrorMessage>
         </ContentWrapper>
-        <PartnerRequiredModal 
-          open={showPartnerRequiredModal} 
-          onClose={() => setShowPartnerRequiredModal(false)} 
-        />
         <NavigationBar />
       </PageContainer>
     );
