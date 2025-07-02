@@ -80,8 +80,8 @@ const StatusCard = styled.div`
   justify-content: space-between;
   min-height: 80px;
   text-align: left;
-  margin-bottom: 1rem; // 캘린더와 간격
-  position: relative; // + 버튼 위치를 위해 추가
+  margin-bottom: 1rem; 
+  position: relative; 
 `;
 
 const DateInfo = styled.div`

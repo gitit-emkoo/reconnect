@@ -8,6 +8,13 @@ export interface Agreement {
   date: string;
   partnerName: string;
   authorName?: string;
+  // 디지털 서명 관련 필드 추가
+  authorSignature?: string; // Base64 인코딩된 서명 이미지
+  partnerSignature?: string; // Base64 인코딩된 서명 이미지
+  authorSignatureHash?: string; // 서명 데이터 해시
+  partnerSignatureHash?: string; // 서명 데이터 해시
+  agreementHash?: string; // 전체 합의서 내용 해시
+  qrCodeData?: string; // QR 코드에 포함될 데이터
 }
 
 interface AgreementListProps {

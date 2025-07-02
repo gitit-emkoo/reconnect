@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import styled from 'styled-components';
 import { Agreement } from './AgreementList';
+import DigitalSignature from './DigitalSignature';
 
 interface AgreementModalProps {
   isOpen: boolean;
@@ -63,15 +64,36 @@ const AgreementModal: React.FC<AgreementModalProps> = ({ isOpen, onClose, onCrea
   const [content, setContent] = useState('');
   const [author, setAuthor] = useState(myName || '');
   const [partner, setPartner] = useState(partnerName || '');
+  const [authorSignature, setAuthorSignature] = useState('');
+  const [authorSignatureHash, setAuthorSignatureHash] = useState('');
+  const [partnerSignature, setPartnerSignature] = useState('');
+  const [partnerSignatureHash, setPartnerSignatureHash] = useState('');
 
   // 현재 날짜시간 (YYYY-MM-DD HH:mm)
   const now = new Date();
   const pad = (n: number) => n.toString().padStart(2, '0');
   const nowStr = `${now.getFullYear()}-${pad(now.getMonth()+1)}-${pad(now.getDate())} ${pad(now.getHours())}:${pad(now.getMinutes())} (KST)`;
 
+  // 간단한 해시 함수
+  const simpleHash = (str: string): string => {
+    let hash = 0;
+    if (str.length === 0) return hash.toString();
+    for (let i = 0; i < str.length; i++) {
+      const char = str.charCodeAt(i);
+      hash = ((hash << 5) - hash) + char;
+      hash = hash & hash;
+    }
+    return Math.abs(hash).toString(16);
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!title || !content || !author || !partner) return;
+    
+    // 합의서 전체 내용의 해시 생성
+    const agreementContent = `${title}${content}${author}${partner}${nowStr}`;
+    const agreementHash = simpleHash(agreementContent);
+    
     onCreate({
       id: Date.now().toString(),
       title,
@@ -79,11 +101,30 @@ const AgreementModal: React.FC<AgreementModalProps> = ({ isOpen, onClose, onCrea
       date: nowStr,
       partnerName: partner,
       authorName: author,
+      authorSignature,
+      authorSignatureHash,
+      partnerSignature,
+      partnerSignatureHash,
+      agreementHash,
+      qrCodeData: JSON.stringify({
+        agreementId: Date.now().toString(),
+        title,
+        date: nowStr,
+        authorName: author,
+        partnerName: partner,
+        agreementHash
+      })
     });
+    
+    // 폼 초기화
     setTitle('');
     setContent('');
     setAuthor(myName || '');
     setPartner(partnerName || '');
+    setAuthorSignature('');
+    setAuthorSignatureHash('');
+    setPartnerSignature('');
+    setPartnerSignatureHash('');
   };
 
   if (!isOpen) return null;
@@ -116,6 +157,30 @@ const AgreementModal: React.FC<AgreementModalProps> = ({ isOpen, onClose, onCrea
             <div className="label" style={{ fontWeight: 'bold', color: '#444', marginBottom: 4 }}>동의자</div>
             <input className="value" style={{ width: '100%', padding: '0.8rem 1rem', background: '#f1f3f6', borderRadius: 6, color: '#333', border: 'none' }}
               type="text" value={partner} onChange={e => setPartner(e.target.value)} placeholder="동의자 이름을 입력하세요" required />
+          </div>
+
+          {/* 작성자 서명 */}
+          <div className="section" style={{ marginTop: '2rem' }}>
+            <div className="label" style={{ fontWeight: 'bold', color: '#444', marginBottom: 4 }}>작성자 서명</div>
+            <DigitalSignature
+              onSignatureChange={(signature, hash) => {
+                setAuthorSignature(signature);
+                setAuthorSignatureHash(hash);
+              }}
+              placeholder={`${author || '작성자'} 서명`}
+            />
+          </div>
+
+          {/* 동의자 서명 */}
+          <div className="section" style={{ marginTop: '2rem' }}>
+            <div className="label" style={{ fontWeight: 'bold', color: '#444', marginBottom: 4 }}>동의자 서명</div>
+            <DigitalSignature
+              onSignatureChange={(signature, hash) => {
+                setPartnerSignature(signature);
+                setPartnerSignatureHash(hash);
+              }}
+              placeholder={`${partner || '동의자'} 서명`}
+            />
           </div>
 
           <div className="section" style={{ marginTop: '2rem' }}>

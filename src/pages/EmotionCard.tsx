@@ -35,18 +35,18 @@ export interface SentMessage {
 
 const PageContainer = styled.div`
   min-height: 100vh;
-  background-color: #f0f4f8; // 부드러운 배경색
+  background-color: #f0f4f8; /* 부드러운 배경색 */
   padding: 2rem;
-  padding-bottom: 8rem; // 하단 패딩 추가 (네비게이션 바 고려, 기존 2rem + 추가 6rem)
+  padding-bottom: 8rem; /* 하단 패딩 추가 (네비게이션 바 고려, 기존 2rem + 추가 6rem) */
   display: flex;
   flex-direction: column;
-  align-items: center; // 자식 요소들을 가로축 중앙 정렬 (PageHeaderContainer, ContentWrapper)
-  box-sizing: border-box; // 패딩과 테두리가 min-height에 포함되도록 설정
-  overflow-y: auto; // 내용이 길어질 경우 세로 스크롤 허용
+  align-items: center; /* 자식 요소들을 가로축 중앙 정렬 (PageHeaderContainer, ContentWrapper) */
+  box-sizing: border-box; /* 패딩과 테두리가 min-height에 포함되도록 설정 */
+  overflow-y: auto; /* 내용이 길어질 경우 세로 스크롤 허용 */
 `;
 
 const ErrorMessage = styled.p`
-  color: #ef4444; // Tailwind red-500
+  color: #ef4444; /* Tailwind red-500 */
   font-size: 0.9rem;
   margin-bottom: 1.5rem;
   text-align: center;
@@ -59,7 +59,7 @@ const ContentWrapper = styled.div`
   box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
   width: 100%;
   max-width: 600px;
-  margin-top: 1rem; // PageHeaderContainer와의 추가 간격 (선택 사항)
+  margin-top: 1rem; /* PageHeaderContainer와의 추가 간격 (선택 사항) */
 `;
 
 // (fetchSentMessages, fetchReceivedMessages 함수 수정)

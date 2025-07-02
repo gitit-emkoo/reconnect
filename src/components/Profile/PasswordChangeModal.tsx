@@ -82,7 +82,7 @@ const Input = styled.input`
 
   &:focus {
     outline: none;
-    border-color: #FF69B4; /* 핑크색 포커스 */
+    border-color: #FF69B4; 
   }
 `;
 
@@ -93,7 +93,7 @@ const HelperText = styled.p`
 `;
 
 const ErrorMessage = styled.div`
-  color: #e53e3e; /* 빨간색 에러 메시지 */
+  color: #e53e3e; 
   font-size: 0.9rem;
   margin-top: 0.5rem;
   text-align: center;
