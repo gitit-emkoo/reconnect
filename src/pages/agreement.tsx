@@ -242,7 +242,7 @@ const AgreementPage: React.FC = () => {
         {previewAgreement && (
           <ModalOverlay onClick={() => setPreviewAgreement(null)}>
             <PreviewModalBox ref={pdfRef} onClick={e => e.stopPropagation()}>
-              <ModalTitle>🤝 공동 약속서</ModalTitle>
+              <ModalTitle>공동 약속서</ModalTitle>
               <ModalSection>
                 <ModalLabel>약속 주제</ModalLabel>
                 <ModalValue>{previewAgreement.title}</ModalValue>
@@ -253,11 +253,11 @@ const AgreementPage: React.FC = () => {
               </ModalSection>
               <ModalSection>
                 <ModalLabel>작성자</ModalLabel>
-                <ModalValue>{previewAgreement.authorName || '홍길동'} (ID: hk2024)</ModalValue>
+                <ModalValue>{previewAgreement.authorName} </ModalValue>
               </ModalSection>
               <ModalSection>
                 <ModalLabel>동의자</ModalLabel>
-                <ModalValue>{previewAgreement.partnerName} (ID: moonlee92)</ModalValue>
+                <ModalValue>{previewAgreement.partnerName} </ModalValue>
               </ModalSection>
               <ModalSection>
                 <ModalLabel>작성일 및 서명시간</ModalLabel>
