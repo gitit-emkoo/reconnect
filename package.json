@@ -81,6 +81,7 @@
     "identity-obj-proxy": "^3.0.0",
     "jest": "^30.0.4",
     "jest-environment-jsdom": "^30.0.4",
+    "rollup": "^4.44.1",
     "rollup-plugin-visualizer": "^6.0.3",
     "ts-jest": "^29.4.0",
     "typescript": "~5.8.3",
