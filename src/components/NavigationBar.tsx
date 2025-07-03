@@ -1,4 +1,3 @@
-// src/components/NavigationBar.tsx
 import React, { useCallback } from 'react';
 import styled from 'styled-components';
 import { useNavigate, useLocation } from 'react-router-dom';
@@ -19,8 +18,11 @@ const NavContainer = styled.nav`
   background-color: white;
   padding: 0.5rem 0;
   box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.05);
-  z-index: 1000; /* 다른 콘텐츠 위에 오도록 */
-  height: 60px; /* 고정 높이 */
+  z-index: 1000; 
+  height: 60px; 
+  border-top-left-radius: 20px;
+  border-top-right-radius: 20px;
+  overflow: hidden;
 `;
 
 interface NavButtonProps {
