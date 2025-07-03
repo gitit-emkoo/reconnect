@@ -49,7 +49,7 @@ const BtnRow = styled.div`
 `;
 const Btn = styled.button<{ $primary?: boolean }>`
   flex: 1;
-  background: ${p => p.$primary ? '#4a6cf7' : '#eee'};
+  background: ${p => p.$primary ? '#785cd2' : '#eee'};
   color: ${p => p.$primary ? 'white' : '#333'};
   border: none;
   border-radius: 8px;
@@ -133,18 +133,24 @@ const AgreementModal: React.FC<AgreementModalProps> = ({ isOpen, onClose, onCrea
     <Overlay>
       <ModalBox style={{ maxWidth: 700, background: '#fff', boxShadow: '0 2px 6px rgba(0,0,0,0.08)' }}>
         <form style={{ width: '100%' }} onSubmit={handleSubmit}>
-          <h2 style={{ textAlign: 'center', color: '#333' }}>공동 약속서</h2>
+          <h2 style={{ textAlign: 'center', color: '#333' }}>리커넥트 인증 합의서</h2>
 
           <div className="section" style={{ marginTop: '2rem' }}>
-            <div className="label" style={{ fontWeight: 'bold', color: '#444', marginBottom: 4 }}>약속 주제</div>
+            <div className="label" style={{ fontWeight: 'bold', color: '#444', marginBottom: 4 }}>제목</div>
             <input className="value" style={{ width: '100%', padding: '0.8rem 1rem', background: '#f1f3f6', borderRadius: 6, color: '#333', border: 'none', marginBottom: 0 }}
-              type="text" value={title} onChange={e => setTitle(e.target.value)} placeholder="약속 주제를 입력하세요" required />
+              type="text" value={title} onChange={e => setTitle(e.target.value)} placeholder="합의할 약속의 제목을 입력하세요" required />
           </div>
 
           <div className="section" style={{ marginTop: '2rem' }}>
             <div className="label" style={{ fontWeight: 'bold', color: '#444', marginBottom: 4 }}>약속 내용</div>
             <textarea className="value" style={{ width: '100%', padding: '0.8rem 1rem', background: '#f1f3f6', borderRadius: 6, color: '#333', border: 'none', minHeight: 70 }}
               value={content} onChange={e => setContent(e.target.value)} placeholder="약속 내용을 입력하세요" required />
+          </div>
+
+          <div className="section" style={{ marginTop: '2rem' }}>
+            <div className="label" style={{ fontWeight: 'bold', color: '#444', marginBottom: 4 }}>미 이행시 조건</div>
+            <input className="value" style={{ width: '100%', padding: '0.8rem 1rem', background: '#f1f3f6', borderRadius: 6, color: '#333', border: 'none', marginBottom: 0 }}
+              type="text" value={title} onChange={e => setTitle(e.target.value)} placeholder="미 이행시 조건을 조건을 입력하세요" required />
           </div>
 
           <div className="section" style={{ marginTop: '2rem' }}>
@@ -171,7 +177,7 @@ const AgreementModal: React.FC<AgreementModalProps> = ({ isOpen, onClose, onCrea
             />
           </div>
 
-          {/* 동의자 서명 */}
+          {/* 동의자 서명 이건 뺴야함*/}
           <div className="section" style={{ marginTop: '2rem' }}>
             <div className="label" style={{ fontWeight: 'bold', color: '#444', marginBottom: 4 }}>동의자 서명</div>
             <DigitalSignature
@@ -193,7 +199,7 @@ const AgreementModal: React.FC<AgreementModalProps> = ({ isOpen, onClose, onCrea
           </div>
 
           <BtnRow>
-            <Btn $primary type="submit">저장</Btn>
+            <Btn $primary type="submit">작성완료</Btn>
             <Btn type="button" onClick={onClose}>취소</Btn>
           </BtnRow>
         </form>

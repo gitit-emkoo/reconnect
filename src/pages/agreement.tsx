@@ -78,7 +78,7 @@ const AgreementPage: React.FC = () => {
   return (
     <>
       <Container>
-        <Title>우리의 합의서</Title>
+        <Title>리커넥트 인증 합의서</Title>
         <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center', margin: '1.5rem auto 2rem' }}>
           <button
             style={{
@@ -86,14 +86,14 @@ const AgreementPage: React.FC = () => {
               color: 'white',
               border: 'none',
               borderRadius: '8px',
-              padding: '0.8rem 2.2rem',
+              padding: '1rem 1.5rem',
               fontWeight: 600,
               fontSize: '1.08rem',
               cursor: 'pointer',
             }}
             onClick={() => setIsModalOpen(true)}
           >
-            합의서 작성하기
+            ✒️ 합의서 작성
           </button>
           <button
             style={{
@@ -101,7 +101,7 @@ const AgreementPage: React.FC = () => {
               color: 'white',
               border: 'none',
               borderRadius: '8px',
-              padding: '0.8rem 2.2rem',
+              padding: '1rem 1.5rem',
               fontWeight: 600,
               fontSize: '1.08rem',
               cursor: 'pointer',
@@ -117,7 +117,7 @@ const AgreementPage: React.FC = () => {
             style={{ textAlign: 'center', color: '#333', marginBottom: 16, cursor: 'pointer', userSelect: 'none' }}
             onClick={() => setShowSample(v => !v)}
           >
-            샘플 합의서 보기 ▾
+            합의서 샘플 보기 ▾
           </h3>
           {showSample && sampleAgreements.map((agreement) => (
             <div key={agreement.id} style={{ background: '#f8f9fc', borderRadius: 8, padding: '1.2rem', marginBottom: 16, boxShadow: '0 1px 4px rgba(0,0,0,0.04)' }}>
