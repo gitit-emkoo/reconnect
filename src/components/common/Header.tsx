@@ -16,7 +16,7 @@ const HeaderContainer = styled.header`
   position: relative;
   width: 100%;
   max-width: 600px;
-  height: 56px;
+  height: 75px;
   margin: 0 auto;
   background: white;
   border-bottom: 1px solid #f3f3f3;

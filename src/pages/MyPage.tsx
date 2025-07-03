@@ -18,8 +18,7 @@ import IconSubscribe from "../assets/Icon_Subscribe.png";
 const Container = styled.div`
   background-color: white; 
   min-height: 100vh;
-  padding: 2rem;
-  padding-bottom: 70px; 
+  padding: 2rem 1rem 2rem;
 `;
 
 const Title = styled.h2`
@@ -32,9 +31,8 @@ const Title = styled.h2`
 const Section = styled.div`
   background-color: transparent; 
   border-radius: 0; 
-  padding: 1.5rem;
- 
-  margin-bottom: 1.5rem;
+  padding: 1rem;
+  margin-bottom: 1rem;
   text-align: center; 
 `;
 

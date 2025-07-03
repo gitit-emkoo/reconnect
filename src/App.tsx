@@ -57,6 +57,7 @@ import AgreementVerification from './pages/AgreementVerification';
 import TrackPage from './pages/track';
 import PointPage from './pages/point';
 import SubscribePage from './pages/subscribe';
+import AgreementCreatePage from './pages/AgreementCreatePage';
 
 const queryClient = new QueryClient();
 
@@ -164,6 +165,7 @@ const App = () => {
             <Route path="/settings/notifications" element={<ProtectedRoute><PlaceholderPage title="알림 설정" /></ProtectedRoute>} />
             <Route path="/delete-account" element={<ProtectedRoute><PlaceholderPage title="회원탈퇴" /></ProtectedRoute>} />
             <Route path="/agreement" element={<ProtectedRoute><AgreementPage /></ProtectedRoute>} />
+            <Route path="/agreement/create" element={<ProtectedRoute><AgreementCreatePage /></ProtectedRoute>} />
             <Route path="/agreement-verification" element={<ProtectedRoute><AgreementVerification /></ProtectedRoute>} />
             <Route path="/track" element={<ProtectedRoute><TrackPage /></ProtectedRoute>} />
             <Route path="/point" element={<ProtectedRoute><PointPage /></ProtectedRoute>} />

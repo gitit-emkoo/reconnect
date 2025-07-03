@@ -1,25 +1,20 @@
 import React, { useState, useRef } from 'react';
 import styled from 'styled-components';
 import AgreementList, { Agreement } from '../components/agreement/AgreementList';
-import AgreementModal from '../components/agreement/AgreementModal';
 import QRCodeGenerator from '../components/agreement/QRCodeGenerator';
 import NavigationBar from '../components/NavigationBar';
 import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';
 import useAuthStore from '../store/authStore';
+import { useNavigate } from 'react-router-dom';
+import Header from '../components/common/Header';
+import BackButton  from '../components/common/BackButton';
 
 const Container = styled.div`
   background-color: white;
   min-height: 100vh;
   padding: 2rem;
   padding-bottom: 70px; /* NavigationBar 높이만큼 패딩 */
-`;
-
-const Title = styled.h2`
-  font-size: 1.8rem;
-  color: #4A4A4A;
-  margin-bottom: 1.5rem;
-  text-align: center;
 `;
 
 const PreviewModalBox = styled.div`
@@ -46,13 +41,11 @@ const sampleAgreements: Agreement[] = [
 ];
 
 const AgreementPage: React.FC = () => {
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [agreements, setAgreements] = useState<Agreement[]>([]); // 실제 작성 리스트는 비워둠
+  const navigate = useNavigate();
+  const [agreements] = useState<Agreement[]>([]); // 실제 작성 리스트는 비워둠
   const [previewAgreement, setPreviewAgreement] = useState<Agreement | null>(null);
   const pdfRef = useRef<HTMLDivElement>(null);
   const user = useAuthStore((state) => state.user);
-  const myName = user?.nickname || '';
-  const partnerName = user?.partner?.nickname || '';
   const [showSample, setShowSample] = useState(false);
 
   // 샘플 PDF 다운로드
@@ -77,8 +70,9 @@ const AgreementPage: React.FC = () => {
 
   return (
     <>
+    <Header title="리커넥트 인증 합의서" />
+    <BackButton />
       <Container>
-        <Title>리커넥트 인증 합의서</Title>
         <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center', margin: '1.5rem auto 2rem' }}>
           <button
             style={{
@@ -91,7 +85,7 @@ const AgreementPage: React.FC = () => {
               fontSize: '1.08rem',
               cursor: 'pointer',
             }}
-            onClick={() => setIsModalOpen(true)}
+            onClick={() => navigate('/agreement/create')}
           >
             ✒️ 합의서 작성
           </button>
@@ -144,16 +138,6 @@ const AgreementPage: React.FC = () => {
           ))}
         </div>
         <AgreementList agreements={agreements} onView={() => {}} onDownload={() => {}} />
-        <AgreementModal
-          isOpen={isModalOpen}
-          onClose={() => setIsModalOpen(false)}
-          onCreate={(newAgreement) => {
-            setAgreements([newAgreement, ...agreements]);
-            setIsModalOpen(false);
-          }}
-          myName={myName}
-          partnerName={partnerName}
-        />
         {/* 샘플 미리보기 모달 (PDF 캡처용 ref 연결) */}
         {previewAgreement && (
           <div style={{ position: 'fixed', left: 0, top: 0, width: '100vw', height: '100vh', background: 'rgba(0,0,0,0.25)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center' }} onClick={() => setPreviewAgreement(null)}>
