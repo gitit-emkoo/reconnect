@@ -64,16 +64,16 @@ const AgreementCreatePage: React.FC = () => {
   const nowStr = `${now.getFullYear()}-${pad(now.getMonth()+1)}-${pad(now.getDate())} ${pad(now.getHours())}:${pad(now.getMinutes())} (KST)`;
 
   // 간단한 해시 함수
-  const simpleHash = (str: string): string => {
-    let hash = 0;
-    if (str.length === 0) return hash.toString();
-    for (let i = 0; i < str.length; i++) {
-      const char = str.charCodeAt(i);
-      hash = ((hash << 5) - hash) + char;
-      hash = hash & hash;
-    }
-    return Math.abs(hash).toString(16);
-  };
+//   const simpleHash = (str: string): string => {
+//     let hash = 0;
+//     if (str.length === 0) return hash.toString();
+//     for (let i = 0; i < str.length; i++) {
+//       const char = str.charCodeAt(i);
+//       hash = ((hash << 5) - hash) + char;
+//       hash = hash & hash;
+//     }
+//     return Math.abs(hash).toString(16);
+//   };
 
   const [previewAgreement, setPreviewAgreement] = useState<any | null>(null);
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
@@ -108,7 +108,7 @@ const AgreementCreatePage: React.FC = () => {
           </div>
 
           <div className="section" style={{ marginTop: '2rem' }}>
-            <div className="label" style={{ fontWeight: 'bold', color: '#444', marginBottom: 4 }}>약속 내용</div>
+            <div className="label" style={{ fontWeight: 'bold', color: '#444', marginBottom: 4 }}>내용</div>
             <textarea className="value" style={{ width: '100%', padding: '0.8rem 1rem', background: '#f1f3f6', borderRadius: 6, color: '#333', border: 'none', minHeight: 70 }}
               value={content} onChange={e => setContent(e.target.value)} placeholder="약속 내용을 입력하세요" required />
           </div>

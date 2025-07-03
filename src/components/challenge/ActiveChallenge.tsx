@@ -246,7 +246,8 @@ const ActiveChallenge: React.FC<Props> = ({ challenge, onComplete, isCurrentUser
             </CompleteButton>
           </ProgressActionRow>
           <RemainingTime>
-            종료까지 {timeText} 남음 · {progress}%
+            파트너가 챌린지를 완료했을때 눌러주세요<br/>
+            종료까지 {timeText} 남음
           </RemainingTime>
         </RightColumn>
       </MainContent>
