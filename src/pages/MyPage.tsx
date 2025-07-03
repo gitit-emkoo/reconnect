@@ -9,6 +9,12 @@ import NavigationBar from "../components/NavigationBar";
 import ConfirmationModal from "../components/common/ConfirmationModal";
 import { getUserAvatar } from "../utils/avatar";
 
+// 아이콘 import
+import IconAgreement from "../assets/Icon_Agreement.png";
+import IconPoint from "../assets/Icon_Point.png";
+import IconTrack from "../assets/Icon_Track.png";
+import IconSubscribe from "../assets/Icon_Subscribe.png";
+
 const Container = styled.div`
   background-color: white; 
   min-height: 100vh;
@@ -101,6 +107,59 @@ const SettingItem = styled.div< { disabled?: boolean } >`
 
 `;
 
+const MenuButton = styled.button`
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  color: #4A4A4A;
+  border: none;
+  padding: 0.8rem;
+  font-weight: 500;
+  font-size: 0.85rem;
+  cursor: pointer;
+  min-width: 70px;
+  min-height: 70px;
+  transition: all 0.2s ease-in-out;
+
+  &:hover {
+    transform: translateY(-2px);
+    color: #FF69B4;
+  }
+
+  img {
+    width: 32px;
+    height: 32px;
+    margin-bottom: 0.5rem;
+    filter: none;
+    transition: all 0.2s ease-in-out;
+  }
+
+  &:hover img {
+    transform: scale(1.1);
+  }
+`;
+
+const MenuContainer = styled.div`
+  background-color: rgb(249, 249, 249);
+  border-radius: 16px;
+  padding: 0.5rem 0 0.5rem;
+  margin-top: 1.2rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  overflow: hidden;
+  width: 100%;
+  max-width: 420px;
+  
+`;
+
+const MenuGrid = styled.div`
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(70px, 1fr));
+  justify-items: center;
+  width: 100%;
+`;
+
 const MyPage: React.FC = () => {
   const navigate = useNavigate();
   const user = useAuthStore((state) => state.user);
@@ -160,40 +219,26 @@ const MyPage: React.FC = () => {
           <UserInfoText>
             <strong>연결된 파트너:</strong> {user?.partner?.nickname || '없음'}
           </UserInfoText>
-          <div style={{ display: 'flex', gap: '0.7rem', marginTop: '1.2rem', justifyContent: 'center' }}>
-            <button
-              style={{
-                background: '#4a6cf7', color: 'white', border: 'none', borderRadius: '8px', padding: '0.7rem 1.2rem', fontWeight: 600, fontSize: '1rem', cursor: 'pointer', minWidth: 80
-              }}
-              onClick={() => navigate('/agreement')}
-            >
-              합의서
-            </button>
-            <button
-              style={{
-                background: '#6b8afd', color: 'white', border: 'none', borderRadius: '8px', padding: '0.7rem 1.2rem', fontWeight: 600, fontSize: '1rem', cursor: 'pointer', minWidth: 80
-              }}
-              onClick={() => navigate('/track')}
-            >
-              트랙
-            </button>
-            <button
-              style={{
-                background: '#f7b731', color: 'white', border: 'none', borderRadius: '8px', padding: '0.7rem 1.2rem', fontWeight: 600, fontSize: '1rem', cursor: 'pointer', minWidth: 80
-              }}
-              onClick={() => navigate('/point')}
-            >
-              포인트
-            </button>
-            <button
-              style={{
-                background: '#00b894', color: 'white', border: 'none', borderRadius: '8px', padding: '0.7rem 1.2rem', fontWeight: 600, fontSize: '1rem', cursor: 'pointer', minWidth: 80
-              }}
-              onClick={() => navigate('/subscribe')}
-            >
-              구독
-            </button>
-          </div>
+          <MenuContainer>
+            <MenuGrid>
+              <MenuButton onClick={() => navigate('/agreement')}>
+                <img src={IconTrack} alt="합의서" />
+                합의서
+              </MenuButton>
+              <MenuButton onClick={() => navigate('/track')}>
+                <img src={IconAgreement} alt="트랙" />
+                감정트랙
+              </MenuButton>
+              <MenuButton onClick={() => navigate('/point')}>
+                <img src={IconPoint} alt="포인트" />
+                ReCoin
+              </MenuButton>
+              <MenuButton onClick={() => navigate('/subscribe')}>
+                <img src={IconSubscribe} alt="구독" />
+                구독관리
+              </MenuButton>
+            </MenuGrid>
+          </MenuContainer>
         </Section>
 
         <Section style={{ textAlign: 'left' }}> {/* 설정 섹션은 내부 텍스트 왼쪽 정렬 */}
