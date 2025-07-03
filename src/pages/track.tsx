@@ -1,8 +1,10 @@
-import React from 'react';
+import React, { useState } from 'react';
 import Header from '../components/common/Header';
 import styled from 'styled-components';
 import NavigationBar from '../components/NavigationBar';
 import BackButton from '../components/common/BackButton';
+import { useNavigate } from 'react-router-dom';
+import ConfirmationModal from '../components/common/ConfirmationModal';
 
 const Container = styled.div`
   background-color: #f6f8fb;
@@ -29,7 +31,7 @@ const Emoji = styled.div`
 `;
 
 const Title = styled.h2`
-  font-size: 1.4rem;
+  font-size: 1.25rem;
   margin-bottom: 0.6rem;
 `;
 
@@ -93,28 +95,36 @@ const Button = styled.button<{ variant: 'blue' | 'purple' }>`
 `;
 
 const TrackPage: React.FC = () => {
+  const [modalOpen, setModalOpen] = useState(false);
+  const navigate = useNavigate();
+
   const handleSingleReport = () => {
-    // 단일 리포트 구매 로직
-    console.log('단일 리포트 구매 클릭');
+    setModalOpen(true);
   };
 
   const handleSubscribe = () => {
-    // 구독 페이지로 이동 로직
+    navigate('/subscribe');
     console.log('구독하기 클릭');
+  };
+
+  const handleModalConfirm = () => {
+    setModalOpen(false);
+    navigate('/subscribe');
   };
 
   return (
     <>
-      <Header title="감정 트랙(감정일기 리포트)" />
+      <Header title="감정 일기 분석 리포트" />
       <BackButton />
       <Container>
         <Wrap>
           <Emoji>🔒</Emoji>
-          <Title>AI가 감정 리포트를 완성했어요</Title>
+          <Title>AI가 월간 감정 흐름을<br/>분석했어요</Title>
           <Description>
-            당신이 남긴 감정일기를 분석해<br/>
-            한 달간의 감정 흐름이 정리되어 있어요.<br/>
-            하지만, 이 리포트는 아직 열람할 수 없습니다.
+          나의 감정 일기를 AI가 분석해, <br/>
+          한 달간의 감정 흐름을 리포트로<br/>
+          정리했어요.<br/>
+          감정 회고 ,상담 ,자기 돌봄에 중요한 데이터입니다.
           </Description>
           
           {/* 흐림 처리된 리포트 미리보기 */}
@@ -127,13 +137,22 @@ const TrackPage: React.FC = () => {
           {/* CTA 버튼들 */}
           <CtaBox>
             <Button variant="blue" onClick={handleSingleReport}>
-              📘 ₩1,000으로 이번 리포트 열람
+              리포트 열기<br/>
+              <span style={{ fontSize: '0.8rem' }}>₩1,000 / 1회 열람권</span>
             </Button>
             <Button variant="purple" onClick={handleSubscribe}>
-              💙 리커넥트케어 전체 구독하기
+              💙 리커넥트케어
             </Button>
           </CtaBox>
         </Wrap>
+        <ConfirmationModal
+          isOpen={modalOpen}
+          onRequestClose={() => setModalOpen(false)}
+          onConfirm={handleModalConfirm}
+          message="리커넥트 케어 무료 이벤트 중입니다. 리커넥트케어 보러가기"
+          confirmButtonText="이벤트 보러가기"
+          showCancelButton={false}
+        />
       </Container>
       <NavigationBar />
     </>

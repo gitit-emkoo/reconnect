@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import styled from 'styled-components';
 import AgreementList, { Agreement } from '../components/agreement/AgreementList';
 import QRCodeGenerator from '../components/agreement/QRCodeGenerator';
@@ -9,12 +9,13 @@ import useAuthStore from '../store/authStore';
 import { useNavigate } from 'react-router-dom';
 import Header from '../components/common/Header';
 import BackButton  from '../components/common/BackButton';
+import { agreementApi, Agreement as ApiAgreement } from '../api/agreement';
 
 const Container = styled.div`
   background-color: white;
   min-height: 100vh;
   padding: 2rem;
-  padding-bottom: 70px; /* NavigationBar 높이만큼 패딩 */
+  padding-bottom: 70px; 
 `;
 
 const PreviewModalBox = styled.div`
@@ -30,6 +31,93 @@ const PreviewModalBox = styled.div`
   justify-content: flex-start;
 `;
 
+
+
+const TopButtonRow = styled.div`
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+  margin: 1.5rem auto 2rem;
+`;
+
+const TopButton = styled.button<{ $primary?: boolean }>`
+  background: ${p => p.$primary ? '#785cd2' : '#28a745'};
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 1rem 1.5rem;
+  font-weight: 600;
+  font-size: 1.08rem;
+  cursor: pointer;
+`;
+
+
+const ModalOverlay = styled.div`
+  position: fixed;
+  left: 0;
+  top: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0,0,0,0.25);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+`;
+
+const ModalTitle = styled.h2`
+  text-align: center;
+  color: #333;
+`;
+
+const ModalSection = styled.div`
+  margin-top: 2rem;
+`;
+
+const ModalLabel = styled.div`
+  font-weight: bold;
+  color: #444;
+  margin-bottom: 0.3rem;
+`;
+
+const ModalValue = styled.div`
+  padding: 0.8rem 1rem;
+  background: #f1f3f6;
+  border-radius: 6px;
+  color: #333;
+`;
+
+const SignatureImg = styled.img`
+  width: 100%;
+  height: 60px;
+  object-fit: contain;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+`;
+
+const SignatureLabel = styled.div`
+  font-size: 0.8rem;
+  color: #666;
+  margin-bottom: 0.3rem;
+`;
+
+const SignatureBox = styled.div`
+  flex: 1;
+  min-width: 120px;
+`;
+
+const ModalFooter = styled.div`
+  text-align: center;
+  font-size: 0.9rem;
+  color: #777;
+  margin-top: 2rem;
+`;
+
+const ModalHash = styled.div`
+  margin-top: 0.5rem;
+  font-size: 0.8rem;
+`;
+
 const sampleAgreements: Agreement[] = [
   {
     id: 'sample1',
@@ -42,11 +130,36 @@ const sampleAgreements: Agreement[] = [
 
 const AgreementPage: React.FC = () => {
   const navigate = useNavigate();
-  const [agreements] = useState<Agreement[]>([]); // 실제 작성 리스트는 비워둠
+  const [agreements, setAgreements] = useState<ApiAgreement[]>([]);
+  
+  
   const [previewAgreement, setPreviewAgreement] = useState<Agreement | null>(null);
   const pdfRef = useRef<HTMLDivElement>(null);
   const user = useAuthStore((state) => state.user);
   const [showSample, setShowSample] = useState(false);
+
+  // 합의서 목록 가져오기
+  useEffect(() => {
+    const fetchAgreements = async () => {
+      try {
+        
+        const data = await agreementApi.findMyAgreements();
+        setAgreements(data);
+        
+      } catch (err: any) {
+        // 네트워크 에러(404, 500 등)만 에러 메시지 표시
+        if (err?.response && err.response.status >= 400) {
+          
+        } else {
+          
+        }
+      } finally {
+        
+      }
+    };
+
+    fetchAgreements();
+  }, []);
 
   // 샘플 PDF 다운로드
   const handleDownloadPdf = async (agreement: Agreement) => {
@@ -68,44 +181,39 @@ const AgreementPage: React.FC = () => {
     }, 300); // 모달 렌더링 후 캡처
   };
 
+  // 실제 합의서를 Agreement 타입으로 변환
+  const convertToAgreementType = (apiAgreement: ApiAgreement): Agreement => {
+    return {
+      id: apiAgreement.id,
+      title: apiAgreement.title,
+      content: apiAgreement.content,
+      date: new Date(apiAgreement.createdAt).toLocaleDateString('ko-KR', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+      }),
+      partnerName: apiAgreement.partner.nickname,
+      authorName: apiAgreement.author.nickname,
+      authorSignature: apiAgreement.authorSignature,
+      partnerSignature: apiAgreement.partnerSignature || undefined,
+      agreementHash: apiAgreement.agreementHash || undefined,
+      status: apiAgreement.status,
+    };
+  };
+
+  const convertedAgreements = agreements.map(convertToAgreementType);
+
   return (
     <>
     <Header title="리커넥트 인증 합의서" />
     <BackButton />
       <Container>
-        <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center', margin: '1.5rem auto 2rem' }}>
-          <button
-            style={{
-              background: '#785cd2',
-              color: 'white',
-              border: 'none',
-              borderRadius: '8px',
-              padding: '1rem 1.5rem',
-              fontWeight: 600,
-              fontSize: '1.08rem',
-              cursor: 'pointer',
-            }}
-            onClick={() => navigate('/agreement/create')}
-          >
-            ✒️ 합의서 작성
-          </button>
-          <button
-            style={{
-              background: '#28a745',
-              color: 'white',
-              border: 'none',
-              borderRadius: '8px',
-              padding: '1rem 1.5rem',
-              fontWeight: 600,
-              fontSize: '1.08rem',
-              cursor: 'pointer',
-            }}
-            onClick={() => window.location.href = '/agreement-verification'}
-          >
-            🔐 합의서 인증
-          </button>
-        </div>
-        {/* 샘플 리스트 토글 */}
+        <TopButtonRow>
+          <TopButton $primary onClick={() => navigate('/agreement/create')}>✒️ 합의서 작성</TopButton>
+          <TopButton onClick={() => window.location.href = '/agreement-verification'}>🔐 합의서 인증</TopButton>
+        </TopButtonRow>
+
+        {/* 샘플 리스트 토글이 항상 위에 */}
         <div style={{ marginTop: '1.5rem' }}>
           <h3
             style={{ textAlign: 'center', color: '#333', marginBottom: 16, cursor: 'pointer', userSelect: 'none' }}
@@ -113,107 +221,88 @@ const AgreementPage: React.FC = () => {
           >
             합의서 샘플 보기 ▾
           </h3>
-          {showSample && sampleAgreements.map((agreement) => (
-            <div key={agreement.id} style={{ background: '#f8f9fc', borderRadius: 8, padding: '1.2rem', marginBottom: 16, boxShadow: '0 1px 4px rgba(0,0,0,0.04)' }}>
-              <div style={{ fontWeight: 600, fontSize: '1.1rem', color: '#222' }}>{agreement.title}</div>
-              <div style={{ color: '#555', marginTop: '0.5rem' }}>{agreement.content}</div>
-              <div style={{ fontSize: '0.95rem', color: '#888', marginTop: '0.7rem' }}>
-                ✔️ 합의일: {agreement.date} | 동의자: {agreement.partnerName}
-              </div>
-              <div style={{ marginTop: '1rem', display: 'flex', gap: '0.7rem' }}>
-                <button
-                  style={{ padding: '0.5rem 0.8rem', fontSize: '0.9rem', borderRadius: 6, border: 'none', background: '#785cd2', color: 'white', cursor: 'pointer' }}
-                  onClick={() => setPreviewAgreement(agreement)}
-                >
-                  미리보기
-                </button>
-                <button
-                  style={{ padding: '0.5rem 0.8rem', fontSize: '0.9rem', borderRadius: 6, border: 'none', background: '#e0e0e0', color: '#333', cursor: 'pointer' }}
-                  onClick={() => handleDownloadPdf(agreement)}
-                >
-                  PDF로 저장
-                </button>
-              </div>
-            </div>
-          ))}
+          {showSample && (
+            <AgreementList
+              agreements={sampleAgreements}
+              onView={setPreviewAgreement}
+              onDownload={handleDownloadPdf}
+            />
+          )}
         </div>
-        <AgreementList agreements={agreements} onView={() => {}} onDownload={() => {}} />
+
+        {/* 실제 내 합의서 리스트는 항상 아래에 */}
+        <AgreementList
+          agreements={convertedAgreements}
+          onView={setPreviewAgreement}
+          onDownload={handleDownloadPdf}
+        />
+
+
         {/* 샘플 미리보기 모달 (PDF 캡처용 ref 연결) */}
         {previewAgreement && (
-          <div style={{ position: 'fixed', left: 0, top: 0, width: '100vw', height: '100vh', background: 'rgba(0,0,0,0.25)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center' }} onClick={() => setPreviewAgreement(null)}>
+          <ModalOverlay onClick={() => setPreviewAgreement(null)}>
             <PreviewModalBox ref={pdfRef} onClick={e => e.stopPropagation()}>
-              <h2 style={{ textAlign: 'center', color: '#333' }}>🤝 공동 약속서</h2>
-              <div style={{ marginTop: '2rem' }}>
-                <div style={{ fontWeight: 'bold', color: '#444', marginBottom: '0.3rem' }}>약속 주제</div>
-                <div style={{ padding: '0.8rem 1rem', background: '#f1f3f6', borderRadius: 6, color: '#333' }}>{previewAgreement.title}</div>
-              </div>
-              <div style={{ marginTop: '2rem' }}>
-                <div style={{ fontWeight: 'bold', color: '#444', marginBottom: '0.3rem' }}>약속 내용</div>
-                <div style={{ padding: '0.8rem 1rem', background: '#f1f3f6', borderRadius: 6, color: '#333' }}>{previewAgreement.content}</div>
-              </div>
-              <div style={{ marginTop: '2rem' }}>
-                <div style={{ fontWeight: 'bold', color: '#444', marginBottom: '0.3rem' }}>작성자</div>
-                <div style={{ padding: '0.8rem 1rem', background: '#f1f3f6', borderRadius: 6, color: '#333' }}>{previewAgreement.authorName || '홍길동'} (ID: hk2024)</div>
-              </div>
-              <div style={{ marginTop: '2rem' }}>
-                <div style={{ fontWeight: 'bold', color: '#444', marginBottom: '0.3rem' }}>동의자</div>
-                <div style={{ padding: '0.8rem 1rem', background: '#f1f3f6', borderRadius: 6, color: '#333' }}>{previewAgreement.partnerName} (ID: moonlee92)</div>
-              </div>
-              <div style={{ marginTop: '2rem' }}>
-                <div style={{ fontWeight: 'bold', color: '#444', marginBottom: '0.3rem' }}>작성일 및 서명시간</div>
-                <div style={{ padding: '0.8rem 1rem', background: '#f1f3f6', borderRadius: 6, color: '#333' }}>{previewAgreement.date}</div>
-              </div>
-              
+              <ModalTitle>공동 약속서</ModalTitle>
+              <ModalSection>
+                <ModalLabel>약속 주제</ModalLabel>
+                <ModalValue>{previewAgreement.title}</ModalValue>
+              </ModalSection>
+              <ModalSection>
+                <ModalLabel>약속 내용</ModalLabel>
+                <ModalValue>{previewAgreement.content}</ModalValue>
+              </ModalSection>
+              <ModalSection>
+                <ModalLabel>작성자</ModalLabel>
+                <ModalValue>{previewAgreement.authorName} </ModalValue>
+              </ModalSection>
+              <ModalSection>
+                <ModalLabel>동의자</ModalLabel>
+                <ModalValue>{previewAgreement.partnerName} </ModalValue>
+              </ModalSection>
+              <ModalSection>
+                <ModalLabel>작성일 및 서명시간</ModalLabel>
+                <ModalValue>{previewAgreement.date}</ModalValue>
+              </ModalSection>
               {/* 서명 섹션 */}
               {(previewAgreement.authorSignature || previewAgreement.partnerSignature) && (
-                <div style={{ marginTop: '2rem' }}>
-                  <div style={{ fontWeight: 'bold', color: '#444', marginBottom: '0.3rem' }}>서명</div>
+                <ModalSection>
+                  <ModalLabel>서명</ModalLabel>
                   <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
                     {previewAgreement.authorSignature && (
-                      <div style={{ flex: 1, minWidth: '120px' }}>
-                        <div style={{ fontSize: '0.8rem', color: '#666', marginBottom: '0.3rem' }}>작성자 서명</div>
-                        <img 
-                          src={previewAgreement.authorSignature} 
-                          alt="작성자 서명" 
-                          style={{ width: '100%', height: '60px', objectFit: 'contain', border: '1px solid #ddd', borderRadius: 4 }}
-                        />
-                      </div>
+                      <SignatureBox>
+                        <SignatureLabel>작성자 서명</SignatureLabel>
+                        <SignatureImg src={previewAgreement.authorSignature} alt="작성자 서명" />
+                      </SignatureBox>
                     )}
                     {previewAgreement.partnerSignature && (
-                      <div style={{ flex: 1, minWidth: '120px' }}>
-                        <div style={{ fontSize: '0.8rem', color: '#666', marginBottom: '0.3rem' }}>동의자 서명</div>
-                        <img 
-                          src={previewAgreement.partnerSignature} 
-                          alt="동의자 서명" 
-                          style={{ width: '100%', height: '60px', objectFit: 'contain', border: '1px solid #ddd', borderRadius: 4 }}
-                        />
-                      </div>
+                      <SignatureBox>
+                        <SignatureLabel>동의자 서명</SignatureLabel>
+                        <SignatureImg src={previewAgreement.partnerSignature} alt="동의자 서명" />
+                      </SignatureBox>
                     )}
                   </div>
-                </div>
+                </ModalSection>
               )}
-              
               {/* QR 인증 마크 */}
               {previewAgreement.agreementHash && (
-                <div style={{ marginTop: '2rem', textAlign: 'center' }}>
+                <ModalSection style={{ textAlign: 'center' }}>
                   <QRCodeGenerator 
                     agreement={previewAgreement} 
                     size={100} 
                     showVerificationInfo={false}
                   />
-                </div>
+                </ModalSection>
               )}
-              
-              <div style={{ textAlign: 'center', fontSize: '0.9rem', color: '#777', marginTop: '2rem' }}>
+              <ModalFooter>
                 * 본 문서는 리커넥트 앱 내 사용자 간 심리적 합의 기록용으로 작성되었습니다.
                 {previewAgreement.agreementHash && (
-                  <div style={{ marginTop: '0.5rem', fontSize: '0.8rem' }}>
+                  <ModalHash>
                     인증 해시: {previewAgreement.agreementHash.substring(0, 8)}...
-                  </div>
+                  </ModalHash>
                 )}
-              </div>
+              </ModalFooter>
             </PreviewModalBox>
-          </div>
+          </ModalOverlay>
         )}
       </Container>
       <NavigationBar />
@@ -222,3 +311,4 @@ const AgreementPage: React.FC = () => {
 };
 
 export default AgreementPage;
+

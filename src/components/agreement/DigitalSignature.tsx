@@ -70,22 +70,21 @@ const DigitalSignature: React.FC<DigitalSignatureProps> = ({
 }) => {
   const signatureRef = useRef<SignatureCanvas>(null);
   const [isSigned, setIsSigned] = useState(false);
-
+  const [canComplete, setCanComplete] = useState(false);
 
   const clearSignature = () => {
     if (signatureRef.current) {
       signatureRef.current.clear();
       setIsSigned(false);
+      setCanComplete(false);
       onSignatureChange('', '');
     }
   };
 
   const saveSignature = () => {
     if (signatureRef.current && !signatureRef.current.isEmpty()) {
-      const signature = signatureRef.current.getTrimmedCanvas().toDataURL('image/png');
+      const signature = signatureRef.current.toDataURL('image/png');
       const hash = simpleHash(signature + Date.now().toString());
-      
-
       setIsSigned(true);
       onSignatureChange(signature, hash);
     }
@@ -94,7 +93,8 @@ const DigitalSignature: React.FC<DigitalSignatureProps> = ({
   const handleCanvasChange = () => {
     if (signatureRef.current) {
       const isEmpty = signatureRef.current.isEmpty();
-      setIsSigned(!isEmpty);
+      setCanComplete(!isEmpty);
+      setIsSigned(false);
     }
   };
 
@@ -127,7 +127,7 @@ const DigitalSignature: React.FC<DigitalSignatureProps> = ({
       <ButtonGroup>
         <Button 
           onClick={saveSignature} 
-          disabled={disabled || signatureRef.current?.isEmpty()}
+          disabled={disabled || !canComplete}
           $primary
         >
           서명 완료

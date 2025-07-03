@@ -3,6 +3,7 @@ import styled from 'styled-components';
 import DigitalSignature from '../components/agreement/DigitalSignature';
 import { useNavigate } from 'react-router-dom';
 import useAuthStore from '../store/authStore';
+import { agreementApi } from '../api/agreement';
 
 const Container = styled.div`
   background: #fff;
@@ -44,6 +45,101 @@ const PreviewModalBox = styled.div`
   z-index: 2000;
 `;
 
+const LoadingSpinner = styled.div`
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 1rem;
+  color: #666;
+`;
+
+const ErrorMessage = styled.div`
+  text-align: center;
+  color: #e74c3c;
+  padding: 1rem;
+  background: #fdf2f2;
+  border-radius: 8px;
+  margin: 1rem 0;
+`;
+
+const Title = styled.h2`
+  text-align: center;
+  color: #333;
+`;
+
+const Section = styled.div`
+  margin-top: 2rem;
+`;
+
+const Label = styled.div`
+  font-weight: bold;
+  color: #444;
+  margin-bottom: 4px;
+`;
+
+const ValueInput = styled.input`
+  width: 100%;
+  padding: 0.8rem 1rem;
+  background: #f1f3f6;
+  border-radius: 6px;
+  color: #333;
+  border: none;
+  margin-bottom: 0;
+`;
+
+const ValueTextarea = styled.textarea`
+  width: 100%;
+  padding: 0.8rem 1rem;
+  background: #f1f3f6;
+  border-radius: 6px;
+  color: #333;
+  border: none;
+  min-height: 90px;
+  margin-bottom: 0;
+`;
+
+const Footer = styled.div`
+  text-align: center;
+  font-size: 0.9rem;
+  color: #777;
+  margin-top: 2rem;
+`;
+
+const ModalTitle = styled.h2`
+  text-align: center;
+  color: #333;
+`;
+
+const ModalField = styled.div`
+  margin-top: 1.2rem;
+`;
+
+const ModalLabel = styled.div`
+  font-weight: bold;
+  color: #444;
+  margin-bottom: 4px;
+`;
+
+const ModalValue = styled.div`
+  padding: 0.7rem 1rem;
+  background: #f1f3f6;
+  border-radius: 6px;
+  color: #333;
+`;
+
+const SignatureImg = styled.img`
+  width: 100%;
+  height: 60px;
+  object-fit: contain;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+`;
+
+const SignatureNone = styled.div`
+  color: #aaa;
+  font-size: 0.95rem;
+`;
+
 const AgreementCreatePage: React.FC = () => {
   const navigate = useNavigate();
   const user = useAuthStore((state) => state.user);
@@ -58,25 +154,17 @@ const AgreementCreatePage: React.FC = () => {
   const [authorSignature, setAuthorSignature] = useState('');
   const [authorSignatureHash, setAuthorSignatureHash] = useState('');
 
+
+  // 상태 관리
+  const [previewAgreement, setPreviewAgreement] = useState<any | null>(null);
+  const [isPreviewOpen, setIsPreviewOpen] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
   // 현재 날짜시간 (YYYY-MM-DD HH:mm)
   const now = new Date();
   const pad = (n: number) => n.toString().padStart(2, '0');
   const nowStr = `${now.getFullYear()}-${pad(now.getMonth()+1)}-${pad(now.getDate())} ${pad(now.getHours())}:${pad(now.getMinutes())} (KST)`;
-
-  // 간단한 해시 함수
-//   const simpleHash = (str: string): string => {
-//     let hash = 0;
-//     if (str.length === 0) return hash.toString();
-//     for (let i = 0; i < str.length; i++) {
-//       const char = str.charCodeAt(i);
-//       hash = ((hash << 5) - hash) + char;
-//       hash = hash & hash;
-//     }
-//     return Math.abs(hash).toString(16);
-//   };
-
-  const [previewAgreement, setPreviewAgreement] = useState<any | null>(null);
-  const [isPreviewOpen, setIsPreviewOpen] = useState(false);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -96,123 +184,144 @@ const AgreementCreatePage: React.FC = () => {
     setIsPreviewOpen(true);
   };
 
+  const handleCreateAgreement = async () => {
+    if (!user?.partner?.id) {
+      setError('파트너 정보가 없습니다.');
+      return;
+    }
+
+    if (!authorSignature) {
+      setError('작성자 서명이 필요합니다.');
+      return;
+    }
+
+
+
+    try {
+      setIsSubmitting(true);
+      setError(null);
+
+      const agreementData = {
+        title,
+        content,
+        condition,
+        partnerId: user.partner.id,
+        authorSignature,
+        coupleId: user.couple?.id,
+      };
+
+      await agreementApi.create(agreementData);
+      
+      // 성공 시 합의서 목록 페이지로 이동
+      navigate('/agreement');
+    } catch (err) {
+      console.error('합의서 생성 실패:', err);
+      setError('합의서 생성에 실패했습니다. 다시 시도해주세요.');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   return (
     <Container>
-      
-        <h2 style={{ textAlign: 'center', color: '#333' }}>리커넥트 인증 합의서 작성</h2>
-        <form style={{ width: '100%' }} onSubmit={handleSubmit}>
-          <div className="section" style={{ marginTop: '2rem' }}>
-            <div className="label" style={{ fontWeight: 'bold', color: '#444', marginBottom: 4 }}>제목</div>
-            <input className="value" style={{ width: '100%', padding: '0.8rem 1rem', background: '#f1f3f6', borderRadius: 6, color: '#333', border: 'none', marginBottom: 0 }}
-              type="text" value={title} onChange={e => setTitle(e.target.value)} placeholder="합의할 약속의 제목을 입력하세요" required />
-          </div>
+      <Title>리커넥트 인증 합의서 작성</Title>
+      <form style={{ width: '100%' }} onSubmit={handleSubmit}>
+        <Section>
+          <Label>제목</Label>
+          <ValueInput type="text" value={title} onChange={e => setTitle(e.target.value)} placeholder="합의할 약속의 제목을 입력하세요" required />
+        </Section>
+        <Section>
+          <Label>내용</Label>
+          <ValueTextarea value={content} onChange={e => setContent(e.target.value)} placeholder="약속 내용을 입력하세요" required />
+        </Section>
+        <Section>
+          <Label>미 이행시 조건</Label>
+          <ValueTextarea value={condition} onChange={e => setCondition(e.target.value)} placeholder="미이행시 조건을 입력하세요" required />
+        </Section>
+        <Section>
+          <Label>작성자</Label>
+          <ValueInput type="text" value={author} onChange={e => setAuthor(e.target.value)} placeholder="작성자 이름을 입력하세요" required />
+        </Section>
+        <Section>
+          <Label>동의자</Label>
+          <ValueInput type="text" value={partner} onChange={e => setPartner(e.target.value)} placeholder="동의자 이름을 입력하세요" required />
+        </Section>
+        <Section>
+          <Label>작성자 서명</Label>
+          <DigitalSignature
+            onSignatureChange={(signature, hash) => {
+              setAuthorSignature(signature);
+              setAuthorSignatureHash(hash);
+            }}
+            placeholder={`${author || '작성자'} 서명`}
+          />
+        </Section>
+        <Section>
+          <Label>작성일 및 서명시간</Label>
+          <ModalValue>{nowStr}</ModalValue>
+        </Section>
+        <Footer>
+          * 본 문서는 리커넥트 앱 내 사용자 간 심리적 합의 기록용으로 작성되었습니다.
+        </Footer>
+        <BtnRow>
+          <Btn type="button" onClick={() => navigate(-1)}>취소</Btn>
+          <Btn $primary type="submit">합의서 미리보기</Btn>
+        </BtnRow>
+      </form>
 
-          <div className="section" style={{ marginTop: '2rem' }}>
-            <div className="label" style={{ fontWeight: 'bold', color: '#444', marginBottom: 4 }}>내용</div>
-            <textarea className="value" style={{ width: '100%', padding: '0.8rem 1rem', background: '#f1f3f6', borderRadius: 6, color: '#333', border: 'none', minHeight: 70 }}
-              value={content} onChange={e => setContent(e.target.value)} placeholder="약속 내용을 입력하세요" required />
-          </div>
-
-          <div className="section" style={{ marginTop: '2rem' }}>
-            <div className="label" style={{ fontWeight: 'bold', color: '#444', marginBottom: 4 }}>미 이행시 조건</div>
-            <input className="value" style={{ width: '100%', padding: '0.8rem 1rem', background: '#f1f3f6', borderRadius: 6, color: '#333', border: 'none', marginBottom: 0 }}
-              type="text" value={condition} onChange={e => setCondition(e.target.value)} placeholder="미이행시 조건을 입력하세요" required />
-          </div>
-
-          <div className="section" style={{ marginTop: '2rem' }}>
-            <div className="label" style={{ fontWeight: 'bold', color: '#444', marginBottom: 4 }}>작성자</div>
-            <input className="value" style={{ width: '100%', padding: '0.8rem 1rem', background: '#f1f3f6', borderRadius: 6, color: '#333', border: 'none' }}
-              type="text" value={author} onChange={e => setAuthor(e.target.value)} placeholder="작성자 이름을 입력하세요" required />
-          </div>
-
-          <div className="section" style={{ marginTop: '2rem' }}>
-            <div className="label" style={{ fontWeight: 'bold', color: '#444', marginBottom: 4 }}>동의자</div>
-            <input className="value" style={{ width: '100%', padding: '0.8rem 1rem', background: '#f1f3f6', borderRadius: 6, color: '#333', border: 'none' }}
-              type="text" value={partner} onChange={e => setPartner(e.target.value)} placeholder="동의자 이름을 입력하세요" required />
-          </div>
-
-          {/* 작성자 서명 */}
-          <div className="section" style={{ marginTop: '2rem' }}>
-            <div className="label" style={{ fontWeight: 'bold', color: '#444', marginBottom: 4 }}>작성자 서명</div>
-            <DigitalSignature
-              onSignatureChange={(signature, hash) => {
-                setAuthorSignature(signature);
-                setAuthorSignatureHash(hash);
-              }}
-              placeholder={`${author || '작성자'} 서명`}
-            />
-          </div>
-
-          {/* 동의자 서명 이건 뺴야함*/}
-          {/* <div className="section" style={{ marginTop: '2rem' }}>
-            <div className="label" style={{ fontWeight: 'bold', color: '#444', marginBottom: 4 }}>동의자 서명</div>
-            <DigitalSignature
-              onSignatureChange={(signature, hash) => {
-                setPartnerSignature(signature);
-                setPartnerSignatureHash(hash);
-              }}
-              placeholder={`${partner || '동의자'} 서명`}
-            />
-          </div> */}
-
-          <div className="section" style={{ marginTop: '2rem' }}>
-            <div className="label" style={{ fontWeight: 'bold', color: '#444', marginBottom: 4 }}>작성일 및 서명시간</div>
-            <div className="value" style={{ width: '100%', padding: '0.8rem 1rem', background: '#f1f3f6', borderRadius: 6, color: '#333', border: 'none' }}>{nowStr}</div>
-          </div>
-
-          <div className="footer" style={{ textAlign: 'center', fontSize: '0.9rem', color: '#777', marginTop: '2rem' }}>
-            * 본 문서는 리커넥트 앱 내 사용자 간 심리적 합의 기록용으로 작성되었습니다.
-          </div>
-
-          <BtnRow>
-            <Btn type="button" onClick={() => navigate(-1)}>취소</Btn>
-            <Btn $primary type="submit">합의서 전송</Btn>
-          </BtnRow>
-        </form>
-
-        {isPreviewOpen && previewAgreement && (
-          <div style={{ position: 'fixed', left: 0, top: 0, width: '100vw', height: '100vh', background: 'rgba(0,0,0,0.25)', zIndex: 1500, display: 'flex', alignItems: 'center', justifyContent: 'center' }} onClick={() => setIsPreviewOpen(false)}>
-            <PreviewModalBox onClick={e => e.stopPropagation()}>
-              <h2 style={{ textAlign: 'center', color: '#333' }}>합의서 미리보기</h2>
-              <div style={{ marginTop: '1.5rem' }}>
-                <div style={{ fontWeight: 'bold', color: '#444', marginBottom: 4 }}>제목</div>
-                <div style={{ padding: '0.7rem 1rem', background: '#f1f3f6', borderRadius: 6, color: '#333' }}>{previewAgreement.title}</div>
-              </div>
-              <div style={{ marginTop: '1.2rem' }}>
-                <div style={{ fontWeight: 'bold', color: '#444', marginBottom: 4 }}>약속 내용</div>
-                <div style={{ padding: '0.7rem 1rem', background: '#f1f3f6', borderRadius: 6, color: '#333' }}>{previewAgreement.content}</div>
-              </div>
-              <div style={{ marginTop: '1.2rem' }}>
-                <div style={{ fontWeight: 'bold', color: '#444', marginBottom: 4 }}>미이행시 조건</div>
-                <div style={{ padding: '0.7rem 1rem', background: '#f1f3f6', borderRadius: 6, color: '#333' }}>{previewAgreement.condition}</div>
-              </div>
-              <div style={{ marginTop: '1.2rem' }}>
-                <div style={{ fontWeight: 'bold', color: '#444', marginBottom: 4 }}>작성자</div>
-                <div style={{ padding: '0.7rem 1rem', background: '#f1f3f6', borderRadius: 6, color: '#333' }}>{previewAgreement.author}</div>
-              </div>
-              <div style={{ marginTop: '1.2rem' }}>
-                <div style={{ fontWeight: 'bold', color: '#444', marginBottom: 4 }}>동의자</div>
-                <div style={{ padding: '0.7rem 1rem', background: '#f1f3f6', borderRadius: 6, color: '#333' }}>{previewAgreement.partner}</div>
-              </div>
-              <div style={{ marginTop: '1.2rem' }}>
-                <div style={{ fontWeight: 'bold', color: '#444', marginBottom: 4 }}>작성자 서명</div>
-                {previewAgreement.authorSignature ? (
-                  <img src={previewAgreement.authorSignature} alt="작성자 서명" style={{ width: '100%', height: '60px', objectFit: 'contain', border: '1px solid #ddd', borderRadius: 4 }} />
+      {isPreviewOpen && previewAgreement && (
+        <div style={{ position: 'fixed', left: 0, top: 0, width: '100vw', height: '100vh', background: 'rgba(0,0,0,0.25)', zIndex: 1500, display: 'flex', alignItems: 'center', justifyContent: 'center' }} onClick={() => setIsPreviewOpen(false)}>
+          <PreviewModalBox onClick={e => e.stopPropagation()}>
+            <ModalTitle>합의서 미리보기</ModalTitle>
+            {/* 에러 메시지 */}
+            {error && <ErrorMessage>{error}</ErrorMessage>}
+            <ModalField>
+              <ModalLabel>제목</ModalLabel>
+              <ModalValue>{previewAgreement.title}</ModalValue>
+            </ModalField>
+            <ModalField>
+              <ModalLabel>약속 내용</ModalLabel>
+              <ModalValue>{previewAgreement.content}</ModalValue>
+            </ModalField>
+            <ModalField>
+              <ModalLabel>조건</ModalLabel>
+              <ModalValue>{previewAgreement.condition}</ModalValue>
+            </ModalField>
+            <ModalField>
+              <ModalLabel>작성자</ModalLabel>
+              <ModalValue>{previewAgreement.author}</ModalValue>
+            </ModalField>
+            <ModalField>
+              <ModalLabel>동의자</ModalLabel>
+              <ModalValue>{previewAgreement.partner}</ModalValue>
+            </ModalField>
+            <ModalField>
+              <ModalLabel>작성자 서명</ModalLabel>
+              {previewAgreement.authorSignature ? (
+                <SignatureImg src={previewAgreement.authorSignature} alt="작성자 서명" />
+              ) : (
+                <SignatureNone>서명 없음</SignatureNone>
+              )}
+            </ModalField>
+            <ModalField>
+              <ModalLabel>작성일 및 서명시간</ModalLabel>
+              <ModalValue>{previewAgreement.date}</ModalValue>
+            </ModalField>
+            <BtnRow>
+              <Btn type="button" onClick={() => setIsPreviewOpen(false)} disabled={isSubmitting}>
+                이전으로
+              </Btn>
+              <Btn $primary type="button" onClick={handleCreateAgreement} disabled={isSubmitting}>
+                {isSubmitting ? (
+                  <LoadingSpinner>전송 중...</LoadingSpinner>
                 ) : (
-                  <div style={{ color: '#aaa', fontSize: '0.95rem' }}>서명 없음</div>
+                  '합의서 전송'
                 )}
-              </div>
-              <div style={{ marginTop: '1.2rem' }}>
-                <div style={{ fontWeight: 'bold', color: '#444', marginBottom: 4 }}>작성일 및 서명시간</div>
-                <div style={{ padding: '0.7rem 1rem', background: '#f1f3f6', borderRadius: 6, color: '#333' }}>{previewAgreement.date}</div>
-              </div>
-              <BtnRow>
-                <Btn type="button" onClick={() => setIsPreviewOpen(false)}>닫기</Btn>
-                {/* 실제 전송 로직이 필요하다면 여기에 추가 */}
-              </BtnRow>
-            </PreviewModalBox>
-          </div>
-        )}
+              </Btn>
+            </BtnRow>
+          </PreviewModalBox>
+        </div>
+      )}
     </Container>
   );
 };
