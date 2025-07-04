@@ -37,7 +37,7 @@ const ReconnectLogo = styled.div`
   align-items: center;
   gap: 0.5rem;
   font-weight: bold;
-  color: #785cd2;
+  color:rgb(60, 54, 79);
   font-size: 0.9rem;
   margin-bottom: 0.5rem;
 `;
@@ -146,7 +146,7 @@ const QRCodeGenerator: React.FC<QRCodeGeneratorProps> = ({
     <QRContainer>
       <ReconnectLogo>
         <span>🔐</span>
-        리커넥트 인증 마크
+        리커넥트 인증 QR코드
       </ReconnectLogo>
       
       {qrCodeUrl && (
