@@ -15,7 +15,7 @@ export interface SignAgreementDto {
 }
 
 export interface UpdateAgreementStatusDto {
-  status: 'pending' | 'signed' | 'completed' | 'cancelled';
+  status: 'pending' | 'signed' | 'completed' | 'issued' | 'cancelled';
 }
 
 export interface Agreement {
@@ -79,6 +79,12 @@ export const agreementApi = {
   // 합의서 상태 변경
   updateStatus: async (id: string, data: UpdateAgreementStatusDto): Promise<Agreement> => {
     const response = await axiosInstance.put(`/agreements/${id}/status`, data);
+    return response.data;
+  },
+
+  // 합의서 삭제
+  deleteAgreement: async (id: string): Promise<{ message: string }> => {
+    const response = await axiosInstance.delete(`/agreements/${id}`);
     return response.data;
   },
 }; 
