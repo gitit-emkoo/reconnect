@@ -89,16 +89,16 @@ const Actions = styled.div`
   display: flex;
   gap: 0.7rem;
 `;
-const Btn = styled.button<{primary?: boolean, disabled?: boolean}>`
+const Btn = styled.button<{primary?: boolean, pink?: boolean, disabled?: boolean}>`
   padding: 0.5rem 0.8rem;
   font-size: 0.9rem;
   border-radius: 6px;
   border: none;
   cursor: pointer;
-  background: ${({ primary, disabled }) =>
-    disabled ? '#e0e0e0' : primary ? '#785cd2' : '#e0e0e0'};
-  color: ${({ primary, disabled }) =>
-    disabled ? '#aaa' : primary ? 'white' : '#333'};
+  background: ${({ primary, pink, disabled }) =>
+    disabled ? '#e0e0e0' : pink ? '#ff69b4' : primary ? '#785cd2' : '#e0e0e0'};
+  color: ${({ primary, pink, disabled }) =>
+    disabled ? '#aaa' : (primary || pink) ? 'white' : '#333'};
   font-weight: 600;
   opacity: ${({ disabled }) => (disabled ? 0.7 : 1)};
   pointer-events: ${({ disabled }) => (disabled ? 'none' : 'auto')};
@@ -170,9 +170,9 @@ const AgreementList: React.FC = () => {
         position: 'relative',
       }}
     >
-      <h2 style={{ textAlign: 'center', color: '#333', fontSize: 22, marginBottom: 14 }}>공동 약속서</h2>
-      <div style={{ marginBottom: 10 }}><b>약속 주제</b><div style={{ background: '#f1f3f6', borderRadius: 6, padding: 8, marginTop: 3, fontSize: 13 }}>{agreement.title}</div></div>
-      <div style={{ marginBottom: 10 }}><b>약속 내용</b><div style={{ background: '#f1f3f6', borderRadius: 6, padding: 8, marginTop: 3, fontSize: 13 }}>{agreement.content}</div></div>
+      <h2 style={{ textAlign: 'center', color: '#333', fontSize: 22, marginBottom: 14 }}>RECONNECT 인증 합의서서</h2>
+      <div style={{ marginBottom: 10 }}><b>제목</b><div style={{ background: '#f1f3f6', borderRadius: 6, padding: 8, marginTop: 3, fontSize: 13 }}>{agreement.title}</div></div>
+      <div style={{ marginBottom: 10 }}><b>내용</b><div style={{ background: '#f1f3f6', borderRadius: 6, padding: 8, marginTop: 3, fontSize: 13 }}>{agreement.content}</div></div>
       <div style={{ marginBottom: 10 }}><b>미이행시 조건</b><div style={{ background: '#f1f3f6', borderRadius: 6, padding: 8, marginTop: 3, fontSize: 13 }}>{agreement.condition}</div></div>
       <div style={{ marginBottom: 10 }}><b>작성자</b><div style={{ background: '#f1f3f6', borderRadius: 6, padding: 8, marginTop: 3, fontSize: 13 }}>{agreement.authorName}</div></div>
       <div style={{ marginBottom: 10 }}><b>동의자</b><div style={{ background: '#f1f3f6', borderRadius: 6, padding: 8, marginTop: 3, fontSize: 13 }}>{agreement.partnerName}</div></div>
@@ -547,7 +547,7 @@ const AgreementListInner: React.FC<{
             <Btn
               onClick={() => agreement.status === 'completed' && onDownload(agreement)}
               disabled={agreement.status !== 'completed'}
-              primary={agreement.status === 'completed'}
+              pink={agreement.status === 'completed'}
             >
               인증 발행
             </Btn>

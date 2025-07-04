@@ -35,8 +35,9 @@ const PreviewModalBox = styled.div`
   background: white;
   border-radius: 12px;
   padding: 1.5rem;
-  width: 350px;
-  max-width: 95vw;
+  width: 400px;
+  max-width: 90vw;
+  max-height: 90vh;
   box-shadow: 0 2px 16px rgba(0,0,0,0.12);
   overflow-y: auto;
   display: flex;
@@ -112,6 +113,9 @@ const ModalTitle = styled.h2`
 
 const ModalField = styled.div`
   margin-top: 1.2rem;
+  flex:1;
+  overflow-y: auto;
+  min-height: 100px;
 `;
 
 const ModalLabel = styled.div`
