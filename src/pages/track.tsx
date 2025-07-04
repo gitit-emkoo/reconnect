@@ -98,9 +98,7 @@ const TrackPage: React.FC = () => {
   const [modalOpen, setModalOpen] = useState(false);
   const navigate = useNavigate();
 
-  const handleSingleReport = () => {
-    setModalOpen(true);
-  };
+  
 
   const handleSubscribe = () => {
     navigate('/subscribe');
@@ -136,10 +134,7 @@ const TrackPage: React.FC = () => {
           
           {/* CTA 버튼들 */}
           <CtaBox>
-            <Button variant="blue" onClick={handleSingleReport}>
-              리포트 열기<br/>
-              <span style={{ fontSize: '0.8rem' }}>₩1,000 / 1회 열람권</span>
-            </Button>
+            
             <Button variant="purple" onClick={handleSubscribe}>
               💙 리커넥트케어
             </Button>
