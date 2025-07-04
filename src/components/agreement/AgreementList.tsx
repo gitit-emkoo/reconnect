@@ -29,37 +29,41 @@ export interface Agreement {
   isSample?: boolean; // 샘플 합의서 여부
 }
 
-
-const ListContainer = styled.div``;
-
-const Card = styled.div<{ $sample?: boolean }>`
-  background: ${props => props.$sample ? '#f5f6fa' : 'white'};
-  padding: 1.5rem;
+const ListContainer = styled.div`
+  background:rgb(255, 255, 255);
   border-radius: 12px;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.05);
-  margin-bottom: 1.2rem;
-  position: relative;
+  padding: 1.5rem;
 `;
 
-const StatusBadge = styled.div<{ $color?: string }>`
-  position: absolute;
-  top: -0.5rem;
-  right: 1.2rem;
+const Card = styled.div<{ $sample?: boolean }>`
+  padding: 1.5rem;
+  border-bottom: 1px solid #e0e0e0;
+  margin-bottom: 1.2rem;
+  position: relative;
+
+`;
+
+const StatusBadge = styled.div<{ $color?: string }>` 
+  position:absolute;
+  right:0;
+  top:-0.5rem;
+  width:120px;
   padding: 0.35em 1em;
   border-radius: 1.2em;
   font-size: 0.92rem;
   font-weight: 700;
   background: ${props => props.$color || '#eee'};
   color: #fff;
-  box-shadow: 0 1px 4px rgba(0,0,0,0.07);
-  letter-spacing: 0.01em;
-  z-index: 2;
+  text-align: center;
 `;
 
 const Title = styled.div`
   font-weight: 600;
   font-size: 1.1rem;
   color: #222;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 `;
 const EmptySubText = styled.div`
   font-size: 0.88rem;
@@ -70,6 +74,10 @@ const EmptySubText = styled.div`
 const Content = styled.div`
   color: #555;
   margin-top: 0.5rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  word-break: break-all;
 `;
 const Meta = styled.div`
   font-size: 0.88rem;
@@ -81,15 +89,19 @@ const Actions = styled.div`
   display: flex;
   gap: 0.7rem;
 `;
-const Btn = styled.button<{primary?: boolean}>`
+const Btn = styled.button<{primary?: boolean, disabled?: boolean}>`
   padding: 0.5rem 0.8rem;
   font-size: 0.9rem;
   border-radius: 6px;
   border: none;
   cursor: pointer;
-  background: ${p => p.primary ? '#785cd2' : '#e0e0e0'};
-  color: ${p => p.primary ? 'white' : '#333'};
+  background: ${({ primary, disabled }) =>
+    disabled ? '#e0e0e0' : primary ? '#785cd2' : '#e0e0e0'};
+  color: ${({ primary, disabled }) =>
+    disabled ? '#aaa' : primary ? 'white' : '#333'};
   font-weight: 600;
+  opacity: ${({ disabled }) => (disabled ? 0.7 : 1)};
+  pointer-events: ${({ disabled }) => (disabled ? 'none' : 'auto')};
 `;
 const EmptyText = styled.div`
   text-align: center;
@@ -348,99 +360,101 @@ const AgreementList: React.FC = () => {
       {previewAgreement && !isPdfMode && (
         <ModalOverlay onClick={() => setPreviewAgreement(null)}>
           <PreviewModalBox ref={pdfRef} onClick={e => e.stopPropagation()}>
-            <ModalTitle>공동 약속서</ModalTitle>
-            <ModalSection>
-              <ModalLabel>약속 주제</ModalLabel>
-              <ModalValue>{previewAgreement.title}</ModalValue>
-            </ModalSection>
-            <ModalSection>
-              <ModalLabel>약속 내용</ModalLabel>
-              <ModalValue>{previewAgreement.content}</ModalValue>
-            </ModalSection>
-            <ModalSection>
-              <ModalLabel>미이행시 조건</ModalLabel>
-              <ModalValue>{previewAgreement.condition}</ModalValue>
-            </ModalSection>
-            <ModalSection>
-              <ModalLabel>작성자</ModalLabel>
-              <ModalValue>{previewAgreement.authorName}</ModalValue>
-            </ModalSection>
-            <ModalSection>
-              <ModalLabel>동의자</ModalLabel>
-              <ModalValue>{previewAgreement.partnerName}</ModalValue>
-            </ModalSection>
-            <ModalSection>
-              <ModalLabel>작성일 및 서명시간</ModalLabel>
-              <ModalValue>{previewAgreement.date}</ModalValue>
-            </ModalSection>
-            {/* 서명 섹션 */}
-            <ModalSection>
-              <ModalLabel>서명</ModalLabel>
-              <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
-                {previewAgreement.authorSignature && (
-                  <SignatureBox>
-                    <SignatureLabel>작성자 서명</SignatureLabel>
-                    <SignatureImg src={previewAgreement.authorSignature} alt="작성자 서명" />
-                  </SignatureBox>
-                )}
-                {previewAgreement.partnerSignature && (
-                  <SignatureBox>
-                    <SignatureLabel>동의자 서명</SignatureLabel>
-                    <SignatureImg src={previewAgreement.partnerSignature} alt="동의자 서명" />
-                  </SignatureBox>
-                )}
-              </div>
-            </ModalSection>
-            {/* 파트너 서명 입력 섹션 */}
-            {canSignAsPartner(previewAgreement) && (
+            <ModalContent>
+              <ModalTitle>공동 약속서</ModalTitle>
               <ModalSection>
-                <ModalLabel>동의자 서명</ModalLabel>
-                <DigitalSignature
-                  onSignatureChange={(signature) => {
-                    setPartnerSignature(signature);
-                  }}
-                  placeholder={`${previewAgreement.partnerName} 서명`}
-                />
+                <ModalLabel>약속 주제</ModalLabel>
+                <ModalValue>{previewAgreement.title}</ModalValue>
               </ModalSection>
-            )}
+              <ModalSection>
+                <ModalLabel>약속 내용</ModalLabel>
+                <ModalValue>{previewAgreement.content}</ModalValue>
+              </ModalSection>
+              <ModalSection>
+                <ModalLabel>미이행시 조건</ModalLabel>
+                <ModalValue>{previewAgreement.condition}</ModalValue>
+              </ModalSection>
+              <ModalSection>
+                <ModalLabel>작성자</ModalLabel>
+                <ModalValue>{previewAgreement.authorName}</ModalValue>
+              </ModalSection>
+              <ModalSection>
+                <ModalLabel>동의자</ModalLabel>
+                <ModalValue>{previewAgreement.partnerName}</ModalValue>
+              </ModalSection>
+              <ModalSection>
+                <ModalLabel>작성일 및 서명시간</ModalLabel>
+                <ModalValue>{previewAgreement.date}</ModalValue>
+              </ModalSection>
+              {/* 서명 섹션 */}
+              <ModalSection>
+                <ModalLabel>서명</ModalLabel>
+                <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
+                  {previewAgreement.authorSignature && (
+                    <SignatureBox>
+                      <SignatureLabel>작성자 서명</SignatureLabel>
+                      <SignatureImg src={previewAgreement.authorSignature} alt="작성자 서명" />
+                    </SignatureBox>
+                  )}
+                  {previewAgreement.partnerSignature && (
+                    <SignatureBox>
+                      <SignatureLabel>동의자 서명</SignatureLabel>
+                      <SignatureImg src={previewAgreement.partnerSignature} alt="동의자 서명" />
+                    </SignatureBox>
+                  )}
+                </div>
+              </ModalSection>
+              {/* 파트너 서명 입력 섹션 */}
+              {canSignAsPartner(previewAgreement) && (
+                <ModalSection>
+                  <ModalLabel>동의자 서명</ModalLabel>
+                  <DigitalSignature
+                    onSignatureChange={(signature) => {
+                      setPartnerSignature(signature);
+                    }}
+                    placeholder={`${previewAgreement.partnerName} 서명`}
+                  />
+                </ModalSection>
+              )}
+            </ModalContent>
             <ModalFooter>
               * 본 문서는 리커넥트 앱 내 사용자 간 심리적 합의 기록용으로 작성되었습니다.
-            </ModalFooter>
-            {/* 버튼 섹션 */}
-            <div style={{ display: 'flex', gap: '0.5rem', marginTop: '1rem' }}>
-              <button
-                style={{
-                  flex: 1,
-                  padding: '0.7rem',
-                  background: '#eee',
-                  border: 'none',
-                  borderRadius: '6px',
-                  cursor: 'pointer'
-                }}
-                onClick={() => setPreviewAgreement(null)}
-                disabled={isSigning}
-              >
-                닫기
-              </button>
-              {canSignAsPartner(previewAgreement) && (
+              {/* 버튼 섹션 */}
+              <div style={{ display: 'flex', gap: '0.5rem', marginTop: '1rem' }}>
                 <button
                   style={{
                     flex: 1,
                     padding: '0.7rem',
-                    background: '#785cd2',
-                    color: 'white',
+                    background: '#eee',
                     border: 'none',
                     borderRadius: '6px',
-                    cursor: 'pointer',
-                    opacity: isSigning ? 0.6 : 1
+                    cursor: 'pointer'
                   }}
-                  onClick={handleSignAgreement}
-                  disabled={isSigning || !partnerSignature}
+                  onClick={() => setPreviewAgreement(null)}
+                  disabled={isSigning}
                 >
-                  {isSigning ? '서명 중...' : '서명 완료'}
+                  닫기
                 </button>
-              )}
-            </div>
+                {canSignAsPartner(previewAgreement) && (
+                  <button
+                    style={{
+                      flex: 1,
+                      padding: '0.7rem',
+                      background: '#785cd2',
+                      color: 'white',
+                      border: 'none',
+                      borderRadius: '6px',
+                      cursor: 'pointer',
+                      opacity: isSigning ? 0.6 : 1
+                    }}
+                    onClick={handleSignAgreement}
+                    disabled={isSigning || !partnerSignature}
+                  >
+                    {isSigning ? '서명 중...' : '서명 완료'}
+                  </button>
+                )}
+              </div>
+            </ModalFooter>
           </PreviewModalBox>
         </ModalOverlay>
       )}
@@ -460,7 +474,7 @@ const AgreementList: React.FC = () => {
         }}
         onConfirm={handleDownloadPdf}
         title="인증 발행"
-        message="이 합의서를 공식 인증 문서로 발행하시겠습니까? 발행된 PDF에는 QR코드와 고유 식별값이 포함되어 신뢰성을 보장합니다."
+        message="합의서를 pdf로 발행 및 저장 합니다. 합의 내용과 함께 보증코드·생성시간·서명정보가 포함되며 수정 및 위/변조가 불가한 증명 문서로 보관 됩니다."
         confirmButtonText="발행"
         cancelButtonText="취소"
       />
@@ -530,7 +544,13 @@ const AgreementListInner: React.FC<{
           <Meta>✔️ 합의일: {agreement.date} | 동의자: {agreement.partnerName}</Meta>
           <Actions>
             <Btn primary onClick={() => onView(agreement)}>확인하기</Btn>
-            <Btn onClick={() => onDownload(agreement)}>인증 발행</Btn>
+            <Btn
+              onClick={() => agreement.status === 'completed' && onDownload(agreement)}
+              disabled={agreement.status !== 'completed'}
+              primary={agreement.status === 'completed'}
+            >
+              인증 발행
+            </Btn>
           </Actions>
         </Card>
       ))}
@@ -556,15 +576,18 @@ const PreviewModalBox = styled.div`
   border-radius: 12px;
   padding: 1.5rem;
   width: 350px;
-  height: 495px;
   max-width: 95vw;
-  max-height: 95vh;
+  height: 90vh;
+  max-height: 90vh;
   box-shadow: 0 2px 16px rgba(0,0,0,0.12);
-  overflow-y: auto;
   display: flex;
   flex-direction: column;
-  justify-content: flex-start;
-  z-index: 2000;
+  position: relative;
+`;
+const ModalContent = styled.div`
+  flex: 1 1 auto;
+  overflow-y: auto;
+  min-height: 0;
 `;
 const ModalTitle = styled.h2`
   text-align: center;
@@ -606,11 +629,13 @@ const SignatureBox = styled.div`
   min-width: 120px;
 `;
 const ModalFooter = styled.div`
+  flex-shrink: 0;
+  margin-top: 1.5rem;
   text-align: center;
   font-size: 0.8rem;
   color: #777;
-  margin-top: 1.5rem;
   line-height: 1.3;
+  background: white;
 `;
 
 export default AgreementList; 
