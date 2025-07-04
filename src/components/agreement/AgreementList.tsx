@@ -155,6 +155,7 @@ const AgreementList: React.FC = () => {
         transformOrigin: 'top left',
         fontSize: 13,
         overflow: 'hidden',
+        position: 'relative',
       }}
     >
       <h2 style={{ textAlign: 'center', color: '#333', fontSize: 22, marginBottom: 14 }}>공동 약속서</h2>
@@ -178,20 +179,25 @@ const AgreementList: React.FC = () => {
           </div>
         )}
       </div>
-      {/* 합의서 ID를 서명 아래, QR코드 위에 위치 */}
+      {/* 합의서 ID: 왼쪽 상단 */}
       {agreement.status === 'completed' && (
         <>
-          <div style={{ marginTop: 16, color: '#888', fontSize: 12, textAlign: 'center', wordBreak: 'break-all' }}>
+          <div style={{ color: '#888', fontSize: 14, marginTop: 16, marginBottom: 8, textAlign: 'left' }}>
             합의서 ID: {agreement.id}
           </div>
+          {/* QR코드: 오른쪽 하단 */}
           <div style={{
-            textAlign: 'center',
-            marginTop: 20,
+            position: 'absolute',
+            right: 24,
+            bottom: 120, // 하단 안내문구와 겹치지 않게 여유
+            width: 180,
             display: 'flex',
             flexDirection: 'column',
             alignItems: 'center',
-            gap: 8,
-            minWidth: 220,
+            background: '#fff',
+            borderRadius: 12,
+            boxShadow: '0 2px 8px rgba(0,0,0,0.07)',
+            padding: 12,
           }}>
             <div style={{
               fontWeight: 600,
@@ -202,14 +208,9 @@ const AgreementList: React.FC = () => {
               alignItems: 'center',
               gap: 4,
             }}>
-              <span role="img" aria-label="lock">🔒</span> 리커넥트 인증 QR코드
+        
             </div>
             <div style={{
-              background: '#fff',
-              borderRadius: 12,
-              boxShadow: '0 2px 8px rgba(0,0,0,0.07)',
-              padding: 8,
-              marginBottom: 4,
               display: 'flex',
               justifyContent: 'center',
               alignItems: 'center',
@@ -218,17 +219,25 @@ const AgreementList: React.FC = () => {
             }}>
               <QRCodeGenerator agreement={agreement} size={113} showVerificationInfo={false} />
             </div>
-            <div style={{ marginTop: 6, color: '#888', fontSize: 13 }}>
+          </div>
+          {/* 하단 안내/생성일/고유값: 중앙 정렬 */}
+          <div style={{
+            position: 'absolute',
+            left: 0,
+            bottom: 24,
+            width: '100%',
+            textAlign: 'center',
+          }}>
+            <div style={{ color: '#888', fontSize: 13, marginBottom: 4 }}>
               ※ 이 합의서는 리커넥트에서 발급된 공식 문서입니다.
             </div>
             {pdfTimestamp && (
-              <div style={{ marginTop: 4, color: '#aaa', fontSize: 12 }}>
+              <div style={{ color: '#aaa', fontSize: 12, marginBottom: 4 }}>
                 PDF 생성일시: {pdfTimestamp}
               </div>
             )}
             {agreement.agreementHash && (
               <div style={{
-                marginTop: 4,
                 color: '#888',
                 fontSize: 12,
                 wordBreak: 'break-all',
