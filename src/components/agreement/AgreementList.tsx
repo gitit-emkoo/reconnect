@@ -27,12 +27,13 @@ export interface Agreement {
   qrCodeData?: string; // QR 코드에 포함될 데이터
   status?: string; // 합의서 상태
   isSample?: boolean; // 샘플 합의서 여부
+  pdfIssued?: boolean; // PDF 발행 여부
 }
 
 const ListContainer = styled.div`
   background:rgb(255, 255, 255);
   border-radius: 12px;
-  padding: 1.5rem;
+  
 `;
 
 const Card = styled.div<{ $sample?: boolean }>`
@@ -89,16 +90,16 @@ const Actions = styled.div`
   display: flex;
   gap: 0.7rem;
 `;
-const Btn = styled.button<{primary?: boolean, disabled?: boolean}>`
+const Btn = styled.button<{primary?: boolean, pink?: boolean, disabled?: boolean}>`
   padding: 0.5rem 0.8rem;
   font-size: 0.9rem;
   border-radius: 6px;
   border: none;
   cursor: pointer;
-  background: ${({ primary, disabled }) =>
-    disabled ? '#e0e0e0' : primary ? '#785cd2' : '#e0e0e0'};
-  color: ${({ primary, disabled }) =>
-    disabled ? '#aaa' : primary ? 'white' : '#333'};
+  background: ${({ primary, pink, disabled }) =>
+    disabled ? '#e0e0e0' : pink ? '#ff69b4' : primary ? '#785cd2' : '#e0e0e0'};
+  color: ${({ primary, pink, disabled }) =>
+    disabled ? '#aaa' : (primary || pink) ? 'white' : '#333'};
   font-weight: 600;
   opacity: ${({ disabled }) => (disabled ? 0.7 : 1)};
   pointer-events: ${({ disabled }) => (disabled ? 'none' : 'auto')};
@@ -107,6 +108,10 @@ const EmptyText = styled.div`
   text-align: center;
   color: #888;
   margin-top: 2rem;
+`;
+
+const Container = styled.div`
+  padding: 1.5rem;
 `;
 
 const AgreementList: React.FC = () => {
@@ -144,6 +149,7 @@ const AgreementList: React.FC = () => {
           partnerSignature: apiAgreement.partnerSignature || undefined,
           agreementHash: apiAgreement.agreementHash || undefined,
           status: apiAgreement.status,
+          pdfIssued: false, // 최초엔 모두 미발행
         }));
         setAgreements(converted);
       } catch (err) {}
@@ -170,9 +176,9 @@ const AgreementList: React.FC = () => {
         position: 'relative',
       }}
     >
-      <h2 style={{ textAlign: 'center', color: '#333', fontSize: 22, marginBottom: 14 }}>공동 약속서</h2>
-      <div style={{ marginBottom: 10 }}><b>약속 주제</b><div style={{ background: '#f1f3f6', borderRadius: 6, padding: 8, marginTop: 3, fontSize: 13 }}>{agreement.title}</div></div>
-      <div style={{ marginBottom: 10 }}><b>약속 내용</b><div style={{ background: '#f1f3f6', borderRadius: 6, padding: 8, marginTop: 3, fontSize: 13 }}>{agreement.content}</div></div>
+      <h2 style={{ textAlign: 'center', color: '#333', fontSize: 22, marginBottom: 14 }}>RECONNECT 인증 합의서서</h2>
+      <div style={{ marginBottom: 10 }}><b>제목</b><div style={{ background: '#f1f3f6', borderRadius: 6, padding: 8, marginTop: 3, fontSize: 13 }}>{agreement.title}</div></div>
+      <div style={{ marginBottom: 10 }}><b>내용</b><div style={{ background: '#f1f3f6', borderRadius: 6, padding: 8, marginTop: 3, fontSize: 13 }}>{agreement.content}</div></div>
       <div style={{ marginBottom: 10 }}><b>미이행시 조건</b><div style={{ background: '#f1f3f6', borderRadius: 6, padding: 8, marginTop: 3, fontSize: 13 }}>{agreement.condition}</div></div>
       <div style={{ marginBottom: 10 }}><b>작성자</b><div style={{ background: '#f1f3f6', borderRadius: 6, padding: 8, marginTop: 3, fontSize: 13 }}>{agreement.authorName}</div></div>
       <div style={{ marginBottom: 10 }}><b>동의자</b><div style={{ background: '#f1f3f6', borderRadius: 6, padding: 8, marginTop: 3, fontSize: 13 }}>{agreement.partnerName}</div></div>
@@ -293,6 +299,7 @@ const AgreementList: React.FC = () => {
       setPdfTimestamp(null);
       setShowPdfConfirmModal(false);
       setPendingPdfAgreement(null);
+      setAgreements(prev => prev.map(a => a.id === pendingPdfAgreement.id ? { ...a, pdfIssued: true } : a));
     }, 300);
   };
 
@@ -327,6 +334,7 @@ const AgreementList: React.FC = () => {
         partnerSignature: apiAgreement.partnerSignature || undefined,
         agreementHash: apiAgreement.agreementHash || undefined,
         status: apiAgreement.status,
+        pdfIssued: agreements.find(a => a.id === apiAgreement.id)?.pdfIssued || false, // 기존 pdfIssued 상태 유지
       }));
       setAgreements(converted);
       setPreviewAgreement(null);
@@ -348,10 +356,49 @@ const AgreementList: React.FC = () => {
   };
 
   return (
-    <>
-      {/* 실제 내 합의서 리스트만 렌더링 */}
+    <Container>
+      {/* 발행 합의서 보관함 */}
+      <div style={{ marginBottom: '2.5rem' }}>
+        <div style={{ fontWeight: 700, fontSize: '1.1rem', color: '#ff69b4', marginBottom: '0.7rem' }}>
+          발행 합의서 보관함
+        </div>
+        <div style={{ fontSize: '0.85rem', color: '#666', marginBottom: '1rem', lineHeight: '1.4' }}>
+          합의서를 PDF로 발행하면 이곳에 보관됩니다. 발행된 합의서는 수정 및 위/변조가 불가능한 증명 문서로 보관됩니다.
+        </div>
+        {agreements.filter(a => a.pdfIssued).length > 0 ? (
+          agreements.filter(a => a.pdfIssued).map((agreement) => (
+            <Card key={agreement.id} $sample={agreement.isSample}>
+              <StatusBadge $color={'#ff69b4'}>발행됨</StatusBadge>
+              <Title>{agreement.title}</Title>
+              <Content>{agreement.content}</Content>
+              <Meta>✔️ 합의일: {agreement.date} | 동의자: {agreement.partnerName}</Meta>
+              <Actions>
+                <Btn primary onClick={() => setPreviewAgreement(agreement)}>확인하기</Btn>
+                <Btn pink onClick={() => handlePdfButtonClick(agreement)}>PDF 재발행</Btn>
+              </Actions>
+            </Card>
+          ))
+        ) : (
+          <div style={{ 
+            padding: '2rem', 
+            background: '#f8f9fa', 
+            borderRadius: '8px', 
+            border: '1px solid #dee2e6',
+            textAlign: 'center',
+            color: '#666'
+          }}>
+            <div style={{ fontSize: '1rem', marginBottom: '0.5rem' }}>
+              📄 발행된 합의서가 없습니다
+            </div>
+            <div style={{ fontSize: '0.85rem', color: '#888' }}>
+              합의서를 작성하고 서명 완료 후 PDF로 발행하면 이곳에 보관됩니다.
+            </div>
+          </div>
+        )}
+      </div>
+      {/* 기존 리스트: 발행되지 않은 합의서만 */}
       <AgreementListInner
-        agreements={agreements}
+        agreements={agreements.filter(a => !a.pdfIssued)}
         isSample={false}
         onView={setPreviewAgreement}
         onDownload={handlePdfButtonClick}
@@ -478,7 +525,7 @@ const AgreementList: React.FC = () => {
         confirmButtonText="발행"
         cancelButtonText="취소"
       />
-    </>
+    </Container>
   );
 };
 
@@ -547,7 +594,7 @@ const AgreementListInner: React.FC<{
             <Btn
               onClick={() => agreement.status === 'completed' && onDownload(agreement)}
               disabled={agreement.status !== 'completed'}
-              primary={agreement.status === 'completed'}
+              pink={agreement.status === 'completed'}
             >
               인증 발행
             </Btn>
