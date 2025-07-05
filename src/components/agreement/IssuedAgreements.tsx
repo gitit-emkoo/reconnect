@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import styled from 'styled-components';
 import { Agreement } from './AgreementList';
 
@@ -9,7 +9,7 @@ interface IssuedAgreementsProps {
 }
 
 const Container = styled.div`
-  margin-bottom: 2.5rem;
+  margin-bottom: 2rem;
 `;
 
 const Title = styled.div`
@@ -19,12 +19,6 @@ const Title = styled.div`
   margin-bottom: 0.7rem;
 `;
 
-const Description = styled.div`
-  font-size: 0.85rem;
-  color: #666;
-  margin-bottom: 1rem;
-  line-height: 1.4;
-`;
 
 const Card = styled.div`
   padding: 1.5rem;
@@ -113,23 +107,70 @@ const SortContainer = styled.div`
   display: flex;
   justify-content: flex-end;
   margin-bottom: 1rem;
-  gap: 0.5rem;
+  position: relative;
 `;
 
-const SortButton = styled.button<{ $active: boolean }>`
+const SortDropdown = styled.div`
+  position: relative;
+  display: inline-block;
+`;
+
+const SortButton = styled.button`
   padding: 0.5rem 1rem;
   font-size: 0.85rem;
-  border: 1px solid ${props => props.$active ? '#ff69b4' : '#ddd'};
-  background: ${props => props.$active ? '#ff69b4' : 'white'};
-  color: ${props => props.$active ? 'white' : '#666'};
+  border: 1px solid #ddd;
+  background: white;
+  color: #666;
   border-radius: 6px;
   cursor: pointer;
-  font-weight: ${props => props.$active ? '600' : '400'};
+  font-weight: 400;
   transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-width: 100px;
+  justify-content: space-between;
 
   &:hover {
-    background: ${props => props.$active ? '#ff69b4' : '#f8f9fa'};
-    border-color: ${props => props.$active ? '#ff69b4' : '#ccc'};
+    background: #f8f9fa;
+    border-color: #ccc;
+  }
+`;
+
+const DropdownContent = styled.div<{ $isOpen: boolean }>`
+  position: absolute;
+  top: 100%;
+  right: 0;
+  background: white;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  z-index: 1000;
+  min-width: 100px;
+  opacity: ${props => props.$isOpen ? 1 : 0};
+  visibility: ${props => props.$isOpen ? 'visible' : 'hidden'};
+  transform: ${props => props.$isOpen ? 'translateY(0)' : 'translateY(-10px)'};
+  transition: all 0.2s ease;
+`;
+
+const DropdownItem = styled.div<{ $active: boolean }>`
+  padding: 0.5rem 1rem;
+  cursor: pointer;
+  font-size: 0.85rem;
+  color: ${props => props.$active ? '#ff69b4' : '#666'};
+  font-weight: ${props => props.$active ? '600' : '400'};
+  background: ${props => props.$active ? '#fff5f8' : 'transparent'};
+
+  &:hover {
+    background: ${props => props.$active ? '#fff5f8' : '#f8f9fa'};
+  }
+
+  &:first-child {
+    border-radius: 6px 6px 0 0;
+  }
+
+  &:last-child {
+    border-radius: 0 0 6px 6px;
   }
 `;
 
@@ -139,6 +180,8 @@ const IssuedAgreements: React.FC<IssuedAgreementsProps> = ({
   onDownload 
 }) => {
   const [sortOrder, setSortOrder] = useState<'latest' | 'oldest'>('latest');
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
   const issuedAgreements = agreements.filter(a => a.status === 'issued');
 
   // 합의서 정렬 함수
@@ -155,29 +198,54 @@ const IssuedAgreements: React.FC<IssuedAgreementsProps> = ({
     });
   };
 
+  // 드롭다운 외부 클릭 시 닫기
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setIsDropdownOpen(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
+
   return (
     <Container>
       <Title>발행 합의서 보관함</Title>
-      <Description>
-        합의서를 PDF로 발행하면 이곳에 보관됩니다. 발행된 합의서는 수정 및 위/변조가 불가능한 증명 문서로 보관됩니다.
-      </Description>
       
       {issuedAgreements.length > 0 ? (
         <>
-          {/* 정렬 버튼 */}
+          {/* 정렬 드롭다운 */}
           <SortContainer>
-            <SortButton 
-              $active={sortOrder === 'latest'} 
-              onClick={() => setSortOrder('latest')}
-            >
-              최신순
-            </SortButton>
-            <SortButton 
-              $active={sortOrder === 'oldest'} 
-              onClick={() => setSortOrder('oldest')}
-            >
-              오래된순
-            </SortButton>
+            <SortDropdown ref={dropdownRef}>
+              <SortButton onClick={() => setIsDropdownOpen(!isDropdownOpen)}>
+                {sortOrder === 'latest' ? '최신순' : '오래된순'}
+                <span>▼</span>
+              </SortButton>
+              <DropdownContent $isOpen={isDropdownOpen}>
+                <DropdownItem 
+                  $active={sortOrder === 'latest'}
+                  onClick={() => {
+                    setSortOrder('latest');
+                    setIsDropdownOpen(false);
+                  }}
+                >
+                  최신순
+                </DropdownItem>
+                <DropdownItem 
+                  $active={sortOrder === 'oldest'}
+                  onClick={() => {
+                    setSortOrder('oldest');
+                    setIsDropdownOpen(false);
+                  }}
+                >
+                  오래된순
+                </DropdownItem>
+              </DropdownContent>
+            </SortDropdown>
           </SortContainer>
           
           {sortAgreements(issuedAgreements).map((agreement) => (
@@ -197,7 +265,7 @@ const IssuedAgreements: React.FC<IssuedAgreementsProps> = ({
         <EmptyState>
           <EmptyTitle>📄 발행된 합의서가 없습니다</EmptyTitle>
           <EmptyDescription>
-            합의서를 작성하고 서명 완료 후 PDF로 발행하면 이곳에 보관됩니다.
+          합의서를 PDF로 발행하면 이곳에 보관됩니다. 발행된 합의서는 수정 및 위/변조가 불가능한 증명 문서로 보관됩니다.
           </EmptyDescription>
         </EmptyState>
       )}

@@ -15,7 +15,7 @@ const TopButtonRow = styled.div`
   display: flex;
   gap: 1rem;
   justify-content: center;
-  margin: 1.5rem auto 2rem;
+  margin: 1.5rem auto 0.5rem;
 `;
 const TopButton = styled.button<{ $primary?: boolean }>`
   background: ${p => p.$primary ? '#785cd2' : '#28a745'};
