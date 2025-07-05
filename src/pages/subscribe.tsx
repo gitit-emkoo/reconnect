@@ -101,6 +101,9 @@ const SubscribePage: React.FC = () => {
   const [modalType, setModalType] = useState<'report' | 'agreement' | 'subscribe' | null>(null);
   const { user, setUser } = useAuthStore();
 
+  // user 콘솔 출력 (구독 정보 확인용)
+  console.log('user in SubscribePage:', user);
+
   const handleSubscribe = () => {
     setModalType('subscribe');
   };
@@ -129,7 +132,7 @@ const SubscribePage: React.FC = () => {
         if (result && setUser && user) {
           setUser({
             ...user,
-            subscriptionStatus: 'SUBSCRIBED'
+            ...result
           } as User);
         }
         
@@ -167,6 +170,11 @@ const SubscribePage: React.FC = () => {
             >
               {user?.subscriptionStatus === 'SUBSCRIBED' ? '구독중' : '무료 구독 시작'}
             </Button>
+            {user?.subscriptionStatus === 'SUBSCRIBED' && user?.subscriptionStartedAt && (
+              <div style={{ marginTop: '0.5rem', fontSize: '0.9rem', color: '#888', textAlign: 'center' }}>
+                구독 시작일: {new Date(user.subscriptionStartedAt).toLocaleDateString('ko-KR')}
+              </div>
+            )}
           </Section>
 
           {/* 감정트랙 리포트 단품 */}

@@ -8,6 +8,7 @@ import ConfirmationModal from '../common/ConfirmationModal';
 import IssuedAgreements from './IssuedAgreements';
 import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';
+import { useNavigate } from 'react-router-dom';
 
 export interface Agreement {
   id: string;
@@ -304,6 +305,8 @@ const AgreementList: React.FC = () => {
   const [showDeleteConfirmModal, setShowDeleteConfirmModal] = useState(false);
   const [pendingDeleteAgreement, setPendingDeleteAgreement] = useState<Agreement | null>(null);
   const pdfRef = useRef<HTMLDivElement>(null);
+  const [showSubscribeModal, setShowSubscribeModal] = useState(false);
+  const navigate = useNavigate();
 
   // 실제 합의서 목록 불러오기
   useEffect(() => {
@@ -453,10 +456,9 @@ const AgreementList: React.FC = () => {
   const handlePdfButtonClick = (agreement: Agreement) => {
     // 구독 여부 확인
     if (user?.subscriptionStatus !== 'SUBSCRIBED') {
-      alert('PDF 발행은 구독자만 이용할 수 있습니다. 구독 후 이용해주세요.');
+      setShowSubscribeModal(true);
       return;
     }
-    
     setPendingPdfAgreement(agreement);
     setShowPdfConfirmModal(true);
   };
@@ -722,6 +724,20 @@ const AgreementList: React.FC = () => {
         confirmButtonText="삭제"
         cancelButtonText="취소"
       />
+      
+      <ConfirmationModal
+        isOpen={showSubscribeModal}
+        onRequestClose={() => setShowSubscribeModal(false)}
+        onConfirm={() => {
+          setShowSubscribeModal(false);
+          navigate('/subscribe');
+        }}
+        title="구독 안내"
+        message="무료구독 후 사용하세요."
+        confirmButtonText="구독하러 가기"
+        cancelButtonText="취소"
+        showCancelButton={true}
+      />
     </Container>
   );
 };
@@ -944,11 +960,11 @@ const AgreementListInner: React.FC<{
           <Actions>
             <Btn primary onClick={() => onView(agreement)}>확인하기</Btn>
             <Btn
-              onClick={() => agreement.status === 'completed' && onDownload(agreement)}
-              disabled={agreement.status !== 'completed' || user?.subscriptionStatus !== 'SUBSCRIBED'}
+              onClick={() => onDownload(agreement)}
+              disabled={agreement.status !== 'completed'}
               pink={agreement.status === 'completed' && user?.subscriptionStatus === 'SUBSCRIBED'}
             >
-              {user?.subscriptionStatus === 'SUBSCRIBED' ? '인증 발행' : '구독 필요'}
+              인증 발행
             </Btn>
             {agreement.status !== 'issued' && (
               <Btn 
