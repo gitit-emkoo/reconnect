@@ -99,7 +99,6 @@ const Button = styled.button<{ variant: 'primary' | 'yellow' | 'blue' }>`
 
 const SubscribePage: React.FC = () => {
   const [modalType, setModalType] = useState<'report' | 'agreement' | 'subscribe' | null>(null);
-  const [isSubscribing, setIsSubscribing] = useState(false);
   const { user, setUser } = useAuthStore();
 
   const handleSubscribe = () => {
@@ -124,7 +123,6 @@ const SubscribePage: React.FC = () => {
     } else if (modalType === 'subscribe') {
       // 구독 시작 로직 구현
       try {
-        setIsSubscribing(true);
         const result = await userService.startSubscription();
         
         // 구독 성공 시 사용자 정보 업데이트
@@ -139,8 +137,6 @@ const SubscribePage: React.FC = () => {
       } catch (error) {
         console.error('구독 시작 실패:', error);
         alert('구독 시작에 실패했습니다. 다시 시도해주세요.');
-      } finally {
-        setIsSubscribing(false);
       }
     }
     setModalType(null);
@@ -164,8 +160,12 @@ const SubscribePage: React.FC = () => {
               ✔ 자기이해 진단 매월 1회<br/><br/>
               💳 <strong>월 3,900원 / 무료 이벤트 중</strong>
             </Description>
-            <Button variant="primary" onClick={handleSubscribe}>
-              무료 구독 시작
+            <Button
+              variant="primary"
+              onClick={handleSubscribe}
+              disabled={user?.subscriptionStatus === 'SUBSCRIBED'}
+            >
+              {user?.subscriptionStatus === 'SUBSCRIBED' ? '구독중' : '무료 구독 시작'}
             </Button>
           </Section>
 

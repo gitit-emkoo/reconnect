@@ -6,6 +6,7 @@ import useAuthStore from '../store/authStore';
 import { getDiagnosisHistory } from '../api/diagnosis';
 import { DIAGNOSIS_TEMPLATES } from '../templates/diagnosisTemplates';
 import BrainIcon from '../assets/Icon_Brain.png';
+import ConfirmationModal from '../components/common/ConfirmationModal';
 
 const Badge = styled.span`
   background-color: #ff4d4f;
@@ -173,6 +174,7 @@ const SelfDiagnosisRoom: React.FC = () => {
   const [showAllMap, setShowAllMap] = useState<Record<string, boolean>>({});
   const accessToken = useAuthStore(state=>state.accessToken);
   const user = useAuthStore(state => state.user);
+  const [showSubscribeModal, setShowSubscribeModal] = useState(false);
 
   // marriage를 항상 위로 오도록 정렬
   const sortedTemplates = [...DIAGNOSIS_TEMPLATES].sort((a, b) => {
@@ -253,30 +255,37 @@ const SelfDiagnosisRoom: React.FC = () => {
             </>
           ) : (<NoHistory>진단 내역이 없습니다.</NoHistory>)}
           <ButtonContainer>
-            <CTA onClick={()=>{
-              // 구독자만 자기이해진단 이용 가능
+            <CTA onClick={() => {
               if (user?.subscriptionStatus !== 'SUBSCRIBED') {
-                alert('자기이해진단은 구독자만 이용할 수 있습니다. 구독 후 이용해주세요.');
-                navigate('/subscribe');
+                setShowSubscribeModal(true);
                 return;
               }
               navigate(`/generic-diagnosis/${tpl.id}`);
             }}>
-              {user?.subscriptionStatus === 'SUBSCRIBED' ? (
+              {tpl.price === '무료(이벤트)' ? (
                 <>
-                  <Badge>구독자</Badge>
+                  <Badge>이벤트</Badge>
                   <FreeText>무료로 시작하기</FreeText>
                 </>
               ) : (
                 <>
-                  <Badge>구독 필요</Badge>
-                  <span>구독 후 이용</span>
+                  <Badge>유료</Badge>
+                  <span>{tpl.price}원</span>
                 </>
               )}
             </CTA>
           </ButtonContainer>
         </Section>
       ))}
+      <ConfirmationModal
+        isOpen={showSubscribeModal}
+        onRequestClose={() => setShowSubscribeModal(false)}
+        onConfirm={() => setShowSubscribeModal(false)}
+        title="이용 안내"
+        message="구독하거나 결제 후 이용 바랍니다."
+        confirmButtonText="확인"
+        showCancelButton={false}
+      />
     </PageLayout>
   );
 };
