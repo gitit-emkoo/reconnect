@@ -187,7 +187,7 @@ const SelfDiagnosisRoom: React.FC = () => {
     const init = async () => {
       const resultMap: Record<string, DiagnosisHistoryItem[]> = {};
 
-      // 서버 history if login
+      // 서버 history만 사용
       if (accessToken) {
         const serverHistory = await getDiagnosisHistory();
         serverHistory.forEach((d) => {
@@ -201,16 +201,7 @@ const SelfDiagnosisRoom: React.FC = () => {
         });
       }
 
-      // localStorage fallback for each template
-      DIAGNOSIS_TEMPLATES.forEach((tpl) => {
-        const key = `diagnosisHistory_${tpl.id}`;
-        const stored = localStorage.getItem(key);
-        if (stored) {
-          const arr = JSON.parse(stored);
-          if (!resultMap[tpl.id]) resultMap[tpl.id] = arr;
-        }
-      });
-
+      // localStorage fallback 완전히 제거
       setHistories(resultMap);
     };
     init();
