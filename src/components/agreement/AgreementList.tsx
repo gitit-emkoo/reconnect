@@ -31,12 +31,20 @@ export interface Agreement {
   createdAt?: string; // 생성일시
 }
 
-// AgreementListInner에서 사용하는 스타일들
+// ===== STYLED COMPONENTS =====
+
+// 메인 컨테이너
+const Container = styled.div`
+  padding: 1.5rem;
+`;
+
+// 리스트 컨테이너
 const ListContainer = styled.div`
   background: rgb(255, 255, 255);
   border-radius: 12px;
 `;
 
+// 카드 스타일
 const Card = styled.div<{ $sample?: boolean }>`
   padding: 1.5rem;
   border-bottom: 1px solid #e0e0e0;
@@ -44,6 +52,7 @@ const Card = styled.div<{ $sample?: boolean }>`
   position: relative;
 `;
 
+// 상태 배지
 const StatusBadge = styled.div<{ $color?: string }>` 
   position: absolute;
   right: 0;
@@ -58,6 +67,7 @@ const StatusBadge = styled.div<{ $color?: string }>`
   text-align: center;
 `;
 
+// 텍스트 스타일
 const Title = styled.div`
   font-weight: 600;
   font-size: 1.1rem;
@@ -65,12 +75,6 @@ const Title = styled.div`
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-`;
-
-const EmptySubText = styled.div`
-  font-size: 0.88rem;
-  color: #888;
-  margin-top: 0.7rem;
 `;
 
 const Content = styled.div`
@@ -88,6 +92,19 @@ const Meta = styled.div`
   margin-top: 0.7rem;
 `;
 
+const EmptyText = styled.div`
+  text-align: center;
+  color: #888;
+  margin-top: 2rem;
+`;
+
+const EmptySubText = styled.div`
+  font-size: 0.88rem;
+  color: #888;
+  margin-top: 0.7rem;
+`;
+
+// 액션 버튼
 const Actions = styled.div`
   margin-top: 1rem;
   display: flex;
@@ -109,15 +126,169 @@ const Btn = styled.button<{primary?: boolean, pink?: boolean, red?: boolean, dis
   pointer-events: ${({ disabled }) => (disabled ? 'none' : 'auto')};
 `;
 
-const EmptyText = styled.div`
-  text-align: center;
-  color: #888;
-  margin-top: 2rem;
+// 정렬 드롭다운 스타일
+const SortContainer = styled.div`
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 1rem;
+  position: relative;
 `;
 
-const Container = styled.div`
-  padding: 1.5rem;
+const SortDropdown = styled.div`
+  position: relative;
+  display: inline-block;
 `;
+
+const SortButton = styled.button`
+  padding: 0.5rem 1rem;
+  font-size: 0.85rem;
+  border: 1px solid #ddd;
+  background: white;
+  color: #666;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 400;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-width: 100px;
+  justify-content: space-between;
+
+  &:hover {
+    background: #f8f9fa;
+    border-color: #ccc;
+  }
+`;
+
+const DropdownContent = styled.div<{ $isOpen: boolean }>`
+  position: absolute;
+  top: 100%;
+  right: 0;
+  background: white;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  z-index: 1000;
+  min-width: 100px;
+  opacity: ${props => props.$isOpen ? 1 : 0};
+  visibility: ${props => props.$isOpen ? 'visible' : 'hidden'};
+  transform: ${props => props.$isOpen ? 'translateY(0)' : 'translateY(-10px)'};
+  transition: all 0.2s ease;
+`;
+
+const DropdownItem = styled.div<{ $active: boolean }>`
+  padding: 0.5rem 1rem;
+  cursor: pointer;
+  font-size: 0.85rem;
+  color: ${props => props.$active ? '#ff69b4' : '#666'};
+  font-weight: ${props => props.$active ? '600' : '400'};
+  background: ${props => props.$active ? '#fff5f8' : 'transparent'};
+
+  &:hover {
+    background: ${props => props.$active ? '#fff5f8' : '#f8f9fa'};
+  }
+
+  &:first-child {
+    border-radius: 6px 6px 0 0;
+  }
+
+  &:last-child {
+    border-radius: 0 0 6px 6px;
+  }
+`;
+
+// 모달 스타일
+const ModalOverlay = styled.div`
+  position: fixed;
+  left: 0;
+  top: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0,0,0,0.25);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+`;
+
+const PreviewModalBox = styled.div`
+  background: white;
+  border-radius: 12px;
+  padding: 1.5rem;
+  width: 350px;
+  max-width: 95vw;
+  height: 90vh;
+  max-height: 90vh;
+  box-shadow: 0 2px 16px rgba(0,0,0,0.12);
+  display: flex;
+  flex-direction: column;
+  position: relative;
+`;
+
+const ModalContent = styled.div`
+  flex: 1 1 auto;
+  overflow-y: auto;
+  min-height: 0;
+`;
+
+const ModalTitle = styled.h2`
+  text-align: center;
+  color: #333;
+  margin-bottom: 1rem;
+  font-size: 1.2rem;
+`;
+
+const ModalSection = styled.div`
+  margin-top: 1.2rem;
+`;
+
+const ModalLabel = styled.div`
+  font-weight: bold;
+  color: #444;
+  margin-bottom: 0.2rem;
+  font-size: 0.9rem;
+`;
+
+const ModalValue = styled.div`
+  padding: 0.6rem 0.8rem;
+  background: #f1f3f6;
+  border-radius: 6px;
+  color: #333;
+  font-size: 0.9rem;
+  line-height: 1.4;
+`;
+
+const SignatureImg = styled.img`
+  width: 100%;
+  height: 50px;
+  object-fit: contain;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+`;
+
+const SignatureLabel = styled.div`
+  font-size: 0.75rem;
+  color: #666;
+  margin-bottom: 0.2rem;
+`;
+
+const SignatureBox = styled.div`
+  flex: 1;
+  min-width: 120px;
+`;
+
+const ModalFooter = styled.div`
+  flex-shrink: 0;
+  margin-top: 1.5rem;
+  text-align: center;
+  font-size: 0.8rem;
+  color: #777;
+  line-height: 1.3;
+  background: white;
+`;
+
+// ===== MAIN COMPONENT =====
 
 const AgreementList: React.FC = () => {
   const user = useAuthStore((state) => state.user);
@@ -154,8 +325,9 @@ const AgreementList: React.FC = () => {
           partnerId: apiAgreement.partner.id,
           authorSignature: apiAgreement.authorSignature,
           partnerSignature: apiAgreement.partnerSignature || undefined,
-                  agreementHash: apiAgreement.agreementHash || undefined,
-        status: apiAgreement.status,
+          agreementHash: apiAgreement.agreementHash || undefined,
+          status: apiAgreement.status,
+          createdAt: apiAgreement.createdAt, // 정렬을 위해 createdAt 필드 추가
         }));
         setAgreements(converted);
       } catch (err) {}
@@ -547,30 +719,7 @@ const AgreementList: React.FC = () => {
   );
 };
 
-// 정렬 관련 스타일 컴포넌트
-const SortContainer = styled.div`
-  display: flex;
-  justify-content: flex-end;
-  margin-bottom: 1rem;
-  gap: 0.5rem;
-`;
-
-const SortButton = styled.button<{ $active: boolean }>`
-  padding: 0.5rem 1rem;
-  font-size: 0.85rem;
-  border: 1px solid ${props => props.$active ? '#ff69b4' : '#ddd'};
-  background: ${props => props.$active ? '#ff69b4' : 'white'};
-  color: ${props => props.$active ? 'white' : '#666'};
-  border-radius: 6px;
-  cursor: pointer;
-  font-weight: ${props => props.$active ? '600' : '400'};
-  transition: all 0.2s ease;
-
-  &:hover {
-    background: ${props => props.$active ? '#ff69b4' : '#f8f9fa'};
-    border-color: ${props => props.$active ? '#ff69b4' : '#ccc'};
-  }
-`;
+// ===== INNER COMPONENT =====
 
 // AgreementListInner: 샘플/실제 리스트 렌더링용 내부 컴포넌트
 const AgreementListInner: React.FC<{
@@ -581,6 +730,8 @@ const AgreementListInner: React.FC<{
   onDelete: (agreement: Agreement) => void;
 }> = ({ agreements, onView, onDownload, onDelete }) => {
   const [sortOrder, setSortOrder] = useState<'latest' | 'oldest'>('latest');
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
 
   // 합의서 정렬 함수
   const sortAgreements = (agreements: Agreement[]) => {
@@ -621,23 +772,51 @@ const AgreementListInner: React.FC<{
     
     return { text: '❓ 알수없음', color: '#6c757d' };
   };
+
+  // 드롭다운 외부 클릭 시 닫기
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setIsDropdownOpen(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
   return (
     <ListContainer>
-      {/* 정렬 버튼 */}
+      {/* 정렬 드롭다운 */}
       {agreements.length > 0 && (
         <SortContainer>
-          <SortButton 
-            $active={sortOrder === 'latest'} 
-            onClick={() => setSortOrder('latest')}
-          >
-            최신순
-          </SortButton>
-          <SortButton 
-            $active={sortOrder === 'oldest'} 
-            onClick={() => setSortOrder('oldest')}
-          >
-            오래된순
-          </SortButton>
+          <SortDropdown ref={dropdownRef}>
+            <SortButton onClick={() => setIsDropdownOpen(!isDropdownOpen)}>
+              {sortOrder === 'latest' ? '최신순' : '오래된순'}
+              <span>▼</span>
+            </SortButton>
+            <DropdownContent $isOpen={isDropdownOpen}>
+              <DropdownItem 
+                $active={sortOrder === 'latest'}
+                onClick={() => {
+                  setSortOrder('latest');
+                  setIsDropdownOpen(false);
+                }}
+              >
+                최신순
+              </DropdownItem>
+              <DropdownItem 
+                $active={sortOrder === 'oldest'}
+                onClick={() => {
+                  setSortOrder('oldest');
+                  setIsDropdownOpen(false);
+                }}
+              >
+                오래된순
+              </DropdownItem>
+            </DropdownContent>
+          </SortDropdown>
         </SortContainer>
       )}
       
@@ -680,85 +859,5 @@ const AgreementListInner: React.FC<{
     </ListContainer>
   );
 };
-
-// 미리보기/모달 스타일
-const ModalOverlay = styled.div`
-  position: fixed;
-  left: 0;
-  top: 0;
-  width: 100vw;
-  height: 100vh;
-  background: rgba(0,0,0,0.25);
-  z-index: 1000;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-`;
-const PreviewModalBox = styled.div`
-  background: white;
-  border-radius: 12px;
-  padding: 1.5rem;
-  width: 350px;
-  max-width: 95vw;
-  height: 90vh;
-  max-height: 90vh;
-  box-shadow: 0 2px 16px rgba(0,0,0,0.12);
-  display: flex;
-  flex-direction: column;
-  position: relative;
-`;
-const ModalContent = styled.div`
-  flex: 1 1 auto;
-  overflow-y: auto;
-  min-height: 0;
-`;
-const ModalTitle = styled.h2`
-  text-align: center;
-  color: #333;
-  margin-bottom: 1rem;
-  font-size: 1.2rem;
-`;
-const ModalSection = styled.div`
-  margin-top: 1.2rem;
-`;
-const ModalLabel = styled.div`
-  font-weight: bold;
-  color: #444;
-  margin-bottom: 0.2rem;
-  font-size: 0.9rem;
-`;
-const ModalValue = styled.div`
-  padding: 0.6rem 0.8rem;
-  background: #f1f3f6;
-  border-radius: 6px;
-  color: #333;
-  font-size: 0.9rem;
-  line-height: 1.4;
-`;
-const SignatureImg = styled.img`
-  width: 100%;
-  height: 50px;
-  object-fit: contain;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-`;
-const SignatureLabel = styled.div`
-  font-size: 0.75rem;
-  color: #666;
-  margin-bottom: 0.2rem;
-`;
-const SignatureBox = styled.div`
-  flex: 1;
-  min-width: 120px;
-`;
-const ModalFooter = styled.div`
-  flex-shrink: 0;
-  margin-top: 1.5rem;
-  text-align: center;
-  font-size: 0.8rem;
-  color: #777;
-  line-height: 1.3;
-  background: white;
-`;
 
 export default AgreementList; 
