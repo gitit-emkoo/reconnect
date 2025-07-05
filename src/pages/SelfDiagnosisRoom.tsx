@@ -172,6 +172,7 @@ const SelfDiagnosisRoom: React.FC = () => {
   const [histories, setHistories] = useState<Record<string, DiagnosisHistoryItem[]>>({});
   const [showAllMap, setShowAllMap] = useState<Record<string, boolean>>({});
   const accessToken = useAuthStore(state=>state.accessToken);
+  const user = useAuthStore(state => state.user);
 
   // marriage를 항상 위로 오도록 정렬
   const sortedTemplates = [...DIAGNOSIS_TEMPLATES].sort((a, b) => {
@@ -253,17 +254,23 @@ const SelfDiagnosisRoom: React.FC = () => {
           ) : (<NoHistory>진단 내역이 없습니다.</NoHistory>)}
           <ButtonContainer>
             <CTA onClick={()=>{
+              // 구독자만 자기이해진단 이용 가능
+              if (user?.subscriptionStatus !== 'SUBSCRIBED') {
+                alert('자기이해진단은 구독자만 이용할 수 있습니다. 구독 후 이용해주세요.');
+                navigate('/subscribe');
+                return;
+              }
               navigate(`/generic-diagnosis/${tpl.id}`);
             }}>
-              {tpl.price === '무료(이벤트)' ? (
+              {user?.subscriptionStatus === 'SUBSCRIBED' ? (
                 <>
-                  <Badge>이벤트</Badge>
+                  <Badge>구독자</Badge>
                   <FreeText>무료로 시작하기</FreeText>
                 </>
               ) : (
                 <>
-                  <Badge>유료</Badge>
-                  <span>{tpl.price}원</span>
+                  <Badge>구독 필요</Badge>
+                  <span>구독 후 이용</span>
                 </>
               )}
             </CTA>

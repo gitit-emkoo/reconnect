@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import styled from 'styled-components';
 import { Agreement } from './AgreementList';
+import useAuthStore from '../../store/authStore';
 
 interface IssuedAgreementsProps {
   agreements: Agreement[];
@@ -182,6 +183,7 @@ const IssuedAgreements: React.FC<IssuedAgreementsProps> = ({
   const [sortOrder, setSortOrder] = useState<'latest' | 'oldest'>('latest');
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const user = useAuthStore((state) => state.user);
   const issuedAgreements = agreements.filter(a => a.status === 'issued');
 
   // 합의서 정렬 함수
@@ -256,7 +258,13 @@ const IssuedAgreements: React.FC<IssuedAgreementsProps> = ({
             <Meta>✔️ 합의일: {agreement.date} | 동의자: {agreement.partnerName}</Meta>
             <Actions>
               <Btn primary onClick={() => onView(agreement)}>확인하기</Btn>
-              <Btn pink onClick={() => onDownload(agreement)}>PDF 재발행</Btn>
+              <Btn 
+                pink={user?.subscriptionStatus === 'SUBSCRIBED'}
+                disabled={user?.subscriptionStatus !== 'SUBSCRIBED'}
+                onClick={() => onDownload(agreement)}
+              >
+                {user?.subscriptionStatus === 'SUBSCRIBED' ? 'PDF 재발행' : '구독 필요'}
+              </Btn>
             </Actions>
           </Card>
         ))}
