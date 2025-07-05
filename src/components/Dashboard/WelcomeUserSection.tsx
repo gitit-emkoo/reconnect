@@ -9,7 +9,7 @@ interface WelcomeUserSectionProps {
 const WelcomeUserSection: React.FC<WelcomeUserSectionProps> = ({ user, emotion }) => (
   <div>
     <div style={{ fontWeight: 700, fontSize: '1.2rem', marginBottom: 8 }}>
-      {user.nickname}님<br/> 감정은 꼭 챙기세요
+      {user.nickname}님 오늘도<br/> 감정은 꼭 챙기세요
     </div>
     <div style={{ color: '#888', fontSize: '1rem' }}>
       우리의 온도 <br/>{emotion} 

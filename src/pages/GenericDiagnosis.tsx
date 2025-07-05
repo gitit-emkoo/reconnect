@@ -5,6 +5,8 @@ import BackButton from '../components/common/BackButton';
 import ProgressBar from '../components/common/ProgressBar';
 import logoImage from '../assets/Logo.png';
 import { DIAGNOSIS_TEMPLATES } from '../templates/diagnosisTemplates';
+import useAuthStore from '../store/authStore';
+import { postDiagnosisResult } from '../api/diagnosis';
 
 const Container = styled.div`
   display: flex;
@@ -96,10 +98,11 @@ const GenericDiagnosis: React.FC = () => {
   const { diagnosisId } = useParams<{ diagnosisId: string }>();
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [answers, setAnswers] = useState<number[]>([]);
+  const accessToken = useAuthStore(state => state.accessToken);
 
   const template = DIAGNOSIS_TEMPLATES.find(t => t.id === diagnosisId);
 
-  const handleAnswer = (answerValue: number) => {
+  const handleAnswer = async (answerValue: number) => {
     if (!template) return;
 
     const newAnswers = [...answers, answerValue];
@@ -117,12 +120,24 @@ const GenericDiagnosis: React.FC = () => {
         answers: newAnswers,
       };
 
-      // 로컬 스토리지에 저장
-      const storageKey = `diagnosisHistory_${diagnosisId}`;
-      const existingHistory = JSON.parse(localStorage.getItem(storageKey) || '[]');
-      const updatedHistory = [newHistoryItem, ...existingHistory];
-      localStorage.setItem(storageKey, JSON.stringify(updatedHistory));
-      
+      if (accessToken) {
+        // 로그인 상태면 서버에 저장
+        try {
+          await postDiagnosisResult({
+            resultType: diagnosisId!,
+            score,
+            diagnosisType: diagnosisId!,
+          });
+        } catch (e) {
+          alert('진단 결과 저장에 실패했습니다. 네트워크 상태를 확인해주세요.');
+        }
+      } else {
+        // 비회원(베이스라인 진단 등)만 로컬스토리지 저장
+        const storageKey = `diagnosisHistory_${diagnosisId}`;
+        const existingHistory = JSON.parse(localStorage.getItem(storageKey) || '[]');
+        const updatedHistory = [newHistoryItem, ...existingHistory];
+        localStorage.setItem(storageKey, JSON.stringify(updatedHistory));
+      }
       // 결과 페이지로 이동
       navigate(`/generic-diagnosis-result/${diagnosisId}`, { state: { diagnosis: newHistoryItem } });
     }

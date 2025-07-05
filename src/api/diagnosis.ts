@@ -6,6 +6,7 @@ interface DiagnosisResult {
   resultType: string;
   createdAt: string;
   userId: string;
+  diagnosisType?: string;
 }
 
 export const getLatestDiagnosisResult = async (): Promise<DiagnosisResult | null> => {
@@ -28,4 +29,13 @@ export const getDiagnosisHistory = async (): Promise<DiagnosisResult[]> => {
     console.error('Failed to fetch diagnosis history:', error);
     return [];
   }
+};
+
+export const postDiagnosisResult = async (data: {
+  resultType: string;
+  score: number;
+  answers?: number[];
+  diagnosisType?: string;
+}) => {
+  return authAxios.post('/diagnosis', data);
 }; 
