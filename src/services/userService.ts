@@ -69,5 +69,15 @@ export const userService = {
     } catch (error) {
       console.error('FCM 토큰 업데이트에 실패했습니다:', error);
     }
+  },
+
+  // 구독 시작
+  startSubscription: async () => {
+    try {
+      const { data } = await axiosInstance.post('/users/me/subscribe');
+      return data;
+    } catch (error) {
+      throw new Error('구독 시작에 실패했습니다.');
+    }
   }
 }; 

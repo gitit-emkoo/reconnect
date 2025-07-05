@@ -4,6 +4,9 @@ import BackButton from '../components/common/BackButton';
 import styled from 'styled-components';
 import NavigationBar from '../components/NavigationBar';
 import ConfirmationModal from '../components/common/ConfirmationModal';
+import { userService } from '../services/userService';
+import useAuthStore from '../store/authStore';
+import { User } from '../types/user';
 
 const Container = styled.div`
   background-color: #f6f8fb;
@@ -95,11 +98,11 @@ const Button = styled.button<{ variant: 'primary' | 'yellow' | 'blue' }>`
 `;
 
 const SubscribePage: React.FC = () => {
-  const [modalType, setModalType] = useState<'report' | 'agreement' | null>(null);
+  const [modalType, setModalType] = useState<'report' | 'agreement' | 'subscribe' | null>(null);
+  const { user, setUser } = useAuthStore();
 
   const handleSubscribe = () => {
-    // 구독 로직 구현
-    console.log('구독하기 클릭');
+    setModalType('subscribe');
   };
 
   const handleReportView = () => {
@@ -110,13 +113,31 @@ const SubscribePage: React.FC = () => {
     setModalType('agreement');
   };
 
-  const handleModalConfirm = () => {
+  const handleModalConfirm = async () => {
     if (modalType === 'report') {
       // 리포트 열람 로직 구현
       console.log('리포트 열람 클릭');
     } else if (modalType === 'agreement') {
       // 합의서 발행 로직 구현
       console.log('합의서 발행 클릭');
+    } else if (modalType === 'subscribe') {
+      // 구독 시작 로직 구현
+      try {
+        const result = await userService.startSubscription();
+        
+        // 구독 성공 시 사용자 정보 업데이트
+        if (result && setUser && user) {
+          setUser({
+            ...user,
+            subscriptionStatus: 'SUBSCRIBED'
+          } as User);
+        }
+        
+        alert('구독이 성공적으로 시작되었습니다!');
+      } catch (error) {
+        console.error('구독 시작 실패:', error);
+        alert('구독 시작에 실패했습니다. 다시 시도해주세요.');
+      }
     }
     setModalType(null);
   };
@@ -139,8 +160,12 @@ const SubscribePage: React.FC = () => {
               ✔ 자기이해 진단 매월 1회<br/><br/>
               💳 <strong>월 3,900원 / 무료 이벤트 중</strong>
             </Description>
-            <Button variant="primary" onClick={handleSubscribe}>
-              무료 구독 시작
+            <Button
+              variant="primary"
+              onClick={handleSubscribe}
+              disabled={user?.subscriptionStatus === 'SUBSCRIBED'}
+            >
+              {user?.subscriptionStatus === 'SUBSCRIBED' ? '구독중' : '무료 구독 시작'}
             </Button>
           </Section>
 
@@ -181,13 +206,15 @@ const SubscribePage: React.FC = () => {
         isOpen={modalType !== null}
         onRequestClose={() => setModalType(null)}
         onConfirm={handleModalConfirm}
-        title={modalType === 'report' ? '트랙 리포트 열람' : modalType === 'agreement' ? '합의서 인증 발행' : ''}
+        title={modalType === 'report' ? '트랙 리포트 열람' : modalType === 'agreement' ? '합의서 인증 발행' : modalType === 'subscribe' ? '무료 구독 시작' : ''}
         message={modalType === 'report'
           ? '리커넥트 케어 무료 이벤트 중입니다.\n무료구독으로 자유롭게 이용하세요.'
           : modalType === 'agreement'
             ? '리커넥트 케어 무료 이벤트 중입니다.\n무료구독으로 자유롭게 이용하세요.'
-            : ''}
-        confirmButtonText="확인"
+            : modalType === 'subscribe'
+              ? '무료 구독 이벤트 종료시까지 리커넥트케어 항목의 모든 권한을 갖습니다'
+              : ''}
+        confirmButtonText={modalType === 'subscribe' ? '시작하기' : '확인'}
         showCancelButton={false}
       />
     </>

@@ -6,6 +6,7 @@ import useAuthStore from '../store/authStore';
 import { getDiagnosisHistory } from '../api/diagnosis';
 import { DIAGNOSIS_TEMPLATES } from '../templates/diagnosisTemplates';
 import BrainIcon from '../assets/Icon_Brain.png';
+import ConfirmationModal from '../components/common/ConfirmationModal';
 
 const Badge = styled.span`
   background-color: #ff4d4f;
@@ -172,6 +173,8 @@ const SelfDiagnosisRoom: React.FC = () => {
   const [histories, setHistories] = useState<Record<string, DiagnosisHistoryItem[]>>({});
   const [showAllMap, setShowAllMap] = useState<Record<string, boolean>>({});
   const accessToken = useAuthStore(state=>state.accessToken);
+  const user = useAuthStore(state => state.user);
+  const [showSubscribeModal, setShowSubscribeModal] = useState(false);
 
   // marriage를 항상 위로 오도록 정렬
   const sortedTemplates = [...DIAGNOSIS_TEMPLATES].sort((a, b) => {
@@ -252,7 +255,11 @@ const SelfDiagnosisRoom: React.FC = () => {
             </>
           ) : (<NoHistory>진단 내역이 없습니다.</NoHistory>)}
           <ButtonContainer>
-            <CTA onClick={()=>{
+            <CTA onClick={() => {
+              if (user?.subscriptionStatus !== 'SUBSCRIBED') {
+                setShowSubscribeModal(true);
+                return;
+              }
               navigate(`/generic-diagnosis/${tpl.id}`);
             }}>
               {tpl.price === '무료(이벤트)' ? (
@@ -270,6 +277,15 @@ const SelfDiagnosisRoom: React.FC = () => {
           </ButtonContainer>
         </Section>
       ))}
+      <ConfirmationModal
+        isOpen={showSubscribeModal}
+        onRequestClose={() => setShowSubscribeModal(false)}
+        onConfirm={() => setShowSubscribeModal(false)}
+        title="이용 안내"
+        message="구독하거나 결제 후 이용 바랍니다."
+        confirmButtonText="확인"
+        showCancelButton={false}
+      />
     </PageLayout>
   );
 };

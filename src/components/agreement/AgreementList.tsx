@@ -131,6 +131,7 @@ const SortContainer = styled.div`
   display: flex;
   justify-content: flex-end;
   margin-bottom: 1rem;
+  gap: 0.5rem;
   position: relative;
 `;
 
@@ -450,6 +451,12 @@ const AgreementList: React.FC = () => {
 
   // PDF 저장 확인 모달 표시
   const handlePdfButtonClick = (agreement: Agreement) => {
+    // 구독 여부 확인
+    if (user?.subscriptionStatus !== 'SUBSCRIBED') {
+      alert('PDF 발행은 구독자만 이용할 수 있습니다. 구독 후 이용해주세요.');
+      return;
+    }
+    
     setPendingPdfAgreement(agreement);
     setShowPdfConfirmModal(true);
   };
@@ -730,12 +737,35 @@ const AgreementListInner: React.FC<{
   onDelete: (agreement: Agreement) => void;
 }> = ({ agreements, onView, onDownload, onDelete }) => {
   const [sortOrder, setSortOrder] = useState<'latest' | 'oldest'>('latest');
-  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-  const dropdownRef = useRef<HTMLDivElement>(null);
+  const [statusFilter, setStatusFilter] = useState<'all' | 'completed' | 'pending_author' | 'pending_partner'>('all');
+  const [isSortDropdownOpen, setIsSortDropdownOpen] = useState(false);
+  const [isFilterDropdownOpen, setIsFilterDropdownOpen] = useState(false);
+  const sortDropdownRef = useRef<HTMLDivElement>(null);
+  const filterDropdownRef = useRef<HTMLDivElement>(null);
 
-  // 합의서 정렬 함수
-  const sortAgreements = (agreements: Agreement[]) => {
-    return [...agreements].sort((a, b) => {
+  // 합의서 필터링 및 정렬 함수
+  const filterAndSortAgreements = (agreements: Agreement[]) => {
+    const user = useAuthStore((state) => state.user);
+    
+    // 상태별 필터링
+    let filteredAgreements = agreements;
+    if (statusFilter !== 'all') {
+      filteredAgreements = agreements.filter(agreement => {
+        switch (statusFilter) {
+          case 'completed':
+            return agreement.status === 'completed';
+          case 'pending_author':
+            return agreement.status === 'pending' && user?.id === agreement.authorId;
+          case 'pending_partner':
+            return agreement.status === 'pending' && user?.id === agreement.partnerId;
+          default:
+            return true;
+        }
+      });
+    }
+    
+    // 정렬
+    return filteredAgreements.sort((a, b) => {
       const dateA = new Date(a.createdAt || a.date);
       const dateB = new Date(b.createdAt || b.date);
       
@@ -773,11 +803,30 @@ const AgreementListInner: React.FC<{
     return { text: '❓ 알수없음', color: '#6c757d' };
   };
 
+  // 필터링 옵션 표시 텍스트
+  const getFilterDisplayText = () => {
+    switch (statusFilter) {
+      case 'all':
+        return '전체';
+      case 'completed':
+        return '합의완료';
+      case 'pending_author':
+        return '서명요청';
+      case 'pending_partner':
+        return '서명필요';
+      default:
+        return '전체';
+    }
+  };
+
   // 드롭다운 외부 클릭 시 닫기
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
-        setIsDropdownOpen(false);
+      if (sortDropdownRef.current && !sortDropdownRef.current.contains(event.target as Node)) {
+        setIsSortDropdownOpen(false);
+      }
+      if (filterDropdownRef.current && !filterDropdownRef.current.contains(event.target as Node)) {
+        setIsFilterDropdownOpen(false);
       }
     };
 
@@ -788,20 +837,67 @@ const AgreementListInner: React.FC<{
   }, []);
   return (
     <ListContainer>
-      {/* 정렬 드롭다운 */}
+      {/* 정렬 및 필터 드롭다운 */}
       {agreements.length > 0 && (
         <SortContainer>
-          <SortDropdown ref={dropdownRef}>
-            <SortButton onClick={() => setIsDropdownOpen(!isDropdownOpen)}>
+          {/* 필터 드롭다운 */}
+          <SortDropdown ref={filterDropdownRef}>
+            <SortButton onClick={() => setIsFilterDropdownOpen(!isFilterDropdownOpen)}>
+              {getFilterDisplayText()}
+              <span>▼</span>
+            </SortButton>
+            <DropdownContent $isOpen={isFilterDropdownOpen}>
+              <DropdownItem 
+                $active={statusFilter === 'all'}
+                onClick={() => {
+                  setStatusFilter('all');
+                  setIsFilterDropdownOpen(false);
+                }}
+              >
+                전체
+              </DropdownItem>
+              <DropdownItem 
+                $active={statusFilter === 'completed'}
+                onClick={() => {
+                  setStatusFilter('completed');
+                  setIsFilterDropdownOpen(false);
+                }}
+              >
+                합의완료
+              </DropdownItem>
+              <DropdownItem 
+                $active={statusFilter === 'pending_author'}
+                onClick={() => {
+                  setStatusFilter('pending_author');
+                  setIsFilterDropdownOpen(false);
+                }}
+              >
+                서명요청
+              </DropdownItem>
+              <DropdownItem 
+                $active={statusFilter === 'pending_partner'}
+                onClick={() => {
+                  setStatusFilter('pending_partner');
+                  setIsFilterDropdownOpen(false);
+                }}
+              >
+                서명필요
+              </DropdownItem>
+            </DropdownContent>
+          </SortDropdown>
+          
+          {/* 정렬 드롭다운 */}
+          <SortDropdown ref={sortDropdownRef}>
+            <SortButton onClick={() => setIsSortDropdownOpen(!isSortDropdownOpen)}>
               {sortOrder === 'latest' ? '최신순' : '오래된순'}
               <span>▼</span>
             </SortButton>
-            <DropdownContent $isOpen={isDropdownOpen}>
+            <DropdownContent $isOpen={isSortDropdownOpen}>
               <DropdownItem 
                 $active={sortOrder === 'latest'}
                 onClick={() => {
                   setSortOrder('latest');
-                  setIsDropdownOpen(false);
+                  setIsSortDropdownOpen(false);
                 }}
               >
                 최신순
@@ -810,7 +906,7 @@ const AgreementListInner: React.FC<{
                 $active={sortOrder === 'oldest'}
                 onClick={() => {
                   setSortOrder('oldest');
-                  setIsDropdownOpen(false);
+                  setIsSortDropdownOpen(false);
                 }}
               >
                 오래된순
@@ -820,13 +916,22 @@ const AgreementListInner: React.FC<{
         </SortContainer>
       )}
       
-      {agreements.length === 0 && (
+      {filterAndSortAgreements(agreements).length === 0 && (
         <EmptyText>
-          아직 작성된 합의서가 없습니다.
-          <EmptySubText>위의 "합의서 작성" 버튼을 눌러 첫 번째 합의서를 작성해보세요!</EmptySubText>
+          {statusFilter === 'all' ? (
+            <>
+              아직 작성된 합의서가 없습니다.
+              <EmptySubText>위의 "합의서 작성" 버튼을 눌러 <br/>첫 번째 합의서를 작성해보세요!</EmptySubText>
+            </>
+          ) : (
+            <>
+              해당 상태의 합의서가 없습니다.
+              <EmptySubText>다른 필터를 선택하거나 새로운 합의서를 작성해보세요!</EmptySubText>
+            </>
+          )}
         </EmptyText>
       )}
-      {sortAgreements(agreements).map((agreement) => (
+      {filterAndSortAgreements(agreements).map((agreement) => (
         <Card key={agreement.id} $sample={agreement.isSample}>
           {!agreement.isSample && (
             <StatusBadge $color={getStatusMessage(agreement).color}>
@@ -840,10 +945,10 @@ const AgreementListInner: React.FC<{
             <Btn primary onClick={() => onView(agreement)}>확인하기</Btn>
             <Btn
               onClick={() => agreement.status === 'completed' && onDownload(agreement)}
-              disabled={agreement.status !== 'completed'}
-              pink={agreement.status === 'completed'}
+              disabled={agreement.status !== 'completed' || user?.subscriptionStatus !== 'SUBSCRIBED'}
+              pink={agreement.status === 'completed' && user?.subscriptionStatus === 'SUBSCRIBED'}
             >
-              인증 발행
+              {user?.subscriptionStatus === 'SUBSCRIBED' ? '인증 발행' : '구독 필요'}
             </Btn>
             {agreement.status !== 'issued' && (
               <Btn 
