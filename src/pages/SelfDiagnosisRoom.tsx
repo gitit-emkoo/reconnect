@@ -187,29 +187,22 @@ const SelfDiagnosisRoom: React.FC = () => {
     const init = async () => {
       const resultMap: Record<string, DiagnosisHistoryItem[]> = {};
 
-      // 서버 history if login
+      // 서버 history만 사용
       if (accessToken) {
         const serverHistory = await getDiagnosisHistory();
+        console.log('서버에서 받아온 진단 결과:', serverHistory);
         serverHistory.forEach((d) => {
-          const arr = resultMap[d.resultType] || [];
+          // diagnosisType이 없으면 resultType을 fallback으로 사용
+          const key = d.diagnosisType || d.resultType;
+          const arr = resultMap[key] || [];
           arr.push({
             id: d.id,
             date: new Date(d.createdAt).toLocaleString('ko-KR', { year:'numeric', month:'2-digit', day:'2-digit', hour:'2-digit', minute:'2-digit'}),
             score: d.score,
           });
-          resultMap[d.resultType] = arr;
+          resultMap[key] = arr;
         });
       }
-
-      // localStorage fallback for each template
-      DIAGNOSIS_TEMPLATES.forEach((tpl) => {
-        const key = `diagnosisHistory_${tpl.id}`;
-        const stored = localStorage.getItem(key);
-        if (stored) {
-          const arr = JSON.parse(stored);
-          if (!resultMap[tpl.id]) resultMap[tpl.id] = arr;
-        }
-      });
 
       setHistories(resultMap);
     };
@@ -256,7 +249,7 @@ const SelfDiagnosisRoom: React.FC = () => {
           ) : (<NoHistory>진단 내역이 없습니다.</NoHistory>)}
           <ButtonContainer>
             <CTA onClick={() => {
-              if (user?.subscriptionStatus !== 'SUBSCRIBED') {
+              if (tpl.id !== 'marriage' && user?.subscriptionStatus !== 'SUBSCRIBED') {
                 setShowSubscribeModal(true);
                 return;
               }
