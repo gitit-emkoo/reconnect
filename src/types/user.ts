@@ -20,6 +20,7 @@ export interface User {
   role?: 'USER' | 'ADMIN';
   socialProvider: string | null;
   subscriptionStatus?: 'FREE' | 'SUBSCRIBED';
+  subscriptionStartedAt?: string;
 }
 
 export interface ProfileUpdateResponse {
