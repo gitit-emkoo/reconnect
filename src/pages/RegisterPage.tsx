@@ -12,6 +12,8 @@ import axios from 'axios';
 import axiosInstance from '../api/axios';
 import useAuthStore from '../store/authStore';
 import ConfirmationModal from '../components/common/ConfirmationModal';
+import TermsContent from './TermsContent';
+import PrivacyContent from './PrivacyContent';
 
 const Container = styled.div`
   display: flex;
@@ -262,6 +264,8 @@ const RegisterPage: React.FC = () => {
   const [confirmPasswordShown, setConfirmPasswordShown] = useState(false);
   const [agreedToTerms, setAgreedToTerms] = useState(false);
   const [showDiagnosisModal, setShowDiagnosisModal] = useState(false);
+  const [showTermsModal, setShowTermsModal] = useState(false);
+  const [showPrivacyModal, setShowPrivacyModal] = useState(false);
   const [apiError, setApiError] = useState<string | null>(null);
   const { setAuth } = useAuthStore();
   const from = location.state?.from?.pathname || '/dashboard';
@@ -412,13 +416,7 @@ const RegisterPage: React.FC = () => {
         <CheckboxWrapper onClick={() => setAgreedToTerms(!agreedToTerms)}>
           <CustomCheckbox $isChecked={agreedToTerms} />
           <CheckboxLabel>
-            <a onClick={(e) => {
-              e.stopPropagation();
-              navigate('/terms');
-            }}>이용약관</a> 및 <a onClick={(e) => {
-              e.stopPropagation();
-              navigate('/privacy');
-            }}>개인정보 처리방침</a>에 동의합니다.
+            <a onClick={e => { e.stopPropagation(); setShowTermsModal(true); }}>이용약관</a> 및 <a onClick={e => { e.stopPropagation(); setShowPrivacyModal(true); }}>개인정보 처리방침</a>에 동의합니다.
           </CheckboxLabel>
         </CheckboxWrapper>
 
@@ -437,6 +435,31 @@ const RegisterPage: React.FC = () => {
         confirmButtonText="진단하러 가기"
         showCancelButton={false}
       />
+
+      {showTermsModal && (
+        <ConfirmationModal
+          isOpen={showTermsModal}
+          onRequestClose={() => setShowTermsModal(false)}
+          onConfirm={() => setShowTermsModal(false)}
+          title="이용약관"
+          confirmButtonText="확인"
+          showCancelButton={false}
+        >
+          <div style={{maxHeight:'50vh',overflowY:'auto'}}><TermsContent /></div>
+        </ConfirmationModal>
+      )}
+      {showPrivacyModal && (
+        <ConfirmationModal
+          isOpen={showPrivacyModal}
+          onRequestClose={() => setShowPrivacyModal(false)}
+          onConfirm={() => setShowPrivacyModal(false)}
+          title="개인정보 처리방침"
+          confirmButtonText="확인"
+          showCancelButton={false}
+        >
+          <div style={{maxHeight:'50vh',overflowY:'auto'}}><PrivacyContent /></div>
+        </ConfirmationModal>
+      )}
     </Container>
   );
 };

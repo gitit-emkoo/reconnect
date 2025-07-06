@@ -3,7 +3,6 @@ import styled from 'styled-components';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import PageLayout from '../components/Layout/PageLayout';
 import { DIAGNOSIS_TEMPLATES } from '../templates/diagnosisTemplates';
-import axios from '../api/axios';
 import Image  from '../assets/Icon_Brain.png';
 
 const ResultWrapper = styled.div`
@@ -71,25 +70,7 @@ const GenericDiagnosisResult: React.FC = () => {
   const template = DIAGNOSIS_TEMPLATES.find(t => t.id === diagnosisId);
 
   useEffect(() => {
-    if (diagnosis && template) {
-      // MarriageDiagnosisResult에 있던 서버 전송 로직을 가져옴
-      (async () => {
-        try {
-          const res = await axios.post('/diagnosis', {
-            score: diagnosis.score,
-            resultType: template.title, // 템플릿의 타이틀을 resultType으로 사용
-            diagnosisType: template.id,
-          });
-          // 비회원 진단 ID 저장
-          if (res.data?.id) {
-            localStorage.setItem('unauthDiagnosisId', res.data.id);
-          }
-          console.log('진단 결과 저장 성공:', res.data);
-        } catch (err) {
-          console.error('진단 결과 저장 실패:', err);
-        }
-      })();
-    }
+    // 진단 결과 저장 API 호출 및 비회원 로컬스토리지 저장 코드 제거
   }, [diagnosis, template]);
 
 

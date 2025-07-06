@@ -175,6 +175,7 @@ const SelfDiagnosisRoom: React.FC = () => {
   const accessToken = useAuthStore(state=>state.accessToken);
   const user = useAuthStore(state => state.user);
   const [showSubscribeModal, setShowSubscribeModal] = useState(false);
+  const [showPaymentModal, setShowPaymentModal] = useState(false);
 
   // marriage를 항상 위로 오도록 정렬
   const sortedTemplates = [...DIAGNOSIS_TEMPLATES].sort((a, b) => {
@@ -249,15 +250,29 @@ const SelfDiagnosisRoom: React.FC = () => {
           ) : (<NoHistory>진단 내역이 없습니다.</NoHistory>)}
           <ButtonContainer>
             <CTA onClick={() => {
-              if (tpl.id !== 'marriage' && user?.subscriptionStatus !== 'SUBSCRIBED') {
-                setShowSubscribeModal(true);
+              if (tpl.id === 'marriage') {
+                navigate(`/generic-diagnosis/${tpl.id}`);
                 return;
               }
-              navigate(`/generic-diagnosis/${tpl.id}`);
+              if (tpl.id === 'sex') {
+                if (user?.subscriptionStatus === 'SUBSCRIBED') {
+                  navigate(`/generic-diagnosis/${tpl.id}`);
+                } else {
+                  setShowSubscribeModal(true);
+                }
+                return;
+              }
+              // 그 외 진단은 결제 안내 모달
+              setShowPaymentModal(true);
             }}>
-              {tpl.price === '무료(이벤트)' ? (
+              {tpl.id === 'marriage' ? (
                 <>
                   <Badge>이벤트</Badge>
+                  <FreeText>무료로 시작하기</FreeText>
+                </>
+              ) : tpl.id === 'sex' && user?.subscriptionStatus === 'SUBSCRIBED' ? (
+                <>
+                  <Badge>구독자 무료</Badge>
                   <FreeText>무료로 시작하기</FreeText>
                 </>
               ) : (
@@ -276,6 +291,15 @@ const SelfDiagnosisRoom: React.FC = () => {
         onConfirm={() => setShowSubscribeModal(false)}
         title="이용 안내"
         message="구독하거나 결제 후 이용 바랍니다."
+        confirmButtonText="확인"
+        showCancelButton={false}
+      />
+      <ConfirmationModal
+        isOpen={showPaymentModal}
+        onRequestClose={() => setShowPaymentModal(false)}
+        onConfirm={() => setShowPaymentModal(false)}
+        title="이용 안내"
+        message="결제 후 진단 가능합니다."
         confirmButtonText="확인"
         showCancelButton={false}
       />

@@ -99,11 +99,12 @@ const GenericDiagnosis: React.FC = () => {
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [answers, setAnswers] = useState<number[]>([]);
   const accessToken = useAuthStore(state => state.accessToken);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const template = DIAGNOSIS_TEMPLATES.find(t => t.id === diagnosisId);
 
   const handleAnswer = async (answerValue: number) => {
-    if (!template) return;
+    if (!template || isSubmitting) return;
 
     const newAnswers = [...answers, answerValue];
     setAnswers(newAnswers);
@@ -111,17 +112,16 @@ const GenericDiagnosis: React.FC = () => {
     if (currentQuestion < template.questions.length - 1) {
       setCurrentQuestion(currentQuestion + 1);
     } else {
-      // 점수 계산
+      setIsSubmitting(true);
       const score = template.calculateScore(newAnswers);
       const newHistoryItem = {
-        id: Date.now(), // Unique ID
+        id: Date.now(),
         date: new Date().toLocaleString('ko-KR'),
         score,
         answers: newAnswers,
       };
 
       if (accessToken) {
-        // 로그인 상태면 서버에 저장
         try {
           await postDiagnosisResult({
             resultType: diagnosisId!,
@@ -130,15 +130,15 @@ const GenericDiagnosis: React.FC = () => {
           });
         } catch (e) {
           alert('진단 결과 저장에 실패했습니다. 네트워크 상태를 확인해주세요.');
+          setIsSubmitting(false);
+          return;
         }
       } else {
-        // 비회원(베이스라인 진단 등)만 로컬스토리지 저장
         const storageKey = `diagnosisHistory_${diagnosisId}`;
         const existingHistory = JSON.parse(localStorage.getItem(storageKey) || '[]');
         const updatedHistory = [newHistoryItem, ...existingHistory];
         localStorage.setItem(storageKey, JSON.stringify(updatedHistory));
       }
-      // 결과 페이지로 이동
       navigate(`/generic-diagnosis-result/${diagnosisId}`, { state: { diagnosis: newHistoryItem } });
     }
   };
@@ -186,19 +186,19 @@ const GenericDiagnosis: React.FC = () => {
       <ButtonContainer>
         {currentQ.options ? (
           currentQ.options.map(opt => (
-            <Button key={opt.value} onClick={() => handleAnswer(opt.value)}>
+            <Button key={opt.value} onClick={() => handleAnswer(opt.value)} disabled={isSubmitting}>
               {opt.text}
             </Button>
           ))
         ) : currentQ.scores ? (
           <>
-            <Button onClick={() => handleAnswer(currentQ.scores!.yes)}>
+            <Button onClick={() => handleAnswer(currentQ.scores!.yes)} disabled={isSubmitting}>
               그렇다
             </Button>
-            <Button onClick={() => handleAnswer(currentQ.scores!.neutral)}>
+            <Button onClick={() => handleAnswer(currentQ.scores!.neutral)} disabled={isSubmitting}>
               보통이다
             </Button>
-            <Button onClick={() => handleAnswer(currentQ.scores!.no)}>
+            <Button onClick={() => handleAnswer(currentQ.scores!.no)} disabled={isSubmitting}>
               아니다
             </Button>
           </>
