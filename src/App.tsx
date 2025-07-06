@@ -54,6 +54,7 @@ import GenericDiagnosis from './pages/GenericDiagnosis';
 import GenericDiagnosisResult from './pages/GenericDiagnosisResult';
 import AgreementPage from './pages/agreement';
 import AgreementVerification from './pages/AgreementVerification';
+import IssuedAgreementsPage from './pages/IssuedAgreementsPage';
 import TrackPage from './pages/track';
 import PointPage from './pages/point';
 import SubscribePage from './pages/subscribe';
@@ -166,6 +167,7 @@ const App = () => {
             <Route path="/delete-account" element={<ProtectedRoute><PlaceholderPage title="회원탈퇴" /></ProtectedRoute>} />
             <Route path="/agreement" element={<ProtectedRoute><AgreementPage /></ProtectedRoute>} />
             <Route path="/agreement/create" element={<ProtectedRoute><AgreementCreatePage /></ProtectedRoute>} />
+            <Route path="/issued-agreements" element={<ProtectedRoute><IssuedAgreementsPage /></ProtectedRoute>} />
             <Route path="/agreement-verification" element={<ProtectedRoute><AgreementVerification /></ProtectedRoute>} />
             <Route path="/track" element={<ProtectedRoute><TrackPage /></ProtectedRoute>} />
             <Route path="/point" element={<ProtectedRoute><PointPage /></ProtectedRoute>} />

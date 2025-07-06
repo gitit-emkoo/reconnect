@@ -30,6 +30,24 @@ const TopButton = styled.button<{ $primary?: boolean }>`
   cursor: pointer;
 `;
 
+const GradientButton = styled.button`
+  display: block;
+  margin: 1.2rem auto 0 auto;
+  padding: 1rem 1.5rem;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 1.08rem;
+  color: white;
+  background: linear-gradient(90deg, #785CD2 0%, #FF69B4 100%);
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(120,92,210,0.08);
+  transition: filter 0.15s;
+  &:hover {
+    filter: brightness(0.97);
+  }
+`;
+
 const AgreementPage: React.FC = () => {
   const navigate = useNavigate();
   const user = useAuthStore((state) => state.user);
@@ -55,6 +73,7 @@ const AgreementPage: React.FC = () => {
           <TopButton $primary onClick={handleAgreementCreateClick}>✒️ 합의서 작성</TopButton>
           <TopButton onClick={() => window.location.href = '/agreement-verification'}>🔐 합의서 인증</TopButton>
         </TopButtonRow>
+        <GradientButton onClick={() => navigate('/issued-agreements')}>📄 발행 합의서 보관함</GradientButton>
         <AgreementList />
       </Container>
       <NavigationBar />

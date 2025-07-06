@@ -5,7 +5,7 @@ import { agreementApi } from '../../api/agreement';
 import QRCodeGenerator from './QRCodeGenerator';
 import DigitalSignature from './DigitalSignature';
 import ConfirmationModal from '../common/ConfirmationModal';
-import IssuedAgreements from './IssuedAgreements';
+import Skeleton from '../common/Skeleton';
 import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';
 import { useNavigate } from 'react-router-dom';
@@ -295,6 +295,7 @@ const ModalFooter = styled.div`
 const AgreementList: React.FC = () => {
   const user = useAuthStore((state) => state.user);
   const [agreements, setAgreements] = useState<Agreement[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [previewAgreement, setPreviewAgreement] = useState<Agreement | null>(null);
   const [isPdfMode, setIsPdfMode] = useState(false);
   const [pdfTimestamp, setPdfTimestamp] = useState<string | null>(null);
@@ -312,6 +313,7 @@ const AgreementList: React.FC = () => {
   useEffect(() => {
     const fetchAgreements = async () => {
       try {
+        setIsLoading(true);
         const data = await agreementApi.findMyAgreements();
         const converted = data.map(apiAgreement => ({
           id: apiAgreement.id,
@@ -334,7 +336,11 @@ const AgreementList: React.FC = () => {
           createdAt: apiAgreement.createdAt, // 정렬을 위해 createdAt 필드 추가
         }));
         setAgreements(converted);
-      } catch (err) {}
+      } catch (err) {
+        console.error('합의서 로드 실패:', err);
+      } finally {
+        setIsLoading(false);
+      }
     };
     fetchAgreements();
   }, []);
@@ -573,21 +579,32 @@ const AgreementList: React.FC = () => {
 
   return (
     <Container>
-      {/* 발행 합의서 보관함 */}
-      <IssuedAgreements
-        agreements={agreements}
-        onView={setPreviewAgreement}
-        onDownload={handlePdfButtonClick}
-      />
-      
-      {/* 기존 리스트: 발행되지 않은 합의서만 */}
-      <AgreementListInner
-        agreements={agreements.filter(a => a.status !== 'issued')}
-        isSample={false}
-        onView={setPreviewAgreement}
-        onDownload={handlePdfButtonClick}
-        onDelete={handleDeleteButtonClick}
-      />
+      {isLoading ? (
+        // 스켈레톤 UI
+        <div style={{ padding: '1.5rem' }}>
+          {Array.from({ length: 3 }).map((_, index) => (
+            <div key={index} style={{ padding: '1.5rem', borderBottom: '1px solid #e0e0e0', marginBottom: '1.2rem' }}>
+              <Skeleton width="70%" height={22} style={{ marginBottom: '0.5rem' }} />
+              <Skeleton width="100%" height={16} style={{ marginBottom: '0.3rem' }} />
+              <Skeleton width="85%" height={16} style={{ marginBottom: '0.7rem' }} />
+              <Skeleton width="60%" height={14} style={{ marginBottom: '1rem' }} />
+              <div style={{ display: 'flex', gap: '0.7rem', marginTop: '1rem' }}>
+                <Skeleton width={80} height={36} />
+                <Skeleton width={100} height={36} />
+              </div>
+            </div>
+          ))}
+        </div>
+      ) : (
+        /* 기존 리스트: 발행되지 않은 합의서만 */
+        <AgreementListInner
+          agreements={agreements.filter(a => a.status !== 'issued')}
+          isSample={false}
+          onView={setPreviewAgreement}
+          onDownload={handlePdfButtonClick}
+          onDelete={handleDeleteButtonClick}
+        />
+      )}
       {/* 미리보기 모달 */}
       {previewAgreement && !isPdfMode && (
         <ModalOverlay onClick={() => setPreviewAgreement(null)}>
