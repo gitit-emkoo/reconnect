@@ -237,7 +237,7 @@ const GeneralErrorMessage = styled.p`
   width: 100%;
   max-width: 340px;
   margin-bottom: 1rem;
-  min-height: 1.2em; /* Prevent layout shift */
+  min-height: 1.2em; 
 `;
 
 const ForgotPasswordLinksContainer = styled.div`

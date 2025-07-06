@@ -7,10 +7,11 @@ interface ConfirmationModalProps {
   onRequestClose: () => void;
   onConfirm: () => void;
   title?: string;
-  message: string;
+  message?: string;
   confirmButtonText?: string;
   cancelButtonText?: string;
   showCancelButton?: boolean;
+  children?: React.ReactNode;
 }
 
 const ModalContent = styled.div`
@@ -96,6 +97,7 @@ const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
   confirmButtonText = '확인',
   cancelButtonText = '취소',
   showCancelButton = true,
+  children,
 }) => {
   return (
     <Modal
@@ -124,7 +126,7 @@ const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
     >
       <ModalContent>
         {title && <ModalTitle>{title}</ModalTitle>}
-        <Message>{message}</Message>
+        {children ? children : <Message>{message}</Message>}
         <ButtonContainer>
           {showCancelButton && <StyledButton onClick={onRequestClose}>{cancelButtonText}</StyledButton>}
           <StyledButton onClick={onConfirm} $isConfirm $primary={confirmButtonText === '로그아웃' || title?.includes('삭제') || title?.includes('탈퇴') } >
