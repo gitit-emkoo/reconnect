@@ -7,7 +7,6 @@ import HeartGauge from '../components/Dashboard/HeartGauge';
 import { useReportData } from '../hooks/useReportData';
 import { ReportData } from "../api/report";
 import LoadingSpinner from "../components/common/LoadingSpinner";
-import useAuthStore from '../store/authStore';
 
 const Container = styled.div`
   background-color: #f9fafb;
@@ -212,7 +211,7 @@ const NoDataPlaceholder: React.FC<{ title: string; text: string; buttonText: str
 
 const Report: React.FC = () => {
   const navigate = useNavigate();
-  const user = useAuthStore((state) => state.user);
+  
   const {
     loading,
     error,
@@ -234,22 +233,6 @@ const Report: React.FC = () => {
   }
 
   const renderContent = () => {
-    // 구독자만 리포트 이용 가능
-    if (user?.subscriptionStatus !== 'SUBSCRIBED') {
-      return (
-        <>
-          <Header><WeekInfo>주간 리포트</WeekInfo></Header>
-          <Section style={{ textAlign: 'center' }}>
-            <Title>구독자 전용 기능</Title>
-            <p style={{ margin: '1rem 0', color: '#6b7280' }}>
-              상세한 주간 리포트는 구독자만 이용할 수 있습니다.
-            </p>
-            <CTA onClick={() => navigate('/subscribe')}>구독하기</CTA>
-          </Section>
-        </>
-      );
-    }
-
     if (hasPartner) {
       if (currentReport) {
         // 파트너 O, 리포트 O
@@ -287,8 +270,7 @@ const Report: React.FC = () => {
           <Header><WeekInfo>리포트</WeekInfo></Header>
           <RelationshipTemperature score={latestScore} />
           <NoDataPlaceholder
-            title="함께한 노력이
-            '우리 리포트'로 쌓여 갑니다."
+            title="함께한 노력이\n'우리 리포트'로 쌓여 갑니다."
             text="지금부터 더 따뜻한 관계를 만들어 보세요."
             buttonText="파트너 초대하기"
             onNavigate={() => navigate('/dashboard')}

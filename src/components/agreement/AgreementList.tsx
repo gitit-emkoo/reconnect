@@ -610,7 +610,7 @@ const AgreementList: React.FC = () => {
         <ModalOverlay onClick={() => setPreviewAgreement(null)}>
           <PreviewModalBox ref={pdfRef} onClick={e => e.stopPropagation()}>
             <ModalContent>
-              <ModalTitle>공동 약속서</ModalTitle>
+              <ModalTitle>공동 합의서</ModalTitle>
               <ModalSection>
                 <ModalLabel>약속 주제</ModalLabel>
                 <ModalValue>{previewAgreement.title}</ModalValue>
