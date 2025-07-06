@@ -12,6 +12,7 @@ const Container = styled.div`
   max-width: 480px;
   margin: 0 auto;
   padding: 0 0 80px;
+  background-color: #ffffff;
 `;
 const TopButtonRow = styled.div`
   display: flex;

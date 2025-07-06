@@ -578,7 +578,7 @@ const IssuedAgreementsPage: React.FC = () => {
             maxHeight: '90%',
             overflow: 'auto'
           }} onClick={e => e.stopPropagation()}>
-            <h3 style={{ marginBottom: '1rem', color: '#333' }}>공동 약속서</h3>
+            <h3 style={{ marginBottom: '1rem', color: '#333' }}>공동 합의서</h3>
             <div style={{ marginBottom: '1rem' }}>
               <strong>약속 주제:</strong> {previewAgreement.title}
             </div>
