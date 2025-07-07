@@ -7,7 +7,7 @@ import PrivacyContent from './PrivacyContent';
 const PrivacyPolicyPage = () => (
   <PageLayout title="개인정보 처리방침">
     <PrivacyContent />
-  </PageLayout>
-);
+    </PageLayout>
+  );
 
 export default PrivacyPolicyPage; 

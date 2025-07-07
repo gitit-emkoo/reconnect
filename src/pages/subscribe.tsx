@@ -121,8 +121,8 @@ const SubscribePage: React.FC = () => {
       // 리포트 열람 로직 구현
       console.log('리포트 열람 클릭');
     } else if (modalType === 'agreement') {
-      // 합의서 발행 로직 구현
-      console.log('합의서 발행 클릭');
+    // 합의서 발행 로직 구현
+    console.log('합의서 발행 클릭');
     } else if (modalType === 'subscribe') {
       // 구독 시작 로직 구현
       try {

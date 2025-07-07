@@ -229,7 +229,7 @@ const AgreementCreatePage: React.FC = () => {
   return (
     <Container>
       <Title>리커넥트 인증 합의서 작성</Title>
-      <form style={{ width: '100%' }} onSubmit={handleSubmit}>
+        <form style={{ width: '100%' }} onSubmit={handleSubmit}>
         <Section>
           <Label>제목</Label>
           <ValueInput type="text" value={title} onChange={e => setTitle(e.target.value)} placeholder="합의할 약속의 제목을 입력하세요" required />
@@ -252,32 +252,32 @@ const AgreementCreatePage: React.FC = () => {
         </Section>
         <Section>
           <Label>작성자 서명</Label>
-          <DigitalSignature
-            onSignatureChange={(signature, hash) => {
-              setAuthorSignature(signature);
-              setAuthorSignatureHash(hash);
-            }}
-            placeholder={`${author || '작성자'} 서명`}
-          />
+            <DigitalSignature
+              onSignatureChange={(signature, hash) => {
+                setAuthorSignature(signature);
+                setAuthorSignatureHash(hash);
+              }}
+              placeholder={`${author || '작성자'} 서명`}
+            />
         </Section>
         <Section>
           <Label>작성일 및 서명시간</Label>
           <ModalValue>{nowStr}</ModalValue>
         </Section>
         <Footer>
-          * 본 문서는 리커넥트 앱 내 사용자 간 심리적 합의 기록용으로 작성되었습니다.
+            * 본 문서는 리커넥트 앱 내 사용자 간 심리적 합의 기록용으로 작성되었습니다.
         </Footer>
-        <BtnRow>
-          <Btn type="button" onClick={() => navigate(-1)}>취소</Btn>
+          <BtnRow>
+            <Btn type="button" onClick={() => navigate(-1)}>취소</Btn>
           <Btn $primary type="submit">합의서 미리보기</Btn>
-        </BtnRow>
-      </form>
+          </BtnRow>
+        </form>
 
-      {isPreviewOpen && previewAgreement && (
-        <div style={{ position: 'fixed', left: 0, top: 0, width: '100vw', height: '100vh', background: 'rgba(0,0,0,0.25)', zIndex: 1500, display: 'flex', alignItems: 'center', justifyContent: 'center' }} onClick={() => setIsPreviewOpen(false)}>
-          <PreviewModalBox onClick={e => e.stopPropagation()}>
+        {isPreviewOpen && previewAgreement && (
+          <div style={{ position: 'fixed', left: 0, top: 0, width: '100vw', height: '100vh', background: 'rgba(0,0,0,0.25)', zIndex: 1500, display: 'flex', alignItems: 'center', justifyContent: 'center' }} onClick={() => setIsPreviewOpen(false)}>
+            <PreviewModalBox onClick={e => e.stopPropagation()}>
             <ModalTitle>합의서 미리보기</ModalTitle>
-            {/* 에러 메시지 */}
+              {/* 에러 메시지 */}
             {error && <ErrorMessage>{error}</ErrorMessage>}
             <ModalField>
               <ModalLabel>제목</ModalLabel>
@@ -311,21 +311,21 @@ const AgreementCreatePage: React.FC = () => {
               <ModalLabel>작성일 및 서명시간</ModalLabel>
               <ModalValue>{previewAgreement.date}</ModalValue>
             </ModalField>
-            <BtnRow>
-              <Btn type="button" onClick={() => setIsPreviewOpen(false)} disabled={isSubmitting}>
+              <BtnRow>
+                <Btn type="button" onClick={() => setIsPreviewOpen(false)} disabled={isSubmitting}>
                 이전으로
-              </Btn>
-              <Btn $primary type="button" onClick={handleCreateAgreement} disabled={isSubmitting}>
-                {isSubmitting ? (
+                </Btn>
+                <Btn $primary type="button" onClick={handleCreateAgreement} disabled={isSubmitting}>
+                  {isSubmitting ? (
                   <LoadingSpinner>전송 중...</LoadingSpinner>
-                ) : (
+                  ) : (
                   '합의서 전송'
-                )}
-              </Btn>
-            </BtnRow>
-          </PreviewModalBox>
-        </div>
-      )}
+                  )}
+                </Btn>
+              </BtnRow>
+            </PreviewModalBox>
+          </div>
+        )}
     </Container>
   );
 };
