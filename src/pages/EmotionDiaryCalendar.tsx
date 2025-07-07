@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import EmotionImagePreview, { PaletteItem } from '../components/EmotionImagePreview';
 import { triggers } from './EmotionDiary';
 import { toKST } from '../utils/date';
@@ -42,12 +42,33 @@ function mapRandomInfoWithIcons(randomInfo: PaletteItem[]): PaletteItem[] {
 }
 
 const EmotionDiaryCalendar: React.FC<Props> = ({ diaryList, onDayClick }) => {
-  // 이번 달 정보
+  // 월/년 상태 관리
   const now = toKST(new Date());
-  const year = now.getFullYear();
-  const month = now.getMonth(); // 0-indexed
-  const firstDay = new Date(year, month, 1);
-  const lastDay = new Date(year, month + 1, 0);
+  const [currentYear, setCurrentYear] = useState(now.getFullYear());
+  const [currentMonth, setCurrentMonth] = useState(now.getMonth()); // 0-indexed
+
+  // 월 이동 핸들러
+  const handlePrevMonth = () => {
+    setCurrentMonth((prev) => {
+      if (prev === 0) {
+        setCurrentYear((y) => y - 1);
+        return 11;
+      }
+      return prev - 1;
+    });
+  };
+  const handleNextMonth = () => {
+    setCurrentMonth((prev) => {
+      if (prev === 11) {
+        setCurrentYear((y) => y + 1);
+        return 0;
+      }
+      return prev + 1;
+    });
+  };
+
+  const firstDay = new Date(currentYear, currentMonth, 1);
+  const lastDay = new Date(currentYear, currentMonth + 1, 0);
   const daysInMonth = lastDay.getDate();
   const startWeekday = firstDay.getDay();
 
@@ -65,8 +86,10 @@ const EmotionDiaryCalendar: React.FC<Props> = ({ diaryList, onDayClick }) => {
 
   return (
     <div style={{ margin: '2rem 0' }}>
-      <div style={{ textAlign: 'center', fontWeight: 700, fontSize: 18, marginBottom: 8 }}>
-        {MONTHS[month]} {year}
+      <div style={{ textAlign: 'center', fontWeight: 700, fontSize: 18, marginBottom: 8, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 16 }}>
+        <button onClick={handlePrevMonth} style={{ background: 'none', border: 'none', fontSize: 20, cursor: 'pointer' }} aria-label="이전 달">◀</button>
+        {MONTHS[currentMonth]} {currentYear}
+        <button onClick={handleNextMonth} style={{ background: 'none', border: 'none', fontSize: 20, cursor: 'pointer' }} aria-label="다음 달">▶</button>
       </div>
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 6, marginBottom: 6 }}>
         {WEEKDAYS.map((w) => (
@@ -76,7 +99,7 @@ const EmotionDiaryCalendar: React.FC<Props> = ({ diaryList, onDayClick }) => {
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 6 }}>
         {cells.map((day, idx) => {
           if (!day) return <div key={idx} />;
-          const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+          const dateStr = `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
           const entry = diaryList.find(d => d.date === dateStr);
           return (
             <div key={dateStr + '-' + idx} style={{ textAlign: 'center', cursor: entry ? 'pointer' : 'default' }}

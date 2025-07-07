@@ -1,12 +1,13 @@
 // This is a new file.
 import { useState, useEffect, useCallback } from 'react';
-import { getMyReports, ReportData } from '../api/report';
+import { getMyReports, getAvailableWeeks, ReportData, AvailableWeek } from '../api/report';
 import useAuthStore from '../store/authStore';
 import { getLatestDiagnosisResult } from '../api/diagnosis';
 
 export const useReportData = () => {
     const { user } = useAuthStore();
     const [reports, setReports] = useState<ReportData[]>([]);
+    const [availableWeeks, setAvailableWeeks] = useState<AvailableWeek[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [selectedWeekValue, setSelectedWeekValue] = useState<string>('');
@@ -25,9 +26,15 @@ export const useReportData = () => {
         setError(null);
         try {
             if (hasPartner) {
-                const reportsData = await getMyReports();
+                const [reportsData, weeksData] = await Promise.all([
+                    getMyReports(),
+                    getAvailableWeeks()
+                ]);
+                
                 const sortedReports = [...reportsData].sort((a, b) => new Date(b.weekStartDate).getTime() - new Date(a.weekStartDate).getTime());
                 setReports(sortedReports);
+                setAvailableWeeks(weeksData);
+                
                 if (sortedReports.length > 0) {
                     setSelectedWeekValue(sortedReports[0].id);
                     setLatestScore(sortedReports[0].overallScore);
@@ -39,6 +46,7 @@ export const useReportData = () => {
                 const soloDiagnosis = await getLatestDiagnosisResult();
                 setLatestScore(soloDiagnosis?.score ?? 61);
                 setReports([]);
+                setAvailableWeeks([]);
             }
         } catch (err) {
             console.error('리포트 데이터 로딩 실패:', err);
@@ -60,9 +68,10 @@ export const useReportData = () => {
         setSelectedWeekValue(e.target.value);
     };
 
-    const availableWeeks = reports.map(report => ({
-        value: report.id,
-        label: `${new Date(report.weekStartDate).getMonth() + 1}월 ${Math.ceil(new Date(report.weekStartDate).getDate() / 7)}주차`,
+    // 백엔드에서 받은 정확한 주차 정보를 사용
+    const weekOptions = availableWeeks.map(week => ({
+        value: week.value,
+        label: week.label,
     }));
     
     const selectedReportIndex = reports.findIndex(r => r.id === selectedWeekValue);
@@ -76,7 +85,7 @@ export const useReportData = () => {
         reports,
         currentReport,
         previousReport,
-        availableWeeks,
+        availableWeeks: weekOptions,
         selectedWeekValue,
         handleWeekChange,
         hasPartner,
