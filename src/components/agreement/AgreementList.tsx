@@ -699,7 +699,7 @@ const AgreementList: React.FC = () => {
                     onClick={handleSignAgreement}
                     disabled={isSigning || !partnerSignature}
                   >
-                    {isSigning ? '서명 중...' : '서명 완료'}
+                    {isSigning ? '서명 중...' : '합의 완료'}
                   </button>
                 )}
               </div>

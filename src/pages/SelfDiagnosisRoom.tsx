@@ -225,7 +225,7 @@ const SelfDiagnosisRoom: React.FC = () => {
           { (histories[tpl.id]?.length ?? 0) > 0 ? (
             <>
               <DiagnosisList>
-                {(showAllMap[tpl.id] ? histories[tpl.id] : histories[tpl.id]?.slice(0,3)).map((item)=>(
+                {(showAllMap[tpl.id] ? histories[tpl.id] : histories[tpl.id]?.slice(0,1)).map((item)=>(
                   <DiagnosisItem
                     key={item.id}
                     onClick={()=>{
@@ -239,7 +239,7 @@ const SelfDiagnosisRoom: React.FC = () => {
                   </DiagnosisItem>
                 ))}
               </DiagnosisList>
-              { (histories[tpl.id]?.length ?? 0) > 3 && (
+              { (histories[tpl.id]?.length ?? 0) > 1 && (
                 <ButtonContainer>
                   <ToggleButton onClick={()=>setShowAllMap(prev=>({...prev, [tpl.id]: !prev[tpl.id]}))}>
                     {showAllMap[tpl.id] ? '접기 ▲' : '더보기 ▼'}

@@ -2,6 +2,7 @@ import axios from './axios';
 import axiosInstance from "./axios";
 
 export interface AvailableWeek {
+  id: string;
   year: number;
   month: number;
   week: number;
