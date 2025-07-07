@@ -134,10 +134,10 @@ const GenericDiagnosis: React.FC = () => {
           return;
         }
       } else {
-        const storageKey = `diagnosisHistory_${diagnosisId}`;
-        const existingHistory = JSON.parse(localStorage.getItem(storageKey) || '[]');
-        const updatedHistory = [newHistoryItem, ...existingHistory];
-        localStorage.setItem(storageKey, JSON.stringify(updatedHistory));
+      const storageKey = `diagnosisHistory_${diagnosisId}`;
+      const existingHistory = JSON.parse(localStorage.getItem(storageKey) || '[]');
+      const updatedHistory = [newHistoryItem, ...existingHistory];
+      localStorage.setItem(storageKey, JSON.stringify(updatedHistory));
       }
       navigate(`/generic-diagnosis-result/${diagnosisId}`, { state: { diagnosis: newHistoryItem } });
     }

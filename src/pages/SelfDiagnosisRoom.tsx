@@ -256,7 +256,7 @@ const SelfDiagnosisRoom: React.FC = () => {
               }
               if (tpl.id === 'sex') {
                 if (user?.subscriptionStatus === 'SUBSCRIBED') {
-                  navigate(`/generic-diagnosis/${tpl.id}`);
+              navigate(`/generic-diagnosis/${tpl.id}`);
                 } else {
                   setShowSubscribeModal(true);
                 }

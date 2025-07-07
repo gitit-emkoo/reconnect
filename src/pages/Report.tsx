@@ -7,6 +7,8 @@ import HeartGauge from '../components/Dashboard/HeartGauge';
 import { useReportData } from '../hooks/useReportData';
 import { ReportData } from "../api/report";
 import LoadingSpinner from "../components/common/LoadingSpinner";
+import useAuthStore from '../store/authStore';
+import axiosInstance from '../api/axios';
 
 const Container = styled.div`
   background-color: #f9fafb;
@@ -209,9 +211,51 @@ const NoDataPlaceholder: React.FC<{ title: string; text: string; buttonText: str
     </Section>
 );
 
+const AdminReportTrigger = () => {
+  const user = useAuthStore(state => state.user);
+  const [loading, setLoading] = React.useState(false);
+
+  console.log('admin trigger render', user?.role);
+
+  const handleGenerateReport = async () => {
+    setLoading(true);
+    try {
+      await axiosInstance.post('/reports/generate');
+      alert('리포트가 강제 생성되었습니다!');
+    } catch (e) {
+      alert('리포트 생성에 실패했습니다.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <AdminButton onClick={handleGenerateReport} disabled={loading}>
+      {loading ? '생성 중...' : '리포트 강제 생성'}
+    </AdminButton>
+  );
+};
+
+const AdminButton = styled.button`
+  margin-top: 2rem;
+  width: 100%;
+  padding: 1rem;
+  background: linear-gradient(90deg, #785CD2 0%, #FF69B4 100%);
+  color: #fff;
+  font-size: 1.1rem;
+  font-weight: bold;
+  border: none;
+  border-radius: 0.75rem;
+  cursor: pointer;
+  transition: opacity 0.2s;
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+`;
+
 const Report: React.FC = () => {
   const navigate = useNavigate();
-  
   const {
     loading,
     error,
@@ -286,6 +330,7 @@ const Report: React.FC = () => {
       <Container>
         {renderContent()}
         <ExpertSolutionCTA onNavigate={() => navigate('/expert')} />
+        <AdminReportTrigger />
       </Container>
       <NavigationBar isSolo={!hasPartner}/>
     </>

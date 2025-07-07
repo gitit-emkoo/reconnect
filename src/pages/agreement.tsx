@@ -67,8 +67,8 @@ const AgreementPage: React.FC = () => {
 
   return (
     <>
-      <Header title="리커넥트 인증 합의서" />
-      <BackButton />
+    <Header title="리커넥트 인증 합의서" />
+    <BackButton />
       <Container>
         <TopButtonRow>
           <TopButton $primary onClick={handleAgreementCreateClick}>✒️ 합의서 작성</TopButton>
