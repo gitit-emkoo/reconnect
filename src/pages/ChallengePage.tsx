@@ -207,9 +207,11 @@ const ChallengePage: React.FC = () => {
   const [selectedHistoryChallenge, setSelectedHistoryChallenge] = useState<Challenge | null>(null);
   const user = useAuthStore(state => state.user);
   const hasPartner = !!user?.partner?.id;
+  const [isLoading, setIsLoading] = useState(true);
 
   const loadData = useCallback(async () => {
     try {
+      setIsLoading(true);
       const [active, history] = await Promise.all([
         challengeApi.getActiveChallenge(),
         challengeApi.getChallengeHistory(),
@@ -218,7 +220,9 @@ const ChallengePage: React.FC = () => {
       setChallengeHistory(history);
     } catch (error) {
       console.error('데이터 로드 중 오류 발생:', error);
-      setActiveChallenge(null); // 에러 발생 시 activeChallenge를 null로 설정
+      setActiveChallenge(null);
+    } finally {
+      setIsLoading(false);
     }
   }, []);
 
@@ -295,9 +299,9 @@ const ChallengePage: React.FC = () => {
         </SectionTitle>
         <ActiveChallenge
           challenge={activeChallenge}
-          onComplete={loadData}
           isCurrentUserCompleted={isCurrentUserCompleted}
           isWeeklyCompleted={isWeeklyCompleted}
+          isLoading={isLoading}
         />
 
         <SectionTitle>새로운 챌린지 시작하기</SectionTitle>

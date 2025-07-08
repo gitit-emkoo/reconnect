@@ -229,6 +229,10 @@ const Dashboard: React.FC = () => {
 
   useEmotionCardNotifications(receivedMessages);
   
+  // user, partner 콘솔 출력
+  console.log('Dashboard user:', user);
+  console.log('Dashboard partner:', partner);
+  
   if (isLoading || !user) {
     return <Container style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}><LoadingSpinner /></Container>;
   }
@@ -367,7 +371,10 @@ const Dashboard: React.FC = () => {
         {partner ? (
           <PartnerCard
             partner={partner}
-            user={{ nickname: user.nickname ?? '' }}
+            user={{ 
+              nickname: user.nickname ?? '',
+              profileImageUrl: user.profileImageUrl
+            }}
             coupleCreatedAt={user.couple?.createdAt}
             activeChallengeTitle={activeChallenge?.title}
           />

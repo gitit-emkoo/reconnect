@@ -27,6 +27,38 @@ export const userService = {
     }
   },
 
+  // 프로필 이미지 업데이트
+  updateProfileImage: async (profileImageUrl: string): Promise<ProfileUpdateResponse> => {
+    try {
+      const { data } = await axiosInstance.patch('/users/me/profile-image', { profileImageUrl });
+      return data;
+    } catch (error) {
+      return {
+        success: false,
+        error: {
+          code: 'REQUEST_FAILED',
+          message: '프로필 이미지 업데이트에 실패했습니다.'
+        }
+      };
+    }
+  },
+
+  // 랜덤 아바타 생성
+  generateRandomAvatar: async (): Promise<ProfileUpdateResponse> => {
+    try {
+      const { data } = await axiosInstance.post('/users/me/generate-avatar');
+      return data;
+    } catch (error) {
+      return {
+        success: false,
+        error: {
+          code: 'REQUEST_FAILED',
+          message: '랜덤 아바타 생성에 실패했습니다.'
+        }
+      };
+    }
+  },
+
   // 비밀번호 변경
   changePassword: async (passwordData: PasswordChangeData): Promise<PasswordChangeResponse> => {
     try {
