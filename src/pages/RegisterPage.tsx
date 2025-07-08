@@ -292,16 +292,8 @@ const RegisterPage: React.FC = () => {
   const googleLogin = useGoogleLogin({
     onSuccess: async (tokenResponse) => {
       try {
-        const userInfoResponse = await axios.get('https://www.googleapis.com/oauth2/v3/userinfo', {
-          headers: { Authorization: `Bearer ${tokenResponse.access_token}` },
-        });
-
-        const { email, name: nickname, sub: googleId } = userInfoResponse.data;
-
         const payload: any = {
-          email,
-          nickname,
-          googleId,
+          accessToken: tokenResponse.access_token,
           ...getUnauthDiagnosisData(),
         };
 
