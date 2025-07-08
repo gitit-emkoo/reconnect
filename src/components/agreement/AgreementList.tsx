@@ -57,14 +57,14 @@ const Card = styled.div<{ $sample?: boolean }>`
 const StatusBadge = styled.div<{ $color?: string }>` 
   position: absolute;
   right: 0;
-  top: -0.5rem;
-  width: 120px;
-  padding: 0.35em 1em;
-  border-radius: 1.2em;
-  font-size: 0.92rem;
-  font-weight: 700;
-  background: ${props => props.$color || '#eee'};
-  color: #fff;
+  top: 0;
+  padding: 0.3rem 0.8rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: ${props => props.$color || '#666'};
+  background: none;
+  border: 1px solid ${props => props.$color || '#ddd'};
+  border-radius: 4px;
   text-align: center;
 `;
 
@@ -109,22 +109,41 @@ const EmptySubText = styled.div`
 const Actions = styled.div`
   margin-top: 1rem;
   display: flex;
-  gap: 0.7rem;
+  gap: 1.5rem;
 `;
 
-const Btn = styled.button<{primary?: boolean, pink?: boolean, red?: boolean, disabled?: boolean}>`
-  padding: 0.5rem 0.8rem;
-  font-size: 0.9rem;
-  border-radius: 6px;
+const TextButton = styled.button<{primary?: boolean, pink?: boolean, red?: boolean, disabled?: boolean}>`
+  background: none;
   border: none;
-  cursor: pointer;
-  background: ${({ primary, pink, red, disabled }) =>
-    disabled ? '#e0e0e0' : red ? '#dc3545' : pink ? '#ff69b4' : primary ? '#785cd2' : '#e0e0e0'};
+  font-size: 0.95rem;
+  cursor: ${({ disabled }) => disabled ? 'not-allowed' : 'pointer'};
   color: ${({ primary, pink, red, disabled }) =>
-    disabled ? '#aaa' : (primary || pink || red) ? 'white' : '#333'};
+    disabled ? '#ccc' : red ? '#dc3545' : pink ? '#ff69b4' : primary ? '#785cd2' : '#666'};
   font-weight: 600;
-  opacity: ${({ disabled }) => (disabled ? 0.7 : 1)};
-  pointer-events: ${({ disabled }) => (disabled ? 'none' : 'auto')};
+  padding: 0.3rem 0;
+  position: relative;
+  transition: color 0.2s ease;
+  opacity: ${({ disabled }) => disabled ? 0.5 : 1};
+
+  &:hover {
+    color: ${({ primary, pink, red, disabled }) =>
+      disabled ? '#ccc' : red ? '#c82333' : pink ? '#e55a9e' : primary ? '#6a4fc7' : '#333'};
+  }
+
+  &::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 0;
+    height: 1px;
+    background: currentColor;
+    transition: width 0.2s ease;
+  }
+
+  &:hover::after {
+    width: 100%;
+  }
 `;
 
 // 정렬 드롭다운 스타일
@@ -975,21 +994,21 @@ const AgreementListInner: React.FC<{
           <Content>{agreement.content}</Content>
           <Meta>✔️ 합의일: {agreement.date} | 동의자: {agreement.partnerName}</Meta>
           <Actions>
-            <Btn primary onClick={() => onView(agreement)}>확인하기</Btn>
-            <Btn
+            <TextButton primary onClick={() => onView(agreement)}>확인하기</TextButton>
+            <TextButton
               onClick={() => onDownload(agreement)}
               disabled={agreement.status !== 'completed'}
               pink={agreement.status === 'completed' && user?.subscriptionStatus === 'SUBSCRIBED'}
             >
               인증 발행
-            </Btn>
+            </TextButton>
             {agreement.status !== 'issued' && (
-              <Btn 
+              <TextButton 
                 onClick={() => onDelete(agreement)}
                 red
               >
                 삭제
-              </Btn>
+              </TextButton>
             )}
           </Actions>
         </Card>

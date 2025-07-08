@@ -40,20 +40,41 @@ const Input = styled.input`
 `;
 
 const Button = styled.button<{ $primary?: boolean }>`
-  background: ${props => props.$primary ? '#785cd2' : '#e0e0e0'};
-  color: ${props => props.$primary ? 'white' : '#333'};
+  background: none;
   border: none;
-  border-radius: 8px;
-  padding: 1rem 2rem;
+  color: ${props => props.$primary ? '#785cd2' : '#666'};
   font-size: 1rem;
   font-weight: 600;
   cursor: pointer;
   width: 100%;
   margin-bottom: 1rem;
+  padding: 0.8rem 0;
+  position: relative;
+  transition: color 0.2s ease;
   
   &:disabled {
     opacity: 0.5;
     cursor: not-allowed;
+    color: #ccc;
+  }
+
+  &:hover:not(:disabled) {
+    color: ${props => props.$primary ? '#6a4fc7' : '#333'};
+  }
+
+  &::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 0;
+    height: 2px;
+    background: currentColor;
+    transition: width 0.2s ease;
+  }
+
+  &:hover:not(:disabled)::after {
+    width: 100%;
   }
 `;
 

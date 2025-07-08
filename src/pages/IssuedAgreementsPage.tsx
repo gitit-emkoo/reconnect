@@ -54,20 +54,41 @@ const Meta = styled.div`
 const Actions = styled.div`
   margin-top: 1rem;
   display: flex;
-  gap: 0.7rem;
+  gap: 1.5rem;
 `;
 
-const Btn = styled.button<{primary?: boolean, pink?: boolean}>`
-  padding: 0.5rem 0.8rem;
-  font-size: 0.9rem;
-  border-radius: 6px;
+const TextButton = styled.button<{primary?: boolean, pink?: boolean, disabled?: boolean}>`
+  background: none;
   border: none;
-  cursor: pointer;
-  background: ${({ primary, pink }) =>
-    pink ? '#ff69b4' : primary ? '#785cd2' : '#e0e0e0'};
-  color: ${({ primary, pink }) =>
-    (primary || pink) ? 'white' : '#333'};
+  font-size: 0.95rem;
+  cursor: ${({ disabled }) => disabled ? 'not-allowed' : 'pointer'};
+  color: ${({ primary, pink, disabled }) =>
+    disabled ? '#ccc' : pink ? '#ff69b4' : primary ? '#785cd2' : '#666'};
   font-weight: 600;
+  padding: 0.3rem 0;
+  position: relative;
+  transition: color 0.2s ease;
+  opacity: ${({ disabled }) => disabled ? 0.5 : 1};
+
+  &:hover {
+    color: ${({ primary, pink, disabled }) =>
+      disabled ? '#ccc' : pink ? '#e55a9e' : primary ? '#6a4fc7' : '#333'};
+  }
+
+  &::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 0;
+    height: 1px;
+    background: currentColor;
+    transition: width 0.2s ease;
+  }
+
+  &:hover::after {
+    width: 100%;
+  }
 `;
 
 const EmptyState = styled.div`
@@ -523,14 +544,14 @@ const IssuedAgreementsPage: React.FC = () => {
                 <Content>{agreement.content}</Content>
                 <Meta>✔️ 합의일: {agreement.date} | 동의자: {agreement.partnerName}</Meta>
                 <Actions>
-                  <Btn primary onClick={() => setPreviewAgreement(agreement)}>확인하기</Btn>
-                  <Btn 
+                  <TextButton primary onClick={() => setPreviewAgreement(agreement)}>확인하기</TextButton>
+                  <TextButton 
                     pink={user?.subscriptionStatus === 'SUBSCRIBED'}
                     disabled={user?.subscriptionStatus !== 'SUBSCRIBED'}
                     onClick={() => handlePdfButtonClick(agreement)}
                   >
                     {user?.subscriptionStatus === 'SUBSCRIBED' ? 'PDF 재발행' : '구독 필요'}
-                  </Btn>
+                  </TextButton>
                 </Actions>
               </Card>
             ))}

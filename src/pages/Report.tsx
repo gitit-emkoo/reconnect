@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import styled from "styled-components";
 import { useNavigate } from 'react-router-dom';
 import NavigationBar from '../components/NavigationBar';
@@ -7,8 +7,6 @@ import HeartGauge from '../components/Dashboard/HeartGauge';
 import { useReportData } from '../hooks/useReportData';
 import { ReportData } from "../api/report";
 import LoadingSpinner from "../components/common/LoadingSpinner";
-import useAuthStore from '../store/authStore';
-import axiosInstance from '../api/axios';
 
 const Container = styled.div`
   background-color: #f9fafb;
@@ -211,48 +209,21 @@ const NoDataPlaceholder: React.FC<{ title: string; text: string; buttonText: str
     </Section>
 );
 
-const AdminReportTrigger = () => {
-  const user = useAuthStore(state => state.user);
-  const [loading, setLoading] = React.useState(false);
-
-  console.log('admin trigger render', user?.role);
-
-  const handleGenerateReport = async () => {
-    setLoading(true);
-    try {
-      await axiosInstance.post('/reports/generate');
-      alert('리포트가 강제 생성되었습니다!');
-    } catch (e) {
-      alert('리포트 생성에 실패했습니다.');
-    } finally {
-      setLoading(false);
-    }
-  };
-
+// 간단한 모달 컴포넌트
+const Modal = ({ open, onClose, children }: { open: boolean; onClose: () => void; children: React.ReactNode }) => {
+  if (!open) return null;
   return (
-    <AdminButton onClick={handleGenerateReport} disabled={loading}>
-      {loading ? '생성 중...' : '리포트 강제 생성'}
-    </AdminButton>
+    <div style={{
+      position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', background: 'rgba(0,0,0,0.3)', zIndex: 1000,
+      display: 'flex', alignItems: 'center', justifyContent: 'center'
+    }}>
+      <div style={{ background: 'white', borderRadius: 12, padding: 32, minWidth: 280, textAlign: 'center', boxShadow: '0 4px 24px rgba(0,0,0,0.15)' }}>
+        {children}
+        <button style={{ marginTop: 24, padding: '8px 24px', borderRadius: 8, background: '#785CD2', color: 'white', border: 'none', fontWeight: 600, cursor: 'pointer' }} onClick={onClose}>확인</button>
+      </div>
+    </div>
   );
 };
-
-const AdminButton = styled.button`
-  margin-top: 2rem;
-  width: 100%;
-  padding: 1rem;
-  background: linear-gradient(90deg, #785CD2 0%, #FF69B4 100%);
-  color: #fff;
-  font-size: 1.1rem;
-  font-weight: bold;
-  border: none;
-  border-radius: 0.75rem;
-  cursor: pointer;
-  transition: opacity 0.2s;
-  &:disabled {
-    opacity: 0.6;
-    cursor: not-allowed;
-  }
-`;
 
 const Report: React.FC = () => {
   const navigate = useNavigate();
@@ -267,6 +238,24 @@ const Report: React.FC = () => {
     hasPartner,
     latestScore,
   } = useReportData();
+  const [showModal, setShowModal] = useState(false);
+  const [modalText, setModalText] = useState('');
+
+  // 리포트 발행 모달 로직
+  useEffect(() => {
+    if (currentReport && hasPartner) {
+      // 주차 정보(예: '2024-06-4')를 value로 받는다고 가정
+      const reportKey = `report_issued_${currentReport.id}`;
+      if (!localStorage.getItem(reportKey)) {
+        // availableWeeks에서 현재 선택된 주차의 label 찾기
+        const currentWeek = availableWeeks.find(week => week.value === selectedWeekValue);
+        const label = currentWeek?.label || '';
+        setModalText(`${label} 리포트가 발행되었습니다.`);
+        setShowModal(true);
+        localStorage.setItem(reportKey, 'shown');
+      }
+    }
+  }, [currentReport, hasPartner, availableWeeks, selectedWeekValue]);
 
   if (loading) {
     return <Container style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}><LoadingSpinner /></Container>;
@@ -328,11 +317,16 @@ const Report: React.FC = () => {
   return (
     <>
       <Container>
+        {/* 상단 안내문구 */}
+        <div style={{ textAlign: 'center', marginBottom: 16, color: '#785CD2', fontWeight: 600, fontSize: 16 }}>
+          리포트는 매주 월요일 오전 10시에 발행됩니다.
+        </div>
         {renderContent()}
         <ExpertSolutionCTA onNavigate={() => navigate('/expert')} />
-        <AdminReportTrigger />
       </Container>
       <NavigationBar isSolo={!hasPartner}/>
+      {/* 리포트 발행 모달 */}
+      <Modal open={showModal} onClose={() => setShowModal(false)}>{modalText}</Modal>
     </>
   );
 };

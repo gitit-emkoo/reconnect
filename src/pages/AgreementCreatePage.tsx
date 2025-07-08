@@ -16,19 +16,46 @@ const Container = styled.div`
 
 const BtnRow = styled.div`
   display: flex;
-  gap: 8px;
-  margin-top: 1.2rem;
+  gap: 2rem;
+  margin-top: 2rem;
+  justify-content: center;
 `;
-const Btn = styled.button<{ $primary?: boolean }>`
-  flex: 1;
-  background: ${p => p.$primary ? '#785cd2' : '#eee'};
-  color: ${p => p.$primary ? 'white' : '#333'};
+
+const TextButton = styled.button<{ $primary?: boolean }>`
+  background: none;
   border: none;
-  border-radius: 8px;
-  padding: 0.7rem 0;
+  color: ${p => p.$primary ? '#785cd2' : '#666'};
   font-weight: 600;
   font-size: 1rem;
   cursor: pointer;
+  padding: 0.5rem 0;
+  position: relative;
+  transition: color 0.2s ease;
+
+  &:hover {
+    color: ${p => p.$primary ? '#6a4fc7' : '#333'};
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    color: #ccc;
+  }
+
+  &::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 0;
+    height: 2px;
+    background: currentColor;
+    transition: width 0.2s ease;
+  }
+
+  &:hover:not(:disabled)::after {
+    width: 100%;
+  }
 `;
 
 const PreviewModalBox = styled.div`
@@ -268,8 +295,8 @@ const AgreementCreatePage: React.FC = () => {
             * 본 문서는 리커넥트 앱 내 사용자 간 심리적 합의 기록용으로 작성되었습니다.
         </Footer>
           <BtnRow>
-            <Btn type="button" onClick={() => navigate(-1)}>취소</Btn>
-          <Btn $primary type="submit">합의서 미리보기</Btn>
+            <TextButton type="button" onClick={() => navigate(-1)}>취소</TextButton>
+          <TextButton $primary type="submit">합의서 미리보기</TextButton>
           </BtnRow>
         </form>
 
@@ -312,16 +339,16 @@ const AgreementCreatePage: React.FC = () => {
               <ModalValue>{previewAgreement.date}</ModalValue>
             </ModalField>
               <BtnRow>
-                <Btn type="button" onClick={() => setIsPreviewOpen(false)} disabled={isSubmitting}>
+                <TextButton type="button" onClick={() => setIsPreviewOpen(false)} disabled={isSubmitting}>
                 이전으로
-                </Btn>
-                <Btn $primary type="button" onClick={handleCreateAgreement} disabled={isSubmitting}>
+                </TextButton>
+                <TextButton $primary type="button" onClick={handleCreateAgreement} disabled={isSubmitting}>
                   {isSubmitting ? (
                   <LoadingSpinner>전송 중...</LoadingSpinner>
                   ) : (
                   '합의서 전송'
                   )}
-                </Btn>
+                </TextButton>
               </BtnRow>
             </PreviewModalBox>
           </div>
