@@ -56,6 +56,8 @@ import AgreementPage from './pages/agreement';
 import AgreementVerification from './pages/AgreementVerification';
 import IssuedAgreementsPage from './pages/IssuedAgreementsPage';
 import TrackPage from './pages/track';
+import PublishedTrackReports from './pages/PublishedTrackReports';
+import TrackReportDetail from './pages/TrackReportDetail';
 import PointPage from './pages/point';
 import SubscribePage from './pages/subscribe';
 import AgreementCreatePage from './pages/AgreementCreatePage';
@@ -170,6 +172,8 @@ const App = () => {
             <Route path="/issued-agreements" element={<ProtectedRoute><IssuedAgreementsPage /></ProtectedRoute>} />
             <Route path="/agreement-verification" element={<ProtectedRoute><AgreementVerification /></ProtectedRoute>} />
             <Route path="/track" element={<ProtectedRoute><TrackPage /></ProtectedRoute>} />
+            <Route path="/published-track-reports" element={<ProtectedRoute><PublishedTrackReports /></ProtectedRoute>} />
+            <Route path="/published-track-reports/:year/:month" element={<ProtectedRoute><TrackReportDetail /></ProtectedRoute>} />
             <Route path="/point" element={<ProtectedRoute><PointPage /></ProtectedRoute>} />
             <Route path="/subscribe" element={<ProtectedRoute><SubscribePage /></ProtectedRoute>} />
             

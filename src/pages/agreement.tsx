@@ -14,38 +14,78 @@ const Container = styled.div`
   padding: 0 0 80px;
   background-color: #ffffff;
 `;
+
 const TopButtonRow = styled.div`
   display: flex;
-  gap: 1rem;
+  gap: 2rem;
   justify-content: center;
-  margin: 1.5rem auto 0.5rem;
-`;
-const TopButton = styled.button<{ $primary?: boolean }>`
-  background: ${p => p.$primary ? '#785cd2' : '#28a745'};
-  color: white;
-  border: none;
-  border-radius: 8px;
-  padding: 1rem 1.5rem;
-  font-weight: 600;
-  font-size: 1.08rem;
-  cursor: pointer;
+  margin: 2rem auto 1rem;
 `;
 
-const GradientButton = styled.button`
-  display: block;
-  margin: 1.2rem auto 0 auto;
-  padding: 1rem 1.5rem;
+const TextButton = styled.button<{ $primary?: boolean }>`
+  background: none;
   border: none;
-  border-radius: 8px;
+  color: ${p => p.$primary ? '#785cd2' : '#28a745'};
   font-weight: 600;
-  font-size: 1.08rem;
-  color: white;
-  background: linear-gradient(90deg, #785CD2 0%, #FF69B4 100%);
+  font-size: 1.1rem;
   cursor: pointer;
-  box-shadow: 0 2px 8px rgba(120,92,210,0.08);
-  transition: filter 0.15s;
+  padding: 0.5rem 0;
+  position: relative;
+  transition: color 0.2s ease;
+
   &:hover {
-    filter: brightness(0.97);
+    color: ${p => p.$primary ? '#6a4fc7' : '#218838'};
+  }
+
+  &::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 0;
+    height: 2px;
+    background: currentColor;
+    transition: width 0.2s ease;
+  }
+
+  &:hover::after {
+    width: 100%;
+  }
+`;
+
+const GradientTextButton = styled.button`
+  display: block;
+  margin: 1.5rem auto 0 auto;
+  background: none;
+  border: none;
+  font-weight: 600;
+  font-size: 1.1rem;
+  cursor: pointer;
+  padding: 0.5rem 0;
+  position: relative;
+  background: linear-gradient(90deg, #785CD2 0%, #FF69B4 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  transition: opacity 0.2s ease;
+
+  &:hover {
+    opacity: 0.8;
+  }
+
+  &::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 0;
+    height: 2px;
+    background: linear-gradient(90deg, #785CD2 0%, #FF69B4 100%);
+    transition: width 0.2s ease;
+  }
+
+  &:hover::after {
+    width: 100%;
   }
 `;
 
@@ -71,10 +111,10 @@ const AgreementPage: React.FC = () => {
     <BackButton />
       <Container>
         <TopButtonRow>
-          <TopButton $primary onClick={handleAgreementCreateClick}>✒️ 합의서 작성</TopButton>
-          <TopButton onClick={() => window.location.href = '/agreement-verification'}>🔐 합의서 인증</TopButton>
+          <TextButton $primary onClick={handleAgreementCreateClick}>✒️ 합의서 작성</TextButton>
+          <TextButton onClick={() => window.location.href = '/agreement-verification'}>🔐 합의서 인증</TextButton>
         </TopButtonRow>
-        <GradientButton onClick={() => navigate('/issued-agreements')}>📄 발행 합의서 보관함</GradientButton>
+        <GradientTextButton onClick={() => navigate('/issued-agreements')}>📄 발행 합의서 보관함</GradientTextButton>
         <AgreementList />
       </Container>
       <NavigationBar />

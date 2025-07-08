@@ -1,10 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Header from '../components/common/Header';
 import styled from 'styled-components';
 import NavigationBar from '../components/NavigationBar';
 import BackButton from '../components/common/BackButton';
 import { useNavigate } from 'react-router-dom';
 import ConfirmationModal from '../components/common/ConfirmationModal';
+import useAuthStore from '../store/authStore';
 
 const Container = styled.div`
   background-color: #f6f8fb;
@@ -97,8 +98,19 @@ const Button = styled.button<{ variant: 'blue' | 'purple' }>`
 const TrackPage: React.FC = () => {
   const [modalOpen, setModalOpen] = useState(false);
   const navigate = useNavigate();
+  const user = useAuthStore(state => state.user);
 
-  
+  // 구독자일 경우 트랙 리포트 페이지로 리다이렉트
+  useEffect(() => {
+    if (user?.subscriptionStatus === 'SUBSCRIBED') {
+      navigate('/published-track-reports');
+    }
+  }, [user, navigate]);
+
+  // 구독자가 아닌 경우에만 현재 페이지 렌더링
+  if (user?.subscriptionStatus === 'SUBSCRIBED') {
+    return null; // 리다이렉트 중이므로 아무것도 렌더링하지 않음
+  }
 
   const handleSubscribe = () => {
     navigate('/subscribe');
