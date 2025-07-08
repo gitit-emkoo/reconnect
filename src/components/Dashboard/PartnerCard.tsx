@@ -15,15 +15,54 @@ const Card = styled.div`
   // box-shadow: 0 2px 8px rgba(0,0,0,0.04);
 `;
 
+const ProfileSection = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1.5rem;
+  margin: 1rem 1rem;
+  padding: 0 1rem;
+`;
+
+const ProfileCol = styled.div`
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+`;
+
+const ProfileImage = styled.img`
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid #fff;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+`;
+
+const ProfileName = styled.div`
+  font-size: 1.2rem;
+  margin-top: 2px;
+  color:rgb(78, 78, 78);
+  font-weight: 600;
+`;
+
+const HeartIcon = styled.div`
+  font-size: 1.5rem;
+  color: #ff69b4;
+  margin: 0 0.5rem;
+`;
+
 interface PartnerCardProps {
   partner: {
     id: string;
     nickname: string;
     email: string;
-    imageUrl?: string;
+    profileImageUrl?: string;
   };
   user: {
     nickname: string;
+    email?: string;
+    profileImageUrl?: string;
   };
   coupleCreatedAt?: string;
   activeChallengeTitle?: string;
@@ -37,9 +76,21 @@ function formatDate(dateString?: string) {
 
 const PartnerCard: React.FC<PartnerCardProps> = ({ partner, user, coupleCreatedAt, activeChallengeTitle }) => (
   <Card>
-    <div style={{ fontWeight: 600, fontSize: '1rem', marginBottom: '0.4rem', marginTop: '0.6rem' }}>
-      {partner.nickname} ❤️ {user.nickname}
-    </div>
+    <ProfileSection>
+      <ProfileCol>
+        <ProfileImage src={user.profileImageUrl || '/default-avatar.svg'} alt={user.nickname} />
+        <ProfileName>{user.nickname}</ProfileName>
+      </ProfileCol>
+      <HeartIcon>❤️</HeartIcon>
+      <ProfileCol>
+        <ProfileImage src={partner.profileImageUrl || '/default-avatar.svg'} alt={partner.nickname} />
+        <ProfileName>{partner.nickname}</ProfileName>
+      </ProfileCol>
+    </ProfileSection>
+    
+    {/* <div style={{ fontWeight: 600, fontSize: '1rem', marginBottom: '0.4rem' }}>
+      {user.nickname} ❤️ {partner.nickname}
+    </div> */}
     <div style={{ color: '#E64A8D', fontWeight: 500, fontSize: '0.95rem', marginBottom: '0.3rem' }}>
       {coupleCreatedAt ? `파트너 연결일: ${formatDate(coupleCreatedAt)}` : '연결 정보를 불러오는 중...'}
     </div>

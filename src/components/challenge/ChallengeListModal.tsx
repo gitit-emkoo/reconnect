@@ -82,26 +82,24 @@ const ChallengeCard = styled.div`
   }
 `;
 
-
 const ChallengeTitle = styled.h3`
-  font-size: 1.1rem;
+  font-size: 15px;
   font-weight: 600;
   color: #343a40;
   margin: 0 0 0.5rem 0;
   text-align: left;
 `;
 
-
 const SelectButton = styled.button`
   background: #7048e8;
   color: white;
   border: none;
   border-radius: 0.7rem;
-  padding: 0.7rem 0;
-  width: 200px;
+  padding: 0.4rem 0;
+  width: 120px;
   flex: 0 0 auto;
   font-weight: 600;
-  font-size: 1rem;
+  font-size: 0.95rem;
   cursor: pointer;
   margin-top: 0.5rem;
   transition: background-color 0.2s;

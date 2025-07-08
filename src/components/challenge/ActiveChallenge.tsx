@@ -1,7 +1,7 @@
 import React from 'react';
 import styled from 'styled-components';
 import { Challenge } from '../../api/challenge';
-import challengeApi from '../../api/challenge';
+import Skeleton from '../common/Skeleton';
 
 // 뱃지 이미지 임포트
 import badgeDaily from '../../assets/challenge (1).png';
@@ -78,67 +78,6 @@ const Title = styled.h2`
   line-height: 1.4;
 `;
 
-const ProgressActionRow = styled.div`
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  margin-bottom: 0.25rem;
-`;
-
-const ProgressSection = styled.div`
-  flex: 1;
-  min-width: 0;
-`;
-
-const ProgressBar = styled.div<{ progress: number }>`
-  flex: 1;
-  height: 8px;
-  background: #e9ecef;
-  border-radius: 4px;
-  overflow: hidden;
-  position: relative;
-
-  &::after {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: ${({ progress }) => progress}%;
-    height: 100%;
-    background: linear-gradient(90deg, #845ef7, #a992fe);
-    border-radius: 4px;
-    transition: width 0.5s ease-in-out;
-  }
-`;
-
-const RemainingTime = styled.div`
-  font-size: 0.8rem;
-  color: #868e96;
-  font-weight: 500;
-`;
-
-const CompleteButton = styled.button`
-  padding: 0.7rem 1.2rem;
-  border: none;
-  border-radius: 0.7rem;
-  background: #785cd2;
-  color: white;
-  font-weight: 600;
-  font-size: 0.9rem;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  flex-shrink: 0;
-
-  &:hover:not(:disabled) {
-    background:rgb(146, 114, 250);
-    transform: translateY(-1px);
-  }
-
-  &:disabled {
-    background: #ced4da;
-    cursor: not-allowed;
-  }
-`;
 
 const CenteredTextContainer = styled.div`
   display: flex;
@@ -160,30 +99,104 @@ const CenteredTextContainer = styled.div`
   }
 `;
 
+const ProgressBar = styled.div<{ progress: number }>`
+  width: 100%;
+  height: 8px;
+  background: #e9ecef;
+  border-radius: 4px;
+  overflow: hidden;
+  position: relative;
+  margin: 8px 0 12px 0;
+
+  &::after {
+    content: '';
+    display: block;
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: ${({ progress }) => progress}%;
+    height: 100%;
+    background: linear-gradient(90deg, #845ef7, #a992fe);
+    border-radius: 4px;
+    transition: width 0.5s ease-in-out;
+  }
+`;
+
+const CompleteButton = styled.button`
+  padding: 0.45em 1.2em;
+  border: none;
+  border-radius: 1em;
+  background: #7048e8;
+  color: #fff;
+  font-weight: 600;
+  font-size: 0.95rem;
+  margin-left: 0.5rem;
+  cursor: pointer;
+  transition: background 0.2s;
+  &:hover:not(:disabled) {
+    background: #5f3dc4;
+  }
+  &:disabled {
+    background: #ced4da;
+    cursor: not-allowed;
+  }
+`;
+
 interface Props {
   challenge: Challenge | null;
-  onComplete: () => void;
+  onComplete?: () => void;
   isCurrentUserCompleted: boolean;
   isWeeklyCompleted: boolean;
+  isLoading?: boolean;
 }
 
-const ActiveChallenge: React.FC<Props> = ({ challenge, onComplete, isCurrentUserCompleted, isWeeklyCompleted }) => {
-  const [isLoading, setIsLoading] = React.useState(false);
+const ChallengeSkeleton: React.FC = () => (
+  <Container status="inProgress">
+    <MainContent>
+      <LeftColumn>
+        <Skeleton width={70} height={70} borderRadius={16} />
+        <Skeleton width={32} height={18} borderRadius={8} style={{ marginTop: 8 }} />
+      </LeftColumn>
+      <RightColumn>
+        <Skeleton width={120} height={20} borderRadius={8} style={{ marginBottom: 12 }} />
+        <Skeleton width={180} height={14} borderRadius={8} style={{ marginBottom: 8 }} />
+        <Skeleton width={90} height={14} borderRadius={8} />
+      </RightColumn>
+    </MainContent>
+  </Container>
+);
+
+const StatusBadge = styled.div<{ status: 'completed' | 'inProgress' | 'waiting' }>`
+  display: inline-block;
+  padding: 0.35em 1.1em;
+  border-radius: 1em;
+  font-size: 0.92rem;
+  font-weight: 600;
+  color: #fff;
+  background: ${({ status }) =>
+    status === 'completed' ? '#7048e8' : status === 'inProgress' ? '#228be6' : '#adb5bd'};
+  margin-left: 0.5rem;
+`;
+
+const ActiveChallenge: React.FC<Props> = ({ challenge, onComplete, isCurrentUserCompleted, isWeeklyCompleted, isLoading }) => {
+  const [isLoadingInternal, setIsLoadingInternal] = React.useState(false);
 
   const handleComplete = async () => {
-    if (!challenge || isLoading || isCurrentUserCompleted) return;
-
+    if (!challenge || isLoadingInternal || isCurrentUserCompleted) return;
     try {
-      setIsLoading(true);
-      await challengeApi.completeChallenge(challenge.id);
-      onComplete();
+      setIsLoadingInternal(true);
+      await fetch(`/api/challenge/${challenge.id}/complete`, { method: 'POST' });
+      if (onComplete) onComplete();
     } catch (error) {
-      console.error('챌린지 완료 처리 중 오류 발생:', error);
       alert('챌린지 완료 처리 중 오류가 발생했습니다.');
     } finally {
-      setIsLoading(false);
+      setIsLoadingInternal(false);
     }
   };
+
+  if (isLoading) {
+    return <ChallengeSkeleton />;
+  }
 
   if (isWeeklyCompleted) {
     return (
@@ -234,21 +247,25 @@ const ActiveChallenge: React.FC<Props> = ({ challenge, onComplete, isCurrentUser
             {challenge.isOneTime ? '1회' : `주 ${challenge.frequency}회`}
           </FrequencyText>
         </LeftColumn>
-
         <RightColumn>
-          <Title>{challenge.title}</Title>
-          <ProgressActionRow>
-            <ProgressSection>
-              <ProgressBar progress={progress} />
-            </ProgressSection>
-            <CompleteButton onClick={handleComplete} disabled={isLoading || isCurrentUserCompleted}>
-              {isLoading ? '로딩중' : (isCurrentUserCompleted ? '대기중' : '완료')}
-            </CompleteButton>
-          </ProgressActionRow>
-          <RemainingTime>
-            파트너가 챌린지를 완료했을때 눌러주세요<br/>
+          <div style={{ display: 'flex', alignItems: 'center', marginBottom: 6 }}>
+            <Title style={{ fontSize: '1rem', margin: 0 }}>{challenge.title}</Title>
+            <StatusBadge status={isCurrentUserCompleted ? 'waiting' : 'inProgress'}>
+              {isCurrentUserCompleted ? '대기중' : '진행중'}
+            </StatusBadge>
+            {!isCurrentUserCompleted && (
+              <CompleteButton onClick={handleComplete} disabled={isLoadingInternal}>
+                {isLoadingInternal ? '처리중...' : '완료'}
+              </CompleteButton>
+            )}
+          </div>
+          <ProgressBar progress={progress} />
+          <div style={{ fontSize: 13, color: '#666', marginBottom: 6, lineHeight: 1.5 }}>
+            파트너가 챌린지를 완료했을때 눌러주세요
+          </div>
+          <div style={{ fontSize: 13, color: '#845ef7', fontWeight: 500, marginBottom: 8 }}>
             종료까지 {timeText} 남음
-          </RemainingTime>
+          </div>
         </RightColumn>
       </MainContent>
     </Container>
