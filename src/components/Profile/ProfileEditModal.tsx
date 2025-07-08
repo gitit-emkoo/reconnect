@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState } from 'react';
 import styled from 'styled-components';
 import { userService } from '../../services/userService';
 import type { User } from '../../types/user';
