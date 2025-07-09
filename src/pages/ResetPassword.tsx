@@ -4,9 +4,7 @@ import styled from 'styled-components';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
-// SVG import 제거
-// import CloseEye from '../assets/Icon_CloseEye.svg?react';
-// import OpenEye from '../assets/Icon_OpenEye.svg?react';
+import axiosInstance from '../api/axios';
 
 const Container = styled.div`
   display: flex;
@@ -171,29 +169,17 @@ const ResetPassword: React.FC = () => {
     }
 
     try {
-      const backendUrl = import.meta.env.VITE_APP_API_URL || 'https://reconnect-backend.onrender.com/api';
-      console.log('backendUrl:', backendUrl);
-      const response = await fetch(`${backendUrl}/users/reset-password`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          token,
-          newPassword: data.newPassword,
-        }),
+      await axiosInstance.post('/users/reset-password', {
+        token,
+        newPassword: data.newPassword,
       });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || '비밀번호 재설정 실패');
-      }
 
       alert('비밀번호가 성공적으로 변경되었습니다. 다시 로그인해주세요.');
       navigate('/login');
     } catch (error: any) {
-      console.error("비밀번호 재설정 에러:", error.message);
-      alert(error.message || '알 수 없는 오류가 발생했습니다.');
+      console.error("비밀번호 재설정 에러:", error);
+      const errorMessage = error.response?.data?.message || error.message || '알 수 없는 오류가 발생했습니다.';
+      alert(errorMessage);
     }
   };
 
