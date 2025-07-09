@@ -1,12 +1,12 @@
-/*
 import React, { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
-import CloseEye from '../assets/Icon_CloseEye.svg?react';
-import OpenEye from '../assets/Icon_OpenEye.svg?react';
+// SVG import 제거
+// import CloseEye from '../assets/Icon_CloseEye.svg?react';
+// import OpenEye from '../assets/Icon_OpenEye.svg?react';
 
 const Container = styled.div`
   display: flex;
@@ -98,15 +98,9 @@ const PasswordToggle = styled.button`
   justify-content: center;
   width: 24px;
   height: 24px;
+  font-size: 16px;
 
-  svg {
-    width: 100%;
-    height: 100%;
-    opacity: 0.5;
-    transition: opacity 0.2s;
-  }
-
-  &:hover svg {
+  &:hover {
     opacity: 0.8;
   }
 `;
@@ -146,7 +140,7 @@ const resetPasswordSchema = z.object({
 type ResetPasswordFormData = z.infer<typeof resetPasswordSchema>;
 
 const ResetPassword: React.FC = () => {
-  console.log('ResetPassword 렌더링됨');
+  console.log('ResetPassword SVG 없이 복원됨');
   const navigate = useNavigate();
   const location = useLocation();
   const [token, setToken] = useState<string | null>(null);
@@ -222,7 +216,7 @@ const ResetPassword: React.FC = () => {
             type="button"
             onClick={() => setShowPassword(!showPassword)}
           >
-            {showPassword ? <CloseEye /> : <OpenEye />}
+            {showPassword ? '🙈' : '👁️'}
           </PasswordToggle>
         </InputWrapper>
         {errors.newPassword && <ErrorMessage>{errors.newPassword.message}</ErrorMessage>}
@@ -237,7 +231,7 @@ const ResetPassword: React.FC = () => {
             type="button"
             onClick={() => setShowConfirmPassword(!showConfirmPassword)}
           >
-            {showConfirmPassword ? <CloseEye /> : <OpenEye />}
+            {showConfirmPassword ? '🙈' : '👁️'}
           </PasswordToggle>
         </InputWrapper>
         {errors.confirmPassword && <ErrorMessage>{errors.confirmPassword.message}</ErrorMessage>}
@@ -247,29 +241,6 @@ const ResetPassword: React.FC = () => {
         </SubmitButton>
       </Form>
     </Container>
-  );
-};
-*/
-
-// 간단한 테스트 컴포넌트
-import React from 'react';
-
-const ResetPassword: React.FC = () => {
-  console.log('ResetPassword 간단 테스트 렌더링됨');
-  
-  return (
-    <div style={{ 
-      padding: '2rem', 
-      textAlign: 'center',
-      minHeight: '100vh',
-      background: 'white'
-    }}>
-      <h1>비밀번호 재설정 페이지</h1>
-      <p>테스트 중입니다...</p>
-      <button onClick={() => console.log('버튼 클릭됨')}>
-        테스트 버튼
-      </button>
-    </div>
   );
 };
 
