@@ -1,3 +1,4 @@
+/*
 import React, { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
@@ -246,6 +247,29 @@ const ResetPassword: React.FC = () => {
         </SubmitButton>
       </Form>
     </Container>
+  );
+};
+*/
+
+// 간단한 테스트 컴포넌트
+import React from 'react';
+
+const ResetPassword: React.FC = () => {
+  console.log('ResetPassword 간단 테스트 렌더링됨');
+  
+  return (
+    <div style={{ 
+      padding: '2rem', 
+      textAlign: 'center',
+      minHeight: '100vh',
+      background: 'white'
+    }}>
+      <h1>비밀번호 재설정 페이지</h1>
+      <p>테스트 중입니다...</p>
+      <button onClick={() => console.log('버튼 클릭됨')}>
+        테스트 버튼
+      </button>
+    </div>
   );
 };
 
