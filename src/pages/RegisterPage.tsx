@@ -8,7 +8,6 @@ import { ReactComponent as CloseEye } from '../assets/Icon_CloseEye.svg';
 import { ReactComponent as OpenEye } from '../assets/Icon_OpenEye.svg';
 import { useGoogleLogin } from '@react-oauth/google';
 import { getKakaoRegisterUrl } from '../utils/socialAuth';
-import axios from 'axios';
 import axiosInstance from '../api/axios';
 import useAuthStore from '../store/authStore';
 import ConfirmationModal from '../components/common/ConfirmationModal';
