@@ -145,6 +145,7 @@ const resetPasswordSchema = z.object({
 type ResetPasswordFormData = z.infer<typeof resetPasswordSchema>;
 
 const ResetPassword: React.FC = () => {
+  console.log('ResetPassword 렌더링됨');
   const navigate = useNavigate();
   const location = useLocation();
   const [token, setToken] = useState<string | null>(null);
@@ -158,6 +159,7 @@ const ResetPassword: React.FC = () => {
   useEffect(() => {
     const params = new URLSearchParams(location.search);
     const tokenFromUrl = params.get('token');
+    console.log('tokenFromUrl:', tokenFromUrl);
     if (tokenFromUrl) {
       setToken(tokenFromUrl);
     } else {
@@ -167,6 +169,7 @@ const ResetPassword: React.FC = () => {
   }, [location, navigate]);
 
   const onSubmit = async (data: ResetPasswordFormData) => {
+    console.log('onSubmit 호출됨', data, token);
     if (!token) {
       alert('토큰이 없습니다.');
       return;
@@ -174,6 +177,7 @@ const ResetPassword: React.FC = () => {
 
     try {
       const backendUrl = import.meta.env.VITE_APP_API_URL || 'https://reconnect-backend.onrender.com/api';
+      console.log('backendUrl:', backendUrl);
       const response = await fetch(`${backendUrl}/users/reset-password`, {
         method: 'POST',
         headers: {
