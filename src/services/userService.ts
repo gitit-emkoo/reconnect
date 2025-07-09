@@ -15,7 +15,10 @@ export const userService = {
   updateProfile: async (nickname: string): Promise<ProfileUpdateResponse> => {
     try {
       const { data } = await axiosInstance.patch('/users/me', { nickname }); // ⚠️ 이 API 경로는 백엔드와 반드시 맞춰야 하므로, 절대 임의로 수정하지 마세요!
-      return data;
+      return {
+        success: true,
+        data: data
+      };
     } catch (error) {
       return {
         success: false,
@@ -31,7 +34,10 @@ export const userService = {
   updateProfileImage: async (profileImageUrl: string): Promise<ProfileUpdateResponse> => {
     try {
       const { data } = await axiosInstance.patch('/users/me/profile-image', { profileImageUrl });
-      return data;
+      return {
+        success: true,
+        data: data
+      };
     } catch (error) {
       return {
         success: false,
@@ -47,7 +53,10 @@ export const userService = {
   generateRandomAvatar: async (): Promise<ProfileUpdateResponse> => {
     try {
       const { data } = await axiosInstance.post('/users/me/generate-avatar');
-      return data;
+      return {
+        success: true,
+        data: data
+      };
     } catch (error) {
       return {
         success: false,
