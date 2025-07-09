@@ -5,6 +5,7 @@ import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import axiosInstance from '../api/axios';
+import ConfirmationModal from '../components/common/ConfirmationModal';
 
 const Container = styled.div`
   display: flex;
@@ -113,14 +114,31 @@ const ForgotPassword: React.FC = () => {
     resolver: zodResolver(forgotPasswordSchema),
   });
 
+  const [modalOpen, setModalOpen] = React.useState(false);
+  const [modalMsg, setModalMsg] = React.useState('');
+  const [modalTitle, setModalTitle] = React.useState('');
+  const [isSuccess, setIsSuccess] = React.useState(false);
+
   const onSubmit = async (data: ForgotPasswordFormData) => {
     try {
       await axiosInstance.post('/users/forgot-password', { email: data.email });
-      alert('비밀번호 재설정 링크가 이메일로 발송되었습니다.');
-      navigate('/login');
+      setModalTitle('이메일 전송 완료');
+      setModalMsg('비밀번호 재설정 링크가 이메일로 발송되었습니다.');
+      setIsSuccess(true);
+      setModalOpen(true);
     } catch (error: any) {
       console.error("비밀번호 찾기 에러:", error.message);
-      alert(error.message || '알 수 없는 오류가 발생했습니다.');
+      setModalTitle('이메일 전송 실패');
+      setModalMsg(error?.response?.data?.message || error.message || '알 수 없는 오류가 발생했습니다.');
+      setIsSuccess(false);
+      setModalOpen(true);
+    }
+  };
+
+  const handleModalConfirm = () => {
+    setModalOpen(false);
+    if (isSuccess) {
+      navigate('/login');
     }
   };
 
@@ -145,6 +163,15 @@ const ForgotPassword: React.FC = () => {
           {isSubmitting ? '처리 중...' : '비밀번호 재설정 링크 받기'}
         </SubmitButton>
       </Form>
+      <ConfirmationModal
+        isOpen={modalOpen}
+        onRequestClose={() => setModalOpen(false)}
+        onConfirm={handleModalConfirm}
+        title={modalTitle}
+        message={modalMsg}
+        confirmButtonText="확인"
+        showCancelButton={false}
+      />
     </Container>
   );
 };

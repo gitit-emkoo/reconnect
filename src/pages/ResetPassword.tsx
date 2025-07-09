@@ -144,7 +144,7 @@ const resetPasswordSchema = z.object({
 
 type ResetPasswordFormData = z.infer<typeof resetPasswordSchema>;
 
-const ResetPasswordPage: React.FC = () => {
+const ResetPassword: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const [token, setToken] = useState<string | null>(null);
@@ -173,7 +173,7 @@ const ResetPasswordPage: React.FC = () => {
     }
 
     try {
-      const backendUrl = import.meta.env.VITE_APP_API_URL || 'http://localhost:3000';
+      const backendUrl = import.meta.env.VITE_APP_API_URL || 'https://reconnect-backend.onrender.com/api';
       const response = await fetch(`${backendUrl}/users/reset-password`, {
         method: 'POST',
         headers: {
@@ -245,4 +245,4 @@ const ResetPasswordPage: React.FC = () => {
   );
 };
 
-export default ResetPasswordPage; 
+export default ResetPassword; 
