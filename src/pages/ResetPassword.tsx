@@ -5,6 +5,7 @@ import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import axiosInstance from '../api/axios';
+import ConfirmationModal from '../components/common/ConfirmationModal';
 
 const Container = styled.div`
   display: flex;
@@ -144,6 +145,17 @@ const ResetPassword: React.FC = () => {
   const [token, setToken] = useState<string | null>(null);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [modalState, setModalState] = useState<{
+    isOpen: boolean;
+    title: string;
+    message: string;
+    type: 'success' | 'error' | 'invalid';
+  }>({
+    isOpen: false,
+    title: '',
+    message: '',
+    type: 'success'
+  });
 
   const { register, handleSubmit, formState: { errors, isSubmitting } } = useForm<ResetPasswordFormData>({
     resolver: zodResolver(resetPasswordSchema),
@@ -156,15 +168,24 @@ const ResetPassword: React.FC = () => {
     if (tokenFromUrl) {
       setToken(tokenFromUrl);
     } else {
-      alert('유효하지 않은 접근입니다.');
-      navigate('/login');
+      setModalState({
+        isOpen: true,
+        title: '유효하지 않은 접근',
+        message: '잘못된 접근입니다. 로그인 페이지로 이동합니다.',
+        type: 'invalid'
+      });
     }
   }, [location, navigate]);
 
   const onSubmit = async (data: ResetPasswordFormData) => {
     console.log('onSubmit 호출됨', data, token);
     if (!token) {
-      alert('토큰이 없습니다.');
+      setModalState({
+        isOpen: true,
+        title: '토큰 오류',
+        message: '토큰이 없습니다.',
+        type: 'error'
+      });
       return;
     }
 
@@ -174,12 +195,35 @@ const ResetPassword: React.FC = () => {
         newPassword: data.newPassword,
       });
 
-      alert('비밀번호가 성공적으로 변경되었습니다. 다시 로그인해주세요.');
-      navigate('/login');
+      setModalState({
+        isOpen: true,
+        title: '비밀번호 변경 완료',
+        message: '비밀번호가 성공적으로 변경되었습니다. 다시 로그인해주세요.',
+        type: 'success'
+      });
     } catch (error: any) {
       console.error("비밀번호 재설정 에러:", error);
       const errorMessage = error.response?.data?.message || error.message || '알 수 없는 오류가 발생했습니다.';
-      alert(errorMessage);
+      setModalState({
+        isOpen: true,
+        title: '비밀번호 변경 실패',
+        message: errorMessage,
+        type: 'error'
+      });
+    }
+  };
+
+  const handleModalConfirm = () => {
+    setModalState(prev => ({ ...prev, isOpen: false }));
+    if (modalState.type === 'success' || modalState.type === 'invalid') {
+      navigate('/login');
+    }
+  };
+
+  const handleModalClose = () => {
+    setModalState(prev => ({ ...prev, isOpen: false }));
+    if (modalState.type === 'invalid') {
+      navigate('/login');
     }
   };
 
@@ -226,6 +270,14 @@ const ResetPassword: React.FC = () => {
           {isSubmitting ? '변경 중...' : '비밀번호 변경'}
         </SubmitButton>
       </Form>
+      <ConfirmationModal
+        isOpen={modalState.isOpen}
+        onConfirm={handleModalConfirm}
+        onRequestClose={handleModalClose}
+        title={modalState.title}
+        message={modalState.message}
+        showCancelButton={false}
+      />
     </Container>
   );
 };

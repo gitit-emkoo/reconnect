@@ -2,6 +2,9 @@ import React, { useState } from 'react';
 import EmotionImagePreview, { PaletteItem } from '../components/EmotionImagePreview';
 import { triggers } from './EmotionDiary';
 import { toKST } from '../utils/date';
+import { ReactComponent as DirectionLeftActive } from '../assets/DirectionLeftActive.svg';
+import { ReactComponent as DirectionRightActive } from '../assets/DirectionRightActive.svg';
+
 
 interface DiaryEntry {
   date: string;
@@ -19,10 +22,10 @@ interface Props {
   onDayClick: (date: string) => void;
 }
 
-const WEEKDAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+const WEEKDAYS = ['일', '월', '화', '수', '목', '금', '토'];
 const MONTHS = [
-  'January', 'February', 'March', 'April', 'May', 'June',
-  'July', 'August', 'September', 'October', 'November', 'December'
+  '1월', '2월', '3월', '4월', '5월', '6월',
+  '7월', '8월', '9월', '10월', '11월', '12월'
 ];
 
 function mapRandomInfoWithIcons(randomInfo: PaletteItem[]): PaletteItem[] {
@@ -87,9 +90,13 @@ const EmotionDiaryCalendar: React.FC<Props> = ({ diaryList, onDayClick }) => {
   return (
     <div style={{ margin: '2rem 0' }}>
       <div style={{ textAlign: 'center', fontWeight: 700, fontSize: 18, marginBottom: 8, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 16 }}>
-        <button onClick={handlePrevMonth} style={{ background: 'none', border: 'none', fontSize: 20, cursor: 'pointer' }} aria-label="이전 달">◀</button>
+        <button onClick={handlePrevMonth} style={{ background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', width: 24, height: 24 }} aria-label="이전 달">
+          <DirectionLeftActive width={24} height={24} />
+        </button>
         {MONTHS[currentMonth]} {currentYear}
-        <button onClick={handleNextMonth} style={{ background: 'none', border: 'none', fontSize: 20, cursor: 'pointer' }} aria-label="다음 달">▶</button>
+        <button onClick={handleNextMonth} style={{ background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', width: 24, height: 24 }} aria-label="다음 달">
+          <DirectionRightActive width={24} height={24} />
+        </button>
       </div>
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 6, marginBottom: 6 }}>
         {WEEKDAYS.map((w) => (
@@ -109,6 +116,23 @@ const EmotionDiaryCalendar: React.FC<Props> = ({ diaryList, onDayClick }) => {
                   <EmotionImagePreview
                     containerColor={entry.emotion?.color || "#f0f0f0"}
                     palette={mapRandomInfoWithIcons(entry.randomInfo as PaletteItem[])}
+                    size={36}
+                  />
+                </div>
+              ) : entry ? (
+                <div style={{ width: 36, height: 36, margin: '0 auto' }}>
+                  <EmotionImagePreview
+                    containerColor={entry.emotion?.color || "#f0f0f0"}
+                    palette={[
+                      { type: 'emotion', data: entry.emotion },
+                      ...entry.triggers.map((trigger: any) => ({
+                        type: 'trigger',
+                        data: {
+                          name: trigger.name,
+                          IconComponent: triggers.find(t => t.name === trigger.name)?.IconComponent || (() => null)
+                        }
+                      }))
+                    ]}
                     size={36}
                   />
                 </div>
