@@ -10,6 +10,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { fetchDiaries, fetchDiaryByDate, createDiary, updateDiary, DiaryEntry } from '../api/diary';
 import useAuthStore from '../store/authStore';
 import MobileOnlyBanner from '../components/common/MobileOnlyBanner';
+import ConfirmationModal from '../components/common/ConfirmationModal';
 import { formatInKST } from '../utils/date';
 
 // SVG 아이콘 임포트
@@ -23,12 +24,12 @@ import { ReactComponent as TriggerParticipationIcon } from "../assets/Trigger_Pa
 import { ReactComponent as TriggerRelationshipsIcon } from "../assets/Trigger_Relationships.svg";
 import { ReactComponent as TriggerSelfIcon } from "../assets/Trigger_Self.svg";
 import { ReactComponent as TriggerWorkIcon } from "../assets/Trigger_Work.svg";
-import { ReactComponent as TriggerTravelIcon } from "../assets/Trigger_Activities.svg";      // 여행: 활동 아이콘 임시 사용
-import { ReactComponent as TriggerShowIcon } from "../assets/Trigger_Participation.svg";     // 공연: 참여 아이콘 임시 사용
-import { ReactComponent as TriggerExerciseIcon } from "../assets/Trigger_Health.svg";        // 운동: 건강 아이콘 임시 사용
-import { ReactComponent as TriggerStyleIcon } from "../assets/Trigger_Self.svg";             // 스타일: 정체성 아이콘 임시 사용
-import { ReactComponent as TriggerExamIcon } from "../assets/Trigger_Work.svg";              // 시험: 일 아이콘 임시 사용
-import { ReactComponent as TriggerFoodIcon } from "../assets/Trigger_Family.svg";            // 음식: 가족 아이콘 임시 사용
+import { ReactComponent as TriggerTravelIcon } from "../assets/Trigger_Travel.svg";
+import { ReactComponent as TriggerShowIcon } from "../assets/Trigger_Show.svg";
+import { ReactComponent as TriggerExerciseIcon } from "../assets/Trigger_Exercise.svg";
+import { ReactComponent as TriggerStyleIcon } from "../assets/Trigger_Style.svg";
+import { ReactComponent as TriggerExamIcon } from "../assets/Trigger_Exam.svg";
+import { ReactComponent as TriggerFoodIcon } from "../assets/Trigger_Food.svg";
 
 // 데이터 타입 정의
 interface Emotion {
@@ -68,16 +69,14 @@ const MainContent = styled.div`
 
 
 const StepContainer = styled.div`
-  background: white;
-  padding: 1rem;
-  border-radius: 1rem;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+ 
   margin-bottom: 2rem;
 `;
 
 const StepTitle = styled.h3`
   color:rgb(47, 47, 47);
-  font-size: 1.2rem;
+  font-size: 1rem;
+  margin-bottom: 0.8rem;
 `;
 
 const SelectionGrid = styled.div`
@@ -163,7 +162,7 @@ const Button = styled.button<{ variant?: 'primary' | 'secondary' }>`
   cursor: pointer;
   font-weight: 500;
   background-color: ${({ variant }) => 
-    variant === 'primary' ? '#ff69b4' : '#a4d1eb'};
+    variant === 'primary' ? '#ff69b4' : '#785CD2'};
   color: white;
 
   &:hover {
@@ -248,7 +247,7 @@ export const triggers = [
   { name: "관계", IconComponent: TriggerRelationshipsIcon },
   { name: "정체성", IconComponent: TriggerSelfIcon },
   { name: "일", IconComponent: TriggerWorkIcon },
-  // 추가 트리거 (임시 아이콘 매핑)
+  // 추가 트리거 (새로운 아이콘)
   { name: "여행", IconComponent: TriggerTravelIcon },
   { name: "공연", IconComponent: TriggerShowIcon },
   { name: "운동", IconComponent: TriggerExerciseIcon },
@@ -347,10 +346,11 @@ const EmotionDiary: React.FC = () => {
   const [selectedTriggers, setSelectedTriggers] = useState<Trigger[]>([]);
   const [comment, setComment] = useState('');
   const [selectedDateForModal, setSelectedDateForModal] = useState<string | null>(null);
+  const [showTriggerLimitModal, setShowTriggerLimitModal] = useState(false);
   const user = useAuthStore((state) => state.user);
 
   // 다이어리 목록 조회
-  const { data: diaryList = [] } = useQuery<DiaryEntry[]>({
+  const { data: diaryList = [], refetch: refetchDiaries } = useQuery<DiaryEntry[]>({
     queryKey: ['diaries'],
     queryFn: fetchDiaries,
   });
@@ -363,7 +363,7 @@ const EmotionDiary: React.FC = () => {
   });
 
   // 오늘 날짜의 다이어리 조회
-  const { data: selectedDiary } = useQuery({
+  const { data: selectedDiary, refetch: refetchTodayDiary } = useQuery({
     queryKey: ['diary', today],
     queryFn: () => fetchDiaryByDate(today),
     enabled: true
@@ -372,8 +372,13 @@ const EmotionDiary: React.FC = () => {
   // 다이어리 생성 mutation
   const createDiaryMutation = useMutation({
     mutationFn: createDiary,
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['diaries'] });
+    onSuccess: async () => {
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ['diaries'] }),
+        queryClient.invalidateQueries({ queryKey: ['diary'] }),
+        refetchDiaries(),
+        refetchTodayDiary()
+      ]);
       setShowModal(false);
       setSelectedEmotion(null);
       setSelectedTriggers([]);
@@ -384,9 +389,17 @@ const EmotionDiary: React.FC = () => {
   // 다이어리 수정 mutation
   const updateDiaryMutation = useMutation({
     mutationFn: ({ id, data }: { id: string; data: Partial<DiaryEntry> }) => updateDiary(id, data),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['diaries'] });
+    onSuccess: async () => {
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ['diaries'] }),
+        queryClient.invalidateQueries({ queryKey: ['diary'] }),
+        refetchDiaries(),
+        refetchTodayDiary()
+      ]);
       setShowModal(false);
+      setSelectedEmotion(null);
+      setSelectedTriggers([]);
+      setComment('');
     }
   });
 
@@ -411,7 +424,16 @@ const EmotionDiary: React.FC = () => {
 
   // 미리보기용 팔레트 및 랜덤 정보 (작성 중에만 사용)
   const previewPalette = useMemo(() => getPaletteItems(), [selectedEmotion, selectedTriggers]);
-  const previewRandomInfo = useMemo(() => generateRandomInfo(previewPalette, 100), [previewPalette]);
+  const previewRandomInfo = useMemo(() => generateRandomInfo(previewPalette), [previewPalette]);
+
+  // 저장될 실제 randomInfo 생성 (확정된 후에만)
+  const savedRandomInfo = useMemo(() => {
+    if (selectedEmotion && selectedTriggers.length > 0) {
+      const savePalette: PaletteItem[] = getPaletteItems();
+      return generateRandomInfo(savePalette);
+    }
+    return null;
+  }, [selectedEmotion, selectedTriggers]);
 
   const handleConfirm = async () => {
     if (!selectedEmotion || selectedTriggers.length === 0) {
@@ -425,7 +447,7 @@ const EmotionDiary: React.FC = () => {
     }
 
     const savePalette: PaletteItem[] = getPaletteItems();
-    const saveRandomInfo = generateRandomInfo(savePalette, 100);
+    const saveRandomInfo = savedRandomInfo || generateRandomInfo(savePalette);
 
     const diaryData = {
       date: today,
@@ -538,7 +560,7 @@ const EmotionDiary: React.FC = () => {
                       setSelectedTriggers(selectedTriggers.filter(t => t.name !== trigger.name));
                     } else {
                       if (selectedTriggers.length >= 3) {
-                        alert('최대 3개까지만 선택할 수 있습니다.');
+                        setShowTriggerLimitModal(true);
                         return;
                       }
                       setSelectedTriggers([...selectedTriggers, trigger]);
@@ -558,16 +580,16 @@ const EmotionDiary: React.FC = () => {
             <div style={{ width: 100, margin: '0 auto' }}>
               <EmotionImagePreview
                 containerColor={selectedEmotion?.color || "#f0f0f0"}
-                palette={previewRandomInfo}
+                palette={savedRandomInfo || previewRandomInfo}
                 size={100}
               />
             </div>
             
-            <StepTitle>한문장으로 오늘을 기록해 주세요</StepTitle>
+            
             <MessageInput
               value={comment}
               onChange={(e) => setComment(e.target.value)}
-              placeholder="오늘의 감정을 적어주세요"
+              placeholder="오늘은 어떤 하루를 보내셨나요? 한문장으로 오늘의 감정을 적어주세요."
             />
             <ButtonContainer>
               <Button variant="primary" onClick={handleSubmit}>
@@ -591,33 +613,11 @@ const EmotionDiary: React.FC = () => {
                   const diary = diaryForModal;
                   if (!diary) return <div>이 날짜에는 작성된 다이어리가 없습니다.</div>;
 
-                  // 트리거 아이콘 매핑
-                  const mappedTriggers = diary.triggers?.map(trigger => {
-                    const foundTrigger = triggers.find(t => t.name === trigger.name);
-                    return {
-                      type: 'trigger' as const,
-                      data: {
-                        name: trigger.name,
-                        IconComponent: foundTrigger?.IconComponent || (() => null)
-                      }
-                    };
-                  }) || [];
-
-                  // 감정 데이터 매핑
-                  const emotionData = {
-                    type: 'emotion' as const,
-                    data: diary.emotion
-                  };
-
-                  // 전체 팔레트 데이터 생성
-                  const modalPalette = [emotionData, ...mappedTriggers];
-                  const modalRandomInfo = generateRandomInfo(modalPalette, 100);
-
                   return (
                     <>
                       <EmotionImagePreview
                         containerColor={diary.emotion?.color || "#f0f0f0"}
-                        palette={diary.randomInfo ? mapRandomInfoWithIcons(diary.randomInfo as PaletteItem[]) : modalRandomInfo}
+                        palette={diary.randomInfo ? mapRandomInfoWithIcons(diary.randomInfo as PaletteItem[]) : []}
                         size={100}
                       />
                       <div style={{ width: '100%', textAlign: 'left', fontSize: '0.95rem' }}>
@@ -652,10 +652,10 @@ const EmotionDiary: React.FC = () => {
         {showModal && (
           <Modal onClick={() => setShowModal(false)}>
             <ModalContent onClick={(e) => e.stopPropagation()}>
-              <ModalTitle>작성 완료</ModalTitle>
+              <ModalTitle>작성완료 미리보기</ModalTitle>
               <EmotionImagePreview
                 containerColor={selectedEmotion?.color || "#f0f0f0"}
-                palette={previewRandomInfo}
+                palette={savedRandomInfo || previewRandomInfo}
                 size={100}
               />
               <ModalMessage>{comment}</ModalMessage>
@@ -670,6 +670,17 @@ const EmotionDiary: React.FC = () => {
             </ModalContent>
           </Modal>
         )}
+
+        {/* 트리거 제한 모달 */}
+        <ConfirmationModal
+          isOpen={showTriggerLimitModal}
+          onRequestClose={() => setShowTriggerLimitModal(false)}
+          onConfirm={() => setShowTriggerLimitModal(false)}
+          title=""
+          message="트리거는 3개 이상 사용할 수 없습니다"
+          confirmButtonText="확인"
+          showCancelButton={false}
+        />
       </Container>
       <NavigationBar />
     </>
