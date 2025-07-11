@@ -6,6 +6,7 @@ import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import axiosInstance from '../api/axios';
 import ConfirmationModal from '../components/common/ConfirmationModal';
+import BackButton from '../components/common/BackButton';
 
 const Container = styled.div`
   display: flex;
@@ -14,20 +15,6 @@ const Container = styled.div`
   min-height: 100vh;
   background: white;
   padding: 2rem;
-`;
-
-const BackButton = styled.button`
-  position: absolute;
-  top: 1.5rem;
-  left: 1.5rem;
-  background: none;
-  border: none;
-  cursor: pointer;
-  padding: 0.5rem;
-  display: flex;
-  align-items: center;
-  color: #333;
-  font-size: 1.5rem;
 `;
 
 const Title = styled.h1`
@@ -144,7 +131,7 @@ const ForgotPassword: React.FC = () => {
 
   return (
     <Container>
-      <BackButton onClick={() => navigate('/login')}>←</BackButton>
+      <BackButton onClick={() => navigate('/login')} />
       <Title>비밀번호 찾기</Title>
       <Description>
         가입하신 이메일 주소를 입력해주세요.

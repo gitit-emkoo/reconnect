@@ -303,7 +303,7 @@ const Report: React.FC = () => {
           <Header><WeekInfo>리포트</WeekInfo></Header>
           <RelationshipTemperature score={latestScore} />
           <NoDataPlaceholder
-            title="함께한 노력이\n'우리 리포트'로 쌓여 갑니다."
+            title="함께한 노력이'리포트'로 쌓여 갑니다."
             text="지금부터 더 따뜻한 관계를 만들어 보세요."
             buttonText="파트너 초대하기"
             onNavigate={() => navigate('/dashboard')}

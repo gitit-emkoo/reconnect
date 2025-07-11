@@ -19,6 +19,17 @@ const Badge = styled.span`
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
 `;
 
+const SubscriberBadge = styled.span`
+  background-color: #52c41a;
+  color: white;
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-size: 0.8rem;
+  font-weight: bold;
+  margin-right: 10px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
+`;
+
 const FreeText = styled.span`
   color:rgb(255, 193, 194);
   font-weight: bold;
@@ -272,8 +283,13 @@ const SelfDiagnosisRoom: React.FC = () => {
                 </>
               ) : tpl.id === 'sex' && user?.subscriptionStatus === 'SUBSCRIBED' ? (
                 <>
-                  <Badge>구독자 무료</Badge>
-                  <FreeText>무료로 시작하기</FreeText>
+                  <SubscriberBadge>구독자</SubscriberBadge>
+                  <FreeText>구독자 무료</FreeText>
+                </>
+              ) : tpl.id === 'sex' ? (
+                <>
+                  <SubscriberBadge>구독자</SubscriberBadge>
+                  <span>구독자 무료</span>
                 </>
               ) : (
                 <>

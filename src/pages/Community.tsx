@@ -11,6 +11,7 @@ import RightActive from '../assets/DirectionRightActive.svg?url';
 import RightInactive from '../assets/DirectionRightInactive.svg?url';
 import WriteIcon from '../assets/Icon_Write.svg?url';
 import LoadingSpinner from '../components/common/LoadingSpinner';
+import { PostListSkeleton } from '../components/common/Skeleton';
 import Header from '../components/common/Header';
 import { useQuery } from '@tanstack/react-query';
 
@@ -319,7 +320,11 @@ const Community: React.FC = () => {
           >
             전체
           </TabButton>
-          {isCategoriesLoading ? <p>카테고리 로딩중...</p> : categories?.map(cat => (
+          {isCategoriesLoading ? (
+            <div style={{ display: 'flex', alignItems: 'center', padding: '0.6rem 1rem' }}>
+              <LoadingSpinner size={16} fullscreen={false} />
+            </div>
+          ) : categories?.map(cat => (
             <TabButton
               key={cat.id}
               $isActive={selectedCategory === cat.id}
@@ -341,9 +346,7 @@ const Community: React.FC = () => {
         </SearchBarContainer>
 
         {isPostsLoading ? (
-          <div style={{ display: 'flex', justifyContent: 'center', padding: '4rem 0' }}>
-            <LoadingSpinner size={48} />
-          </div>
+          <PostListSkeleton />
         ) : (
           <>
             <PostListContainer>

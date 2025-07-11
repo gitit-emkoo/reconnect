@@ -1,6 +1,7 @@
 import React from 'react';
 import styled from 'styled-components';
 import { Challenge } from '../../api/challenge';
+import challengeApi from '../../api/challenge';
 import Skeleton from '../common/Skeleton';
 
 // 뱃지 이미지 임포트
@@ -144,7 +145,7 @@ const CompleteButton = styled.button`
 
 interface Props {
   challenge: Challenge | null;
-  onComplete?: () => void;
+  onComplete?: (completedChallenge: Challenge) => void;
   isCurrentUserCompleted: boolean;
   isWeeklyCompleted: boolean;
   isLoading?: boolean;
@@ -166,18 +167,6 @@ const ChallengeSkeleton: React.FC = () => (
   </Container>
 );
 
-const StatusBadge = styled.div<{ status: 'completed' | 'inProgress' | 'waiting' }>`
-  display: inline-block;
-  padding: 0.35em 1.1em;
-  border-radius: 1em;
-  font-size: 0.92rem;
-  font-weight: 600;
-  color: #fff;
-  background: ${({ status }) =>
-    status === 'completed' ? '#7048e8' : status === 'inProgress' ? '#228be6' : '#adb5bd'};
-  margin-left: 0.5rem;
-`;
-
 const ActiveChallenge: React.FC<Props> = ({ challenge, onComplete, isCurrentUserCompleted, isWeeklyCompleted, isLoading }) => {
   const [isLoadingInternal, setIsLoadingInternal] = React.useState(false);
 
@@ -185,8 +174,8 @@ const ActiveChallenge: React.FC<Props> = ({ challenge, onComplete, isCurrentUser
     if (!challenge || isLoadingInternal || isCurrentUserCompleted) return;
     try {
       setIsLoadingInternal(true);
-      await fetch(`/api/challenge/${challenge.id}/complete`, { method: 'POST' });
-      if (onComplete) onComplete();
+      const completedChallenge = await challengeApi.completeChallenge(challenge.id);
+      if (onComplete) onComplete(completedChallenge);
     } catch (error) {
       alert('챌린지 완료 처리 중 오류가 발생했습니다.');
     } finally {
@@ -213,7 +202,7 @@ const ActiveChallenge: React.FC<Props> = ({ challenge, onComplete, isCurrentUser
     return (
       <Container status="noChallenge">
         <CenteredTextContainer>
-          <h2>진행 가능한 챌린지가 없어요</h2>
+          <h2>진행중인 챌린지가 없어요</h2>
           <p>새로운 챌린지를 시작해보세요!</p>
         </CenteredTextContainer>
       </Container>
@@ -246,21 +235,18 @@ const ActiveChallenge: React.FC<Props> = ({ challenge, onComplete, isCurrentUser
           <FrequencyText>
             {challenge.isOneTime ? '1회' : `주 ${challenge.frequency}회`}
           </FrequencyText>
+          {!isCurrentUserCompleted && (
+            <CompleteButton onClick={handleComplete} disabled={isLoadingInternal}>
+              {isLoadingInternal ? '처리중...' : '완료'}
+            </CompleteButton>
+          )}
         </LeftColumn>
         <RightColumn>
           <div style={{ display: 'flex', alignItems: 'center', marginBottom: 6 }}>
             <Title style={{ fontSize: '1rem', margin: 0 }}>{challenge.title}</Title>
-            <StatusBadge status={isCurrentUserCompleted ? 'waiting' : 'inProgress'}>
-              {isCurrentUserCompleted ? '대기중' : '진행중'}
-            </StatusBadge>
-            {!isCurrentUserCompleted && (
-              <CompleteButton onClick={handleComplete} disabled={isLoadingInternal}>
-                {isLoadingInternal ? '처리중...' : '완료'}
-              </CompleteButton>
-            )}
           </div>
           <ProgressBar progress={progress} />
-          <div style={{ fontSize: 13, color: '#666', marginBottom: 6, lineHeight: 1.5 }}>
+          <div style={{ fontSize: 10, color: '#666', marginBottom: 6, lineHeight: 1.5 }}>
             파트너가 챌린지를 완료했을때 눌러주세요
           </div>
           <div style={{ fontSize: 13, color: '#845ef7', fontWeight: 500, marginBottom: 8 }}>

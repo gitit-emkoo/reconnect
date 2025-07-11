@@ -4,6 +4,7 @@ import styled from 'styled-components';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
+import BackButton from '../components/common/BackButton';
 
 const Container = styled.div`
   display: flex;
@@ -12,20 +13,6 @@ const Container = styled.div`
   min-height: 100vh;
   background: white;
   padding: 2rem;
-`;
-
-const BackButton = styled.button`
-  position: absolute;
-  top: 1.5rem;
-  left: 1.5rem;
-  background: none;
-  border: none;
-  cursor: pointer;
-  padding: 0.5rem;
-  display: flex;
-  align-items: center;
-  color: #333;
-  font-size: 1.5rem;
 `;
 
 const Title = styled.h1`
@@ -204,7 +191,7 @@ const FindEmail: React.FC = () => {
 
   return (
     <Container>
-      <BackButton onClick={() => navigate(-1)}>←</BackButton>
+      <BackButton onClick={() => navigate(-1)} />
       <Title>이메일 찾기</Title>
       <Description>
         가입 시 등록한 정보로 이메일을 찾을 수 있습니다.
