@@ -6,7 +6,7 @@ import axiosInstance from '../api/axios';
 import useAuthStore from '../store/authStore';
 import type { User } from '../types/user';
 import BackButton from '../components/common/BackButton';
-import LoadingSpinner from '../components/common/LoadingSpinner';
+import { PostDetailSkeleton } from '../components/common/Skeleton';
 import PostDetailMain from '../components/community/PostDetailMain';
 import LatestPostList from '../components/community/LatestPostList';
 import PollVoteBox from '../components/community/PollVoteBox';
@@ -279,7 +279,14 @@ const PostDetailPage: React.FC = () => {
     navigate(`/community/${id}/edit`);
   };
 
-  if (isLoading) return <LoadingSpinner size={48} />;
+  if (isLoading) return (
+    <Container style={{ position: 'relative' }}>
+      <BackButton />
+      <PostContainer>
+        <PostDetailSkeleton />
+      </PostContainer>
+    </Container>
+  );
   if (error) return <div style={{ color: 'red', textAlign: 'center', margin: '2rem 0' }}>게시글을 불러오는 중 오류가 발생했습니다.</div>;
   if (!post) return null;
 

@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import styled from 'styled-components';
+import { useNavigate } from 'react-router-dom';
 import ActiveChallenge from '../components/challenge/ActiveChallenge';
 import ChallengeListModal from '../components/challenge/ChallengeListModal';
 import { Challenge } from '../api/challenge';
@@ -195,6 +196,7 @@ const SectionTitle = styled.h2`
 const badgeImages = [badge1, badge2, badge3];
 
 const ChallengePage: React.FC = () => {
+  const navigate = useNavigate();
   const [activeChallenge, setActiveChallenge] = useState<Challenge | null>(null);
   const [selectedCategory, setSelectedCategory] = useState<Challenge['category'] | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -205,9 +207,39 @@ const ChallengePage: React.FC = () => {
   const [confirmModalMessage, setConfirmModalMessage] = useState('');
   const [showHistoryDetailModal, setShowHistoryDetailModal] = useState(false);
   const [selectedHistoryChallenge, setSelectedHistoryChallenge] = useState<Challenge | null>(null);
+  const [showCompletionModal, setShowCompletionModal] = useState(false);
+  const [completedChallengeTitle, setCompletedChallengeTitle] = useState('');
   const user = useAuthStore(state => state.user);
   const hasPartner = !!user?.partner?.id;
   const [isLoading, setIsLoading] = useState(true);
+
+  // 완료 모달 확인 함수
+  const checkForCompletedChallenge = useCallback(async () => {
+    if (!user?.couple?.id) return;
+    
+    try {
+      const history = await challengeApi.getChallengeHistory();
+      const recentCompleted = history.completed[0]; // 가장 최근 완료된 챌린지
+      
+      if (recentCompleted) {
+        const modalKey = `challenge_completion_modal_${recentCompleted.id}`;
+        const hasSeenModal = localStorage.getItem(modalKey);
+        
+        // 완료된 지 24시간 이내이고 모달을 본 적이 없다면 표시
+        const completedAt = new Date(recentCompleted.completedAt!);
+        const now = new Date();
+        const hoursDiff = (now.getTime() - completedAt.getTime()) / (1000 * 60 * 60);
+        
+        if (hoursDiff <= 24 && !hasSeenModal) {
+          setCompletedChallengeTitle(recentCompleted.title);
+          setShowCompletionModal(true);
+          localStorage.setItem(modalKey, 'true');
+        }
+      }
+    } catch (error) {
+      console.error('완료된 챌린지 확인 중 오류:', error);
+    }
+  }, [user?.couple?.id]);
 
   const loadData = useCallback(async () => {
     try {
@@ -228,7 +260,25 @@ const ChallengePage: React.FC = () => {
 
   useEffect(() => {
     loadData();
-  }, [loadData]);
+    // 페이지 로드 시 완료 모달 확인
+    checkForCompletedChallenge();
+  }, [loadData, checkForCompletedChallenge]);
+
+  // 챌린지 완료 처리 함수 (ActiveChallenge에서 호출)
+  const handleChallengeComplete = async (completedChallenge: Challenge) => {
+    // 즉시 모달 표시 (마지막 완료 버튼을 누른 사용자)
+    if (completedChallenge.status === 'COMPLETED') {
+      setCompletedChallengeTitle(completedChallenge.title);
+      setShowCompletionModal(true);
+      
+      // 로컬스토리지에 모달 표시 기록
+      const modalKey = `challenge_completion_modal_${completedChallenge.id}`;
+      localStorage.setItem(modalKey, 'true');
+    }
+    
+    // 데이터 새로고침
+    await loadData();
+  };
 
   const handleCategoryClick = async (category: Challenge['category']) => {
     if (!hasPartner) {
@@ -302,6 +352,7 @@ const ChallengePage: React.FC = () => {
           isCurrentUserCompleted={isCurrentUserCompleted}
           isWeeklyCompleted={isWeeklyCompleted}
           isLoading={isLoading}
+          onComplete={handleChallengeComplete}
         />
 
         <SectionTitle>새로운 챌린지 시작하기</SectionTitle>
@@ -343,6 +394,22 @@ const ChallengePage: React.FC = () => {
           )}
         </HistoryList>
       </PageContainer>
+      
+      {/* 챌린지 완료 축하 모달 */}
+      <ConfirmationModal
+        isOpen={showCompletionModal}
+        onRequestClose={() => setShowCompletionModal(false)}
+        onConfirm={() => {
+          setShowCompletionModal(false);
+          navigate('/community');
+        }}
+        title="🎉 챌린지 성공!"
+        message={`${completedChallengeTitle} 챌린지를 성공했습니다!`}
+        confirmButtonText="자랑하러 가기"
+        showCancelButton={true}
+        cancelButtonText="닫기"
+      />
+      
       {selectedCategory && (
         <ChallengeListModal
           isOpen={isModalOpen}

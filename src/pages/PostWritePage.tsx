@@ -6,6 +6,7 @@ import axiosInstance from "../api/axios";
 import Tagify from '@yaireo/tagify/react';
 import '@yaireo/tagify/dist/tagify.css';
 import CustomRichTextEditor from '../components/common/CustomRichTextEditor';
+import LoadingSpinner from '../components/common/LoadingSpinner';
 import type { CustomEditorRef } from '../types/editor';
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import useAuthStore from "../store/authStore";
@@ -409,7 +410,7 @@ const PostWritePage: React.FC = () => {
                         onChange={handleImageAttach}
                       />
                       <SubmitButton type="submit" disabled={isSubmitting}>
-                          {isSubmitting ? '등록 중...' : '글 등록'}
+                          {isSubmitting ? <LoadingSpinner size={20} fullscreen={false} /> : '글 등록'}
                       </SubmitButton>
                     </ButtonContainer>
                 </Form>

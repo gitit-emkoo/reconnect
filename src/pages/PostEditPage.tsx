@@ -6,6 +6,7 @@ import axiosInstance from "../api/axios";
 import Tagify from '@yaireo/tagify/react';
 import '@yaireo/tagify/dist/tagify.css';
 import CustomRichTextEditor from '../components/common/CustomRichTextEditor';
+import LoadingSpinner from '../components/common/LoadingSpinner';
 
 interface Category {
   id: string;
@@ -141,7 +142,13 @@ const PostEditPage: React.FC = () => {
     }
   };
 
-  if (loading) return <Container><p>로딩 중...</p></Container>;
+  if (loading) return (
+    <Container>
+      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '50vh' }}>
+        <LoadingSpinner size={48} fullscreen={false} />
+      </div>
+    </Container>
+  );
   if (error) return <Container><p style={{ color: 'red' }}>{error}</p></Container>;
 
   return (
@@ -202,7 +209,7 @@ const PostEditPage: React.FC = () => {
           {error && <p style={{ color: 'red', textAlign: 'right', marginTop: '0.5rem' }}>{error}</p>}
           <ButtonContainer>
             <SubmitButton type="submit" disabled={isSubmitting}>
-              {isSubmitting ? '수정 중...' : '수정하기'}
+              {isSubmitting ? <LoadingSpinner size={20} fullscreen={false} /> : '수정하기'}
             </SubmitButton>
           </ButtonContainer>
         </Form>

@@ -11,6 +11,7 @@ import { getKakaoRegisterUrl } from '../utils/socialAuth';
 import axiosInstance from '../api/axios';
 import useAuthStore from '../store/authStore';
 import ConfirmationModal from '../components/common/ConfirmationModal';
+import BackButton from '../components/common/BackButton';
 import TermsContent from './TermsContent';
 import PrivacyContent from './PrivacyContent';
 
@@ -21,20 +22,6 @@ const Container = styled.div`
   min-height: 100vh;
   background: white;
   padding: 2rem;
-`;
-
-const BackButton = styled.button`
-  position: absolute;
-  top: 1.5rem;
-  left: 1.5rem;
-  background: none;
-  border: none;
-  cursor: pointer;
-  padding: 0.5rem;
-  display: flex;
-  align-items: center;
-  color: #333;
-  font-size: 1.5rem;
 `;
 
 const Title = styled.h1`
@@ -348,7 +335,7 @@ const RegisterPage: React.FC = () => {
 
   return (
     <Container>
-      <BackButton onClick={() => navigate(-1)}>←</BackButton>
+      <BackButton />
       <Title>회원가입</Title>
       
       <SocialLoginButton onClick={() => googleLogin()}>
