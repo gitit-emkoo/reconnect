@@ -7,6 +7,7 @@ import HeartGauge from '../components/Dashboard/HeartGauge';
 import { useReportData } from '../hooks/useReportData';
 import { ReportData } from "../api/report";
 import LoadingSpinner from "../components/common/LoadingSpinner";
+import ConfirmationModal from '../components/common/ConfirmationModal';
 
 const Container = styled.div`
   background-color: #f9fafb;
@@ -132,39 +133,6 @@ const PlaceholderText = styled.p`
   color: #6b7280;
 `;
 
-const ModalOverlay = styled.div`
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100vw;
-  height: 100vh;
-  background: rgba(0, 0, 0, 0.3);
-  z-index: 1000;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-`;
-
-const ModalContent = styled.div`
-  background: white;
-  border-radius: 12px;
-  padding: 32px;
-  min-width: 280px;
-  text-align: center;
-  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.15);
-`;
-
-const ModalButton = styled.button`
-  margin-top: 24px;
-  padding: 8px 24px;
-  border-radius: 8px;
-  background: #785CD2;
-  color: white;
-  border: none;
-  font-weight: 600;
-  cursor: pointer;
-`;
-
 const LoadingContainer = styled(Container)`
   display: flex;
   justify-content: center;
@@ -279,18 +247,6 @@ const NoDataPlaceholder: React.FC<{ title: string; text: string; buttonText: str
 );
 
 // 간단한 모달 컴포넌트
-const Modal = ({ open, onClose, children }: { open: boolean; onClose: () => void; children: React.ReactNode }) => {
-  if (!open) return null;
-  return (
-    <ModalOverlay>
-      <ModalContent>
-        {children}
-        <ModalButton onClick={onClose}>확인</ModalButton>
-      </ModalContent>
-    </ModalOverlay>
-  );
-};
-
 const Report: React.FC = () => {
   const navigate = useNavigate();
   const {
@@ -391,8 +347,16 @@ const Report: React.FC = () => {
         <ExpertSolutionCTA onNavigate={() => navigate('/expert')} />
       </Container>
       <NavigationBar isSolo={!hasPartner}/>
-      {/* 리포트 발행 모달 */}
-      <Modal open={showModal} onClose={() => setShowModal(false)}>{modalText}</Modal>
+      {/* 리포트 발행 모달 - ConfirmationModal로 교체 */}
+      <ConfirmationModal
+        isOpen={showModal}
+        onRequestClose={() => setShowModal(false)}
+        onConfirm={() => setShowModal(false)}
+        title="리포트 발행 안내"
+        message={modalText}
+        confirmButtonText="확인"
+        showCancelButton={false}
+      />
     </>
   );
 };

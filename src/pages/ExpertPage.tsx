@@ -5,7 +5,7 @@ import styled from 'styled-components';
 import NavigationBar from "../components/NavigationBar"; // NavigationBar 임포트
 import Header from '../components/common/Header';
 import ImgCounseling from '../assets/Img_counseling.jpg';
-import ImgMedicine from '../assets/Img_Medicine.jpg';
+import ImgMedicine from '../assets/Img_medicine.jpg';
 import ImgBeads from '../assets/Img_Beads.jpg';
 import ImgLaw from '../assets/Img_Law.jpg';
 import ConfirmationModal from '../components/common/ConfirmationModal';
