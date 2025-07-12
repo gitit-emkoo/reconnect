@@ -112,7 +112,7 @@ const ExpertPage: React.FC = () => {
         isOpen={showComingSoon}
         onRequestClose={() => setShowComingSoon(false)}
         onConfirm={() => setShowComingSoon(false)}
-        message="준비중인 서비스입니다."
+        message="정식 오픈 전입니다."
         showCancelButton={false}
         confirmButtonText="확인"
       />
