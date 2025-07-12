@@ -7,6 +7,7 @@ import ConfirmationModal from '../components/common/ConfirmationModal';
 import styled from 'styled-components';
 import { useNavigate } from 'react-router-dom';
 import useAuthStore from '../store/authStore';
+import ImgAgreement from '../assets/Img_Agreement.png';
 
 const Container = styled.div`
   max-width: 480px;
@@ -18,9 +19,10 @@ const TopButtonRow = styled.div`
   display: flex;
   gap: 1rem;
   justify-content: center;
-  margin: 1.5rem auto 0.5rem;
+  margin: 1.5rem 1.2rem 0.5rem 1.2rem;
 `;
 const TopButton = styled.button<{ $primary?: boolean }>`
+  flex: 1;
   background: ${p => p.$primary ? '#785cd2' : '#28a745'};
   color: white;
   border: none;
@@ -32,20 +34,34 @@ const TopButton = styled.button<{ $primary?: boolean }>`
 `;
 
 const GradientButton = styled.button`
-  display: block;
-  margin: 1.2rem auto 0 auto;
-  padding: 1rem 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.8rem;
+  margin: 1.2rem 1.2rem 0 1.2rem;
+  padding: 1.2rem 1rem;
   border: none;
-  border-radius: 8px;
+  border-radius: 12px;
   font-weight: 600;
-  font-size: 1.08rem;
+  font-size: 1.2rem;
   color: white;
   background: linear-gradient(90deg, #785CD2 0%, #FF69B4 100%);
   cursor: pointer;
-  box-shadow: 0 2px 8px rgba(120,92,210,0.08);
-  transition: filter 0.15s;
+  box-shadow: 0 4px 12px rgba(120,92,210,0.15);
+  transition: all 0.2s ease;
+  min-height: 60px;
+  width: calc(100% - 2.4rem);
+  
   &:hover {
-    filter: brightness(0.97);
+    filter: brightness(1.05);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(120,92,210,0.2);
+  }
+  
+  img {
+    width: 50px;
+    height: 50px;
+    
   }
 `;
 
@@ -74,7 +90,10 @@ const AgreementPage: React.FC = () => {
           <TopButton $primary onClick={handleAgreementCreateClick}>✒️ 합의서 작성</TopButton>
           <TopButton onClick={() => window.location.href = '/agreement-verification'}>🔐 합의서 인증</TopButton>
         </TopButtonRow>
-        <GradientButton onClick={() => navigate('/issued-agreements')}>📄 발행 합의서 보관함</GradientButton>
+        <GradientButton onClick={() => navigate('/issued-agreements')}>
+          <img src={ImgAgreement} alt="발행 합의서" />
+          발행 합의서 보관함
+        </GradientButton>
         <AgreementList />
       </Container>
       <NavigationBar />

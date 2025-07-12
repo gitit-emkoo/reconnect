@@ -311,45 +311,60 @@ const IssuedAgreementsPage: React.FC = () => {
   const [isPdfMode, setIsPdfMode] = useState(false);
   const [pdfTimestamp, setPdfTimestamp] = useState<string | null>(null);
   const [showSubscribeModal, setShowSubscribeModal] = useState(false);
+  const [refreshTrigger, setRefreshTrigger] = useState(0); // 새로고침 트리거 추가
   const dropdownRef = useRef<HTMLDivElement>(null);
   const pdfRef = useRef<HTMLDivElement>(null);
   const user = useAuthStore((state) => state.user);
   const navigate = useNavigate();
 
+  // 합의서 데이터 로드 함수
+  const loadAgreements = async () => {
+    try {
+      setIsLoading(true);
+      const data = await agreementApi.findMyAgreements();
+      // API 데이터를 기존 컴포넌트 형식으로 변환
+      const transformedData: Agreement[] = data.map(agreement => ({
+        id: agreement.id,
+        title: agreement.title,
+        content: agreement.content,
+        condition: agreement.condition,
+        date: new Date(agreement.createdAt).toLocaleDateString('ko-KR', {
+          year: 'numeric',
+          month: '2-digit',
+          day: '2-digit'
+        }).replace(/\./g, '-'),
+        partnerName: agreement.partner?.nickname || '알 수 없음',
+        authorName: agreement.author?.nickname || '알 수 없음',
+        authorId: agreement.authorId,
+        partnerId: agreement.partnerId,
+        authorSignature: agreement.authorSignature,
+        partnerSignature: agreement.partnerSignature || undefined,
+        status: agreement.status,
+        createdAt: agreement.createdAt
+      }));
+      setAgreements(transformedData);
+      console.log('발행 합의서 목록 로드 완료:', transformedData.filter(a => a.status === 'issued'));
+    } catch (error) {
+      console.error('합의서 로드 실패:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   // 합의서 데이터 로드
   useEffect(() => {
-    const loadAgreements = async () => {
-      try {
-        setIsLoading(true);
-        const data = await agreementApi.findMyAgreements();
-        // API 데이터를 기존 컴포넌트 형식으로 변환
-        const transformedData: Agreement[] = data.map(agreement => ({
-          id: agreement.id,
-          title: agreement.title,
-          content: agreement.content,
-          condition: agreement.condition,
-          date: new Date(agreement.createdAt).toLocaleDateString('ko-KR', {
-            year: 'numeric',
-            month: '2-digit',
-            day: '2-digit'
-          }).replace(/\./g, '-'),
-          partnerName: agreement.partner?.nickname || '알 수 없음',
-          authorName: agreement.author?.nickname || '알 수 없음',
-          authorId: agreement.authorId,
-          partnerId: agreement.partnerId,
-          authorSignature: agreement.authorSignature,
-          partnerSignature: agreement.partnerSignature || undefined,
-          status: agreement.status,
-          createdAt: agreement.createdAt
-        }));
-        setAgreements(transformedData);
-      } catch (error) {
-        console.error('합의서 로드 실패:', error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
     loadAgreements();
+  }, [refreshTrigger]); // refreshTrigger 의존성 추가
+
+  // 페이지 포커스 시 데이터 새로고침
+  useEffect(() => {
+    const handleFocus = () => {
+      console.log('페이지 포커스 - 합의서 목록 새로고침');
+      setRefreshTrigger(prev => prev + 1);
+    };
+
+    window.addEventListener('focus', handleFocus);
+    return () => window.removeEventListener('focus', handleFocus);
   }, []);
 
   const issuedAgreements = agreements.filter(a => a.status === 'issued');
@@ -490,6 +505,8 @@ const IssuedAgreementsPage: React.FC = () => {
       <Header title="발행 합의서 보관함" />
       <BackButton />
       <Container>
+        {/* 새로고침 버튼 제거 */}
+        
         {isLoading ? (
           // 스켈레톤 UI
           <div style={{ padding: '1.5rem' }}>

@@ -30,8 +30,8 @@ const CategoryTag = styled.span`
   font-size: 0.8rem;
   font-weight: 500;
   padding: 0.18rem 0.6rem;
-  background: #f1f3f5;
-  color: #868e96;
+  background:rgb(255, 230, 243);
+  color: #ff69b4;
   border-radius: 0.25rem;
   margin-right: 0.5rem;
 `;
@@ -39,7 +39,7 @@ const PostTitle = styled.h1`
   font-size: 1.2rem;
   font-weight: 600;
   color: #212529;
-  margin-bottom: 0.5rem;
+  margin:0.5rem 0.5rem 0.5rem 0;
 `;
 const AuthorInfo = styled.div`
   display: flex;

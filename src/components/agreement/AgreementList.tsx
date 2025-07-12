@@ -324,9 +324,11 @@ const AgreementList: React.FC = () => {
   const [pendingPdfAgreement, setPendingPdfAgreement] = useState<Agreement | null>(null);
   const [showDeleteConfirmModal, setShowDeleteConfirmModal] = useState(false);
   const [pendingDeleteAgreement, setPendingDeleteAgreement] = useState<Agreement | null>(null);
+  const [refreshTrigger, setRefreshTrigger] = useState(0); // 새로고침 트리거 추가
   const pdfRef = useRef<HTMLDivElement>(null);
   const [showSubscribeModal, setShowSubscribeModal] = useState(false);
   const navigate = useNavigate();
+  const [showPdfSuccessModal, setShowPdfSuccessModal] = useState(false);
 
   // 실제 합의서 목록 불러오기
   useEffect(() => {
@@ -362,7 +364,7 @@ const AgreementList: React.FC = () => {
       }
     };
     fetchAgreements();
-  }, []);
+  }, [refreshTrigger]); // refreshTrigger 의존성 추가
 
   // PDF 전용 A4 컴포넌트
   const PdfAgreementA4 = ({ agreement }: { agreement: Agreement }) => (
@@ -484,6 +486,13 @@ const AgreementList: React.FC = () => {
       setShowSubscribeModal(true);
       return;
     }
+    
+    // PDF 발행 조건 확인
+    if (!agreement.authorSignature || !agreement.partnerSignature) {
+      alert('PDF 발행을 위해서는 작성자와 동의자 모두의 서명이 필요합니다.');
+      return;
+    }
+    
     setPendingPdfAgreement(agreement);
     setShowPdfConfirmModal(true);
   };
@@ -518,24 +527,50 @@ const AgreementList: React.FC = () => {
     const pad = (n: number) => n.toString().padStart(2, '0');
     const timestamp = `${now.getFullYear()}-${pad(now.getMonth()+1)}-${pad(now.getDate())} ${pad(now.getHours())}:${pad(now.getMinutes())}:${pad(now.getSeconds())}`;
     setPdfTimestamp(timestamp);
+    
     setTimeout(async () => {
       if (!pdfRef.current) return;
-      const canvas = await html2canvas(pdfRef.current, { width: 794, height: 1123, scale: 2 });
-      const imgData = canvas.toDataURL('image/png');
-      const pdf = new jsPDF({ orientation: 'portrait', unit: 'px', format: [794, 1123] });
-      pdf.addImage(imgData, 'PNG', 0, 0, 794, 1123);
-      const dateStr = `${now.getFullYear()}${pad(now.getMonth()+1)}${pad(now.getDate())}${pad(now.getHours())}${pad(now.getMinutes())}${pad(now.getSeconds())}`;
-      const coupleId = user?.couple?.id || 'samplecouple';
-      pdf.save(`reconnect_${dateStr}_${coupleId}.pdf`);
       
-      // PDF 저장 성공 후 백엔드에서 상태를 'issued'로 변경
       try {
-        await agreementApi.updateStatus(pendingPdfAgreement.id, { status: 'issued' });
-        // 성공 시 로컬 상태도 업데이트
-        setAgreements(prev => prev.map(a => a.id === pendingPdfAgreement.id ? { ...a, status: 'issued' } : a));
-      } catch (err) {
-        console.error('PDF 발행 상태 업데이트 실패:', err);
-        // PDF는 저장되었지만 상태 업데이트 실패 시 처리
+        const canvas = await html2canvas(pdfRef.current, { width: 794, height: 1123, scale: 2 });
+        const imgData = canvas.toDataURL('image/png');
+        const pdf = new jsPDF({ orientation: 'portrait', unit: 'px', format: [794, 1123] });
+        pdf.addImage(imgData, 'PNG', 0, 0, 794, 1123);
+        const dateStr = `${now.getFullYear()}${pad(now.getMonth()+1)}${pad(now.getDate())}${pad(now.getHours())}${pad(now.getMinutes())}${pad(now.getSeconds())}`;
+        const coupleId = user?.couple?.id || 'samplecouple';
+        pdf.save(`reconnect_${dateStr}_${coupleId}.pdf`);
+        
+        console.log('PDF 다운로드 완료, 상태 업데이트 시작:', pendingPdfAgreement.id);
+        console.log('현재 합의서 상태:', pendingPdfAgreement.status);
+        console.log('작성자 서명:', !!pendingPdfAgreement.authorSignature);
+        console.log('파트너 서명:', !!pendingPdfAgreement.partnerSignature);
+        
+        // PDF 저장 성공 후 백엔드에서 상태를 'issued'로 변경
+        try {
+          await agreementApi.updateStatus(pendingPdfAgreement.id, { status: 'issued' });
+          console.log('백엔드 상태 업데이트 성공');
+          
+          // 성공 시 새로고침 트리거로 목록 완전 새로고침
+          setRefreshTrigger(prev => prev + 1);
+          
+          // 사용자에게 성공 메시지 표시
+          setShowPdfSuccessModal(true);
+        } catch (err) {
+          console.error('PDF 발행 상태 업데이트 실패:', err);
+          
+          // PDF는 저장되었지만 상태 업데이트 실패 시 처리
+          // 실패해도 로컬에서는 제거 (사용자 경험 개선)
+          setAgreements(prev => {
+            const filtered = prev.filter(a => a.id !== pendingPdfAgreement.id);
+            console.log('백엔드 실패했지만 로컬에서 제거. 남은 합의서 수:', filtered.length);
+            return filtered;
+          });
+          
+          // 사용자에게 부분 성공 메시지 표시
+          alert('PDF 다운로드는 완료되었지만, 서버 업데이트에 실패했습니다. 페이지를 새로고침하거나 발행 합의서 보관함을 확인해주세요.');
+        }
+      } catch (pdfError) {
+        console.error('PDF 생성 실패:', pdfError);
       }
       
       setIsPdfMode(false);
@@ -773,6 +808,20 @@ const AgreementList: React.FC = () => {
         confirmButtonText="구독하러 가기"
         cancelButtonText="취소"
         showCancelButton={true}
+      />
+      
+      {/* PDF 발행 성공 모달 */}
+      <ConfirmationModal
+        isOpen={showPdfSuccessModal}
+        onRequestClose={() => setShowPdfSuccessModal(false)}
+        onConfirm={() => {
+          setShowPdfSuccessModal(false);
+          navigate('/issued-agreements');
+        }}
+        title="PDF 발행 완료"
+        message="PDF 발행이 완료되었습니다! 발행 합의서 보관함에서 확인할 수 있습니다."
+        confirmButtonText="확인"
+        showCancelButton={false}
       />
     </Container>
   );

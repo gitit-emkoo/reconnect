@@ -229,7 +229,7 @@ const TrackReportDetail: React.FC = () => {
       '신남': '#FFBC8C',
       '외로움': '#a4d1eb',
       '감사함': '#F7C9B6',
-      '무감각함함': '#DADADA'
+      '무감각함': '#DADADA'
     };
     return colors[emotion] || '#785CD2';
   };
