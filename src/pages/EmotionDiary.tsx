@@ -1,8 +1,6 @@
 import React, { useState, useMemo } from "react";
 import styled from "styled-components";
-import { useNavigate } from "react-router-dom";
 import NavigationBar from "../components/NavigationBar";
-import BackButton from "../components/common/BackButton";
 import EmotionDiaryCalendar from './EmotionDiaryCalendar';
 import Popup from '../components/common/Popup';
 import EmotionImagePreview, { generateRandomInfo, PaletteItem } from '../components/EmotionImagePreview';
@@ -12,6 +10,7 @@ import useAuthStore from '../store/authStore';
 import MobileOnlyBanner from '../components/common/MobileOnlyBanner';
 import ConfirmationModal from '../components/common/ConfirmationModal';
 import { formatInKST } from '../utils/date';
+import Header from '../components/common/Header';
 
 // SVG 아이콘 임포트
 import { ReactComponent as TriggerActivitiesIcon } from "../assets/Trigger_Activities.svg";
@@ -50,8 +49,7 @@ const Container = styled.div`
   max-width: 1200px;
   margin: 0 auto;
   position: relative;
-  padding-bottom: 80px;
-  padding-top: 80px; 
+  padding-bottom: 80px; 
 
   @media (min-width: 1024px) {
     display: grid;
@@ -232,7 +230,7 @@ const emotions: Emotion[] = [
   { name: "신남", color: "#FFBC8C" },      // 주황
   { name: "외로움", color: "#a4d1eb" },   // 연한 파랑
   { name: "감사함", color: "#F7C9B6" },    // 연한 노랑
-  { name: "무감각함함", color: "#DADADA" }, // 회색
+  { name: "무감각함", color: "#DADADA" }, // 회색
   
 ];
 
@@ -303,38 +301,8 @@ const Chip = styled.div`
   cursor: pointer;
 `;
 
-// 감정카드보내기 스타일 참고: 타이틀+뒤로가기 버튼 헤더
-const PageHeaderContainer = styled.div`
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 100%;
-  max-width: 600px;
-  margin: 0 auto 1.5rem auto;
-  position: relative;
-`;
-
-const StyledBackButton = styled(BackButton)`
-  position: absolute;
-  left: 0;
-  top: 50%;
-  transform: translateY(-50%);
-`;
-
-const PageTitle = styled.h2`
-  font-size: 1.5rem;
-  font-weight: 600;
-  color:rgb(38, 38, 38);
-  text-align: center;
-  margin: 0;
-  @media (max-width: 768px) {
-    font-size: 1.1rem;
-  }
-`;
-
 // 메인 컴포넌트
 const EmotionDiary: React.FC = () => {
-  const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [showModal, setShowModal] = useState(false);
   const todayKey = 'emotiondiary_popup';
@@ -477,11 +445,6 @@ const EmotionDiary: React.FC = () => {
     }
   };
 
-
-  const handleBack = () => {
-    navigate(-1);
-  };
-
   // 트리거 아이콘 매핑 함수 (타입 명확히)
   function mapRandomInfoWithIcons(randomInfo: PaletteItem[]): PaletteItem[] {
     return randomInfo.map((item) => {
@@ -516,11 +479,8 @@ const EmotionDiary: React.FC = () => {
       onButtonClick={() => setShowPopup(false)}
       todayKey="emotiondiary_popup"
     />
+    <Header title="감정 다이어리 작성" />
       <Container>
-        <PageHeaderContainer>
-          <StyledBackButton onClick={handleBack} />
-          <PageTitle>감정 다이어리 작성</PageTitle>
-        </PageHeaderContainer>
         <MainContent>
           <StepContainer>
             <StepTitle>오늘은 어땠나요?</StepTitle>

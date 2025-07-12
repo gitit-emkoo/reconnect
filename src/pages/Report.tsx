@@ -30,10 +30,23 @@ const WeekInfo = styled.h1`
 
 const WeekSelector = styled.select`
   padding: 0.5rem 1rem;
+  background-color: rgb(255, 255, 255);
   border-radius: 8px;
-  border: 1px solid #ddd;
+  border: 1px solid #785CD2;
   font-size: 1rem;
   cursor: pointer;
+
+  option {
+    background-color: white;
+    border: 1px solid #785CD2;
+    font-size: 1rem;
+    padding: 0.5rem;
+    
+    &:hover {
+      background-color: #ff69b4;
+      color: white;
+    }
+  }
 `;
 
 const Section = styled.div`
@@ -108,6 +121,62 @@ const GaugeWrapper = styled.div`
   display: flex;
   justify-content: center;
   margin-bottom: 1.5rem;
+`;
+
+const CenteredSection = styled(Section)`
+  text-align: center;
+`;
+
+const PlaceholderText = styled.p`
+  margin: 1rem 0;
+  color: #6b7280;
+`;
+
+const ModalOverlay = styled.div`
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.3);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+`;
+
+const ModalContent = styled.div`
+  background: white;
+  border-radius: 12px;
+  padding: 32px;
+  min-width: 280px;
+  text-align: center;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.15);
+`;
+
+const ModalButton = styled.button`
+  margin-top: 24px;
+  padding: 8px 24px;
+  border-radius: 8px;
+  background: #785CD2;
+  color: white;
+  border: none;
+  font-weight: 600;
+  cursor: pointer;
+`;
+
+const LoadingContainer = styled(Container)`
+  display: flex;
+  justify-content: center;
+  align-items: center;
+`;
+
+const AnnouncementText = styled.div`
+  text-align: center;
+  margin-bottom: 16px;
+  color: #785CD2;
+  font-weight: 600;
+  font-size: 16px;
 `;
 
 const ReportHeader: React.FC<{
@@ -202,26 +271,23 @@ const WeeklyActivitySummary: React.FC<{ report: ReportData | null, previousRepor
 
 const NoDataPlaceholder: React.FC<{ title: string; text: string; buttonText: string; onNavigate: () => void; }> = 
   ({ title, text, buttonText, onNavigate }) => (
-    <Section style={{ textAlign: 'center' }}>
+    <CenteredSection>
       <Title>{title}</Title>
-      <p style={{ margin: '1rem 0', color: '#6b7280' }}>{text}</p>
+      <PlaceholderText>{text}</PlaceholderText>
       <CTA onClick={onNavigate}>{buttonText}</CTA>
-    </Section>
+    </CenteredSection>
 );
 
 // 간단한 모달 컴포넌트
 const Modal = ({ open, onClose, children }: { open: boolean; onClose: () => void; children: React.ReactNode }) => {
   if (!open) return null;
   return (
-    <div style={{
-      position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', background: 'rgba(0,0,0,0.3)', zIndex: 1000,
-      display: 'flex', alignItems: 'center', justifyContent: 'center'
-    }}>
-      <div style={{ background: 'white', borderRadius: 12, padding: 32, minWidth: 280, textAlign: 'center', boxShadow: '0 4px 24px rgba(0,0,0,0.15)' }}>
+    <ModalOverlay>
+      <ModalContent>
         {children}
-        <button style={{ marginTop: 24, padding: '8px 24px', borderRadius: 8, background: '#785CD2', color: 'white', border: 'none', fontWeight: 600, cursor: 'pointer' }} onClick={onClose}>확인</button>
-      </div>
-    </div>
+        <ModalButton onClick={onClose}>확인</ModalButton>
+      </ModalContent>
+    </ModalOverlay>
   );
 };
 
@@ -258,7 +324,7 @@ const Report: React.FC = () => {
   }, [currentReport, hasPartner, availableWeeks, selectedWeekValue]);
 
   if (loading) {
-    return <Container style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}><LoadingSpinner /></Container>;
+    return <LoadingContainer><LoadingSpinner /></LoadingContainer>;
   }
 
   if (error) {
@@ -318,9 +384,9 @@ const Report: React.FC = () => {
     <>
       <Container>
         {/* 상단 안내문구 */}
-        <div style={{ textAlign: 'center', marginBottom: 16, color: '#785CD2', fontWeight: 600, fontSize: 16 }}>
+        <AnnouncementText>
           리포트는 매주 월요일 오전 10시에 발행됩니다.
-        </div>
+        </AnnouncementText>
         {renderContent()}
         <ExpertSolutionCTA onNavigate={() => navigate('/expert')} />
       </Container>

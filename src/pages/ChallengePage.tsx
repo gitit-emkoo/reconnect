@@ -12,7 +12,7 @@ import ConfirmationModal from '../components/common/ConfirmationModal';
 import {  isThisWeekKST } from '../utils/date';
 import useAuthStore from '../store/authStore';
 import ChallengeHistoryDetailModal from '../components/challenge/ChallengeHistoryDetailModal';
-
+import Header from '../components/common/Header';
 // 뱃지 이미지 임포트
 import badge1 from '../assets/challenge (1).png';
 import badge2 from '../assets/challenge (2).png';
@@ -21,23 +21,12 @@ import badge3 from '../assets/challenge (3).png';
 const PageContainer = styled.div`
   max-width: 800px;
   margin: 0 auto;
-  padding: 2.5rem 1rem;
-`;
-
-const Header = styled.div`
-  margin-bottom: 2rem;
-`;
-
-const Title = styled.h1`
-  font-size: 1.8rem;
-  font-weight: 600;
-  color: #333;
-  margin-bottom: 0.5rem;
+  padding: 2rem 1rem;
 `;
 
 const Description = styled.p`
   color: #666;
-  font-size: 1rem;
+  font-size: 0.9rem;
   line-height: 1.5;
 `;
 
@@ -142,7 +131,7 @@ const CategoryButton = styled.button<{ bg: string; color: string }>`
 const HistoryList = styled.div`
   background: #f9fafb;
   border-radius: 1.2rem;
-  padding: 2rem;
+  padding: 2rem 2rem 4rem;
   min-height: 120px;
   display: flex;
   align-items: center;
@@ -185,12 +174,11 @@ const EmptyText = styled.div`
 `;
 
 const SectionTitle = styled.h2`
-  font-size: 1.5rem;
+  font-size: 1.2rem;
   font-weight: 600;
   color: #333;
-  margin: 3rem 0 1.5rem 0;
-  border-top: 1px solid #eee;
-  padding-top: 2rem;
+  margin: 2rem 0 1.5rem 0;
+  padding-top: 0.5rem;
 `;
 
 const badgeImages = [badge1, badge2, badge3];
@@ -336,14 +324,11 @@ const ChallengePage: React.FC = () => {
 
   return (
     <>
+    <Header title="챌린지" />
       <PageContainer>
-        <Header>
-          <Title>챌린지</Title>
           <Description>
             파트너와 함께 즐거운 챌린지를 통해 관계를 더욱 단단하게 만들어보세요.
           </Description>
-        </Header>
-
         <SectionTitle style={{ marginTop: '1rem', paddingTop: 0, borderTop: 'none' }}>
           🔥 진행 중인 챌린지
         </SectionTitle>

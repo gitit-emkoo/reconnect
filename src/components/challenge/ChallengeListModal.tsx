@@ -197,7 +197,7 @@ const ChallengeListModal: React.FC<Props> = ({ isOpen, onClose, category, onSele
                       {challenge.description ? challenge.description : `수행 ${(challenge as any).frequency ?? 1}회`}
                     </CountText>
                     <SelectButton onClick={() => onSelect(challenge)} disabled={isChallengeActive}>
-                      {isChallengeActive ? '진행중인 챌린지 있음' : '이 챌린지 시작'}
+                      {isChallengeActive ? '챌린지 진행중' : '이 챌린지 시작'}
                     </SelectButton>
                   </CardRow>
                 </ChallengeCard>

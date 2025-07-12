@@ -5,6 +5,7 @@ import styled from 'styled-components';
 import NavigationBar from "../components/NavigationBar"; // NavigationBar 임포트
 import Header from '../components/common/Header';
 import ImgCounseling from '../assets/Img_counseling.jpg';
+import ImgMedicine from '../assets/Img_Medicine.jpg';
 import ImgBeads from '../assets/Img_Beads.jpg';
 import ImgLaw from '../assets/Img_Law.jpg';
 import ConfirmationModal from '../components/common/ConfirmationModal';
@@ -33,7 +34,7 @@ const CardList = styled.div`
 const Card = styled.div`
   display: flex;
   align-items: center;
-  background: #faf8f6;
+  background:rgb(243, 240, 255);
   border-radius: 1.2rem;
   box-shadow: 0 2px 8px rgba(0,0,0,0.06);
   padding: 1.2rem 1rem;
@@ -58,7 +59,7 @@ const CardText = styled.div`
 const CardTitle = styled.div`
   font-size: 1.1rem;
   font-weight: 700;
-  color:rgb(162, 14, 185);
+  color:#785cd2;
 `;
 
 const CardDesc = styled.div`
@@ -85,7 +86,7 @@ const ExpertPage: React.FC = () => {
             </CardText>
           </Card>
           <Card onClick={handleComingSoon} style={{cursor:'pointer'}}>
-            <CardImg src={ImgCounseling} alt="감정심리 상담실" />
+            <CardImg src={ImgMedicine} alt="감정심리 상담실" />
             <CardText>
               <CardTitle>감정심리 상담실</CardTitle>
               <CardDesc>정서적 회복이 필요한 분</CardDesc>

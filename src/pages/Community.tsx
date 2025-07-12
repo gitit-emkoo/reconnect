@@ -41,7 +41,7 @@ type PostsResponse = { posts: Post[]; total: number };
 
 // === Styled Components ===
 const Container = styled.div`
-  background-color: #f8f9fa;
+  background-color:rgb(255, 255, 255);
   min-height: 100vh;
   padding: 1rem 1rem 5rem 1rem;
 `;
@@ -51,16 +51,16 @@ const CategoryTabs = styled.div`
   gap: 0.5rem;
   margin-bottom: 1rem;
   overflow-x: auto;
-  -ms-overflow-style: none; /* IE and Edge */
-  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; 
+  scrollbar-width: none; 
   &::-webkit-scrollbar {
-    display: none; /* Chrome, Safari, and Opera */
+    display: none; 
   }
 `;
 
 const TabButton = styled.button<{ $isActive: boolean }>`
   padding: 0.6rem 1rem;
-  font-size: 0.95rem;
+  font-size: 0.8rem;
   font-weight: 600;
   border: 1px solid ${props => props.$isActive ? '#FF69B4' : '#ced4da'};
   border-radius: 1.5rem;
@@ -106,12 +106,6 @@ const SearchButton = styled.button`
   &:hover {
     background-color: #343a40;
   }
-`;
-
-const PostListContainer = styled.div`
-  background-color: white;
-  border-radius: 0.8rem;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
 `;
 
 const PostListItem = styled.div`
@@ -349,7 +343,7 @@ const Community: React.FC = () => {
           <PostListSkeleton />
         ) : (
           <>
-            <PostListContainer>
+            
               {posts.length > 0 ? posts.map((post: Post) => (
                 <PostListItem key={post.id}>
                   <CategoryTag $bgcolor={getCategoryColor(getCategoryName(post.category.name))}>
@@ -374,7 +368,7 @@ const Community: React.FC = () => {
               )) : (
                 <p style={{ color: '#888', textAlign: 'center', padding: '2rem 0' }}>게시글이 없습니다.</p>
               )}
-            </PostListContainer>
+           
 
             {totalPages > 1 && (
               <PaginationBottom>

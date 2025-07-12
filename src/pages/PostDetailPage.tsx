@@ -63,12 +63,12 @@ const Container = styled.div`
 
 const PostContainer = styled.div`
   
-  padding: 3rem 2rem 1rem;
+  padding: 3rem 0.5rem 1rem;
   
 `;
 
 const CommentsSection = styled.div`
-  padding: 0 2rem 1rem;
+  padding: 0 0.5rem 1rem;
   
 `;
 
@@ -356,7 +356,7 @@ const PostDetailPage: React.FC = () => {
         </CommentsSection>
 
         {/* 최신글 목록 */}
-        <div style={{  padding: '0 2rem 1rem', borderTop: '1px solid #f1f3f5' }}>
+        <div style={{  padding: '0 0.5rem 1rem', borderTop: '1px solid #f1f3f5' }}>
           <h2 style={{ fontSize: '1.2rem', fontWeight: 700, margin: '2rem 0 1.2rem', color: '#343a40' }}>최신글</h2>
           <LatestPostList
             posts={latestPosts}
