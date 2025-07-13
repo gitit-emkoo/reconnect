@@ -7,11 +7,7 @@ import SubmitButton from '../components/common/SubmitButton';
 
 // 스타일 컴포넌트 정의 (상단으로 이동)
 const FormContainer = styled.div`
-  background: white;
-  border-radius: 12px;
-  padding: 30px;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-  margin-bottom: 30px;
+  margin: 1rem;
 `;
 
 const Form = styled.form`
@@ -81,7 +77,7 @@ const InfoSection = styled.div`
 `;
 
 const InfoTitle = styled.h3`
-  font-size: 1.1rem;
+  font-size: 1rem;
   font-weight: 600;
   color: #333;
   margin-bottom: 15px;
@@ -89,6 +85,7 @@ const InfoTitle = styled.h3`
 
 const InfoList = styled.ul`
   list-style: none;
+  font-size: 0.8rem;
   padding: 0;
   margin: 0;
 `;
@@ -107,62 +104,18 @@ const InfoItem = styled.li`
   }
 `;
 
-const InquiryItem = styled.div`
-  background: white;
-  border: 1px solid #e0e0e0;
-  border-radius: 8px;
-  margin-bottom: 12px;
-  overflow: hidden;
-`;
-
-const InquiryHeader = styled.div`
-  padding: 16px;
-  cursor: pointer;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  background: #f8f9fa;
-  border-bottom: 1px solid #e0e0e0;
-  
-  &:hover {
-    background: #e9ecef;
-  }
-`;
-
-const InquiryTitle = styled.div`
-  font-weight: 600;
-  color: #333;
-  flex: 1;
-`;
-
-const InquiryDate = styled.div`
-  color: #666;
-  font-size: 0.9rem;
-  margin-left: 12px;
-`;
-
-const InquiryType = styled.span`
-  background: #785cd2;
-  color: white;
-  padding: 4px 8px;
-  border-radius: 4px;
-  font-size: 0.8rem;
-  margin-left: 8px;
-`;
 
 const InquiryContent = styled.div`
   padding: 16px;
-  background: white;
-  border-top: 1px solid #e0e0e0;
   color: #555;
   line-height: 1.6;
 `;
 
-const ToggleIcon = styled.span<{ isOpen: boolean }>`
-  transition: transform 0.2s ease;
-  transform: rotate(${props => props.isOpen ? '180deg' : '0deg'});
+const ToggleIcon = styled.span`
   font-size: 1.2rem;
   color: #666;
+  margin-left: 1em;
+  cursor: pointer;
 `;
 
 const InquiryListTitle = styled.h3`
@@ -170,7 +123,8 @@ const InquiryListTitle = styled.h3`
   font-weight: 600;
   color: #333;
   margin-bottom: 15px;
-  margin-top: 30px;
+  padding-top: 30px;
+  border-top: 1px solid #e0e0e0;
 `;
 
 const LoadingText = styled.div`
@@ -186,7 +140,50 @@ const EmptyText = styled.div`
   font-style: italic;
 `;
 
-// 컴포넌트 정의
+// 개선된 스타일 추가
+const InquiryCard = styled.div`
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 1rem;
+`;
+
+const CardTopRow = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+`;
+
+const BadgeAndDate = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 0.7em;
+`;
+
+const Badge = styled.span`
+  background: #785cd2;
+  color: #fff;
+  border-radius: 8px;
+  padding: 0.2em 0.7em;
+  font-size: 0.9em;
+  font-weight: 600;
+  flex-shrink: 0;
+`;
+
+const DateText = styled.span`
+  color: #888;
+  font-size: 0.95em;
+  flex-shrink: 0;
+`;
+
+const Title = styled.span`
+  font-weight: 500;
+  font-size: 1rem;
+  color: #222;
+  margin-top: 0.7em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+`;
 const SupportPage: React.FC = () => {
   const [formData, setFormData] = useState<CreateSupportDto>({
     title: '',
@@ -353,28 +350,31 @@ const SupportPage: React.FC = () => {
       {/* 내 문의내역 섹션 */}
       <FormContainer>
         <InquiryListTitle>내 문의내역</InquiryListTitle>
-        
         {loading ? (
           <LoadingText>문의내역을 불러오는 중...</LoadingText>
         ) : inquiries.length === 0 ? (
           <EmptyText>아직 문의내역이 없습니다.</EmptyText>
         ) : (
           inquiries.map((inquiry) => (
-            <InquiryItem key={inquiry.id}>
-              <InquiryHeader onClick={() => toggleInquiry(inquiry.id)}>
-                <InquiryTitle>
-                  {inquiry.title}
-                  <InquiryType>{getTypeLabel(inquiry.type)}</InquiryType>
-                </InquiryTitle>
-                <InquiryDate>{formatDate(inquiry.createdAt)}</InquiryDate>
-                <ToggleIcon isOpen={expandedInquiries.has(inquiry.id)}>▼</ToggleIcon>
-              </InquiryHeader>
-              {expandedInquiries.has(inquiry.id) && (
-                <InquiryContent>
-                  {inquiry.content}
-                </InquiryContent>
-              )}
-            </InquiryItem>
+            <div key={inquiry.id}>
+              <InquiryCard>
+                <CardTopRow>
+                  <BadgeAndDate>
+                    <Badge>{getTypeLabel(inquiry.type)}</Badge>
+                    <DateText>{formatDate(inquiry.createdAt)}</DateText>
+                  </BadgeAndDate>
+                  <ToggleIcon onClick={() => toggleInquiry(inquiry.id)}>
+                    {expandedInquiries.has(inquiry.id) ? '▴' : '▾'}
+                  </ToggleIcon>
+                </CardTopRow>
+                <Title>{inquiry.title}</Title>
+                {expandedInquiries.has(inquiry.id) && (
+                  <InquiryContent>
+                    {inquiry.content}
+                  </InquiryContent>
+                )}
+              </InquiryCard>
+            </div>
           ))
         )}
       </FormContainer>

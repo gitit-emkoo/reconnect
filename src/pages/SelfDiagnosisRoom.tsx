@@ -20,7 +20,7 @@ const Badge = styled.span`
 `;
 
 const SubscriberBadge = styled.span`
-  background-color: #52c41a;
+  background-color: #785cd2;
   color: white;
   padding: 4px 10px;
   border-radius: 12px;
@@ -253,7 +253,7 @@ const SelfDiagnosisRoom: React.FC = () => {
               { (histories[tpl.id]?.length ?? 0) > 1 && (
                 <ButtonContainer>
                   <ToggleButton onClick={()=>setShowAllMap(prev=>({...prev, [tpl.id]: !prev[tpl.id]}))}>
-                    {showAllMap[tpl.id] ? '접기 ▲' : '더보기 ▼'}
+                    {showAllMap[tpl.id] ? '접기 ▴' : '지난 진단 기록 보기 ▾'}
                   </ToggleButton>
                 </ButtonContainer>
               )}

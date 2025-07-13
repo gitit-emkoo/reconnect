@@ -3,6 +3,7 @@ import styled from 'styled-components';
 import { userService } from '../../services/userService';
 import type { User } from '../../types/user';
 import { toast } from 'react-toastify';
+import { generateAvatar } from '../../utils/avatar';
 
 const ModalOverlay = styled.div`
   position: fixed;
@@ -142,21 +143,19 @@ export const ProfileEditModal: React.FC<ProfileEditModalProps> = ({
 }) => {
   const [nickname, setNickname] = useState(user.nickname);
   const [profileImageUrl, setProfileImageUrl] = useState(user.profileImageUrl);
+  const [originalProfileImageUrl] = useState(user.profileImageUrl);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isImageUploading, setIsImageUploading] = useState(false);
   const [error, setError] = useState('');
 
-  const handleGenerateRandomAvatar = async () => {
+  const handleGenerateRandomAvatar = () => {
     try {
       setIsImageUploading(true);
-      const response = await userService.generateRandomAvatar();
-      if (response.success && response.data) {
-        setProfileImageUrl(response.data.profileImageUrl);
-        onUpdateSuccess(response.data);
-        toast.success('새로운 랜덤 아바타가 생성되었습니다!');
-      } else {
-        toast.error(response.error?.message || '랜덤 아바타 생성에 실패했습니다.');
-      }
+      // 클라이언트에서 랜덤 아바타 생성 (미리보기용)
+      const randomSeed = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+      const newAvatarUrl = generateAvatar(randomSeed);
+      setProfileImageUrl(newAvatarUrl);
+      toast.success('새로운 랜덤 아바타가 생성되었습니다! 저장 버튼을 눌러 변경사항을 저장하세요.');
     } catch (error) {
       toast.error('랜덤 아바타 생성 중 오류가 발생했습니다.');
     } finally {
@@ -167,21 +166,44 @@ export const ProfileEditModal: React.FC<ProfileEditModalProps> = ({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
-    if (nickname.trim() === user.nickname) {
+    
+    // 변경사항이 있는지 확인
+    const hasNicknameChanged = nickname.trim() !== user.nickname;
+    const hasAvatarChanged = profileImageUrl !== originalProfileImageUrl;
+    
+    if (!hasNicknameChanged && !hasAvatarChanged) {
       setError('변경된 내용이 없습니다.');
       return;
     }
+
     try {
       setIsSubmitting(true);
-      const response = await userService.updateProfile(nickname.trim());
-      if (response.success && response.data) {
-        onUpdateSuccess(response.data);
-        toast.success('프로필이 성공적으로 수정되었습니다.');
-        onClose();
-      } else {
-        setError(response.error?.message || '프로필 수정에 실패했습니다.');
-        toast.error(response.error?.message || '프로필 수정에 실패했습니다.');
+      
+      // 닉네임 변경이 있는 경우
+      if (hasNicknameChanged) {
+        const nicknameResponse = await userService.updateProfile(nickname.trim());
+        if (!nicknameResponse.success) {
+          setError(nicknameResponse.error?.message || '닉네임 수정에 실패했습니다.');
+          toast.error(nicknameResponse.error?.message || '닉네임 수정에 실패했습니다.');
+          return;
+        }
       }
+      
+      // 아바타 변경이 있는 경우
+      if (hasAvatarChanged && profileImageUrl) {
+        const avatarResponse = await userService.updateProfileImage(profileImageUrl);
+        if (!avatarResponse.success) {
+          setError(avatarResponse.error?.message || '아바타 수정에 실패했습니다.');
+          toast.error(avatarResponse.error?.message || '아바타 수정에 실패했습니다.');
+          return;
+        }
+      }
+      
+      // 성공 시 업데이트된 사용자 정보 가져오기
+      const updatedUser = await userService.getMyProfile();
+      onUpdateSuccess(updatedUser);
+      toast.success('프로필이 성공적으로 수정되었습니다.');
+      onClose();
     } catch (error) {
       setError('프로필 수정 중 오류가 발생했습니다.');
       toast.error('프로필 수정 중 오류가 발생했습니다.');
@@ -189,6 +211,16 @@ export const ProfileEditModal: React.FC<ProfileEditModalProps> = ({
       setIsSubmitting(false);
     }
   };
+
+  const handleCancel = () => {
+    // 원본 상태로 되돌리기
+    setProfileImageUrl(originalProfileImageUrl);
+    setNickname(user.nickname);
+    onClose();
+  };
+
+  // 변경사항이 있는지 확인
+  const hasChanges = nickname.trim() !== user.nickname || profileImageUrl !== originalProfileImageUrl;
 
   return (
     <ModalOverlay onClick={onClose}>
@@ -242,8 +274,10 @@ export const ProfileEditModal: React.FC<ProfileEditModalProps> = ({
           </div>
           {error && <ErrorMessage>{error}</ErrorMessage>}
           <ButtonGroup>
-            <Button type="submit" disabled={isSubmitting}>{isSubmitting ? '수정 중...' : '저장'}</Button>
-            <Button type="button" onClick={onClose} $isCancel>취소</Button>
+            <Button type="submit" disabled={isSubmitting || !hasChanges}>
+              {isSubmitting ? '수정 중...' : '저장'}
+            </Button>
+            <Button type="button" onClick={handleCancel} $isCancel>취소</Button>
           </ButtonGroup>
         </form>
       </ModalContent>
