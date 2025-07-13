@@ -100,6 +100,7 @@ const Button = styled.button<{ variant: 'primary' | 'yellow' | 'blue' }>`
 const SubscribePage: React.FC = () => {
   const [modalType, setModalType] = useState<'report' | 'agreement' | 'subscribe' | null>(null);
   const { user, setUser } = useAuthStore();
+  const [resultModal, setResultModal] = useState<{ open: boolean; message: string }>({ open: false, message: '' });
 
   // user 콘솔 출력 (구독 정보 확인용)
   console.log('user in SubscribePage:', user);
@@ -127,7 +128,6 @@ const SubscribePage: React.FC = () => {
       // 구독 시작 로직 구현
       try {
         const result = await userService.startSubscription();
-        
         // 구독 성공 시 사용자 정보 업데이트
         if (result && setUser && user) {
           setUser({
@@ -135,11 +135,11 @@ const SubscribePage: React.FC = () => {
             ...result
           } as User);
         }
-        
-        alert('구독이 성공적으로 시작되었습니다!');
-      } catch (error) {
+        setResultModal({ open: true, message: '구독이 성공적으로 시작되었습니다!' });
+      } catch (error: any) {
         console.error('구독 시작 실패:', error);
-        alert('구독 시작에 실패했습니다. 다시 시도해주세요.');
+        const msg = error?.response?.data?.message || '구독 시작에 실패했습니다. 다시 시도해주세요.';
+        setResultModal({ open: true, message: msg });
       }
     }
     setModalType(null);
@@ -223,6 +223,15 @@ const SubscribePage: React.FC = () => {
               ? '무료 구독 이벤트 종료시까지 리커넥트케어 항목의 모든 권한을 갖습니다'
               : ''}
         confirmButtonText={modalType === 'subscribe' ? '시작하기' : '확인'}
+        showCancelButton={false}
+      />
+      <ConfirmationModal
+        isOpen={resultModal.open}
+        onRequestClose={() => setResultModal({ open: false, message: '' })}
+        onConfirm={() => setResultModal({ open: false, message: '' })}
+        title="구독 안내"
+        message={resultModal.message}
+        confirmButtonText="확인"
         showCancelButton={false}
       />
     </>

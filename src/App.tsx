@@ -61,6 +61,7 @@ import TrackReportDetail from './pages/TrackReportDetail';
 import PointPage from './pages/point';
 import SubscribePage from './pages/subscribe';
 import AgreementCreatePage from './pages/AgreementCreatePage';
+import SupportPage from './pages/SupportPage';
 
 const queryClient = new QueryClient();
 
@@ -161,7 +162,7 @@ const App = () => {
 
             {/* Placeholder Pages (보호된 라우트) - 일부는 실제 페이지로 교체 */}
             <Route path="/support/faq" element={<ProtectedRoute><FaqPage /></ProtectedRoute>} />
-            <Route path="/support/contact" element={<ProtectedRoute><PlaceholderPage title="고객센터" /></ProtectedRoute>} />
+            <Route path="/support/contact" element={<ProtectedRoute><SupportPage /></ProtectedRoute>} />
             <Route path="/legal/privacy" element={<ProtectedRoute><PrivacyPolicyPage /></ProtectedRoute>} />
             <Route path="/legal/third-party-consent" element={<ProtectedRoute><ThirdPartyConsentPage /></ProtectedRoute>} />
             <Route path="/announcements" element={<ProtectedRoute><AnnouncementsPage /></ProtectedRoute>} />
