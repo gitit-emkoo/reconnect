@@ -1,8 +1,7 @@
-// src/pages/ExpertPage.tsx
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
-import NavigationBar from "../components/NavigationBar"; // NavigationBar 임포트
+import NavigationBar from "../components/NavigationBar"; 
 import Header from '../components/common/Header';
 import ImgCounseling from '../assets/Img_counseling.jpg';
 import ImgMedicine from '../assets/Img_medicine.jpg';
@@ -69,6 +68,35 @@ const CardDesc = styled.div`
   text-align: left;
 `;
 
+const AdSection = styled.div`
+  background-color: #2f3542;
+  border-radius: 1rem;
+  padding: 1.2rem;
+  margin-top: 2rem;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  cursor: pointer;
+  color: #fff;
+  transition: background-color 0.2s;
+  width: 100%;
+  max-width: 400px;
+  &:hover {
+    background-color: #3d4453;
+  }
+`;
+
+const AdTitle = styled.h2`
+  font-size: 1.1rem;
+  margin-bottom: 0.4rem;
+`;
+
+const AdText = styled.p`
+  font-size: 0.8rem;
+  opacity: 0.8;
+`;
+
+
 const ExpertPage: React.FC = () => {
   const navigate = useNavigate();
   const [showComingSoon, setShowComingSoon] = useState(false);
@@ -107,6 +135,10 @@ const ExpertPage: React.FC = () => {
             </CardText>
           </Card>
         </CardList>
+        <AdSection onClick={() => navigate('/expert')}>
+          <AdTitle>광고입니다</AdTitle>
+          <AdText>광고 넣을 페이지 입니다.</AdText>
+        </AdSection>
       </Container>
       <ConfirmationModal
         isOpen={showComingSoon}

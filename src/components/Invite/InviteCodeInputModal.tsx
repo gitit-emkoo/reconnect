@@ -4,6 +4,7 @@ import { partnerInvitesApi } from '../../api/partnerInvites';
 import useAuthStore from '../../store/authStore';
 
 import LoadingSpinner from '../common/LoadingSpinner';
+import ConfirmationModal from '../common/ConfirmationModal';
 
 const ModalBackdrop = styled.div`
   position: fixed;
@@ -89,6 +90,7 @@ const InviteCodeInputModal: React.FC<InviteCodeInputModalProps> = ({ onClose }) 
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const { user, setAuth } = useAuthStore();
+  const [successModal, setSuccessModal] = useState(false);
 
   const handleSubmit = async () => {
     if (!code.trim()) {
@@ -108,9 +110,7 @@ const InviteCodeInputModal: React.FC<InviteCodeInputModalProps> = ({ onClose }) 
 
       setAuth(token, updatedUser);
 
-      alert('파트너와 성공적으로 연결되었습니다!');
-      onClose();
-      window.location.reload(); 
+      setSuccessModal(true);
 
     } catch (err: any) {
        if (err.response?.data?.message) {
@@ -124,27 +124,46 @@ const InviteCodeInputModal: React.FC<InviteCodeInputModalProps> = ({ onClose }) 
   };
 
   return (
-    <ModalBackdrop onClick={onClose}>
-      <ModalContent onClick={e => e.stopPropagation()}>
-        <CloseButton onClick={onClose}>&times;</CloseButton>
-        <Title>초대 코드 입력</Title>
-        <form onSubmit={(e) => { e.preventDefault(); handleSubmit(); }}>
-          <Input
-            type="text"
-            placeholder="초대 코드를 입력하세요"
-            value={code}
-            onChange={e => setCode(e.target.value)}
-            maxLength={16}
-            required
-            autoFocus
-          />
-          <SubmitButton type="submit" disabled={isLoading || !code.trim()}>
-            {isLoading ? <LoadingSpinner /> : '파트너 연결하기'}
-          </SubmitButton>
-        </form>
-        {error && <ErrorMessage>{error}</ErrorMessage>}
-      </ModalContent>
-    </ModalBackdrop>
+    <>
+      <ModalBackdrop onClick={onClose}>
+        <ModalContent onClick={e => e.stopPropagation()}>
+          <CloseButton onClick={onClose}>&times;</CloseButton>
+          <Title>초대 코드 입력</Title>
+          <form onSubmit={(e) => { e.preventDefault(); handleSubmit(); }}>
+            <Input
+              type="text"
+              placeholder="초대 코드를 입력하세요"
+              value={code}
+              onChange={e => setCode(e.target.value)}
+              maxLength={16}
+              required
+              autoFocus
+            />
+            <SubmitButton type="submit" disabled={isLoading || !code.trim()}>
+              {isLoading ? <LoadingSpinner /> : '파트너 연결하기'}
+            </SubmitButton>
+          </form>
+          {error && <ErrorMessage>{error}</ErrorMessage>}
+        </ModalContent>
+      </ModalBackdrop>
+      <ConfirmationModal
+        isOpen={successModal}
+        onRequestClose={() => {
+          setSuccessModal(false);
+          onClose();
+          window.location.reload();
+        }}
+        onConfirm={() => {
+          setSuccessModal(false);
+          onClose();
+          window.location.reload();
+        }}
+        title="파트너 연결 완료"
+        message="파트너와 성공적으로 연결되었습니다!"
+        confirmButtonText="확인"
+        showCancelButton={false}
+      />
+    </>
   );
 };
 

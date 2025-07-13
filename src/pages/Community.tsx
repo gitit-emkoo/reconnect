@@ -11,7 +11,7 @@ import RightActive from '../assets/DirectionRightActive.svg?url';
 import RightInactive from '../assets/DirectionRightInactive.svg?url';
 import WriteIcon from '../assets/Icon_Write.svg?url';
 import LoadingSpinner from '../components/common/LoadingSpinner';
-import { PostListSkeleton } from '../components/common/Skeleton';
+import PostListSkeleton from '../components/common/Skeleton';
 import Header from '../components/common/Header';
 import { useQuery } from '@tanstack/react-query';
 
