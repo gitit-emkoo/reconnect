@@ -49,24 +49,24 @@ export const userService = {
     }
   },
 
-  // 랜덤 아바타 생성
-  generateRandomAvatar: async (): Promise<ProfileUpdateResponse> => {
-    try {
-      const { data } = await axiosInstance.post('/users/me/generate-avatar');
-      return {
-        success: true,
-        data: data
-      };
-    } catch (error) {
-      return {
-        success: false,
-        error: {
-          code: 'REQUEST_FAILED',
-          message: '랜덤 아바타 생성에 실패했습니다.'
-        }
-      };
-    }
-  },
+  // 랜덤 아바타 생성 (클라이언트에서 직접 처리하므로 제거)
+  // generateRandomAvatar: async (): Promise<ProfileUpdateResponse> => {
+  //   try {
+  //     const { data } = await axiosInstance.post('/users/me/generate-avatar');
+  //     return {
+  //       success: true,
+  //       data: data
+  //     };
+  //   } catch (error) {
+  //     return {
+  //       success: false,
+  //       error: {
+  //         code: 'REQUEST_FAILED',
+  //         message: '랜덤 아바타 생성에 실패했습니다.'
+  //       }
+  //     };
+  //   }
+  // },
 
   // 비밀번호 변경
   changePassword: async (passwordData: PasswordChangeData): Promise<PasswordChangeResponse> => {
