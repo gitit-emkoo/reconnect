@@ -61,8 +61,9 @@ const useAuthStore = create<AuthState>()(
           set({ user, partner: user.partner ?? null, isLoading: false });
         } catch (error) {
           console.error('Authentication check failed', error);
-          set({ isLoading: false, user: null, partner: null, accessToken: null });
-          localStorage.removeItem('accessToken');
+          // 토큰 만료 시에도 자동 로그아웃하지 않음
+          set({ isLoading: false });
+          // localStorage.removeItem('accessToken'); // 자동 로그아웃 방지
         }
       },
 

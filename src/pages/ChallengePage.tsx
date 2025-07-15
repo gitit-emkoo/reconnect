@@ -13,6 +13,8 @@ import {  isThisWeekKST } from '../utils/date';
 import useAuthStore from '../store/authStore';
 import ChallengeHistoryDetailModal from '../components/challenge/ChallengeHistoryDetailModal';
 import Header from '../components/common/Header';
+import { useChallengeData } from '../hooks/useChallengeData';
+import { useQueryClient } from '@tanstack/react-query';
 // 뱃지 이미지 임포트
 import badge1 from '../assets/challenge (1).png';
 import badge2 from '../assets/challenge (2).png';
@@ -185,11 +187,10 @@ const badgeImages = [badge1, badge2, badge3];
 
 const ChallengePage: React.FC = () => {
   const navigate = useNavigate();
-  const [activeChallenge, setActiveChallenge] = useState<Challenge | null>(null);
+  const queryClient = useQueryClient();
   const [selectedCategory, setSelectedCategory] = useState<Challenge['category'] | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [historyTab, setHistoryTab] = useState<'success' | 'fail'>('success');
-  const [challengeHistory, setChallengeHistory] = useState<{ completed: Challenge[]; failed: Challenge[] }>({ completed: [], failed: [] });
   const [showPartnerRequiredModal, setShowPartnerRequiredModal] = useState(false);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [confirmModalMessage, setConfirmModalMessage] = useState('');
@@ -197,9 +198,46 @@ const ChallengePage: React.FC = () => {
   const [selectedHistoryChallenge, setSelectedHistoryChallenge] = useState<Challenge | null>(null);
   const [showCompletionModal, setShowCompletionModal] = useState(false);
   const [completedChallengeTitle, setCompletedChallengeTitle] = useState('');
+  const [showFailureModal, setShowFailureModal] = useState(false);
+  const [failedChallengeTitle, setFailedChallengeTitle] = useState('');
   const user = useAuthStore(state => state.user);
   const hasPartner = !!user?.partner?.id;
-  const [isLoading, setIsLoading] = useState(true);
+
+  // React Query 훅 사용
+  const { 
+    activeChallenge, 
+    challengeHistory, 
+    isLoading, 
+
+  } = useChallengeData();
+
+  // 실패 챌린지 확인 함수
+  const checkForFailedChallenge = useCallback(async () => {
+    if (!user?.couple?.id) return;
+    
+    try {
+      const history = await challengeApi.getChallengeHistory();
+      const recentFailed = history.failed[0]; // 가장 최근 실패한 챌린지
+      
+      if (recentFailed) {
+        const modalKey = `challenge_failure_modal_${recentFailed.id}`;
+        const hasSeenModal = localStorage.getItem(modalKey);
+        
+        // 실패한 지 24시간 이내이고 모달을 본 적이 없다면 표시
+        const failedAt = new Date(recentFailed.updatedAt!);
+        const now = new Date();
+        const hoursDiff = (now.getTime() - failedAt.getTime()) / (1000 * 60 * 60);
+        
+        if (hoursDiff <= 24 && !hasSeenModal) {
+          setFailedChallengeTitle(recentFailed.title);
+          setShowFailureModal(true);
+          localStorage.setItem(modalKey, 'true');
+        }
+      }
+    } catch (error) {
+      console.error('실패한 챌린지 확인 중 오류:', error);
+    }
+  }, [user?.couple?.id]);
 
   // 완료 모달 확인 함수
   const checkForCompletedChallenge = useCallback(async () => {
@@ -229,52 +267,12 @@ const ChallengePage: React.FC = () => {
     }
   }, [user?.couple?.id]);
 
-  const loadData = useCallback(async () => {
-    try {
-      setIsLoading(true);
-      const [active, history] = await Promise.all([
-        challengeApi.getActiveChallenge(),
-        challengeApi.getChallengeHistory(),
-      ]);
-      setActiveChallenge(active);
-      setChallengeHistory(history);
-    } catch (error) {
-      console.error('데이터 로드 중 오류 발생:', error);
-      setActiveChallenge(null);
-    } finally {
-      setIsLoading(false);
-    }
-  }, []);
-
   useEffect(() => {
-    loadData();
+    // React Query는 컴포넌트 마운트 시 데이터를 자동으로 로드하므로, 여기서는 데이터 로딩 로직을 제거
     // 페이지 로드 시 완료 모달 확인
     checkForCompletedChallenge();
-  }, [loadData, checkForCompletedChallenge]);
-
-  // 실시간 업데이트를 위한 폴링 (파트너가 있을 때만)
-  useEffect(() => {
-    if (!hasPartner) return;
-    
-    const interval = setInterval(() => {
-      loadData();
-    }, 5000); // 5초마다 데이터 새로고침
-
-    return () => clearInterval(interval);
-  }, [loadData, hasPartner]);
-
-  // 페이지 포커스 시 데이터 새로고침
-  useEffect(() => {
-    const handleFocus = () => {
-      if (hasPartner) {
-        console.log('챌린지 페이지 포커스 - 데이터 새로고침');
-        loadData();
-      }
-    };
-
-    window.addEventListener('focus', handleFocus);
-    return () => window.removeEventListener('focus', handleFocus);
-  }, [loadData, hasPartner]);
+    checkForFailedChallenge(); // 페이지 로드 시 실패 모달 확인
+  }, [checkForCompletedChallenge, checkForFailedChallenge]);
 
   // 챌린지 완료 처리 함수 (ActiveChallenge에서 호출)
   const handleChallengeComplete = async (completedChallenge: Challenge) => {
@@ -288,8 +286,9 @@ const ChallengePage: React.FC = () => {
       localStorage.setItem(modalKey, 'true');
     }
     
-    // 데이터 새로고침
-    await loadData();
+    // React Query 캐시 무효화하여 데이터 즉시 업데이트
+    await queryClient.invalidateQueries({ queryKey: ['activeChallenge'] });
+    await queryClient.invalidateQueries({ queryKey: ['challengeHistory'] });
   };
 
   const handleCategoryClick = async (category: Challenge['category']) => {
@@ -305,7 +304,8 @@ const ChallengePage: React.FC = () => {
     try {
       await challengeApi.startChallenge(challenge.id);
       setIsModalOpen(false);
-      loadData(); // 새 챌린지 시작 후 데이터 다시 로드
+      // React Query 캐시 무효화하여 데이터 즉시 업데이트
+      await queryClient.invalidateQueries({ queryKey: ['activeChallenge'] });
     } catch (error: any) {
       console.error('챌린지 시작 중 오류 발생:', error);
       
@@ -357,7 +357,7 @@ const ChallengePage: React.FC = () => {
           🔥 진행 중인 챌린지
         </SectionTitle>
         <ActiveChallenge
-          challenge={activeChallenge}
+          challenge={activeChallenge || null}
           isCurrentUserCompleted={isCurrentUserCompleted}
           isWeeklyCompleted={isWeeklyCompleted}
           isLoading={isLoading}
@@ -399,7 +399,12 @@ const ChallengePage: React.FC = () => {
               </HistoryCardMini>
             ))
           ) : (
-            <EmptyText>아직 {historyTab === 'success' ? '성공한' : '실패한'} 챌린지가 없어요.</EmptyText>
+            <EmptyText>
+              {historyTab === 'success' 
+                ? '아직 성공한 챌린지가 없어요.' 
+                : '아직 실패한 챌린지가 없어요. 이번 주 챌린지를 완료해보세요! 💪'
+              }
+            </EmptyText>
           )}
         </HistoryList>
       </PageContainer>
@@ -415,6 +420,21 @@ const ChallengePage: React.FC = () => {
         title="🎉 챌린지 성공!"
         message={`${completedChallengeTitle} 챌린지를 성공했습니다!`}
         confirmButtonText="자랑하러 가기"
+        showCancelButton={true}
+        cancelButtonText="닫기"
+      />
+
+      {/* 챌린지 실패 알림 모달 */}
+      <ConfirmationModal
+        isOpen={showFailureModal}
+        onRequestClose={() => setShowFailureModal(false)}
+        onConfirm={() => {
+          setShowFailureModal(false);
+          setHistoryTab('fail'); // 실패 탭으로 이동
+        }}
+        title="😔 챌린지 실패"
+        message={`${failedChallengeTitle} 챌린지가 시간 초과로 실패했습니다. 다음 주에 다시 도전해보세요!`}
+        confirmButtonText="실패 기록 보기"
         showCancelButton={true}
         cancelButtonText="닫기"
       />
