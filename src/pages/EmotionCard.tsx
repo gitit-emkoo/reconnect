@@ -229,11 +229,20 @@ const EmotionCard: React.FC = () => {
       setSuggestion(response.data.refinedText);
     } catch (err) {
       if (axios.isAxiosError(err) && err.response) {
-        setSuggestionError(err.response.data.message || "AI 제안 중 오류가 발생했습니다.");
+        const msg = err.response.data?.message || '';
+        if (
+          msg.includes('overloaded') ||
+          msg.includes('UNAVAILABLE') ||
+          err.response.status === 503
+        ) {
+          setSuggestionError('일시적으로 문제가 발생했습니다. 잠시 후 다시 시도해 주세요.');
+        } else {
+          setSuggestionError(msg || 'AI 제안 중 오류가 발생했습니다.');
+        }
       } else if (err instanceof Error) {
         setSuggestionError(err.message);
       } else {
-        setSuggestionError("AI 제안 중 알 수 없는 오류 발생");
+        setSuggestionError('AI 제안 중 알 수 없는 오류 발생');
       }
       setSuggestion(null);
     } finally {
