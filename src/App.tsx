@@ -15,7 +15,6 @@ import { useChallengeNotifications } from './hooks/useChallengeNotifications';
 import { useEmotionCardNotifications } from './hooks/useEmotionCardNotifications';
 import { fetchReceivedMessages } from './pages/EmotionCard';
 import { useQuery } from '@tanstack/react-query';
-import { userService } from './services/userService';
 
 // 페이지 컴포넌트 임포트
 import LoginPage from "./pages/LoginPage";
@@ -105,24 +104,12 @@ const NotificationHooks = () => {
 const App = () => {
   const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
   const checkAuth = useAuthStore((state) => state.checkAuth);
-  const setUser = useAuthStore((state) => state.setUser);
   const isLoading = useAuthStore((state) => state.isLoading);
 
   useEffect(() => {
     console.log("checkAuth");
     checkAuth();
   }, [checkAuth]);
-
-  // 앱 진입/새로고침/라우팅 변경 시 항상 서버에서 최신 user fetch
-  useEffect(() => {
-    userService.getMyProfile()
-      .then(setUser)
-      .catch((error) => {
-        // 토큰 만료나 네트워크 오류 시에도 자동 로그아웃하지 않음
-        console.log('사용자 정보 업데이트 실패 (자동 로그아웃 방지):', error);
-        // setUser(null) 제거하여 자동 로그아웃 방지
-      });
-  }, [setUser]);
 
   // 인증 상태를 확인하는 동안 로딩 스피너를 전체 화면에 표시
   if (isLoading) {
