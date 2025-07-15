@@ -25,6 +25,7 @@ import Popup from '../components/common/Popup';
 import logoImage from '../assets/Logo.png';
 import { useReportData } from '../hooks/useReportData';
 import SkeletonHeartGauge from '../components/common/SkeletonHeartGauge';
+import { userService } from '../services/userService';
 
 const getEmotionByTemperature = (temp: number): string => {
   if (temp > 80) return "타오르는 불꽃 🔥";
@@ -155,7 +156,6 @@ const Dashboard: React.FC = () => {
     diaryList,
     sentMessages,
   } = useDashboardData();
-  const { checkAuth } = useAuthStore();
   const { fetchNotifications } = useNotificationStore();
   const { latestScore, loading: reportLoading, hasLoadedOnce } = useReportData();
 
@@ -214,10 +214,22 @@ const Dashboard: React.FC = () => {
 
   useEffect(() => {
     if (user && !partner) {
-      const interval = setInterval(() => checkAuth({ silent: true }), 5000);
+      const interval = setInterval(async () => {
+        try {
+          // 파트너 연결 상태를 더 자주 체크 (2초마다)
+          const updatedUser = await userService.getMyProfile();
+          if (updatedUser.partner?.id || updatedUser.couple?.id) {
+            // 파트너가 연결되면 즉시 전역 상태 업데이트
+            useAuthStore.getState().setUser(updatedUser);
+            console.log('[Dashboard] 파트너 연결 감지 - 전역 상태 업데이트');
+          }
+        } catch (e) {
+          // 무시
+        }
+      }, 2000); // 2초마다 체크
       return () => clearInterval(interval);
     }
-  }, [user, partner, checkAuth]);
+  }, [user, partner]);
   
   useEffect(() => {
     if (user) {
