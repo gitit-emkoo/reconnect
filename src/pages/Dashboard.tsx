@@ -229,9 +229,7 @@ const Dashboard: React.FC = () => {
 
   useEmotionCardNotifications(receivedMessages);
   
-  // user, partner 콘솔 출력
-  console.log('Dashboard user:', user);
-  console.log('Dashboard partner:', partner);
+  // user, partner 콘솔 출력 제거
   
   if (isLoading || !user) {
     return <Container style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}><LoadingSpinner /></Container>;
