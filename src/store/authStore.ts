@@ -38,6 +38,7 @@ const useAuthStore = create<AuthState>()(
           axiosInstance.defaults.headers.common['Authorization'] = `Bearer ${accessToken}`;
           localStorage.setItem('accessToken', accessToken);
           set({ user, accessToken, partner: user?.partner ?? null, isAuthenticated: true, isLoading: false });
+          console.log('[AuthStore] 로그인 성공 - user:', user);
         } else {
           delete axiosInstance.defaults.headers.common['Authorization'];
           localStorage.removeItem('accessToken');
@@ -67,6 +68,7 @@ const useAuthStore = create<AuthState>()(
 
       setUser: (user) => {
         set({ user, partner: user?.partner ?? null });
+        console.log('[AuthStore] 유저 정보 업데이트 - user:', user);
       },
 
       clearAuth: () => {

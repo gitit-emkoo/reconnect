@@ -28,10 +28,7 @@ export const partnerInvitesApi = {
     if (!accessToken) {
       throw new Error('No token found');
     }
-    console.log('[partnerInvitesApi.createInviteCode] accessToken:', accessToken);
-    console.log('[partnerInvitesApi.createInviteCode] axiosInstance default headers:', axiosInstance.defaults.headers);
     const { data } = await axiosInstance.post<PartnerInvite>('/partner-invites');
-    console.log('[partnerInvitesApi.createInviteCode] response:', data);
     return data;
   },
 
@@ -55,12 +52,8 @@ export const partnerInvitesApi = {
     if (!accessToken) {
       throw new Error('No token found');
     }
-    console.log('[partnerInvitesApi.getMyInvites] accessToken:', accessToken);
-    // axiosInstance의 Authorization 헤더 확인
-    console.log('[partnerInvitesApi.getMyInvites] axiosInstance default headers:', axiosInstance.defaults.headers);
     try {
       const { data } = await axiosInstance.get<PartnerInvite[]>('/partner-invites/me');
-      console.log('[partnerInvitesApi.getMyInvites] response:', data);
       return data;
     } catch (err) {
       console.error('[partnerInvitesApi.getMyInvites] error:', err);

@@ -102,8 +102,7 @@ const SubscribePage: React.FC = () => {
   const { user, setUser } = useAuthStore();
   const [resultModal, setResultModal] = useState<{ open: boolean; message: string }>({ open: false, message: '' });
 
-  // user 콘솔 출력 (구독 정보 확인용)
-  console.log('user in SubscribePage:', user);
+  // user 콘솔 출력 제거
 
   const handleSubscribe = () => {
     setModalType('subscribe');
