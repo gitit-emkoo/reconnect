@@ -38,7 +38,6 @@ const useAuthStore = create<AuthState>()(
           axiosInstance.defaults.headers.common['Authorization'] = `Bearer ${accessToken}`;
           localStorage.setItem('accessToken', accessToken);
           set({ user, accessToken, partner: user?.partner ?? null, isAuthenticated: true, isLoading: false });
-          console.log('[AuthStore] 로그인 성공 - user:', user);
         } else {
           delete axiosInstance.defaults.headers.common['Authorization'];
           localStorage.removeItem('accessToken');
@@ -61,15 +60,13 @@ const useAuthStore = create<AuthState>()(
           set({ user, partner: user.partner ?? null, isLoading: false });
         } catch (error) {
           console.error('Authentication check failed', error);
-          // 토큰 만료 시에도 자동 로그아웃하지 않음
-          set({ isLoading: false });
-          // localStorage.removeItem('accessToken'); // 자동 로그아웃 방지
+          set({ isLoading: false, user: null, partner: null, accessToken: null });
+          localStorage.removeItem('accessToken');
         }
       },
 
       setUser: (user) => {
         set({ user, partner: user?.partner ?? null });
-        console.log('[AuthStore] 유저 정보 업데이트 - user:', user);
       },
 
       clearAuth: () => {

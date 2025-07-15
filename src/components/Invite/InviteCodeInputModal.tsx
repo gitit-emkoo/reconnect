@@ -108,7 +108,6 @@ const InviteCodeInputModal: React.FC<InviteCodeInputModalProps> = ({ onClose }) 
       const token = currentUserIsInviter ? response.inviterToken : response.inviteeToken;
       const updatedUser = currentUserIsInviter ? response.inviter : response.invitee;
 
-      // 파트너 연결 성공 시 인증 상태 업데이트
       setAuth(token, updatedUser);
 
       setSuccessModal(true);
@@ -152,12 +151,10 @@ const InviteCodeInputModal: React.FC<InviteCodeInputModalProps> = ({ onClose }) 
         onRequestClose={() => {
           setSuccessModal(false);
           onClose();
-          window.location.reload();
         }}
         onConfirm={() => {
           setSuccessModal(false);
           onClose();
-          window.location.reload();
         }}
         title="파트너 연결 완료"
         message="파트너와 성공적으로 연결되었습니다!"

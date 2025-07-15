@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
 import { partnerInvitesApi } from '../api/partnerInvites';
 import NavigationBar from '../components/NavigationBar';
+import useAuthStore from '../store/authStore';
 
 const Container = styled.div`
   padding: 1.5rem;
@@ -80,6 +81,7 @@ const SuccessMessage = styled.div`
 
 const EnterInviteCode: React.FC = () => {
   const navigate = useNavigate();
+  const { user, setAuth } = useAuthStore();
   const [code, setCode] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
@@ -95,7 +97,16 @@ const EnterInviteCode: React.FC = () => {
     try {
       setIsLoading(true);
       setError(null);
-      await partnerInvitesApi.respondToInvite(code.trim());
+      const response = await partnerInvitesApi.respondToInvite(code.trim());
+      
+      // 현재 사용자가 초대한 사람인지, 초대받은 사람인지 확인하여
+      // 그에 맞는 토큰과 유저 정보로 인증 상태를 업데이트합니다.
+      const currentUserIsInviter = user?.id === response.inviter.id;
+      const token = currentUserIsInviter ? response.inviterToken : response.inviteeToken;
+      const updatedUser = currentUserIsInviter ? response.inviter : response.invitee;
+
+      setAuth(token, updatedUser);
+      
       setSuccess('파트너 연결이 완료되었습니다!');
       // 2초 후 대시보드로 이동
       setTimeout(() => {

@@ -81,61 +81,23 @@ const ChallengeHistoryDetailModal: React.FC<Props> = ({ challenge, isOpen, onClo
   if (!isOpen || !challenge) return null;
 
   const dateToFormat = challenge.completedAt || challenge.updatedAt;
-  const isFailed = challenge.status === 'FAILED';
-  const isCompleted = challenge.status === 'COMPLETED';
 
   return (
     <ModalOverlay onClick={onClose}>
       <ModalContent onClick={e => e.stopPropagation()}>
         <ModalHeader>
-          <ModalTitle>
-            {challenge.title}
-            {isFailed && <span style={{ color: '#ef4444', marginLeft: '0.5rem' }}>❌</span>}
-            {isCompleted && <span style={{ color: '#10b981', marginLeft: '0.5rem' }}>✅</span>}
-          </ModalTitle>
+          <ModalTitle>{challenge.title}</ModalTitle>
           <CloseButton onClick={onClose}>&times;</CloseButton>
         </ModalHeader>
         <ModalBody>
           <DetailItem>
-            <DetailLabel>카테고리</DetailLabel>
-            <DetailValue>{challenge.category}</DetailValue>
-          </DetailItem>
-          <DetailItem>
             <DetailLabel>달성 조건</DetailLabel>
-            <DetailValue>{challenge.isOneTime ? '1회' : `주 ${challenge.frequency}회`}</DetailValue>
+            <DetailValue>{challenge.frequency}회</DetailValue>
           </DetailItem>
           <DetailItem>
-            <DetailLabel>진행 기간</DetailLabel>
-            <DetailValue>
-              {formatInKST(challenge.startDate, 'M월 d일')} ~ {formatInKST(challenge.endDate, 'M월 d일')}
-            </DetailValue>
+            <DetailLabel>완료일</DetailLabel>
+            <DetailValue>{dateToFormat ? formatInKST(dateToFormat, 'yyyy년 M월 d일') : '날짜 정보 없음'}</DetailValue>
           </DetailItem>
-          {isCompleted && (
-            <DetailItem>
-              <DetailLabel>완료일</DetailLabel>
-              <DetailValue>{dateToFormat ? formatInKST(dateToFormat, 'yyyy년 M월 d일') : '날짜 정보 없음'}</DetailValue>
-            </DetailItem>
-          )}
-          {isFailed && (
-            <DetailItem>
-              <DetailLabel>실패일</DetailLabel>
-              <DetailValue>{dateToFormat ? formatInKST(dateToFormat, 'yyyy년 M월 d일') : '날짜 정보 없음'}</DetailValue>
-            </DetailItem>
-          )}
-          <DetailItem>
-            <DetailLabel>진행 상황</DetailLabel>
-            <DetailValue>
-              {challenge.isCompletedByMember1 ? '완료' : '미완료'} / {challenge.isCompletedByMember2 ? '완료' : '미완료'}
-            </DetailValue>
-          </DetailItem>
-          {isFailed && (
-            <DetailItem>
-              <DetailLabel>실패 이유</DetailLabel>
-              <DetailValue style={{ color: '#ef4444' }}>
-                시간 초과로 실패했습니다. 다음 주에 다시 도전해보세요!
-              </DetailValue>
-            </DetailItem>
-          )}
         </ModalBody>
       </ModalContent>
     </ModalOverlay>
