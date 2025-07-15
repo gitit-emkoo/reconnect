@@ -14,6 +14,7 @@ import MainImg from '../assets/Img_LogIn.png';
 import logoImage from '../assets/Logo.png';
 import useAuthStore from '../store/authStore';
 import { User } from '../types/user';
+import ConfirmationModal from '../components/common/ConfirmationModal';
 
 const Container = styled.div`
   display: flex;
@@ -302,6 +303,7 @@ const LoginPage: React.FC = () => {
 
   const [passwordShown, setPasswordShown] = useState(false);
   const [loginError, setLoginError] = useState('');
+  const [showFindEmailModal, setShowFindEmailModal] = useState(false);
 
   const {
     register,
@@ -397,6 +399,10 @@ const LoginPage: React.FC = () => {
     window.location.href = getKakaoLoginUrl();
   };
 
+  const handleFindEmailClick = () => {
+    setShowFindEmailModal(true);
+  };
+
   return (
     <Container>
       <Logo src={logoImage} alt="Reconnect Logo" />
@@ -452,9 +458,19 @@ const LoginPage: React.FC = () => {
       </FormWrapper>
 
       <ForgotPasswordLinksContainer>
-        <ForgotLink onClick={() => navigate('/find-email')}>이메일 찾기</ForgotLink>
+        <ForgotLink onClick={handleFindEmailClick}>이메일 찾기</ForgotLink>
         <ForgotLink onClick={() => navigate('/forgot-password')}>비밀번호 재설정</ForgotLink>
       </ForgotPasswordLinksContainer>
+
+      <ConfirmationModal
+        isOpen={showFindEmailModal}
+        onRequestClose={() => setShowFindEmailModal(false)}
+        onConfirm={() => setShowFindEmailModal(false)}
+        title="이메일 찾기"
+        message="고객센터에 문의 바랍니다."
+        confirmButtonText="확인"
+        showCancelButton={false}
+      />
     </Container>
   );
 };

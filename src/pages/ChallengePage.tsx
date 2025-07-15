@@ -252,6 +252,30 @@ const ChallengePage: React.FC = () => {
     checkForCompletedChallenge();
   }, [loadData, checkForCompletedChallenge]);
 
+  // 실시간 업데이트를 위한 폴링 (파트너가 있을 때만)
+  useEffect(() => {
+    if (!hasPartner) return;
+    
+    const interval = setInterval(() => {
+      loadData();
+    }, 5000); // 5초마다 데이터 새로고침
+
+    return () => clearInterval(interval);
+  }, [loadData, hasPartner]);
+
+  // 페이지 포커스 시 데이터 새로고침
+  useEffect(() => {
+    const handleFocus = () => {
+      if (hasPartner) {
+        console.log('챌린지 페이지 포커스 - 데이터 새로고침');
+        loadData();
+      }
+    };
+
+    window.addEventListener('focus', handleFocus);
+    return () => window.removeEventListener('focus', handleFocus);
+  }, [loadData, hasPartner]);
+
   // 챌린지 완료 처리 함수 (ActiveChallenge에서 호출)
   const handleChallengeComplete = async (completedChallenge: Challenge) => {
     // 즉시 모달 표시 (마지막 완료 버튼을 누른 사용자)
