@@ -229,11 +229,11 @@ const WeeklyActivitySummary: React.FC<{ report: ReportData | null, previousRepor
   <Section>
     <Title>주간 활동 요약</Title>
     <ReportMetric label="🌡️ 관계 온도" value={report?.overallScore ?? 0} unit="°" previousValue={previousReport?.overallScore} />
-    <ReportMetric label="📩 보낸 마음 카드" value={report?.cardsSentCount ?? 0} unit="개" previousValue={previousReport?.cardsSentCount} />
+    <ReportMetric label="📩 교환한 카드" value={report?.cardsSentCount ?? 0} unit="개" previousValue={previousReport?.cardsSentCount} />
     <ReportMetric label="🏆 완료한 챌린지" value={report?.challengesCompletedCount ?? 0} unit="개" previousValue={previousReport?.challengesCompletedCount} />
     <ReportMetric label="❌ 놓친 챌린지" value={report?.challengesFailedCount ?? 0} unit="개" previousValue={previousReport?.challengesFailedCount} invertColors />
     <ReportMetric label="💡 전문가 솔루션" value={report?.expertSolutionsCount ?? 0} unit="개" previousValue={previousReport?.expertSolutionsCount} />
-    <ReportMetric label="🔍 관계 진단" value={report?.marriageDiagnosisCount ?? 0} unit="회" previousValue={previousReport?.marriageDiagnosisCount} />
+    <ReportMetric label="🔍 셀프 진단" value={report?.marriageDiagnosisCount ?? 0} unit="회" previousValue={previousReport?.marriageDiagnosisCount} />
   </Section>
 );
 
