@@ -117,7 +117,11 @@ const App = () => {
   useEffect(() => {
     userService.getMyProfile()
       .then(setUser)
-      .catch(() => setUser(null));
+      .catch((error) => {
+        // 토큰 만료나 네트워크 오류 시에도 자동 로그아웃하지 않음
+        console.log('사용자 정보 업데이트 실패 (자동 로그아웃 방지):', error);
+        // setUser(null) 제거하여 자동 로그아웃 방지
+      });
   }, [setUser]);
 
   // 인증 상태를 확인하는 동안 로딩 스피너를 전체 화면에 표시

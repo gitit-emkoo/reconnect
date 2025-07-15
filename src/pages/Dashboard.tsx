@@ -241,8 +241,7 @@ const Dashboard: React.FC = () => {
 
   useEmotionCardNotifications(receivedMessages);
   
-  // user, partner 콘솔 출력 제거
-  
+  // 필수 데이터만 로딩 체크 (진단 결과)
   if (isLoading || !user) {
     return <Container style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}><LoadingSpinner /></Container>;
   }
