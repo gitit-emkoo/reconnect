@@ -19,7 +19,7 @@ const TextArea = styled.textarea`
   border-radius: 0.75rem;
   padding: 1rem;
   border: 1px solid #e2e8f0;
-  margin-bottom: 1.5rem;
+  margin-bottom: 0.5rem; // 글자수 표시를 위해 간격 줄임
   font-size: 1rem;
   color: #4a5568;
   resize: vertical; // 세로 크기만 조절 가능
@@ -29,6 +29,13 @@ const TextArea = styled.textarea`
     border-color: #3b82f6; // 프로젝트 주요 색상 (예시: blue-500)
     box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.3);
   }
+`;
+
+const CharacterCount = styled.div`
+  text-align: right;
+  font-size: 0.875rem;
+  color: ${props => props.color || '#6b7280'};
+  margin-bottom: 1rem;
 `;
 
 const SuggestionContainer = styled.div`
@@ -153,7 +160,12 @@ const EmotionCardForm: React.FC<EmotionCardFormProps> = ({
         onChange={(e) => setMessage(e.target.value)}
         placeholder="오늘 느낀 감정을 파트너에게 전달해보세요. AI가 따뜻한 말로 다듬어 줄 거예요. 가능한 상황에 대해 자세히 써주시면 AI가 상황을 판단하고 더 자연스럽게 바꿔줄거에요."
         disabled={isSuggesting || isSubmitting}
+        maxLength={300}
       />
+      
+      <CharacterCount color={message.length > 300 ? '#ef4444' : message.length > 250 ? '#f59e0b' : '#6b7280'}>
+        {message.length}/300
+      </CharacterCount>
 
       {suggestionError && <ErrorMessage>{suggestionError}</ErrorMessage>}
 

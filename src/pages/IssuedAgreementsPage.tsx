@@ -302,6 +302,81 @@ const PdfHash = styled.div`
   letter-spacing: 0.02em;
 `;
 
+// ====== Styled Components for Issued Agreement Modal ======
+const ModalOverlay = styled.div`
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0,0,0,0.5);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+`;
+const ModalBox = styled.div`
+  background: white;
+  border-radius: 12px;
+  padding: 1.8rem;
+  max-width: 90%;
+  max-height: 90%;
+  min-width: 320px;
+  overflow: auto;
+  position: relative;
+`;
+const ModalTitle = styled.h3`
+  margin-bottom: 1.5rem;
+  color: #333;
+  font-weight: 700;
+  font-size: 1.25rem;
+  text-align: center;
+`;
+const ModalField = styled.div`
+  margin-bottom: 1rem;
+`;
+const ModalLabel = styled.div`
+  font-weight: bold;
+`;
+const ModalValue = styled.div`
+  background: #f1f3f6;
+  border-radius: 6px;
+  padding: 0.6rem 0.8rem;
+  margin-top: 4px;
+`;
+const SignatureBox = styled.div`
+  min-width: 120px;
+  flex: 1;
+`;
+const SignatureLabel = styled.div`
+  font-size: 12px;
+  color: #666;
+  margin-bottom: 2px;
+`;
+const SignatureImg = styled.img`
+  width: 100%;
+  height: 50px;
+  object-fit: contain;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+`;
+const ModalFooter = styled.div`
+  color: #888;
+  font-size: 13px;
+  margin-bottom: 4px;
+  
+`;
+const ModalCloseButton = styled.button`
+  margin-top: 20px;
+  padding: 0.5rem 1rem;
+  background-color: #785cd2;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  width: 100%;
+  font-weight: 600;
+  font-size: 16px;
+`;
+
 const IssuedAgreementsPage: React.FC = () => {
   const [sortOrder, setSortOrder] = useState<'latest' | 'oldest'>('latest');
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
@@ -595,61 +670,37 @@ const IssuedAgreementsPage: React.FC = () => {
 
       {/* 미리보기 모달 */}
       {previewAgreement && !isPdfMode && (
-        <div style={{
-          position: 'fixed',
-          top: 0,
-          left: 0,
-          right: 0,
-          bottom: 0,
-          backgroundColor: 'rgba(0,0,0,0.5)',
-          zIndex: 1000,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          padding: '1rem'
-        }} onClick={() => setPreviewAgreement(null)}>
-          <div style={{
-            backgroundColor: 'white',
-            borderRadius: '12px',
-            padding: '2rem',
-            maxWidth: '90%',
-            maxHeight: '90%',
-            overflow: 'auto'
-          }} onClick={e => e.stopPropagation()}>
-            <h3 style={{ marginBottom: '1rem', color: '#333' }}>공동 합의서</h3>
-            <div style={{ marginBottom: '1rem' }}>
-              <strong>약속 주제:</strong> {previewAgreement.title}
-            </div>
-            <div style={{ marginBottom: '1rem' }}>
-              <strong>약속 내용:</strong> {previewAgreement.content}
-            </div>
-            <div style={{ marginBottom: '1rem' }}>
-              <strong>미이행시 조건:</strong> {previewAgreement.condition}
-            </div>
-            <div style={{ marginBottom: '1rem' }}>
-              <strong>작성자:</strong> {previewAgreement.authorName}
-            </div>
-            <div style={{ marginBottom: '1rem' }}>
-              <strong>동의자:</strong> {previewAgreement.partnerName}
-            </div>
-            <div style={{ marginBottom: '1rem' }}>
-              <strong>작성일 및 서명시간:</strong> {previewAgreement.date}
-            </div>
-            <button 
-              onClick={() => setPreviewAgreement(null)}
-              style={{
-                padding: '0.5rem 1rem',
-                backgroundColor: '#785cd2',
-                color: 'white',
-                border: 'none',
-                borderRadius: '6px',
-                cursor: 'pointer'
-              }}
-            >
-              닫기
-            </button>
-          </div>
-        </div>
+        <ModalOverlay onClick={() => setPreviewAgreement(null)}>
+          <ModalBox onClick={e => e.stopPropagation()}>
+            <ModalTitle>공동 합의서</ModalTitle>
+            <ModalField><ModalLabel>약속 주제</ModalLabel><ModalValue>{previewAgreement.title}</ModalValue></ModalField>
+            <ModalField><ModalLabel>약속 내용</ModalLabel><ModalValue>{previewAgreement.content}</ModalValue></ModalField>
+            <ModalField><ModalLabel>미이행시 조건</ModalLabel><ModalValue>{previewAgreement.condition}</ModalValue></ModalField>
+            <ModalField><ModalLabel>작성자</ModalLabel><ModalValue>{previewAgreement.authorName}</ModalValue></ModalField>
+            <ModalField><ModalLabel>동의자</ModalLabel><ModalValue>{previewAgreement.partnerName}</ModalValue></ModalField>
+            <ModalField><ModalLabel>작성일 및 서명시간</ModalLabel><ModalValue>{previewAgreement.date}</ModalValue></ModalField>
+            {/* 서명 섹션 */}
+            <ModalField>
+              <ModalLabel>서명</ModalLabel>
+              <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap', marginTop: 8 }}>
+                {previewAgreement.authorSignature && (
+                  <SignatureBox>
+                    <SignatureLabel>작성자 서명</SignatureLabel>
+                    <SignatureImg src={previewAgreement.authorSignature} alt="작성자 서명" />
+                  </SignatureBox>
+                )}
+                {previewAgreement.partnerSignature && (
+                  <SignatureBox>
+                    <SignatureLabel>동의자 서명</SignatureLabel>
+                    <SignatureImg src={previewAgreement.partnerSignature} alt="동의자 서명" />
+                  </SignatureBox>
+                )}
+              </div>
+            </ModalField>
+            <ModalFooter>※ 이 합의서는 리커넥트에서 발급된 공식 문서입니다.</ModalFooter>
+            <ModalCloseButton onClick={() => setPreviewAgreement(null)}>닫기</ModalCloseButton>
+          </ModalBox>
+        </ModalOverlay>
       )}
 
       {/* 구독 모달 */}

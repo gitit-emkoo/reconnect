@@ -15,6 +15,7 @@ import { useChallengeNotifications } from './hooks/useChallengeNotifications';
 import { useEmotionCardNotifications } from './hooks/useEmotionCardNotifications';
 import { fetchReceivedMessages } from './pages/EmotionCard';
 import { useQuery } from '@tanstack/react-query';
+import { userService } from './services/userService';
 
 // 페이지 컴포넌트 임포트
 import LoginPage from "./pages/LoginPage";
@@ -62,6 +63,7 @@ import PointPage from './pages/point';
 import SubscribePage from './pages/subscribe';
 import AgreementCreatePage from './pages/AgreementCreatePage';
 import SupportPage from './pages/SupportPage';
+import DeleteAccountPage from './pages/DeleteAccountPage';
 
 const queryClient = new QueryClient();
 
@@ -103,12 +105,20 @@ const NotificationHooks = () => {
 const App = () => {
   const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
   const checkAuth = useAuthStore((state) => state.checkAuth);
+  const setUser = useAuthStore((state) => state.setUser);
   const isLoading = useAuthStore((state) => state.isLoading);
 
   useEffect(() => {
     console.log("checkAuth");
     checkAuth();
   }, [checkAuth]);
+
+  // 앱 진입/새로고침/라우팅 변경 시 항상 서버에서 최신 user fetch
+  useEffect(() => {
+    userService.getMyProfile()
+      .then(setUser)
+      .catch(() => setUser(null));
+  }, [setUser]);
 
   // 인증 상태를 확인하는 동안 로딩 스피너를 전체 화면에 표시
   if (isLoading) {
@@ -167,7 +177,7 @@ const App = () => {
             <Route path="/legal/third-party-consent" element={<ProtectedRoute><ThirdPartyConsentPage /></ProtectedRoute>} />
             <Route path="/announcements" element={<ProtectedRoute><AnnouncementsPage /></ProtectedRoute>} />
             <Route path="/settings/notifications" element={<ProtectedRoute><PlaceholderPage title="알림 설정" /></ProtectedRoute>} />
-            <Route path="/delete-account" element={<ProtectedRoute><PlaceholderPage title="회원탈퇴" /></ProtectedRoute>} />
+            <Route path="/delete-account" element={<ProtectedRoute><DeleteAccountPage /></ProtectedRoute>} />
             <Route path="/agreement" element={<ProtectedRoute><AgreementPage /></ProtectedRoute>} />
             <Route path="/agreement/create" element={<ProtectedRoute><AgreementCreatePage /></ProtectedRoute>} />
             <Route path="/issued-agreements" element={<ProtectedRoute><IssuedAgreementsPage /></ProtectedRoute>} />
