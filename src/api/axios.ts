@@ -5,6 +5,7 @@ import useAuthStore from '../store/authStore';
 const axiosInstance = axios.create({
   baseURL: `${import.meta.env.VITE_API_URL || 'https://reconnect-backend.onrender.com'}/api`,
   withCredentials: true,
+  timeout: 10000, // 10초 전역 타임아웃 추가
   headers: {
     'Content-Type': 'application/json',
   },

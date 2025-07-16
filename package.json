@@ -22,6 +22,8 @@
     "@nestjs/mapped-types": "*",
     "@prisma/client": "^6.8.2",
     "@react-oauth/google": "^0.12.2",
+    "@sentry/react": "^9.39.0",
+    "@sentry/tracing": "^7.120.3",
     "@tanstack/react-query": "^5.80.6",
     "@types/qrcode": "^1.5.5",
     "@types/react-calendar": "^3.9.0",

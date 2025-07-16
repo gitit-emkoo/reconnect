@@ -26,6 +26,7 @@ import logoImage from '../assets/Logo.png';
 import { useReportData } from '../hooks/useReportData';
 import SkeletonHeartGauge from '../components/common/SkeletonHeartGauge';
 import { userService } from '../services/userService';
+import { User } from '../types/user';
 
 const getEmotionByTemperature = (temp: number): string => {
   if (temp > 80) return "타오르는 불꽃 🔥";
@@ -182,7 +183,12 @@ const Dashboard: React.FC = () => {
   useEffect(() => {
     const loadSchedules = async () => {
       try {
-        const schedules = await scheduleApi.findAll();
+        const schedules = await Promise.race([
+          scheduleApi.findAll(),
+          new Promise<never>((_, reject) => 
+            setTimeout(() => reject(new Error('Schedule load timeout')), 5000)
+          )
+        ]) as Schedule[];
         const scheduleMapData: Record<string, string[]> = {};
         schedules.forEach((schedule: Schedule) => {
           if (!scheduleMapData[schedule.date]) {
@@ -216,8 +222,13 @@ const Dashboard: React.FC = () => {
     if (user && !partner) {
       const interval = setInterval(async () => {
         try {
-          // 파트너 연결 상태를 더 자주 체크 (2초마다)
-          const updatedUser = await userService.getMyProfile();
+          // 파트너 연결 상태 체크 (5초마다로 변경, 타임아웃 추가)
+          const updatedUser = await Promise.race([
+            userService.getMyProfile(),
+            new Promise<never>((_, reject) => 
+              setTimeout(() => reject(new Error('Partner check timeout')), 3000)
+            )
+          ]) as User;
           if (updatedUser.partner?.id || updatedUser.couple?.id) {
             // 파트너가 연결되면 즉시 전역 상태 업데이트
             useAuthStore.getState().setUser(updatedUser);
@@ -226,7 +237,7 @@ const Dashboard: React.FC = () => {
         } catch (e) {
           // 무시
         }
-      }, 2000); // 2초마다 체크
+      }, 5000); // 2초에서 5초로 변경
       return () => clearInterval(interval);
     }
   }, [user, partner]);
