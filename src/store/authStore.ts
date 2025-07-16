@@ -56,8 +56,13 @@ const useAuthStore = create<AuthState>()(
           return;
         }
         try {
-          const { data: user } = await axiosInstance.get<User>('/users/me');
-          set({ user, partner: user.partner ?? null, isLoading: false });
+          const response = await Promise.race([
+            axiosInstance.get<User>('/users/me', { timeout: 5000 }),
+            new Promise<never>((_, reject) => 
+              setTimeout(() => reject(new Error('Auth check timeout')), 5000)
+            )
+          ]) as { data: User };
+          set({ user: response.data, partner: response.data.partner ?? null, isLoading: false });
         } catch (error) {
           console.error('Authentication check failed', error);
           set({ isLoading: false, user: null, partner: null, accessToken: null });

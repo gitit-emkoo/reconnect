@@ -316,32 +316,50 @@ const LoginPage: React.FC = () => {
   const handleSuccessfulLogin = async (user: User, token: string) => {
     setAuth(token, user);
     
-    // 비회원 진단 결과 마이그레이션 (Fire-and-forget)
-    const unauthDiagnosisRaw = localStorage.getItem('diagnosisResult');
+    // 즉시 대시보드로 이동 (사용자 경험 개선)
+    navigate(from, { replace: true });
+    
+    // 백그라운드에서 비회원 진단 결과 마이그레이션 (Fire-and-forget)
+    const unauthDiagnosisRaw = localStorage.getItem('baselineDiagnosisAnswers');
     if (unauthDiagnosisRaw) {
       try {
-        const { score, createdAt } = JSON.parse(unauthDiagnosisRaw);
-        axiosInstance.post('/diagnosis/unauth', { score, createdAt }, {
-          headers: { Authorization: `Bearer ${token}` }
-        }).catch(err => console.error("Failed to migrate unauth diagnosis", err));
-        localStorage.removeItem('diagnosisResult');
+        const { score, answers } = JSON.parse(unauthDiagnosisRaw);
+        // 비동기로 처리하고 에러 무시
+        axiosInstance.post('/diagnosis/unauth', { score, answers }, {
+          headers: { Authorization: `Bearer ${token}` },
+          timeout: 5000 // 5초 타임아웃
+        }).then(() => {
+          localStorage.removeItem('baselineDiagnosisAnswers');
+        }).catch(err => {
+          console.error("Failed to migrate unauth diagnosis", err);
+          // 실패해도 사용자 경험에 영향 없음
+        });
       } catch (err) {
         console.error("Failed to parse unauth diagnosis", err);
       }
     }
 
-    // 온보딩 완료 여부 확인
+    // 백그라운드에서 온보딩 완료 여부 확인
     try {
-      await axiosInstance.get('/diagnosis/my-latest', {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      navigate(from, { replace: true });
+      await Promise.race([
+        axiosInstance.get('/diagnosis/my-latest', {
+          headers: { Authorization: `Bearer ${token}` },
+          timeout: 3000 // 3초 타임아웃
+        }),
+        new Promise<never>((_, reject) => 
+          setTimeout(() => reject(new Error('Timeout')), 3000)
+        )
+      ]);
+      
+      // 온보딩이 필요한 경우에만 리다이렉트
+      // 이미 대시보드에 있으므로 추가 리다이렉트 불필요
     } catch (error) {
       if (axios.isAxiosError(error) && error.response?.status === 404) {
+        // 온보딩이 필요한 경우에만 리다이렉트
         navigate('/onboarding/1', { replace: true });
       } else {
-        console.error('Failed to check for latest diagnosis, navigating to dashboard', error);
-        navigate('/dashboard', { replace: true });
+        console.error('Failed to check for latest diagnosis, staying on dashboard', error);
+        // 에러가 있어도 대시보드에 머무름
       }
     }
   };
@@ -377,14 +395,24 @@ const LoginPage: React.FC = () => {
   const handleSocialLoginSuccess = async (googleAccessToken: string) => {
     setLoginError('');
     try {
-      const response = await axiosInstance.post<{ user: User; accessToken: string }>(
-        '/auth/google/login',
-        { accessToken: googleAccessToken }
-      );
+      const response = await Promise.race([
+        axiosInstance.post<{ user: User; accessToken: string }>(
+          '/auth/google/login',
+          { accessToken: googleAccessToken },
+          { timeout: 8000 } // 8초 타임아웃
+        ),
+        new Promise<never>((_, reject) => 
+          setTimeout(() => reject(new Error('Login timeout')), 8000)
+        )
+      ]) as { data: { user: User; accessToken: string } };
       await handleSuccessfulLogin(response.data.user, response.data.accessToken);
     } catch (error) {
       console.error('Google login failed:', error);
-      setLoginError('구글 로그인에 실패했습니다. 다시 시도해주세요.');
+      if (error instanceof Error && error.message === 'Login timeout') {
+        setLoginError('로그인이 시간 초과되었습니다. 네트워크 상태를 확인하고 다시 시도해주세요.');
+      } else {
+        setLoginError('구글 로그인에 실패했습니다. 다시 시도해주세요.');
+      }
     }
   };
 
