@@ -245,10 +245,20 @@ const Dashboard: React.FC = () => {
   useEffect(() => {
     if (user) {
       fetchNotifications();
-      const interval = setInterval(fetchNotifications, 30000);
+      const interval = setInterval(fetchNotifications, 10000); // 30초에서 10초로 변경
       return () => clearInterval(interval);
     }
   }, [user, fetchNotifications]);
+
+  // 읽지 않은 알림 개수만 더 자주 체크 (가벼운 API 호출)
+  useEffect(() => {
+    if (user) {
+      const { fetchUnreadCount } = useNotificationStore.getState();
+      fetchUnreadCount();
+      const interval = setInterval(fetchUnreadCount, 5000); // 5초마다
+      return () => clearInterval(interval);
+    }
+  }, [user]);
 
   useEmotionCardNotifications(receivedMessages);
   

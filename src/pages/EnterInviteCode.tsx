@@ -5,6 +5,7 @@ import { partnerInvitesApi } from '../api/partnerInvites';
 import NavigationBar from '../components/NavigationBar';
 import useAuthStore from '../store/authStore';
 
+
 const Container = styled.div`
   padding: 1.5rem;
   min-height: calc(100vh - 60px);
@@ -106,7 +107,7 @@ const EnterInviteCode: React.FC = () => {
       const updatedUser = currentUserIsInviter ? response.inviter : response.invitee;
 
       setAuth(token, updatedUser);
-      
+      // (중복 알림 방지: addNotification 코드 삭제)
       setSuccess('파트너 연결이 완료되었습니다!');
       // 2초 후 대시보드로 이동
       setTimeout(() => {

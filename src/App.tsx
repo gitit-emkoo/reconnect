@@ -90,7 +90,7 @@ const NotificationHooks = () => {
     queryKey: ['receivedMessagesForNotif'],
     queryFn: fetchReceivedMessages,
     enabled: isAuthenticated,
-    refetchInterval: 5000,
+    refetchInterval: 3000, // 5초에서 3초로 변경
     retry: 1,
     throwOnError: false,
   });
