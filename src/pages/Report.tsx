@@ -265,7 +265,7 @@ const Report: React.FC = () => {
 
   // 리포트 발행 모달 로직
   useEffect(() => {
-    if (currentReport && hasPartner) {
+    if (currentReport?.id && hasPartner) {
       // 주차 정보(예: '2024-06-4')를 value로 받는다고 가정
       const reportKey = `report_issued_${currentReport.id}`;
       if (!localStorage.getItem(reportKey)) {
@@ -277,7 +277,7 @@ const Report: React.FC = () => {
         localStorage.setItem(reportKey, 'shown');
       }
     }
-  }, [currentReport, hasPartner, availableWeeks, selectedWeekValue]);
+  }, [currentReport?.id, hasPartner, availableWeeks, selectedWeekValue]);
 
   if (loading) {
     return <LoadingContainer><LoadingSpinner /></LoadingContainer>;
