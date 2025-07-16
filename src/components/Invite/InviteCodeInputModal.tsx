@@ -4,7 +4,6 @@ import { partnerInvitesApi } from '../../api/partnerInvites';
 import useAuthStore from '../../store/authStore';
 
 import LoadingSpinner from '../common/LoadingSpinner';
-import ConfirmationModal from '../common/ConfirmationModal';
 
 const ModalBackdrop = styled.div`
   position: fixed;
@@ -90,7 +89,6 @@ const InviteCodeInputModal: React.FC<InviteCodeInputModalProps> = ({ onClose }) 
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const { user, setAuth } = useAuthStore();
-  const [successModal, setSuccessModal] = useState(false);
 
   const handleSubmit = async () => {
     if (!code.trim()) {
@@ -110,7 +108,8 @@ const InviteCodeInputModal: React.FC<InviteCodeInputModalProps> = ({ onClose }) 
 
       setAuth(token, updatedUser);
 
-      setSuccessModal(true);
+      // 파트너 연결 성공 시 바로 모달 닫기
+      onClose();
 
     } catch (err: any) {
        if (err.response?.data?.message) {
@@ -146,21 +145,6 @@ const InviteCodeInputModal: React.FC<InviteCodeInputModalProps> = ({ onClose }) 
           {error && <ErrorMessage>{error}</ErrorMessage>}
         </ModalContent>
       </ModalBackdrop>
-      <ConfirmationModal
-        isOpen={successModal}
-        onRequestClose={() => {
-          setSuccessModal(false);
-          onClose();
-        }}
-        onConfirm={() => {
-          setSuccessModal(false);
-          onClose();
-        }}
-        title="파트너 연결 완료"
-        message="파트너와 성공적으로 연결되었습니다!"
-        confirmButtonText="확인"
-        showCancelButton={false}
-      />
     </>
   );
 };
