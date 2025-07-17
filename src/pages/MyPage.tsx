@@ -8,6 +8,7 @@ import type { User } from "../types/user";
 import NavigationBar from "../components/NavigationBar";
 import ConfirmationModal from "../components/common/ConfirmationModal";
 import { getUserAvatar } from "../utils/avatar";
+import { ADMIN_CONFIG } from '../config/admin';
 
 // 아이콘 import
 import IconAgreement from "../assets/Icon_Agreement.png";
@@ -264,6 +265,31 @@ const MyPage: React.FC = () => {
             </SettingItem>
           </SettingsListContainer>
         </Section>
+
+        {/* 관리자 메뉴 - 관리자인 경우에만 표시 */}
+        {user && (() => {
+          const isAdmin = ADMIN_CONFIG.isAdmin(user.email, user.role);
+          console.log('관리자 권한 체크:', {
+            email: user.email,
+            role: user.role,
+            isAdmin: isAdmin
+          });
+          return isAdmin;
+        })() && (
+          <Section style={{ textAlign: 'left' }}>
+            <SectionTitle>관리자</SectionTitle>
+            <SettingsListContainer>
+              <SettingItem onClick={() => navigate('/user-admin')}>
+                유저 관리
+                <span>▸</span>
+              </SettingItem>
+              <SettingItem onClick={() => navigate('/content-admin')}>
+                콘텐츠 관리
+                <span>▸</span>
+              </SettingItem>
+            </SettingsListContainer>
+          </Section>
+        )}
 
         <Section style={{ textAlign: 'left' }}> {/* 고객지원 섹션도 내부 텍스트 왼쪽 정렬 */}
           <SectionTitle>고객지원</SectionTitle>
