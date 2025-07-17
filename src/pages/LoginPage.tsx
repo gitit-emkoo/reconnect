@@ -460,10 +460,7 @@ const LoginPage: React.FC = () => {
       
       <IllustrationWrapper>
         <img src={MainImg} alt="Login Illustration" />
-        <Subtitle>
-          나를 더 아끼고 행복하게 해줄<br />
-          정서기반 케어 솔루션
-        </Subtitle>
+        <Subtitle>"다시 우리의 감정이 연결될 <br/>단 한번의 골든타임"</Subtitle>
       </IllustrationWrapper>
 
       {/* 환영 팝업 */}
