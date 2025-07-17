@@ -49,6 +49,7 @@ import PostWritePage from './pages/PostWritePage';
 import PostDetailPage from './pages/PostDetailPage';
 import PostEditPage from './pages/PostEditPage';
 import ContentAdmin from './pages/ContentAdmin';
+import UserAdmin from './pages/UserAdmin';
 import SelfDiagnosisRoom from './pages/SelfDiagnosisRoom';
 import GenericDiagnosis from './pages/GenericDiagnosis';
 import GenericDiagnosisResult from './pages/GenericDiagnosisResult';
@@ -148,6 +149,7 @@ const App = () => {
             <Route path="/report" element={<ProtectedRoute><Report /></ProtectedRoute>} />
             <Route path="/content-center" element={<ProtectedRoute><ContentCenter /></ProtectedRoute>} />
             <Route path="/content-admin" element={<ProtectedRoute><ContentAdmin /></ProtectedRoute>} />
+            <Route path="/user-admin" element={<ProtectedRoute><UserAdmin /></ProtectedRoute>} />
             <Route path="/invite" element={<ProtectedRoute><Invite /></ProtectedRoute>} />
             <Route path="/calendar" element={<ProtectedRoute><Calendar /></ProtectedRoute>} />
             <Route path="/community" element={<ProtectedRoute><Community /></ProtectedRoute>} />
