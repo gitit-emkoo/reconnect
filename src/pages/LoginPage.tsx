@@ -15,6 +15,7 @@ import logoImage from '../assets/Logo.png';
 import useAuthStore from '../store/authStore';
 import { User } from '../types/user';
 import ConfirmationModal from '../components/common/ConfirmationModal';
+import Popup from '../components/common/Popup';
 
 const Container = styled.div`
   display: flex;
@@ -138,6 +139,27 @@ const RegisterPrompt = styled.p`
     &:hover {
       color: #E0559A;
     }
+  }
+`;
+
+const ModalRegisterButton = styled.button`
+  width: 100%;
+  padding: 0.8rem 1rem;
+  border: 2px solid #FF69B4;
+  border-radius: 12px;
+  background-color: #FF69B4;
+  color: white;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  margin-top: 1rem;
+
+  &:hover {
+    background-color: #FF69B4;
+    color: white;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(255, 105, 180, 0.3);
   }
 `;
 
@@ -304,6 +326,7 @@ const LoginPage: React.FC = () => {
   const [passwordShown, setPasswordShown] = useState(false);
   const [loginError, setLoginError] = useState('');
   const [showFindEmailModal, setShowFindEmailModal] = useState(false);
+  const [showWelcomePopup, setShowWelcomePopup] = useState(true);
 
   const {
     register,
@@ -434,11 +457,75 @@ const LoginPage: React.FC = () => {
   return (
     <Container>
       <Logo src={logoImage} alt="Reconnect Logo" />
+      
       <IllustrationWrapper>
-        <img src={MainImg} alt="Loving couple" />
-        <Subtitle>"다시 우리의 감정이 연결될 <br/>단 한번의 골든타임"</Subtitle>
+        <img src={MainImg} alt="Login Illustration" />
+        <Subtitle>
+          나를 더 아끼고 행복하게 해줄<br />
+          정서기반 케어 솔루션
+        </Subtitle>
       </IllustrationWrapper>
-      <Notice>정식 진단을 위한 로그인이 필요합니다.<br/>이벤트 혜택은 로그인후 즉시 제공됩니다.</Notice>
+
+      {/* 환영 팝업 */}
+      {showWelcomePopup && (
+        <Popup
+          isOpen={showWelcomePopup}
+          onClose={() => setShowWelcomePopup(false)}
+          title="리커넥트에 오신 것을 환영해요! 💕"
+        >
+          <div style={{ textAlign: 'left', lineHeight: '1.6' }}>
+            <p style={{ marginBottom: '20px', fontSize: '16px', color: '#333' }}>
+              나를 더 아끼고 행복하게 해줄 정서기반 케어 솔루션 리커넥트에 오신 것을 환영해요!
+            </p>
+            
+            <div style={{ 
+              background: 'linear-gradient(135deg, #FFE5E5 0%, #E5E5FF 100%)', 
+              padding: '20px', 
+              borderRadius: '12px',
+              marginBottom: '20px'
+            }}>
+              <h3 style={{ 
+                color: '#FF69B4', 
+                marginBottom: '15px', 
+                fontSize: '18px',
+                fontWeight: 'bold'
+              }}>
+                🎉 이벤트 기간 가입 혜택
+              </h3>
+              <ul style={{ 
+                listStyle: 'none', 
+                padding: 0, 
+                margin: 0,
+                fontSize: '15px',
+                color: '#555'
+              }}>
+                <li style={{ marginBottom: '8px' }}>✅ 결혼생활 정식 진단</li>
+                <li style={{ marginBottom: '8px' }}>✅ 책임이 담긴 인증 합의서 무제한 발행</li>
+                <li style={{ marginBottom: '8px' }}>✅ 감정 일기 분석 + AI감정 리포트 제공</li>
+              </ul>
+            </div>
+            
+            <p style={{ 
+              fontSize: '16px', 
+              color: '#FF69B4', 
+              fontWeight: 'bold',
+              textAlign: 'center',
+              margin: 0
+            }}>
+              지금 바로 나와 우리의 관계를 더 깊고 건강하게 만들어 보세요! 💖
+            </p>
+          </div>
+          <ModalRegisterButton onClick={() => navigate('/register')}>
+            시작하기
+          </ModalRegisterButton>
+        </Popup>
+      )}
+
+      {/* 기존 로그인 폼 */}
+      <Notice>
+        소셜 계정으로 간편하게 로그인하거나<br />
+        이메일과 비밀번호를 입력해주세요
+      </Notice>
       <SocialLoginButtonContainer>
         <SocialLoginButton onClick={handleKakaoLogin} $isKakao>
           카카오로 시작하기
