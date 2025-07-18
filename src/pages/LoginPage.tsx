@@ -418,21 +418,54 @@ const LoginPage: React.FC = () => {
   const handleSocialLoginSuccess = async (googleAccessToken: string) => {
     setLoginError('');
     try {
+      // 비회원 진단 결과 가져오기
+      const unauthDiagnosisRaw = localStorage.getItem('baselineDiagnosisAnswers');
+      const unauthDiagnosis = unauthDiagnosisRaw ? JSON.parse(unauthDiagnosisRaw) : null;
+      
       const response = await Promise.race([
         axiosInstance.post<{ user: User; accessToken: string }>(
           '/auth/google/login',
-          { accessToken: googleAccessToken },
+          { 
+            accessToken: googleAccessToken,
+            unauthDiagnosis: unauthDiagnosis ? {
+              score: unauthDiagnosis.score,
+              answers: unauthDiagnosis.answers,
+              createdAt: new Date().toISOString()
+            } : null
+          },
           { timeout: 8000 } // 8초 타임아웃
         ),
         new Promise<never>((_, reject) => 
           setTimeout(() => reject(new Error('Login timeout')), 8000)
         )
       ]) as { data: { user: User; accessToken: string } };
+      
+      // 로그인 성공 시 비회원 진단 결과 삭제
+      if (unauthDiagnosis) {
+        localStorage.removeItem('baselineDiagnosisAnswers');
+      }
+      
       await handleSuccessfulLogin(response.data.user, response.data.accessToken);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Google login failed:', error);
       if (error instanceof Error && error.message === 'Login timeout') {
         setLoginError('로그인이 시간 초과되었습니다. 네트워크 상태를 확인하고 다시 시도해주세요.');
+      } else if (axios.isAxiosError(error) && error.response?.status === 401) {
+        // 가입되지 않은 사용자인 경우 회원가입 페이지로 이동
+        const unauthDiagnosisRaw = localStorage.getItem('baselineDiagnosisAnswers');
+        const unauthDiagnosis = unauthDiagnosisRaw ? JSON.parse(unauthDiagnosisRaw) : null;
+        
+        if (unauthDiagnosis) {
+          // 비회원 진단 결과가 있으면 회원가입 페이지로 이동
+          navigate('/register', { 
+            state: { 
+              from: location.state?.from || '/dashboard',
+              unauthDiagnosis 
+            } 
+          });
+        } else {
+          setLoginError('가입되지 않은 사용자입니다. 회원가입을 진행해주세요.');
+        }
       } else {
         setLoginError('구글 로그인에 실패했습니다. 다시 시도해주세요.');
       }
