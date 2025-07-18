@@ -116,7 +116,7 @@ const TemperatureMeter = styled.div<{ temperature: number }>`
 
 const PercentageText = styled.p`
   text-align: center;
-  font-size: 1rem;
+  font-size: 0.9rem;
   color: #333;
   margin-top: 0.8rem;
   margin-bottom: 1.2rem;
@@ -172,29 +172,6 @@ const ActionButton = styled.button`
 
   &:disabled {
     background: #c5b8e3;
-    cursor: not-allowed;
-  }
-`;
-
-const InviteButton = styled.button`
-  width: 100%;
-  padding: 1rem;
-  border: none;
-  border-radius: 30px;
-  background: linear-gradient(to right, #FF69B4, #FF1493);
-  color: white;
-  font-size: 1.1rem;
-  font-weight: 500;
-  cursor: pointer;
-  margin-top: 1rem;
-  transition: transform 0.2s;
-
-  &:hover {
-    transform: translateY(-2px);
-  }
-
-  &:disabled {
-    background: #ffc2d8;
     cursor: not-allowed;
   }
 `;
@@ -330,23 +307,6 @@ const BaselineDiagnosisResult: React.FC = () => {
     navigate('/login');
   };
 
-  const handleShare = async () => {
-    const shareData = {
-      title: '리커넥트 관계온도 진단 결과',
-      text: `저의 관계온도는 ${temperature}점이에요! 당신의 점수도 확인해보세요!`,
-      url: window.location.href,
-    };
-    try {
-      if (navigator.share) {
-        await navigator.share(shareData);
-      } else {
-        alert('공유 기능은 모바일에서만 지원됩니다.');
-      }
-    } catch (error) {
-      console.error('공유 실패:', error);
-    }
-  };
-
   return (
     <Container>
       <ImageSection>
@@ -376,11 +336,12 @@ const BaselineDiagnosisResult: React.FC = () => {
           <>
             <LoginText>
             {/* ⚠️텍스트 절대 바꾸지 말기!!! */}
-              딱 2주, 전문진단 서비스 무료 이벤트<br/>
-              (5만원 상당)
+              AI기반 정식 진단을 통해 당신의 결혼생활을 더 깊이<br/>
+              이해하고 부부관계를 더욱 건강하게 돌볼 수 있어요.<br/>
+              지금 로그인 하면 무료진단 혜택이 제공됩니다.
             </LoginText>
-            <ActionButton onClick={handleNextStep} disabled={loading}>결혼생활 진단 시작하기</ActionButton>
-            <InviteButton onClick={handleShare} disabled={loading}>파트너에게 테스트 요청하기</InviteButton>
+            <ActionButton onClick={handleNextStep} disabled={loading}>정식진단 혜택 바로가기</ActionButton>
+            
           </>
         ) : (
           <ActionButton onClick={() => navigate('/dashboard')}>대시보드로 이동</ActionButton>

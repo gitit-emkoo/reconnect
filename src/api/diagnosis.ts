@@ -38,4 +38,16 @@ export const postDiagnosisResult = async (data: {
   diagnosisType?: string;
 }) => {
   return authAxios.post('/diagnosis', data);
+};
+
+// 진단 카운터 조회
+export const getDiagnosisCounter = async (): Promise<number> => {
+  const res = await authAxios.get<{ count: number }>('/diagnosis/counter');
+  return res.data.count;
+};
+
+// 진단 카운터 증가(실제로는 count만 반환)
+export const incrementDiagnosisCounter = async (): Promise<number> => {
+  const res = await authAxios.post<{ count: number }>('/diagnosis/counter/increment');
+  return res.data.count;
 }; 

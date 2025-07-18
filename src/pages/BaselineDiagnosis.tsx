@@ -1,12 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
 import { useNavigate } from 'react-router-dom';
 import BackButton from '../components/common/BackButton';
 import ProgressBar from '../components/common/ProgressBar';
 import { diagnosisQuestions } from '../config/baselineDiagnosisQuestions';
 import logoImage from '../assets/Logo.png';
-
-const questions = diagnosisQuestions;
+import { incrementDiagnosisCounter } from '../api/diagnosis';
 
 const calculateScore = (answers: (string | null)[]) => {
   let calculatedScore = 0;
@@ -62,7 +61,7 @@ const Subtitle = styled.p`
 `;
 
 const QuestionCard = styled.div`
-  background: #FFE5EE;
+  background:rgb(255, 255, 255);
   border-radius: 20px;
   padding: 2rem;
   margin: 0 auto 2rem;
@@ -120,15 +119,35 @@ const Button = styled.button<{ colorType: 'yes' | 'neutral' | 'no' }>`
   }
 `;
 
+const CounterText = styled.div`
+  text-align: center;
+  font-size: 1.05rem;
+  color: #FF69B4;
+  font-weight: 600;
+  margin-bottom: 1.2rem;
+`;
+
 const BaselineDiagnosis: React.FC = () => {
   const navigate = useNavigate();
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [answers, setAnswers] = useState<string[]>([]);
+  const [counter, setCounter] = useState<number | null>(null);
+  const [counterLoaded, setCounterLoaded] = useState(false);
+
+  useEffect(() => {
+    // 첫 질문에 진입할 때만 카운터 증가 및 조회
+    if (currentQuestion === 0 && !counterLoaded) {
+      setCounterLoaded(true);
+      incrementDiagnosisCounter()
+        .then((count) => setCounter(2391 + count)) // 2391은 기본값(원하면 0으로)
+        .catch(() => setCounter(2391));
+    }
+  }, [currentQuestion, counterLoaded]);
 
   const handleAnswer = (answer: 'yes' | 'no' | 'unknown') => {
     const newAnswers = [...answers, answer];
     setAnswers(newAnswers);
-    if (currentQuestion < questions.length - 1) {
+    if (currentQuestion < diagnosisQuestions.length - 1) {
       setCurrentQuestion(currentQuestion + 1);
     } else {
       const finalScore = calculateScore(newAnswers);
@@ -145,14 +164,19 @@ const BaselineDiagnosis: React.FC = () => {
         <Subtitle>우리의 관계를 이해하기 위한 첫 단계예요</Subtitle>
       </Header>
 
+      {/* 첫 번째 질문에서만 카운터 표시 */}
+      {currentQuestion === 0 && counter !== null && (
+        <CounterText> 현재 {counter.toLocaleString()}명이 테스트를 완료했어요</CounterText>
+      )}
+
       <ProgressBar 
         current={currentQuestion} 
-        total={questions.length}
+        total={diagnosisQuestions.length}
       />
 
       <QuestionCard>
         <Question>
-          {questions[currentQuestion].text}
+          {diagnosisQuestions[currentQuestion].text}
         </Question>
       </QuestionCard>
 
