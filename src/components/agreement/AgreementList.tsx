@@ -385,7 +385,7 @@ const AgreementList: React.FC = () => {
         position: 'relative',
       }}
     >
-      <h2 style={{ textAlign: 'center', color: '#333', fontSize: 22, marginBottom: 14 }}>RECONNECT 인증 합의서서</h2>
+      <h2 style={{ textAlign: 'center', color: '#333', fontSize: 22, marginBottom: 14 }}>RECONNECT 인증 합의서</h2>
       <div style={{ marginBottom: 10 }}><b>제목</b><div style={{ background: '#f1f3f6', borderRadius: 6, padding: 8, marginTop: 3, fontSize: 13 }}>{agreement.title}</div></div>
       <div style={{ marginBottom: 10 }}><b>내용</b><div style={{ background: '#f1f3f6', borderRadius: 6, padding: 8, marginTop: 3, fontSize: 13 }}>{agreement.content}</div></div>
       <div style={{ marginBottom: 10 }}><b>미이행시 조건</b><div style={{ background: '#f1f3f6', borderRadius: 6, padding: 8, marginTop: 3, fontSize: 13 }}>{agreement.condition}</div></div>
