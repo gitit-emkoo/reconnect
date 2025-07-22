@@ -64,6 +64,7 @@ import SubscribePage from './pages/subscribe';
 import AgreementCreatePage from './pages/AgreementCreatePage';
 import SupportPage from './pages/SupportPage';
 import DeleteAccountPage from './pages/DeleteAccountPage';
+import PsychologicalCounseling from './pages/PsychologicalCounseling';
 
 const queryClient = new QueryClient();
 
@@ -180,6 +181,7 @@ const App = () => {
             <Route path="/published-track-reports/:year/:month" element={<ProtectedRoute><TrackReportDetail /></ProtectedRoute>} />
             <Route path="/point" element={<ProtectedRoute><PointPage /></ProtectedRoute>} />
             <Route path="/subscribe" element={<ProtectedRoute><SubscribePage /></ProtectedRoute>} />
+            <Route path="/psychological-counseling" element={<ProtectedRoute><PsychologicalCounseling /></ProtectedRoute>} />
             
             {/* 404 페이지 - 항상 마지막에 위치해야 함 */}
             <Route path="*" element={<NotFound />} />
