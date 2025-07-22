@@ -7,6 +7,24 @@ import { diagnosisQuestions } from '../config/baselineDiagnosisQuestions';
 import logoImage from '../assets/Logo.png';
 import { incrementDiagnosisCounter } from '../api/diagnosis';
 
+// 진단 이미지들 import
+import diagnosisImage1 from '../assets/Img_diagnosis (1).png';
+import diagnosisImage2 from '../assets/Img_diagnosis (2).png';
+import diagnosisImage3 from '../assets/Img_diagnosis (3).png';
+import diagnosisImage4 from '../assets/Img_diagnosis (4).png';
+import diagnosisImage5 from '../assets/Img_diagnosis (5).png';
+import diagnosisImage6 from '../assets/Img_diagnosis (6).png';
+
+// 진단 이미지 배열
+const diagnosisImages = [
+  diagnosisImage1,
+  diagnosisImage2,
+  diagnosisImage3,
+  diagnosisImage4,
+  diagnosisImage6,
+  diagnosisImage5,
+];
+
 const calculateScore = (answers: (string | null)[]) => {
   let calculatedScore = 0;
   answers.forEach((answer: string | null, index: number) => {
@@ -25,7 +43,7 @@ const Container = styled.div`
   display: flex;
   flex-direction: column;
   min-height: 100vh;
-  background: #FAF9F6;
+  background: #FFFFFF;
   padding: 0 1rem;
   justify-content: center;
   position: relative;
@@ -60,15 +78,12 @@ const Subtitle = styled.p`
   margin-bottom: 2rem;
 `;
 
-const QuestionCard = styled.div`
-  background:rgb(255, 255, 255);
-  border-radius: 20px;
-  padding: 2rem;
-  margin: 0 auto 2rem;
+const DiagnosisImage = styled.img`
   width: 100%;
-  max-width: 500px;
-  text-align: center;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+  max-width: 260px;
+  height: auto;
+  margin: 0 auto 1.5rem;
+  
 `;
 
 const Question = styled.p`
@@ -76,7 +91,9 @@ const Question = styled.p`
   color: #333;
   line-height: 1.6;
   white-space: pre-line;
-  margin: 0;
+  margin: 0 auto 2rem;
+  text-align: center;
+  max-width: 500px;
 `;
 
 const ButtonContainer = styled.div`
@@ -174,11 +191,13 @@ const BaselineDiagnosis: React.FC = () => {
         total={diagnosisQuestions.length}
       />
 
-      <QuestionCard>
-        <Question>
-          {diagnosisQuestions[currentQuestion].text}
-        </Question>
-      </QuestionCard>
+      <DiagnosisImage 
+        src={diagnosisImages[currentQuestion]} 
+        alt={`진단 질문 ${currentQuestion + 1}`}
+      />
+      <Question>
+        {diagnosisQuestions[currentQuestion].text}
+      </Question>
 
       <ButtonContainer>
         <Button colorType="yes" onClick={() => handleAnswer('yes')}>

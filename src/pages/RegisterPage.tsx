@@ -9,6 +9,7 @@ import { ReactComponent as OpenEye } from '../assets/Icon_OpenEye.svg';
 import { useGoogleLogin } from '@react-oauth/google';
 import { getKakaoRegisterUrl } from '../utils/socialAuth';
 import axiosInstance from '../api/axios';
+import { isAxiosError } from 'axios';
 import useAuthStore from '../store/authStore';
 import ConfirmationModal from '../components/common/ConfirmationModal';
 import BackButton from '../components/common/BackButton';
@@ -278,23 +279,41 @@ const RegisterPage: React.FC = () => {
   const googleLogin = useGoogleLogin({
     onSuccess: async (tokenResponse) => {
       try {
+        // 비회원 진단 결과 가져오기
+        const unauthDiagnosisRaw = localStorage.getItem('baselineDiagnosisAnswers');
+        const unauthDiagnosis = unauthDiagnosisRaw ? JSON.parse(unauthDiagnosisRaw) : null;
+        
         const payload: any = {
           accessToken: tokenResponse.access_token,
-          ...getUnauthDiagnosisData(),
+          unauthDiagnosis: unauthDiagnosis ? {
+            score: unauthDiagnosis.score,
+            answers: unauthDiagnosis.answers,
+            createdAt: new Date().toISOString()
+          } : null
         };
 
         const response = await axiosInstance.post('/auth/google/register', payload);
         const { accessToken, user } = response.data;
         setAuth(accessToken, user);
+        
+        // 회원가입 성공 시 비회원 진단 결과 삭제
+        if (unauthDiagnosis) {
+          localStorage.removeItem('baselineDiagnosisAnswers');
+        }
+        
         navigate(from, { replace: true });
       } catch (error: any) {
-        console.error('Google login error:', error);
-        setApiError(error.response?.data?.message || '구글 로그인에 실패했습니다.');
+        console.error('Google register error:', error);
+        if (isAxiosError(error) && error.response?.status === 409) {
+          setApiError('이미 가입된 사용자입니다. 로그인을 진행해주세요.');
+        } else {
+          setApiError(error.response?.data?.message || '구글 회원가입에 실패했습니다.');
+        }
       }
     },
     onError: (error) => {
-      console.error('Google login failed:', error);
-      setApiError('구글 로그인 과정에서 오류가 발생했습니다.');
+      console.error('Google register failed:', error);
+      setApiError('구글 회원가입 과정에서 오류가 발생했습니다.');
     },
   });
 
