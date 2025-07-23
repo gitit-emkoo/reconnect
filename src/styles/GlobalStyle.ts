@@ -92,15 +92,6 @@ const GlobalStyle = createGlobalStyle`
     -webkit-overflow-scrolling: touch;
     scroll-behavior: smooth;
   }
-  
-  /* 웹뷰에서 터치 영역 최적화 */
-  button, a, [role="button"] {
-    min-height: 44px;
-    min-width: 44px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
 `;
 
 export default GlobalStyle;

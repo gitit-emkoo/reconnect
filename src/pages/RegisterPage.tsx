@@ -201,14 +201,24 @@ const CustomCheckbox = styled.div<{ $isChecked: boolean }>`
   }
 `;
 
+// 약관/개인정보처리방침 모달 텍스트 스타일
+const PolicyModalContent = styled.div`
+  font-size: 0.7rem;
+  line-height: 1;
+  color: #333;
+  text-align: left;
+  margin-bottom: 1rem; 
+`;
+
+// CheckboxLabel 폰트 크기 약간 줄임
 const CheckboxLabel = styled.label`
-  font-size: 0.9rem;
+  font-size: 0.86rem;
   color: #666;
   cursor: pointer;
 
   a {
     color: #FF69B4;
-      text-decoration: underline;
+    text-decoration: underline;
   }
 `;
 
@@ -442,7 +452,9 @@ const RegisterPage: React.FC = () => {
           confirmButtonText="확인"
           showCancelButton={false}
         >
-          <div style={{maxHeight:'50vh',overflowY:'auto'}}><TermsContent /></div>
+          <PolicyModalContent style={{maxHeight:'50vh',overflowY:'auto'}}>
+            <TermsContent />
+          </PolicyModalContent>
         </ConfirmationModal>
       )}
       {showPrivacyModal && (
@@ -454,7 +466,9 @@ const RegisterPage: React.FC = () => {
           confirmButtonText="확인"
           showCancelButton={false}
         >
-          <div style={{maxHeight:'50vh',overflowY:'auto'}}><PrivacyContent /></div>
+          <PolicyModalContent style={{maxHeight:'50vh',overflowY:'auto'}}>
+            <PrivacyContent />
+          </PolicyModalContent>
         </ConfirmationModal>
       )}
     </Container>
