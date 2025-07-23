@@ -287,6 +287,10 @@ const MyPage: React.FC = () => {
                 콘텐츠 관리
                 <span>▸</span>
               </SettingItem>
+              <SettingItem onClick={() => navigate('/community-admin')}>
+                커뮤니티 관리
+                <span>▸</span>
+              </SettingItem>
             </SettingsListContainer>
           </Section>
         )}
