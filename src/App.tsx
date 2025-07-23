@@ -15,6 +15,7 @@ import { useChallengeNotifications } from './hooks/useChallengeNotifications';
 import { useEmotionCardNotifications } from './hooks/useEmotionCardNotifications';
 import { fetchReceivedMessages } from './pages/EmotionCard';
 import { useQuery } from '@tanstack/react-query';
+import { initializeWebView, setDynamicViewportHeight } from './utils/webview';
 
 // 페이지 컴포넌트 임포트
 import LoginPage from "./pages/LoginPage";
@@ -112,6 +113,13 @@ const App = () => {
     console.log("checkAuth");
     checkAuth();
   }, [checkAuth]);
+
+  // 웹뷰 환경 초기화
+  useEffect(() => {
+    initializeWebView();
+    const cleanup = setDynamicViewportHeight();
+    return cleanup;
+  }, []);
 
   // 인증 상태를 확인하는 동안 로딩 스피너를 전체 화면에 표시
   if (isLoading) {
