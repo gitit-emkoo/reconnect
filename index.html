@@ -10,8 +10,70 @@
   <!-- End Google Tag Manager -->
     <meta charset="UTF-8" />
     <link rel="icon" type="image/png" href="/images/favicon.png" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    
+    <!-- 웹뷰 환경 최적화를 위한 viewport 설정 -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+    
+    <!-- 웹뷰 관련 메타 태그들 -->
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="theme-color" content="#785cd2" />
+    
+    <!-- 안드로이드 웹뷰 최적화 -->
+    <meta name="format-detection" content="telephone=no" />
+    <meta name="msapplication-tap-highlight" content="no" />
+    
     <title>리커넥트</title>
+    
+    <style>
+      /* 웹뷰 환경에서 즉시 적용될 스타일 */
+      html, body {
+        margin: 0;
+        padding: 0;
+        height: 100%;
+        overflow-x: hidden;
+      }
+      
+      /* 안전 영역(safe area) 지원 */
+      body {
+        padding-top: env(safe-area-inset-top);
+        padding-bottom: env(safe-area-inset-bottom);
+        padding-left: env(safe-area-inset-left);
+        padding-right: env(safe-area-inset-right);
+      }
+      
+      #root {
+        min-height: 100vh;
+        min-height: 100dvh;
+        /* 웹뷰에서 상단 여백 확보 */
+        padding-top: max(env(safe-area-inset-top), 20px);
+      }
+      
+      /* 웹뷰에서 스크롤바 숨기기 */
+      ::-webkit-scrollbar {
+        display: none;
+      }
+      
+      /* 안드로이드 웹뷰에서 터치 하이라이트 제거 */
+      * {
+        -webkit-tap-highlight-color: transparent;
+      }
+      
+      /* 웹뷰에서 상태바 영역 확보 */
+      @supports (padding-top: env(safe-area-inset-top)) {
+        body {
+          padding-top: env(safe-area-inset-top);
+        }
+      }
+      
+      /* 안드로이드 웹뷰에서 추가 상단 여백 */
+      @media screen and (max-width: 768px) {
+        body {
+          padding-top: max(env(safe-area-inset-top), 24px);
+        }
+      }
+    </style>
   </head>
   <body>
     <!-- 뷰어블 애널리틱스 스크립트 -->
