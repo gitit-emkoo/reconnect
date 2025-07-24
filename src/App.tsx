@@ -143,6 +143,7 @@ const App = () => {
             <Route path="/reset-password" element={<ResetPassword />} />
             <Route path="/find-email" element={<FindEmail />} />
             <Route path="/terms" element={<TermsPage />} />
+            <Route path="/legal/privacy" element={<PrivacyPolicyPage />} />
             <Route path="/auth/kakao/callback" element={<KakaoCallback />} />
             <Route path="/auth/kakao/register/callback" element={<KakaoCallback />} />
 
@@ -171,7 +172,6 @@ const App = () => {
             {/* Placeholder Pages (보호된 라우트) - 일부는 실제 페이지로 교체 */}
             <Route path="/support/faq" element={<ProtectedRoute><FaqPage /></ProtectedRoute>} />
             <Route path="/support/contact" element={<ProtectedRoute><SupportPage /></ProtectedRoute>} />
-            <Route path="/legal/privacy" element={<ProtectedRoute><PrivacyPolicyPage /></ProtectedRoute>} />
             <Route path="/legal/third-party-consent" element={<ProtectedRoute><ThirdPartyConsentPage /></ProtectedRoute>} />
             <Route path="/announcements" element={<ProtectedRoute><AnnouncementsPage /></ProtectedRoute>} />
             <Route path="/settings/notifications" element={<ProtectedRoute><PlaceholderPage title="알림 설정" /></ProtectedRoute>} />
