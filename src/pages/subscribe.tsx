@@ -49,7 +49,7 @@ const Description = styled.div`
   }
 `;
 
-const Button = styled.button<{ variant: 'primary' | 'yellow' | 'blue' }>`
+const Button = styled.button<{ variant: 'primary' | 'yellow' | 'blue' | 'cancel' }>`
   display: flex;
   justify-content: center;
   align-items: center;
@@ -82,6 +82,11 @@ const Button = styled.button<{ variant: 'primary' | 'yellow' | 'blue' }>`
           background: #d0e8ff;
           color: #333;
         `;
+      case 'cancel':
+        return `
+          background: linear-gradient(to right, #ff6b6b, #ffa500);
+          color: white;
+        `;
       default:
         return '';
     }
@@ -98,7 +103,7 @@ const Button = styled.button<{ variant: 'primary' | 'yellow' | 'blue' }>`
 `;
 
 const SubscribePage: React.FC = () => {
-  const [modalType, setModalType] = useState<'report' | 'agreement' | 'subscribe' | null>(null);
+  const [modalType, setModalType] = useState<'report' | 'agreement' | 'subscribe' | 'cancel' | null>(null);
   const { user, setUser } = useAuthStore();
   const [resultModal, setResultModal] = useState<{ open: boolean; message: string }>({ open: false, message: '' });
 
@@ -107,6 +112,10 @@ const SubscribePage: React.FC = () => {
 
   const handleSubscribe = () => {
     setModalType('subscribe');
+  };
+
+  const handleCancelSubscription = () => {
+    setModalType('cancel');
   };
 
   const handleReportView = () => {
@@ -141,6 +150,23 @@ const SubscribePage: React.FC = () => {
         const msg = error?.response?.data?.message || '구독 시작에 실패했습니다. 다시 시도해주세요.';
         setResultModal({ open: true, message: msg });
       }
+    } else if (modalType === 'cancel') {
+      // 구독 취소 로직 구현
+      try {
+        const result = await userService.cancelSubscription();
+        // 구독 취소 성공 시 사용자 정보 업데이트
+        if (result && setUser && user) {
+          setUser({
+            ...user,
+            ...result
+          } as User);
+        }
+        setResultModal({ open: true, message: '구독이 성공적으로 취소되었습니다!' });
+      } catch (error: any) {
+        console.error('구독 취소 실패:', error);
+        const msg = error?.response?.data?.message || '구독 취소에 실패했습니다. 다시 시도해주세요.';
+        setResultModal({ open: true, message: msg });
+      }
     }
     setModalType(null);
   };
@@ -163,18 +189,34 @@ const SubscribePage: React.FC = () => {
               ✔ 자기이해 진단 매월 1회<br/><br/>
               💳 <strong>월 3,900원 / 무료 이벤트 중</strong>
             </Description>
-            <Button
-              variant="primary"
-              onClick={handleSubscribe}
-              disabled={user?.subscriptionStatus === 'SUBSCRIBED'}
-            >
-              {user?.subscriptionStatus === 'SUBSCRIBED' ? '구독중' : '무료 구독 시작'}
-            </Button>
-            {user?.subscriptionStatus === 'SUBSCRIBED' && user?.subscriptionStartedAt && (
-              <div style={{ marginTop: '0.5rem', fontSize: '0.9rem', color: '#888', textAlign: 'center' }}>
-                구독 시작일: {new Date(user.subscriptionStartedAt).toLocaleDateString('ko-KR')}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.8rem', alignItems: 'center' }}>
+              {user?.subscriptionStatus === 'SUBSCRIBED' ? (
+                <>
+                  <Button
+                    variant="cancel"
+                    onClick={handleCancelSubscription}
+                  >
+                    구독 취소
+                  </Button>
+                  {user?.subscriptionStartedAt && (
+                    <div style={{ fontSize: '0.9rem', color: '#888', textAlign: 'center' }}>
+                      구독 시작일: {new Date(user.subscriptionStartedAt).toLocaleDateString('ko-KR')}
+                    </div>
+                  )}
+                </>
+              ) : (
+                <Button
+                  variant="primary"
+                  onClick={handleSubscribe}
+                >
+                  무료 구독 시작
+                </Button>
+              )}
+              <div style={{ fontSize: '0.85rem', color: '#888', textAlign: 'center', lineHeight: '1.4' }}>
+                구독은 언제든지 취소 가능합니다<br/>
+                취소 시 다음 달부터 구독이 중단되며, 다음 구독일 전 까지 이용 가능합니다
               </div>
-            )}
+            </div>
           </Section>
 
           {/* 감정트랙 리포트 단품 */}
@@ -214,16 +256,30 @@ const SubscribePage: React.FC = () => {
         isOpen={modalType !== null}
         onRequestClose={() => setModalType(null)}
         onConfirm={handleModalConfirm}
-        title={modalType === 'report' ? '트랙 리포트 열람' : modalType === 'agreement' ? '합의서 인증 발행' : modalType === 'subscribe' ? '무료 구독 시작' : ''}
-        message={modalType === 'report'
-          ? '리커넥트 케어 무료 이벤트 중입니다.\n무료구독으로 자유롭게 이용하세요.'
-          : modalType === 'agreement'
+        title={
+          modalType === 'report' ? '트랙 리포트 열람' 
+          : modalType === 'agreement' ? '합의서 인증 발행' 
+          : modalType === 'subscribe' ? '무료 구독 시작'
+          : modalType === 'cancel' ? '구독 취소'
+          : ''
+        }
+        message={
+          modalType === 'report'
             ? '리커넥트 케어 무료 이벤트 중입니다.\n무료구독으로 자유롭게 이용하세요.'
-            : modalType === 'subscribe'
-              ? '무료 구독 이벤트 종료시까지 리커넥트케어 항목의 모든 권한을 갖습니다'
-              : ''}
-        confirmButtonText={modalType === 'subscribe' ? '시작하기' : '확인'}
-        showCancelButton={false}
+            : modalType === 'agreement'
+              ? '리커넥트 케어 무료 이벤트 중입니다.\n무료구독으로 자유롭게 이용하세요.'
+              : modalType === 'subscribe'
+                ? '무료 구독 이벤트 종료시까지 리커넥트케어 항목의 모든 권한을 갖습니다'
+                : modalType === 'cancel'
+                  ? '정말 구독을 취소하시겠습니까?\n\n취소 시 다음 달부터 구독이 중단되며,\n다음 구독일 전까지는 모든 기능을 이용할 수 있습니다.'
+                  : ''
+        }
+        confirmButtonText={
+          modalType === 'subscribe' ? '시작하기' 
+          : modalType === 'cancel' ? '취소하기'
+          : '확인'
+        }
+        showCancelButton={modalType === 'cancel'}
       />
       <ConfirmationModal
         isOpen={resultModal.open}
