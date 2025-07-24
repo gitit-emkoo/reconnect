@@ -122,29 +122,6 @@ const StatusIcons = ({ hasEmotionDiary, hasSentEmotionCard, hasReceivedEmotionCa
   </StatusIconsContainer>
 );
 
-const MenuCard = styled.div`
-  background-color: #2f3542;
-  border-radius: 1rem;
-  padding: 1.2rem; 
-  cursor: pointer;
-  color: #fff;
-  transition: background-color 0.2s;
-
-  &:hover {
-    background-color: #3d4453;
-  }
-`;
-
-const MenuTitle = styled.h2`
-  font-size: 1.1rem; 
-  margin-bottom: 0.4rem;
-`;
-
-const MenuText = styled.p`
-  font-size: 0.8rem; 
-  opacity: 0.8;
-`;
-
 const Dashboard: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
