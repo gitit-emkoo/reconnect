@@ -46,8 +46,7 @@ const Container = styled.div`
   padding: 2rem;
   background-color: #fff;
   min-height: calc(100vh - 60px);
-  max-width: 1200px;
-  margin: 0 auto;
+ 
   position: relative;
   padding-bottom: 80px; 
 
