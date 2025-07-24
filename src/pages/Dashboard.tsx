@@ -466,10 +466,7 @@ const Dashboard: React.FC = () => {
           onDateClick={setScheduleDate}
         />
         
-        <MenuCard style={{ marginTop: '2rem' }} onClick={() => handleFeatureClick("/dashboard")}>
-            <MenuTitle>광고입니다</MenuTitle>
-            <MenuText>광고 넣을 페이지 입니다.</MenuText>
-        </MenuCard>
+
 
       </Container>
       <NavigationBar isSolo={!partner} />

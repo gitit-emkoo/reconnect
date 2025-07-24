@@ -223,7 +223,14 @@ const SelfDiagnosisRoom: React.FC = () => {
 
   return (
     <PageLayout title="자기이해 진단실">
-      <div style={{fontSize:'0.8rem', color:'#666', marginBottom:'1rem'}}>본 테스트 결과는 상담 및 필요한 법적 자문시 핵심 기초자료로 사용됩니다. 정확한 분석을 위해 솔직하고 있는 그대로 응답해 주세요.</div>
+      <div style={{fontSize:'0.8rem', color:'#666', marginBottom:'1rem', padding: '1rem', backgroundColor: '#f8f9fa', borderRadius: '8px', border: '1px solid #e9ecef'}}>
+        <div style={{fontWeight: 'bold', marginBottom: '0.5rem', color: '#495057'}}>⚠️ 중요 안내</div>
+        <div style={{marginBottom: '0.5rem'}}>본 테스트 결과는 상담 및 필요한 법적 자문시 핵심 기초자료로 사용됩니다. 정확한 분석을 위해 솔직하고 있는 그대로 응답해 주세요.</div>
+        <div style={{fontSize: '0.75rem', color: '#6c757d', fontStyle: 'italic'}}>
+          본 앱은 의료 앱이 아니며, 의학적 진단이나 치료 목적으로 사용되지 않습니다. 
+          심각한 심리적 문제가 있다고 생각되시면 전문의와 상담하시기 바랍니다.
+        </div>
+      </div>
       {sortedTemplates.map((tpl)=>(
         <Section key={tpl.id}>
           <HeaderContainer>

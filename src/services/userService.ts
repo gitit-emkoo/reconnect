@@ -120,5 +120,15 @@ export const userService = {
     } catch (error) {
       throw new Error('구독 시작에 실패했습니다.');
     }
+  },
+
+  // 구독 취소
+  cancelSubscription: async () => {
+    try {
+      const { data } = await axiosInstance.delete('/users/me/subscribe');
+      return data;
+    } catch (error) {
+      throw new Error('구독 취소에 실패했습니다.');
+    }
   }
 }; 
