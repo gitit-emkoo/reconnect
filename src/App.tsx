@@ -109,13 +109,12 @@ const App = () => {
   const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
   const checkAuth = useAuthStore((state) => state.checkAuth);
   const isLoading = useAuthStore((state) => state.isLoading);
+  const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
 
   useEffect(() => {
     console.log("checkAuth");
     checkAuth();
   }, [checkAuth]);
-
-
 
   // 인증 상태를 확인하는 동안 로딩 스피너를 전체 화면에 표시
   if (isLoading) {
@@ -128,7 +127,7 @@ const App = () => {
         <Router>
           <ScrollToTop />
           <GlobalStyle />
-          <NotificationHooks />
+          {isAuthenticated && <NotificationHooks />}
           <Routes>
             {/* 루트 경로는 Home 컴포넌트가 처리하여 리디렉션 */}
             <Route path="/" element={<Home />} />
