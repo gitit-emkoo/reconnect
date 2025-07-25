@@ -55,33 +55,16 @@ axiosInstance.interceptors.request.use(
   }
 );
 
-// 응답 인터셉터 추가 (토큰 갱신 로직)
+// 응답 인터셉터 추가 (토큰 갱신 로직 - 임시 비활성화)
 axiosInstance.interceptors.response.use(
   (response) => {
     return response;
   },
   async (error) => {
-    const originalRequest = error.config;
-    
-    if (error.response?.status === 401 && !originalRequest._retry) {
-      originalRequest._retry = true;
-      
-      try {
-        // 토큰 갱신 시도
-        const response = await axiosInstance.post('/auth/refresh');
-        const newToken = response.data.accessToken;
-        
-        // 새 토큰 저장
-        useAuthStore.getState().setAuth(newToken, useAuthStore.getState().user);
-        
-        // 원래 요청 재시도
-        originalRequest.headers['Authorization'] = `Bearer ${newToken}`;
-        return axiosInstance(originalRequest);
-      } catch (refreshError) {
-        // 토큰 갱신 실패 시 로그아웃
-        useAuthStore.getState().logout();
-        return Promise.reject(error);
-      }
+    // 임시로 토큰 갱신 로직 비활성화 (무한 루프 방지)
+    if (error.response?.status === 401) {
+      console.log('401 Unauthorized - 로그아웃 처리');
+      useAuthStore.getState().logout();
     }
     
     return Promise.reject(error);
