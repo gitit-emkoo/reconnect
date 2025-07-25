@@ -36,8 +36,15 @@ const convertDates = (data: any): any => {
 // 요청 인터셉터 추가
 axiosInstance.interceptors.request.use(
   (config) => {
-    // Zustand 스토어에서 직접 토큰을 읽어옵니다.
-    const accessToken = useAuthStore.getState().accessToken;
+    // 쿠키에서 토큰을 읽어옵니다.
+    const getCookie = (name: string): string | null => {
+      const value = `; ${document.cookie}`;
+      const parts = value.split(`; ${name}=`);
+      if (parts.length === 2) return parts.pop()?.split(';').shift() || null;
+      return null;
+    };
+    
+    const accessToken = getCookie('accessToken');
     if (accessToken) {
       config.headers['Authorization'] = `Bearer ${accessToken}`;
     }
@@ -48,17 +55,35 @@ axiosInstance.interceptors.request.use(
   }
 );
 
-// 응답 인터셉터 추가
+// 응답 인터셉터 추가 (토큰 갱신 로직)
 axiosInstance.interceptors.response.use(
   (response) => {
-    // 응답 데이터에 대해 날짜 변환 함수 실행
-    if (response.data) {
-      response.data = convertDates(response.data);
-    }
     return response;
   },
-  (error) => {
-    // 응답 에러 처리
+  async (error) => {
+    const originalRequest = error.config;
+    
+    if (error.response?.status === 401 && !originalRequest._retry) {
+      originalRequest._retry = true;
+      
+      try {
+        // 토큰 갱신 시도
+        const response = await axiosInstance.post('/auth/refresh');
+        const newToken = response.data.accessToken;
+        
+        // 새 토큰 저장
+        useAuthStore.getState().setAuth(newToken, useAuthStore.getState().user);
+        
+        // 원래 요청 재시도
+        originalRequest.headers['Authorization'] = `Bearer ${newToken}`;
+        return axiosInstance(originalRequest);
+      } catch (refreshError) {
+        // 토큰 갱신 실패 시 로그아웃
+        useAuthStore.getState().logout();
+        return Promise.reject(error);
+      }
+    }
+    
     return Promise.reject(error);
   }
 );

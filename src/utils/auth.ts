@@ -7,8 +7,8 @@ export const logout = async (navigate: NavigateFunction) => {
     
     await axiosInstance.post('/auth/logout');
 
-    // 로컬 스토리지 클리어
-    localStorage.removeItem('accessToken');
+    // 쿠키 클리어
+    document.cookie = 'accessToken=;expires=Thu, 01 Jan 1970 00:00:00 UTC;path=/;';
     localStorage.removeItem('user'); // 'user' 객체도 삭제
 
     console.log('=== 로그아웃 완료 ===');

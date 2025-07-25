@@ -2,6 +2,25 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import axiosInstance from '../api/axios';
 import { User } from '../types/user';
+import axios from 'axios';
+
+// 쿠키 관련 유틸리티 함수
+const getCookie = (name: string): string | null => {
+  const value = `; ${document.cookie}`;
+  const parts = value.split(`; ${name}=`);
+  if (parts.length === 2) return parts.pop()?.split(';').shift() || null;
+  return null;
+};
+
+const setCookie = (name: string, value: string, days: number = 90) => {
+  const expires = new Date();
+  expires.setTime(expires.getTime() + (days * 24 * 60 * 60 * 1000));
+  document.cookie = `${name}=${value};expires=${expires.toUTCString()};path=/;SameSite=Lax`;
+};
+
+const removeCookie = (name: string) => {
+  document.cookie = `${name}=;expires=Thu, 01 Jan 1970 00:00:00 UTC;path=/;`;
+};
 
 // 파트너 정보를 위한 타입
 export interface Partner {
@@ -29,18 +48,18 @@ const useAuthStore = create<AuthState>()(
     (set, get) => ({
       user: null,
       partner: null,
-      accessToken: localStorage.getItem('accessToken'),
+      accessToken: getCookie('accessToken'),
       isAuthenticated: false,
       isLoading: true,
       
       setAuth: (accessToken, user) => {
         if (accessToken) {
           axiosInstance.defaults.headers.common['Authorization'] = `Bearer ${accessToken}`;
-          localStorage.setItem('accessToken', accessToken);
+          setCookie('accessToken', accessToken);
           set({ user, accessToken, partner: user?.partner ?? null, isAuthenticated: true, isLoading: false });
         } else {
           delete axiosInstance.defaults.headers.common['Authorization'];
-          localStorage.removeItem('accessToken');
+          removeCookie('accessToken');
           set({ user: null, accessToken: null, partner: null, isAuthenticated: false, isLoading: false });
         }
       },
@@ -65,8 +84,14 @@ const useAuthStore = create<AuthState>()(
           set({ user: response.data, partner: response.data.partner ?? null, isLoading: false });
         } catch (error) {
           console.error('Authentication check failed', error);
-          set({ isLoading: false, user: null, partner: null, accessToken: null });
-          localStorage.removeItem('accessToken');
+          // 토큰이 만료된 경우에만 삭제, 네트워크 에러는 유지
+          if (axios.isAxiosError(error) && error.response?.status === 401) {
+            set({ isLoading: false, user: null, partner: null, accessToken: null });
+            removeCookie('accessToken');
+          } else {
+            // 네트워크 에러 등은 토큰을 유지하고 로딩만 false로
+            set({ isLoading: false });
+          }
         }
       },
 
@@ -75,7 +100,7 @@ const useAuthStore = create<AuthState>()(
       },
 
       clearAuth: () => {
-        localStorage.removeItem('accessToken');
+        removeCookie('accessToken');
         set({ user: null, accessToken: null, partner: null });
       },
 
