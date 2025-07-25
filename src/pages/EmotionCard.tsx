@@ -127,7 +127,7 @@ const EmotionCard: React.FC = () => {
     queryKey: ['receivedMessages', myId],
     queryFn: () => fetchReceivedMessages(),
     enabled: !!myId && !!partnerId, // partnerId 없으면 아예 호출하지 않음
-    refetchInterval: !!partnerId ? 5000 : false, // partnerId 없으면 폴링도 안 함
+    refetchInterval: !!partnerId ? 10000 : false, // 10초마다로 조정 (실시간성과 성능의 균형)
   });
 
   // 커스텀 훅 사용 -> App.tsx로 이동

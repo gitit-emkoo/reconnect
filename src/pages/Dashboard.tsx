@@ -6,7 +6,6 @@ import 'react-calendar/dist/Calendar.css';
 import { useDashboardData } from '../hooks/useDashboardData';
 import useAuthStore from '../store/authStore';
 import useNotificationStore from '../store/notificationsStore';
-import { useEmotionCardNotifications } from '../hooks/useEmotionCardNotifications';
 import { formatInKST } from '../utils/date';
 import { scheduleApi, Schedule } from '../api/schedule';
 import NavigationBar from '../components/NavigationBar';
@@ -237,7 +236,7 @@ const Dashboard: React.FC = () => {
     }
   }, [user]);
 
-  useEmotionCardNotifications(receivedMessages);
+  // useEmotionCardNotifications(receivedMessages); // 중복 호출 제거
   
   // 필수 데이터만 로딩 체크 (진단 결과)
   if (isLoading || !user) {

@@ -88,12 +88,12 @@ const Home = () => {
 const NotificationHooks = () => {
   const isAuthenticated = useAuthStore(state => state.isAuthenticated);
 
-  // 감정 카드 알림
+  // 감정 카드 알림 - 최적화된 간격으로 복원
   const { data: receivedMessages } = useQuery({
     queryKey: ['receivedMessagesForNotif'],
     queryFn: fetchReceivedMessages,
     enabled: isAuthenticated,
-    refetchInterval: 5000,
+    refetchInterval: 15000, // 15초마다 (성능 최적화)
     retry: 1,
     throwOnError: false,
   });
