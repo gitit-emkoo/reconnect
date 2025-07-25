@@ -23,6 +23,7 @@ const Container = styled.div`
   min-height: 100vh;
   background: white;
   padding: 2rem;
+  padding-bottom: env(safe-area-inset-bottom, 24px);
 `;
 
 const Title = styled.h1`
