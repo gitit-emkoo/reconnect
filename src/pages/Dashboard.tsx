@@ -6,7 +6,6 @@ import 'react-calendar/dist/Calendar.css';
 import { useDashboardData } from '../hooks/useDashboardData';
 import useAuthStore from '../store/authStore';
 import useNotificationStore from '../store/notificationsStore';
-import { useEmotionCardNotifications } from '../hooks/useEmotionCardNotifications';
 import { formatInKST } from '../utils/date';
 import { scheduleApi, Schedule } from '../api/schedule';
 import NavigationBar from '../components/NavigationBar';
@@ -136,6 +135,7 @@ const Dashboard: React.FC = () => {
   } = useDashboardData();
   const { fetchNotifications } = useNotificationStore();
   const { latestScore, loading: reportLoading, hasLoadedOnce } = useReportData();
+  const { isAuthenticated } = useAuthStore();
 
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
   const [isInputModalOpen, setIsInputModalOpen] = useState(false);
@@ -220,24 +220,24 @@ const Dashboard: React.FC = () => {
   }, [user, partner]);
   
   useEffect(() => {
-    if (user) {
+    if (user && isAuthenticated) {
       fetchNotifications();
-      const interval = setInterval(fetchNotifications, 10000); // 30초에서 10초로 변경
+      const interval = setInterval(fetchNotifications, 10000);
       return () => clearInterval(interval);
     }
-  }, [user, fetchNotifications]);
+  }, [user, fetchNotifications, isAuthenticated]);
 
   // 읽지 않은 알림 개수만 더 자주 체크 (가벼운 API 호출)
   useEffect(() => {
-    if (user) {
+    if (user && isAuthenticated) {
       const { fetchUnreadCount } = useNotificationStore.getState();
       fetchUnreadCount();
-      const interval = setInterval(fetchUnreadCount, 5000); // 5초마다
+      const interval = setInterval(fetchUnreadCount, 5000);
       return () => clearInterval(interval);
     }
-  }, [user]);
+  }, [user, isAuthenticated]);
 
-  useEmotionCardNotifications(receivedMessages);
+  // useEmotionCardNotifications(receivedMessages); // 중복 호출 제거
   
   // 필수 데이터만 로딩 체크 (진단 결과)
   if (isLoading || !user) {

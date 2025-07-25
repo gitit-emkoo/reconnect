@@ -25,7 +25,7 @@ export const useDashboardData = () => {
     queryKey: ['receivedMessages', user?.id],
     queryFn: fetchReceivedMessages,
     enabled: !!user,
-    refetchInterval: 5000,
+    // refetchInterval: 5000, // 중복 호출 방지를 위해 제거
   });
 
   const { data: latestDiagnosis, isLoading: isDiagnosisLoading } = useQuery({

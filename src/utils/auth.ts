@@ -1,5 +1,6 @@
 import type { NavigateFunction } from 'react-router-dom';
 import axiosInstance from '../api/axios';
+import { removeAuthToken } from './cookies';
 
 export const logout = async (navigate: NavigateFunction) => {
   try {
@@ -8,8 +9,8 @@ export const logout = async (navigate: NavigateFunction) => {
     await axiosInstance.post('/auth/logout');
 
     // 쿠키 클리어
-    document.cookie = 'accessToken=;expires=Thu, 01 Jan 1970 00:00:00 UTC;path=/;';
-    localStorage.removeItem('user'); // 'user' 객체도 삭제
+    removeAuthToken();
+    localStorage.removeItem('user');
 
     console.log('=== 로그아웃 완료 ===');
     console.log('⏰ 로그아웃 시간:', new Date().toLocaleString());
