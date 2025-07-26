@@ -1,6 +1,6 @@
 import type { NavigateFunction } from 'react-router-dom';
 import axiosInstance from '../api/axios';
-import { removeAuthToken } from './cookies';
+import { removeAuthToken, getAuthToken } from './cookies';
 
 export const logout = async (navigate: NavigateFunction) => {
   try {
@@ -27,10 +27,10 @@ export const logout = async (navigate: NavigateFunction) => {
 };
 
 export const isAuthenticated = () => {
-  const token = localStorage.getItem('accessToken');
+  const token = getAuthToken();
   return !!token;
 };
 
-export const getAuthToken = (): string | null => {
-  return localStorage.getItem('accessToken');
+export const getAuthTokenFromStorage = (): string | null => {
+  return getAuthToken();
 }; 
