@@ -33,4 +33,7 @@ export const isAuthenticated = () => {
 
 export const getAuthTokenFromStorage = (): string | null => {
   return getAuthToken();
-}; 
+};
+
+// userService.ts에서 사용하기 위해 export
+export { getAuthToken }; 
