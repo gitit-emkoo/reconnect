@@ -17,7 +17,7 @@ const NavContainer = styled.nav`
   align-items: center;
   background-color: white;
   padding: 0.5rem 0;
-  padding-bottom: env(safe-area-inset-bottom, 24px); /* 하단 시스템 UI 안전 영역 확보 */
+  padding-bottom: var(--safe-area-bottom, 0px); /* 동적 안전 영역 */
   box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.05);
   z-index: 1000; 
   height: 60px; 
