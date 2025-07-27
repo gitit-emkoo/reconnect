@@ -15,6 +15,7 @@ import { useChallengeNotifications } from './hooks/useChallengeNotifications';
 import { useEmotionCardNotifications } from './hooks/useEmotionCardNotifications';
 import { fetchReceivedMessages } from './pages/EmotionCard';
 import { useQuery } from '@tanstack/react-query';
+import { initializeSafeArea } from './utils/safeArea';
 
 
 // 페이지 컴포넌트 임포트
@@ -114,6 +115,8 @@ const App = () => {
   useEffect(() => {
     console.log("checkAuth");
     checkAuth();
+    // 안전 영역 초기화
+    initializeSafeArea();
   }, [checkAuth]);
 
   // 인증 상태를 확인하는 동안 로딩 스피너를 전체 화면에 표시
