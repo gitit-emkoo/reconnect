@@ -12,7 +12,7 @@ export const getSafeAreaBottom = (): number => {
   
   if (isFoldable) {
     // 폴더블 디바이스는 더 큰 기본값 사용
-    return Math.max(bottomValue, 24);
+    return Math.max(bottomValue, 64);
   }
   
   // 감지된 값이 있으면 사용, 없으면 0px
