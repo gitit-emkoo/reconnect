@@ -6,8 +6,11 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { registerSchema, type RegisterFormData } from '../utils/validationSchemas';
 import { ReactComponent as CloseEye } from '../assets/Icon_CloseEye.svg';
 import { ReactComponent as OpenEye } from '../assets/Icon_OpenEye.svg';
+import { ReactComponent as AppleIcon } from '../assets/btn_apple.svg';
+import { ReactComponent as GoogleIcon } from '../assets/btn_google.svg';
+import { ReactComponent as KakaoIcon } from '../assets/btn_kakao.svg';
 import { useGoogleLogin } from '@react-oauth/google';
-import { getKakaoRegisterUrl } from '../utils/socialAuth';
+import { getKakaoRegisterUrl, signInWithApple } from '../utils/socialAuth';
 import axiosInstance from '../api/axios';
 import { isAxiosError } from 'axios';
 import useAuthStore from '../store/authStore';
@@ -34,14 +37,22 @@ const Title = styled.h1`
   text-align: center;
 `;
 
-const SocialLoginButton = styled.button<{ $isKakao?: boolean }>`
+const SocialLoginButton = styled.button<{ $isKakao?: boolean; $isApple?: boolean }>`
   width: 100%;
   max-width: 340px;
   padding: 1rem;
   border: none;
   border-radius: 15px;
-  background: ${props => props.$isKakao ? '#FEE500' : '#fff'};
-  color: ${props => props.$isKakao ? '#000' : '#333'};
+  background: ${props => {
+    if (props.$isKakao) return '#FEE500';
+    if (props.$isApple) return '#000000';
+    return '#fff';
+  }};
+  color: ${props => {
+    if (props.$isKakao) return '#000';
+    if (props.$isApple) return '#FFFFFF';
+    return '#333';
+  }};
   font-size: 1rem;
   font-weight: 500;
   cursor: pointer;
@@ -50,6 +61,15 @@ const SocialLoginButton = styled.button<{ $isKakao?: boolean }>`
   align-items: center;
   justify-content: center;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  transition: background-color 0.2s;
+
+  &:hover {
+    background: ${props => {
+      if (props.$isKakao) return '#f0d800';
+      if (props.$isApple) return '#333333';
+      return '#f7f7f7';
+    }};
+  }
 
   img {
     width: 24px;
@@ -332,6 +352,45 @@ const RegisterPage: React.FC = () => {
     window.location.href = getKakaoRegisterUrl();
   };
 
+  const handleAppleRegister = async () => {
+    try {
+      const appleResponse = await signInWithApple();
+      
+      // 비회원 진단 결과 가져오기
+      const unauthDiagnosisRaw = localStorage.getItem('baselineDiagnosisAnswers');
+      const unauthDiagnosis = unauthDiagnosisRaw ? JSON.parse(unauthDiagnosisRaw) : null;
+      
+      const payload: any = {
+        idToken: appleResponse.idToken,
+        authorizationCode: appleResponse.authorizationCode,
+        user: appleResponse.user,
+        unauthDiagnosis: unauthDiagnosis ? {
+          score: unauthDiagnosis.score,
+          answers: unauthDiagnosis.answers,
+          createdAt: new Date().toISOString()
+        } : null
+      };
+
+      const response = await axiosInstance.post('/auth/apple/register', payload);
+      const { accessToken, user } = response.data;
+      setAuth(accessToken, user);
+      
+      // 회원가입 성공 시 비회원 진단 결과 삭제
+      if (unauthDiagnosis) {
+        localStorage.removeItem('baselineDiagnosisAnswers');
+      }
+      
+      navigate(from, { replace: true });
+    } catch (error: any) {
+      console.error('Apple register error:', error);
+      if (isAxiosError(error) && error.response?.status === 409) {
+        setApiError('이미 가입된 사용자입니다. 로그인을 진행해주세요.');
+      } else {
+        setApiError(error.response?.data?.message || 'Apple ID 회원가입에 실패했습니다.');
+      }
+    }
+  };
+
   const onSubmit = async (data: RegisterFormData) => {
     if (!agreedToTerms) {
       setApiError('이용약관 및 개인정보 처리방침에 동의해야 합니다.');
@@ -369,11 +428,16 @@ const RegisterPage: React.FC = () => {
       <Title>회원가입</Title>
       
       <SocialLoginButton onClick={() => googleLogin()}>
-        <img src="https://upload.wikimedia.org/wikipedia/commons/c/c1/Google_%22G%22_logo.svg" alt="Google logo" />
+        <GoogleIcon style={{ marginRight: '8px', width: '18px', height: '18px' }} />
         구글로 회원가입
       </SocialLoginButton>
       <SocialLoginButton $isKakao onClick={handleKakaoRegister}>
+        <KakaoIcon style={{ marginRight: '8px', width: '28px', height: '28px' }} />
         카카오톡으로 회원가입
+      </SocialLoginButton>
+      <SocialLoginButton onClick={handleAppleRegister} $isApple={true}>
+        <AppleIcon style={{ marginRight: '8px', width: '18px', height: '18px', filter: 'brightness(0) invert(1)' }} />
+        Apple로 회원가입
       </SocialLoginButton>
 
       <Divider>또는 이메일로 회원가입</Divider>

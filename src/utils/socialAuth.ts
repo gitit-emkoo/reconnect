@@ -9,6 +9,63 @@ export const getGoogleLoginUrl = () => {
   return `https://accounts.google.com/o/oauth2/v2/auth?client_id=${clientId}&redirect_uri=${redirectUri}&response_type=${responseType}&scope=${scope}`;
 };
 
+// Apple ID 로그인 초기화
+export const initializeAppleSignIn = () => {
+  if (typeof window !== 'undefined' && window.AppleID) {
+    // 환경 변수가 설정되지 않은 경우 초기화 건너뛰기
+    const clientId = import.meta.env.VITE_APPLE_CLIENT_ID;
+    const redirectURI = import.meta.env.VITE_APPLE_REDIRECT_URI;
+    
+    if (!clientId || !redirectURI) {
+      console.warn('Apple ID 로그인 환경 변수가 설정되지 않았습니다.');
+      return null;
+    }
+    
+    try {
+      // Apple ID 초기화
+      window.AppleID.auth.init({
+        clientId: clientId,
+        scope: 'name email',
+        redirectURI: redirectURI,
+        state: 'origin:web',
+        usePopup: true
+      });
+      return window.AppleID;
+    } catch (error) {
+      console.error('Apple ID 초기화 실패:', error);
+      return null;
+    }
+  }
+  return null;
+};
+
+// Apple ID 로그인 실행
+export const signInWithApple = async (): Promise<{
+  idToken: string;
+  authorizationCode?: string;
+  user?: string;
+}> => {
+  return new Promise((resolve, reject) => {
+    const AppleID = initializeAppleSignIn();
+    
+    if (!AppleID) {
+      reject(new Error('Apple ID 로그인이 현재 설정되지 않았습니다.'));
+      return;
+    }
+
+    AppleID.auth.signIn().then((response: any) => {
+      resolve({
+        idToken: response.authorization.id_token,
+        authorizationCode: response.authorization.code,
+        user: response.user ? JSON.stringify(response.user) : undefined,
+      });
+    }).catch((error: any) => {
+      console.error('Apple ID 로그인 실패:', error);
+      reject(error);
+    });
+  });
+};
+
 // 카카오 로그인 URL 생성
 export const getKakaoLoginUrl = () => {
   const clientId = import.meta.env.VITE_KAKAO_CLIENT_ID;
