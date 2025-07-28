@@ -12,24 +12,22 @@ export const getGoogleLoginUrl = () => {
 // Apple ID 로그인 초기화
 export const initializeAppleSignIn = () => {
   if (typeof window !== 'undefined' && window.AppleID) {
-    // 환경 변수가 설정되지 않은 경우 초기화 건너뛰기
-    const clientId = import.meta.env.VITE_APPLE_CLIENT_ID;
-    const redirectURI = import.meta.env.VITE_APPLE_REDIRECT_URI;
-    
-    if (!clientId || !redirectURI) {
-      console.warn('Apple ID 로그인 환경 변수가 설정되지 않았습니다.');
-      return null;
-    }
-    
     try {
-      // Apple ID 초기화
-      window.AppleID.init({
-        clientId: clientId,
-        scope: 'name email',
-        redirectURI: redirectURI,
-        state: 'origin:web',
-        usePopup: true
-      });
+      // Apple ID가 이미 초기화되어 있는지 확인
+      if (window.AppleID.auth) {
+        return window.AppleID;
+      }
+      
+      // 환경 변수가 설정되지 않은 경우 초기화 건너뛰기
+      const clientId = import.meta.env.VITE_APPLE_CLIENT_ID;
+      const redirectURI = import.meta.env.VITE_APPLE_REDIRECT_URI;
+      
+      if (!clientId || !redirectURI) {
+        console.warn('Apple ID 로그인 환경 변수가 설정되지 않았습니다.');
+        return null;
+      }
+      
+      // Apple ID 초기화 (이미 HTML에서 초기화됨)
       return window.AppleID;
     } catch (error) {
       console.error('Apple ID 초기화 실패:', error);
