@@ -6,10 +6,13 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { loginSchema, type LoginFormData } from '../utils/validationSchemas';
 import { ReactComponent as CloseEye } from '../assets/Icon_CloseEye.svg';
 import { ReactComponent as OpenEye } from '../assets/Icon_OpenEye.svg';
+import { ReactComponent as AppleIcon } from '../assets/btn_apple.svg';
+import { ReactComponent as GoogleIcon } from '../assets/btn_google.svg';
+import { ReactComponent as KakaoIcon } from '../assets/btn_kakao.svg';
 import axios from 'axios';
 import axiosInstance from '../api/axios';
 import { useGoogleLogin } from '@react-oauth/google';
-import { getKakaoLoginUrl } from '../utils/socialAuth';
+import { getKakaoLoginUrl, signInWithApple } from '../utils/socialAuth';
 import MainImg from '../assets/Img_LogIn.png';
 import logoImage from '../assets/Logo.png';
 import useAuthStore from '../store/authStore';
@@ -88,7 +91,7 @@ const SocialLoginButtonContainer = styled.div`
   margin-bottom: 1rem;
 `;
 
-const SocialLoginButtonStyled = styled.button<{ $isKakao?: boolean }>`
+const SocialLoginButtonStyled = styled.button<{ $isKakao?: boolean; $isApple?: boolean }>`
   width: 100%;
   padding: 0.85rem 1rem;
   border-radius: 12px;
@@ -101,26 +104,39 @@ const SocialLoginButtonStyled = styled.button<{ $isKakao?: boolean }>`
   transition: background-color 0.2s, box-shadow 0.2s, border-color 0.2s;
   border: 1px solid transparent;
 
-  ${(props) =>
-    props.$isKakao
-      ? `
-    background-color: #FEE500;
-    color: #191919;
-    &:hover {
-      background-color: #f0d800;
+  ${(props) => {
+    if (props.$isKakao) {
+      return `
+        background-color: #FEE500;
+        color: #191919;
+        &:hover {
+          background-color: #f0d800;
+        }
+      `;
+    } else if (props.$isApple) {
+      return `
+        background-color: #000000;
+        color: #FFFFFF;
+        border-color: #000000;
+        &:hover {
+          background-color: #333333;
+          border-color: #333333;
+        }
+      `;
+    } else {
+      return `
+        background-color: #FFFFFF;
+        color: #444444;
+        border-color: #E0E0E0;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+        &:hover {
+          background-color: #f7f7f7;
+          border-color: #d0d0d0;
+          box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+      `;
     }
-  `
-      : `
-    background-color: #FFFFFF;
-    color: #444444;
-    border-color: #E0E0E0;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.08);
-    &:hover {
-      background-color: #f7f7f7;
-      border-color: #d0d0d0;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-    }
-  `}
+  }}
 `;
 
 const RegisterPrompt = styled.p`
@@ -311,9 +327,10 @@ const Button = styled.button`
 const SocialLoginButton: React.FC<{
   onClick: () => void;
   $isKakao?: boolean;
+  $isApple?: boolean;
   children: React.ReactNode;
-}> = ({ onClick, $isKakao, children }) => (
-  <SocialLoginButtonStyled onClick={onClick} $isKakao={$isKakao}>
+}> = ({ onClick, $isKakao, $isApple, children }) => (
+  <SocialLoginButtonStyled onClick={onClick} $isKakao={$isKakao} $isApple={$isApple}>
     {children}
   </SocialLoginButtonStyled>
 );
@@ -484,6 +501,67 @@ const LoginPage: React.FC = () => {
     window.location.href = getKakaoLoginUrl();
   };
 
+  const handleAppleLogin = async () => {
+    setLoginError('');
+    try {
+      const appleResponse = await signInWithApple();
+      
+      // 비회원 진단 결과 가져오기
+      const unauthDiagnosisRaw = localStorage.getItem('baselineDiagnosisAnswers');
+      const unauthDiagnosis = unauthDiagnosisRaw ? JSON.parse(unauthDiagnosisRaw) : null;
+      
+      const response = await Promise.race([
+        axiosInstance.post<{ user: User; accessToken: string }>(
+          '/auth/apple/login',
+          { 
+            idToken: appleResponse.idToken,
+            authorizationCode: appleResponse.authorizationCode,
+            user: appleResponse.user,
+            unauthDiagnosis: unauthDiagnosis ? {
+              score: unauthDiagnosis.score,
+              answers: unauthDiagnosis.answers,
+              createdAt: new Date().toISOString()
+            } : null
+          },
+          { timeout: 8000 }
+        ),
+        new Promise<never>((_, reject) => 
+          setTimeout(() => reject(new Error('Login timeout')), 8000)
+        )
+      ]) as { data: { user: User; accessToken: string } };
+      
+      // 로그인 성공 시 비회원 진단 결과 삭제
+      if (unauthDiagnosis) {
+        localStorage.removeItem('baselineDiagnosisAnswers');
+      }
+      
+      await handleSuccessfulLogin(response.data.user, response.data.accessToken);
+    } catch (error: any) {
+      console.error('Apple login failed:', error);
+      if (error instanceof Error && error.message === 'Login timeout') {
+        setLoginError('로그인이 시간 초과되었습니다. 네트워크 상태를 확인하고 다시 시도해주세요.');
+      } else if (axios.isAxiosError(error) && error.response?.status === 401) {
+        // 가입되지 않은 사용자인 경우 회원가입 페이지로 이동
+        const unauthDiagnosisRaw = localStorage.getItem('baselineDiagnosisAnswers');
+        const unauthDiagnosis = unauthDiagnosisRaw ? JSON.parse(unauthDiagnosisRaw) : null;
+        
+        if (unauthDiagnosis) {
+          // 비회원 진단 결과가 있으면 회원가입 페이지로 이동
+          navigate('/register', { 
+            state: { 
+              from: location.state?.from || '/dashboard',
+              unauthDiagnosis 
+            } 
+          });
+        } else {
+          setLoginError('가입되지 않은 사용자입니다. 회원가입을 진행해주세요.');
+        }
+      } else {
+        setLoginError('Apple ID 로그인에 실패했습니다. 다시 시도해주세요.');
+      }
+    }
+  };
+
   const handleFindEmailClick = () => {
     setShowFindEmailModal(true);
   };
@@ -559,11 +637,16 @@ const LoginPage: React.FC = () => {
       </Notice>
       <SocialLoginButtonContainer>
         <SocialLoginButton onClick={handleKakaoLogin} $isKakao>
+          <KakaoIcon style={{ marginRight: '8px', width: '28px', height: '28px' }} />
           카카오로 시작하기
         </SocialLoginButton>
         <SocialLoginButton onClick={googleLogin} $isKakao={false}>
-          <svg width="18" height="18" viewBox="0 0 18" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ marginRight: '8px' }}><g clipPath="url(#clip0_105_2)"><path d="M17.64 9.20455C17.64 8.56682 17.5827 7.95273 17.4764 7.36364H9V10.845H13.8436C13.635 11.9705 13.0009 12.9232 12.0477 13.5618V15.8195H14.7564C16.4836 14.2418 17.64 11.9464 17.64 9.20455Z" fill="#4285F4"></path><path d="M9 18C11.43 18 13.4673 17.1941 14.7564 15.8195L12.0477 13.5618C11.2418 14.1018 10.2118 14.4205 9 14.4205C6.96182 14.4205 5.23455 13.0218 4.50909 11.1714H1.70273V13.495C3.01273 16.1495 5.79545 18 9 18Z" fill="#34A853"></path><path d="M4.50909 11.1714C4.28864 10.5214 4.15636 9.82682 4.15636 9.11C4.15636 8.39318 4.28864 7.69864 4.50909 7.04864V4.725H1.70273C1.03773 6.04636 0.635455 7.53318 0.635455 9.11C0.635455 10.6868 1.03773 12.1736 1.70273 13.495L4.50909 11.1714Z" fill="#FBBC05"></path><path d="M9 3.79955C10.3173 3.79955 11.5073 4.265 12.4782 5.19182L14.8218 2.84818C13.4636 1.58773 11.43 0.889545 9 0.889545C5.79545 0.889545 3.01273 2.85045 1.70273 5.50409L4.50909 7.75182C5.23455 5.90136 6.96182 3.79955 9 3.79955Z" fill="#EA4335"></path></g><defs><clipPath id="clip0_105_2"><rect width="18" height="18" fill="white"></rect></clipPath></defs></svg>
+          <GoogleIcon style={{ marginRight: '8px', width: '18px', height: '18px' }} />
           Google로 계속하기
+        </SocialLoginButton>
+        <SocialLoginButton onClick={handleAppleLogin} $isKakao={false} $isApple={true}>
+          <AppleIcon style={{ marginRight: '8px', width: '18px', height: '18px', filter: 'brightness(0) invert(1)' }} />
+          Apple로 계속하기
         </SocialLoginButton>
       </SocialLoginButtonContainer>
       
