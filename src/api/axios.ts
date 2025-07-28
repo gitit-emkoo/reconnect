@@ -1,7 +1,6 @@
 import axios from 'axios';
 import { toKST } from '../utils/date';
 import useAuthStore from '../store/authStore';
-import { getAuthToken } from '../utils/cookies';
 
 const axiosInstance = axios.create({
   baseURL: `${import.meta.env.VITE_API_URL || 'https://reconnect-backend.onrender.com'}/api`,
@@ -37,7 +36,15 @@ const convertDates = (data: any): any => {
 // 요청 인터셉터 추가
 axiosInstance.interceptors.request.use(
   (config) => {
-    const accessToken = getAuthToken();
+    // 쿠키에서 토큰을 읽어옵니다.
+    const getCookie = (name: string): string | null => {
+      const value = `; ${document.cookie}`;
+      const parts = value.split(`; ${name}=`);
+      if (parts.length === 2) return parts.pop()?.split(';').shift() || null;
+      return null;
+    };
+    
+    const accessToken = getCookie('accessToken');
     if (accessToken) {
       config.headers['Authorization'] = `Bearer ${accessToken}`;
     }
