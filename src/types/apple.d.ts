@@ -1,6 +1,13 @@
 declare global {
   interface Window {
     AppleID?: {
+      init(config: {
+        clientId: string;
+        scope: string;
+        redirectURI: string;
+        state: string;
+        usePopup: boolean;
+      }): void;
       auth: {
         signIn(): Promise<{
           authorization: {

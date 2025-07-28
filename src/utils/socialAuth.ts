@@ -23,7 +23,7 @@ export const initializeAppleSignIn = () => {
     
     try {
       // Apple ID 초기화
-      window.AppleID.auth.init({
+      window.AppleID.init({
         clientId: clientId,
         scope: 'name email',
         redirectURI: redirectURI,
