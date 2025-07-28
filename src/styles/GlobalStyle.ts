@@ -2,11 +2,16 @@
 import { createGlobalStyle } from "styled-components";
 
 const GlobalStyle = createGlobalStyle`
+  :root {
+    --font-size-scale: 0.9; /* 전체 폰트 크기 10% 축소 */
+  }
+  
   * {
     margin: 0;
     padding: 0;
     box-sizing: border-box;
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans KR", sans-serif;
+    font-size: calc(1em * var(--font-size-scale));
   }
   
   html {
@@ -41,7 +46,7 @@ const GlobalStyle = createGlobalStyle`
   @media screen and (max-width: 412px) and (max-height: 915px) {
     /* 갤럭시 Z 플립 감지 */
     html {
-      padding-bottom: max(env(safe-area-inset-bottom), 32px);
+      padding-bottom: max(env(safe-area-inset-bottom), 64px);
     }
   }
   
