@@ -59,20 +59,7 @@ const KakaoCallback: React.FC = () => {
           navigate('/dashboard', { replace: true });
         } else {
           console.error('카카오 인증 상세 에러:', response.data);
-          if (axios.isAxiosError(response.data)) {
-            console.error('에러 응답:', response.data.response?.data);
-            console.error('에러 상태:', response.data.response?.status);
-            console.error('에러 헤더:', response.data.response?.headers);
-            
-            if (response.data.response?.status === 409) {
-              alert('이미 가입된 계정입니다. 로그인 페이지로 이동합니다.');
-              navigate('/login');
-              return;
-            }
-            alert(response.data.response?.data?.message || '카카오 인증 중 오류가 발생했습니다.');
-          } else {
-            alert('알 수 없는 오류가 발생했습니다.');
-          }
+          alert('카카오 인증 중 오류가 발생했습니다.');
           navigate('/login');
         }
       } catch (error) {
