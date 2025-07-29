@@ -11,6 +11,7 @@ import MobileOnlyBanner from '../components/common/MobileOnlyBanner';
 import ConfirmationModal from '../components/common/ConfirmationModal';
 import { formatInKST } from '../utils/date';
 import Header from '../components/common/Header';
+import DiarySkeleton from '../components/common/SkeletonUI';
 
 // SVG 아이콘 임포트
 import { ReactComponent as TriggerActivitiesIcon } from "../assets/Trigger_Activities.svg";
@@ -567,7 +568,7 @@ const EmotionDiary: React.FC = () => {
                 <ModalTitle>{formatInKST(new Date(selectedDateForModal), 'yyyy년 M월 d일')} 다이어리</ModalTitle>
                 {(() => {
                   if (isDiaryForModalLoading) {
-                    return <div>로딩 중...</div>;
+                    return <DiarySkeleton size={100} />;
                   }
                   const diary = diaryForModal;
                   if (!diary) return <div>이 날짜에는 작성된 다이어리가 없습니다.</div>;
