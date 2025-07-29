@@ -86,7 +86,7 @@ export const initializeWebViewOptimization = () => {
   
   // 스크롤 동작 최적화
   if (isWebView()) {
-    document.body.style.webkitOverflowScrolling = 'touch';
+    (document.body.style as any).webkitOverflowScrolling = 'touch';
     document.body.style.overscrollBehavior = 'none';
   }
 };
