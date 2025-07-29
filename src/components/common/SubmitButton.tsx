@@ -15,7 +15,7 @@ interface SubmitButtonProps {
 const sizeStyles = {
   small: css`
     padding: 0.5rem 0.8rem;
-    font-size: 0.875rem;
+    font-size: 0.9rem;
   `,
   medium: css`
     padding: 1rem;
@@ -23,7 +23,7 @@ const sizeStyles = {
   `,
   large: css`
     padding: 1.2rem 1.5rem;
-    font-size: 1.125rem;
+    font-size: 1.1rem;
   `,
 };
 

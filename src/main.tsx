@@ -4,6 +4,10 @@ import App from './App';
 import './index.css';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import * as Sentry from '@sentry/react';
+import { initializeWebViewOptimization } from './utils/webview';
+
+// 웹뷰 최적화 초기화
+initializeWebViewOptimization();
 
 Sentry.init({
   dsn: "https://d1d6ad9f6919ef0c71af7b65fdf87466@o4509676320587776.ingest.us.sentry.io/4509676327272448",
