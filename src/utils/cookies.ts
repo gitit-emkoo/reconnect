@@ -9,7 +9,16 @@ export const getCookie = (name: string): string | null => {
 export const setCookie = (name: string, value: string, days: number = 90) => {
   const expires = new Date();
   expires.setTime(expires.getTime() + (days * 24 * 60 * 60 * 1000));
-  document.cookie = `${name}=${value};expires=${expires.toUTCString()};path=/;SameSite=Lax`;
+  
+  // 웹뷰 환경에서 더 안정적인 쿠키 설정
+  const cookieString = `${name}=${value};expires=${expires.toUTCString()};path=/;SameSite=Strict`;
+  
+  // HTTPS 환경에서는 Secure 플래그 추가
+  if (window.location.protocol === 'https:') {
+    document.cookie = `${cookieString};Secure`;
+  } else {
+    document.cookie = cookieString;
+  }
 };
 
 export const removeCookie = (name: string) => {

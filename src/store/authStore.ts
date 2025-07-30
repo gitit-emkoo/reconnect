@@ -31,8 +31,8 @@ const useAuthStore = create<AuthState>()(
     (set, get) => ({
       user: null,
       partner: null,
-      accessToken: getAuthToken(),
-      isAuthenticated: !!getAuthToken(),
+      accessToken: null, // 초기값을 null로 설정하고 checkAuth에서 설정
+      isAuthenticated: false, // 초기값을 false로 설정
       isLoading: true,
       
       setAuth: (accessToken, user) => {
@@ -52,11 +52,17 @@ const useAuthStore = create<AuthState>()(
       },
       
       checkAuth: async () => {
-        const accessToken = get().accessToken;
+        // 쿠키에서 토큰을 다시 확인
+        const accessToken = getAuthToken();
+        
         if (!accessToken) {
-          set({ isLoading: false, user: null, partner: null, isAuthenticated: false });
+          set({ isLoading: false, user: null, partner: null, accessToken: null, isAuthenticated: false });
           return;
         }
+        
+        // axios 헤더에 토큰 설정
+        axiosInstance.defaults.headers.common['Authorization'] = `Bearer ${accessToken}`;
+        
         try {
           const response = await Promise.race([
             axiosInstance.get<User>('/users/me', { timeout: 5000 }),
@@ -64,12 +70,20 @@ const useAuthStore = create<AuthState>()(
               setTimeout(() => reject(new Error('Auth check timeout')), 5000)
             )
           ]) as { data: User };
-          set({ user: response.data, partner: response.data.partner ?? null, isLoading: false, isAuthenticated: true });
+          
+          set({ 
+            user: response.data, 
+            partner: response.data.partner ?? null, 
+            accessToken,
+            isLoading: false, 
+            isAuthenticated: true 
+          });
         } catch (error) {
           console.error('Authentication check failed', error);
           if (axios.isAxiosError(error) && error.response?.status === 401) {
             set({ isLoading: false, user: null, partner: null, accessToken: null, isAuthenticated: false });
             removeAuthToken();
+            delete axiosInstance.defaults.headers.common['Authorization'];
           } else {
             set({ isLoading: false });
           }
