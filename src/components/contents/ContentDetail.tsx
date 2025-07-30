@@ -20,7 +20,7 @@ const Container = styled.div`
   margin: 0 auto;
   padding: 20px;
   background: white;
-  min-height: 100vh;
+  height: auto;
 `;
 
 const Title = styled.h1`

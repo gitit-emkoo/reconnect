@@ -28,6 +28,7 @@ const Container = styled.div`
 
 const Header = styled.div`
   text-align: center;
+  margin-top: 2rem;
   margin-bottom: 2rem;
 
   @media (min-width: 768px) {
@@ -112,7 +113,8 @@ const Card = styled.div<{ $imageUrl: string }>`
 const StartButton = styled.button`
   background: linear-gradient(to right, #ff69b4, #8a2be2);
   color: white;
-  padding: 1rem 3rem;
+  padding: 1rem 2rem;
+  margin-bottom: 8rem;
   border-radius: 30px;
   font-size: 1.1rem;
   font-weight: 500;

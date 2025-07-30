@@ -5,9 +5,9 @@ import { Agreement } from '../components/agreement/AgreementList';
 
 const Container = styled.div`
   background-color: white;
-  min-height: 100vh;
   padding: 2rem;
   padding-bottom: 70px;
+  height: auto;
 `;
 
 const Title = styled.h2`

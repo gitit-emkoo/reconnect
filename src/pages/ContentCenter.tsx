@@ -37,7 +37,7 @@ const FloatingButton = styled.button`
 
 const PageContainer = styled.div`
   position: relative;
-  min-height: 100vh;
+  height: auto;
   padding-bottom: 60px; /* NavigationBar 높이만큼 여백 */
 `;
 

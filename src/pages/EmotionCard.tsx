@@ -33,20 +33,20 @@ export interface SentMessage {
   coupleId: string;
 }
 
-const PageContainer = styled.div`
-  min-height: 100vh;
+const Container = styled.div`
+  
   background-color: #f0f4f8; /* 부드러운 배경색 */
-  padding: 2rem;
-  padding-bottom: 8rem; /* 하단 패딩 추가 (네비게이션 바 고려, 기존 2rem + 추가 6rem) */
+  padding: 2rem 2rem 4rem 2rem;
+  min-height: 100vh;
   display: flex;
   flex-direction: column;
-  align-items: center; /* 자식 요소들을 가로축 중앙 정렬 (PageHeaderContainer, ContentWrapper) */
-  box-sizing: border-box; /* 패딩과 테두리가 min-height에 포함되도록 설정 */
-  overflow-y: auto; /* 내용이 길어질 경우 세로 스크롤 허용 */
+  align-items: center; 
+  box-sizing: border-box; 
+  overflow-y: auto; 
 `;
 
 const ErrorMessage = styled.p`
-  color: #ef4444; /* Tailwind red-500 */
+  color: #ef4444; 
   font-size: 0.9rem;
   margin-bottom: 1.5rem;
   text-align: center;
@@ -292,25 +292,25 @@ const EmotionCard: React.FC = () => {
 
   if (sentError || receivedError) {
     return (
-      <PageContainer style={{ textAlign: 'center', paddingTop: '4rem' }}>
+      <Container style={{ textAlign: 'center', paddingTop: '4rem' }}>
         <EmotionCardHeader title="오류 발생" />
         <ErrorMessage>
           데이터를 불러오는 중 오류가 발생했습니다.
           {sentError?.message || receivedError?.message}
         </ErrorMessage>
-      </PageContainer>
+      </Container>
     );
   }
 
   if (!partnerId) {
     return (
-      <PageContainer>
+      <Container>
         <EmotionCardHeader title="오늘의 감정카드 작성" />
         <ContentWrapper>
           <ErrorMessage>파트너가 연결되어야 감정카드를 사용할 수 있습니다.</ErrorMessage>
         </ContentWrapper>
         <NavigationBar />
-      </PageContainer>
+      </Container>
     );
   }
 
@@ -329,7 +329,7 @@ const EmotionCard: React.FC = () => {
       onButtonClick={() => setShowPopup(false)}
       todayKey="emotioncard_popup"
     />
-      <PageContainer>
+      <Container>
         <EmotionCardHeader title="오늘의 감정카드 작성" />
         
         <EmotionCardForm
@@ -362,7 +362,7 @@ const EmotionCard: React.FC = () => {
             setHoveredCard={setHoveredCard}
         />
 
-      </PageContainer>
+      </Container>
 
       {selectedMessage && (
         <EmotionCardDetailModal 

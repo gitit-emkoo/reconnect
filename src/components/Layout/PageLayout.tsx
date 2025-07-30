@@ -6,7 +6,7 @@ import CommonBackButton from '../common/BackButton'; // 경로 수정 및 이름
 const PageWrapper = styled.div`
   display: flex;
   flex-direction: column;
-  min-height: 100vh;
+  height: auto;
   background-color: #f9f9f9; /* 기본 배경색 */
 `;
 

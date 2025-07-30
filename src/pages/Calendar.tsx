@@ -4,11 +4,11 @@ import styled from "styled-components";
 
 const Container = styled.div`
   background-color: #f0f4f8; /* 약간 푸른 회색 계열 */
-  min-height: 100vh;
   padding: 2rem;
   display: flex;
   flex-direction: column;
   align-items: center;
+  height: auto;
 `;
 
 const Title = styled.h2`

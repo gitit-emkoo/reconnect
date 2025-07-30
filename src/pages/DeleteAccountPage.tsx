@@ -8,7 +8,7 @@ import BackButton from '../components/common/BackButton';
 import axiosInstance from '../api/axios';
 
 const Container = styled.div`
-  min-height: 100vh;
+  height: auto;
   background-color: #f8f9fa;
   padding: 1rem;
   padding-bottom: 80px;

@@ -7,7 +7,7 @@ import { agreementApi } from '../api/agreement';
 
 const Container = styled.div`
   background: #fff;
-  min-height: 100vh;
+  height: auto;
   padding: 2.5rem 2rem 2rem;
   display: flex;
   flex-direction: column;

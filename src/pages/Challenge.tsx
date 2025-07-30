@@ -7,8 +7,8 @@ import { formatInKST } from '../utils/date';
 
 const Container = styled.div`
   background: #f9fafb;
-  min-height: 100vh;
   padding: 2.5rem 0 6rem 0;
+  height: auto;
   @media (max-width: 600px) {
     padding: 1.2rem 0 5rem 0;
   }

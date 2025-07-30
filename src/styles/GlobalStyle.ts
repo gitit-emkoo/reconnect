@@ -28,6 +28,8 @@ const GlobalStyle = createGlobalStyle`
     height: 100%;
     overflow-x: hidden;
     
+    /* 상단 여백은 헤더 컴포넌트가 자연스럽게 처리하도록 제거 */
+    
     /* 하단 시스템 UI 안전 영역 확보 */
     padding-bottom: max(env(safe-area-inset-bottom), 20px);
   }
@@ -139,8 +141,8 @@ const GlobalStyle = createGlobalStyle`
     flex-direction: column;
     height: 100%;
     
-    /* 하단 네비게이션을 위한 여백 확보 */
-    padding-bottom: calc(60px + max(env(safe-area-inset-bottom), 20px));
+    /* 하단 네비게이션을 위한 여백 확보 (AdBox 사용으로 줄임) */
+    padding-bottom: calc(80px + max(env(safe-area-inset-bottom), 8px));
   }
   
   /* Android Chrome 주소창 숨김 처리 */
@@ -158,7 +160,7 @@ const GlobalStyle = createGlobalStyle`
     }
     
     #root {
-      padding-bottom: calc(60px + max(env(safe-area-inset-bottom), 64px));
+      padding-bottom: calc(80px + max(env(safe-area-inset-bottom), 8px));
     }
   }
   
@@ -169,7 +171,7 @@ const GlobalStyle = createGlobalStyle`
     }
     
     #root {
-      padding-bottom: calc(60px + max(env(safe-area-inset-bottom), 24px));
+      padding-bottom: calc(80px + max(env(safe-area-inset-bottom), 8px));
     }
   }
   
@@ -180,7 +182,7 @@ const GlobalStyle = createGlobalStyle`
     }
     
     #root {
-      padding-bottom: calc(60px + max(env(safe-area-inset-bottom), 20px));
+      padding-bottom: calc(80px + max(env(safe-area-inset-bottom), 8px));
     }
   }
   

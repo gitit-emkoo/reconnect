@@ -43,6 +43,18 @@ interface Trigger {
 }
 
 // 스타일 컴포넌트 정의
+// 광고 박스 (투명한 여백용)
+const AdBox = styled.div`
+  width: 100%;
+  height: 6rem; /* 96px 높이 */
+  background-color: transparent; /* 투명 배경 */
+  margin-top: 1rem; /* 캘린더와의 간격 */
+  border-radius: 0.5rem;
+  /* 나중에 광고 추가 시 사용할 스타일 */
+  /* background-color: #f9f9f9; */
+  /* border: 1px solid #e0e0e0; */
+`;
+
 const Container = styled.div`
   padding: 2rem;
   background-color: #fff;
@@ -608,6 +620,8 @@ const EmotionDiary: React.FC = () => {
         </MainContent>
 
         <EmotionDiaryCalendar diaryList={diaryList} onDayClick={(date) => setSelectedDateForModal(date)} />
+        
+        <AdBox />
 
         {showModal && (
           <Modal onClick={() => setShowModal(false)}>
