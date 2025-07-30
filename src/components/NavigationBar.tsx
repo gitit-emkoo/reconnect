@@ -25,6 +25,16 @@ const NavContainer = styled.nav`
   border-top-right-radius: 20px;
   overflow: hidden;
   
+  /* 동적 뷰포트 높이 대응 */
+  bottom: env(safe-area-inset-bottom, 0px);
+  bottom: max(env(safe-area-inset-bottom), 0px);
+  
+  /* 웹뷰 환경에서 강제 Safe Area 적용 */
+  @media screen and (display-mode: standalone) {
+    bottom: max(env(safe-area-inset-bottom), 24px);
+    padding-bottom: max(env(safe-area-inset-bottom), 20px);
+  }
+  
   /* 웹뷰 최적화 */
   -webkit-transform: translateZ(0);
   transform: translateZ(0);

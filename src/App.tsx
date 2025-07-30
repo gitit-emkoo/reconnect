@@ -120,6 +120,56 @@ const App = () => {
     initializeSafeArea();
     // Apple ID 로그인 초기화
     initializeAppleSignIn();
+    
+    // 뷰포트 높이 실시간 업데이트 함수
+    const updateViewportHeight = () => {
+      const vh = window.innerHeight * 0.01;
+      document.documentElement.style.setProperty('--vh', `${vh}px`);
+    };
+
+    // 초기 설정
+    updateViewportHeight();
+
+    // 리사이즈, 오리엔테이션 변경, 가시성 변경 시 업데이트
+    window.addEventListener('resize', updateViewportHeight);
+    window.addEventListener('orientationchange', updateViewportHeight);
+    document.addEventListener('visibilitychange', updateViewportHeight);
+    
+    // 앱 포커스/블러 시에도 업데이트 (웹뷰에서 중요)
+    window.addEventListener('focus', updateViewportHeight);
+    window.addEventListener('blur', updateViewportHeight);
+    
+    // 웹뷰 환경에서 강제 레이아웃 업데이트
+    const forceLayoutUpdate = () => {
+      updateViewportHeight();
+      // DOM 강제 리플로우
+      document.body.offsetHeight;
+      // Safe Area 재계산
+      const root = document.documentElement;
+      root.style.setProperty('--safe-area-bottom', `${window.innerHeight - document.body.clientHeight}px`);
+    };
+    
+    // 웹뷰 환경 감지 및 추가 이벤트 리스너
+    if ((window.navigator as any).standalone || window.matchMedia('(display-mode: standalone)').matches) {
+      window.addEventListener('resize', forceLayoutUpdate);
+      window.addEventListener('orientationchange', () => {
+        setTimeout(forceLayoutUpdate, 100);
+      });
+    }
+
+    // 클린업
+    return () => {
+      window.removeEventListener('resize', updateViewportHeight);
+      window.removeEventListener('orientationchange', updateViewportHeight);
+      document.removeEventListener('visibilitychange', updateViewportHeight);
+      window.removeEventListener('focus', updateViewportHeight);
+      window.removeEventListener('blur', updateViewportHeight);
+      
+      // 웹뷰 환경 이벤트 리스너 제거
+      if ((window.navigator as any).standalone || window.matchMedia('(display-mode: standalone)').matches) {
+        window.removeEventListener('resize', forceLayoutUpdate);
+      }
+    };
   }, [checkAuth]);
 
   // 인증 상태를 확인하는 동안 로딩 스피너를 전체 화면에 표시
