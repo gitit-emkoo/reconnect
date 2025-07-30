@@ -24,7 +24,7 @@ const Container = styled.div`
   display: flex;
   flex-direction: column;
   align-items: center;
-  min-height: 100vh;
+  
   background: linear-gradient(135deg, #FFE5E5 0%, #E5E5FF 100%);
   padding: 2rem 1.5rem;
   box-sizing: border-box;
@@ -34,6 +34,7 @@ const Container = styled.div`
 const Logo = styled.img`
   width: 180px;
   height: auto;
+  margin-top: 2rem;
   margin-bottom: 1.5rem;
 `;
 
@@ -285,6 +286,7 @@ const ForgotPasswordLinksContainer = styled.div`
   justify-content: center;
   gap: 1.5rem;
   margin-top: 0.2rem;
+  margin-bottom: 5rem;  
   width: 100%;
   max-width: 340px;
 `;

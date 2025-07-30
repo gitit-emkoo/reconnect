@@ -18,8 +18,7 @@ import IconSubscribe from "../assets/Icon_Subscribe.png";
 
 const Container = styled.div`
   background-color: white; 
-  min-height: 100vh;
-  padding: 2rem 1rem 2rem;
+  padding: 2rem 1rem 6rem;
 `;
 
 const Title = styled.h2`
@@ -106,6 +105,51 @@ const SettingItem = styled.div< { disabled?: boolean } >`
 
 `;
 
+const InfoItem = styled.div`
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.8rem 0.5rem; 
+  font-size: 0.9rem;
+  color: #777; 
+  border-bottom: 1px solid #eee; 
+
+  &:last-child {
+    border-bottom: none;
+  }
+
+  .label {
+    font-weight: 500;
+    color: #555;
+  }
+
+  .value {
+    color: #999;
+    font-size: 0.7rem;
+  }
+`;
+
+const CompanyInfoContent = styled.div`
+  max-height: 400px;
+  overflow-y: auto;
+  padding: 1rem 0;
+`;
+
+const InfoSection = styled.div`
+  margin-bottom: 1.5rem;
+  
+  &:last-child {
+    margin-bottom: 0;
+  }
+`;
+
+const ModalSectionTitle = styled.h4`
+  font-size: 1.1rem;
+  color: #333;
+  margin-bottom: 0.8rem;
+  font-weight: 600;
+`;
+
 const MenuButton = styled.button`
   display: flex;
   flex-direction: column;
@@ -143,13 +187,14 @@ const MenuButton = styled.button`
 const MenuContainer = styled.div`
   background-color: rgb(249, 249, 249);
   border-radius: 16px;
+  display: flex;
+  justify-content: space-between;
   padding: 0.5rem 0 0.5rem;
   margin-top: 1.2rem;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
   overflow: hidden;
   width: 100%;
-  max-width: 420px;
-  
+
 `;
 
 const MenuGrid = styled.div`
@@ -167,6 +212,7 @@ const MyPage: React.FC = () => {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false);
   const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
+  const [isCompanyInfoModalOpen, setIsCompanyInfoModalOpen] = useState(false);
 
   // 토큰 체크는 Zustand의 accessToken 사용
   const accessToken = useAuthStore((state) => state.accessToken);
@@ -322,6 +368,10 @@ const MyPage: React.FC = () => {
               공지사항
               <span>▸</span>
             </SettingItem>
+            <SettingItem onClick={() => setIsCompanyInfoModalOpen(true)}>
+              사업자/앱정보
+              <span>▸</span>
+            </SettingItem>
           </SettingsListContainer>
         </Section>
 
@@ -349,6 +399,62 @@ const MyPage: React.FC = () => {
         message="정말로 로그아웃 하시겠습니까?"
         confirmButtonText="로그아웃"
       />
+
+      {/* 사업자/앱정보 모달 */}
+      <ConfirmationModal
+        isOpen={isCompanyInfoModalOpen}
+        onRequestClose={() => setIsCompanyInfoModalOpen(false)}
+        onConfirm={() => setIsCompanyInfoModalOpen(false)}
+        message=""
+        confirmButtonText="확인"
+        showCancelButton={false}
+      >
+        <CompanyInfoContent>
+          <InfoSection>
+            <ModalSectionTitle>사업자 정보</ModalSectionTitle>
+            <InfoItem>
+              <span className="label">회사명</span>
+              <span className="value">KWCC(주)</span>
+            </InfoItem>
+            <InfoItem>
+              <span className="label">대표자</span>
+              <span className="value">구은모</span>
+            </InfoItem>
+            <InfoItem>
+              <span className="label">사업자등록번호</span>
+              <span className="value">849-81-02606</span>
+            </InfoItem>
+            <InfoItem>
+              <span className="label">주소</span>
+              <span className="value">화성시 동탄대로 646-2, 907호</span>
+            </InfoItem>
+            <InfoItem>
+              <span className="label">연락처</span>
+              <span className="value">0507-8638-0682</span>
+            </InfoItem>
+            <InfoItem>
+              <span className="label">이메일</span>
+              <span className="value">cokwcc@gmail.com</span>
+            </InfoItem>
+            <InfoItem>
+              <span className="label">통신판매업</span>
+              <span className="value">2023-화성동탄-1793호</span>
+            </InfoItem>
+          </InfoSection>
+          
+          <InfoSection>
+            <ModalSectionTitle>앱 정보</ModalSectionTitle>
+            <InfoItem>
+              <span className="label">앱 버전</span>
+              <span className="value">1.0.0</span>
+            </InfoItem>
+            <InfoItem>
+              <span className="label">개발사</span>
+              <span className="value">KWCC(주)</span>
+            </InfoItem>
+          </InfoSection>
+        </CompanyInfoContent>
+      </ConfirmationModal>
     </>
   );
 };

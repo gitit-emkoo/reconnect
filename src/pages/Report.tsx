@@ -9,6 +9,18 @@ import { ReportData } from "../api/report";
 import LoadingSpinner from "../components/common/LoadingSpinner";
 import ConfirmationModal from '../components/common/ConfirmationModal';
 
+// 광고 박스 (투명한 여백용)
+const AdBox = styled.div`
+  width: 100%;
+  height: 6rem; /* 96px 높이 */
+  background-color: transparent; /* 투명 배경 */
+  margin-top: 1rem; /* 리포트 내용과의 간격 */
+  border-radius: 0.5rem;
+  /* 나중에 광고 추가 시 사용할 스타일 */
+  /* background-color: #f9f9f9; */
+  /* border: 1px solid #e0e0e0; */
+`;
+
 const Container = styled.div`
   background-color: #f9fafb;
   min-height: 100vh;
@@ -345,6 +357,7 @@ const Report: React.FC = () => {
         </AnnouncementText>
         {renderContent()}
         <ExpertSolutionCTA onNavigate={() => navigate('/expert')} />
+        <AdBox />
       </Container>
       <NavigationBar isSolo={!hasPartner}/>
       {/* 리포트 발행 모달 - ConfirmationModal로 교체 */}

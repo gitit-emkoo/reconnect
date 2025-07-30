@@ -245,6 +245,7 @@ const CheckboxLabel = styled.label`
 
 const AlreadyMember = styled.div`
   margin-top: 1rem;
+  margin-bottom: 8rem;  
   font-size: 0.9rem;
   color: #666;
   text-align: center;

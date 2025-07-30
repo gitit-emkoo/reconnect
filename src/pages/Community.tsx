@@ -40,14 +40,25 @@ interface Post {
 type PostsResponse = { posts: Post[]; total: number };
 
 // === Styled Components ===
+// 광고 박스 (투명한 여백용)
+const AdBox = styled.div`
+  width: 100%;
+  height: 10rem; 
+  background-color: transparent; 
+  margin-top: 1rem; 
+  border-radius: 0.5rem;
+`;
+
 const Container = styled.div`
   background-color:rgb(255, 255, 255);
   min-height: 100vh;
-  padding: 1rem 1rem 5rem 1rem;
+  padding: 1rem 1rem 2rem 1rem; 
+  
 `;
 
 const CategoryTabs = styled.div`
   display: flex;
+  align-items: flex-start; 
   gap: 0.5rem;
   margin-bottom: 1rem;
   overflow-x: auto;
@@ -383,6 +394,8 @@ const Community: React.FC = () => {
             )}
           </>
         )}
+        
+        <AdBox />
         
         <FABContainer>
           <FABButton to="/community/new">
