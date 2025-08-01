@@ -201,6 +201,7 @@ const ChallengePage: React.FC = () => {
   const [showFailureModal, setShowFailureModal] = useState(false);
   const [failedChallengeTitle, setFailedChallengeTitle] = useState('');
   const user = useAuthStore(state => state.user);
+  const checkAuth = useAuthStore(state => state.checkAuth);
   const hasPartner = !!user?.partner?.id;
 
   // React Query 훅 사용
@@ -208,8 +209,60 @@ const ChallengePage: React.FC = () => {
     activeChallenge, 
     challengeHistory, 
     isLoading, 
-
+    isActiveChallengeLoading,
+    isHistoryLoading
   } = useChallengeData();
+
+  // 디버깅 로그
+  console.log('ChallengePage - Data state:', {
+    hasActiveChallenge: !!activeChallenge,
+    activeChallenge,
+    challengeHistoryLength: challengeHistory?.completed?.length + challengeHistory?.failed?.length,
+    isLoading,
+    isActiveChallengeLoading,
+    isHistoryLoading
+  });
+
+  // 페이지 진입 시 데이터 강제 리페치
+  useEffect(() => {
+    const initializePage = async () => {
+      console.log('ChallengePage - 페이지 초기화 시작');
+      
+      // 1. 인증 상태 강제 확인
+      try {
+        await checkAuth();
+        console.log('인증 상태 확인 완료');
+      } catch (error) {
+        console.error('인증 상태 확인 실패:', error);
+      }
+      
+      // 2. 사용자 정보가 로드된 후 챌린지 데이터 리페치
+      if (user?.coupleId) {
+        console.log('ChallengePage - 강제 데이터 리페치 시작');
+        
+        // 사용자 정보 강제 리페치 (인증 상태 확인)
+        try {
+          await queryClient.invalidateQueries({ queryKey: ['user'] });
+          console.log('사용자 정보 리페치 완료');
+        } catch (error) {
+          console.error('사용자 정보 리페치 실패:', error);
+        }
+        
+        // 활성 챌린지와 히스토리 리페치
+        try {
+          await queryClient.invalidateQueries({ queryKey: ['activeChallenge', user.id] });
+          await queryClient.invalidateQueries({ queryKey: ['challengeHistory', user.id] });
+          console.log('챌린지 데이터 리페치 완료');
+        } catch (error) {
+          console.error('챌린지 데이터 리페치 실패:', error);
+        }
+      } else {
+        console.log('ChallengePage - coupleId가 없음:', { coupleId: user?.coupleId, userId: user?.id });
+      }
+    };
+
+    initializePage();
+  }, [user?.coupleId, user?.id, queryClient, checkAuth]);
 
   // 실패 챌린지 확인 함수
   const checkForFailedChallenge = useCallback(async () => {

@@ -4,11 +4,11 @@ import useNotificationStore from '../store/notificationsStore';
 import challengeApi from '../api/challenge';
 
 export function useChallengeNotifications() {
-    const { partner } = useAuthStore();
+    const { user } = useAuthStore();
     const { fetchNotifications } = useNotificationStore();
 
     useEffect(() => {
-        if (!partner) return;
+        if (!user?.coupleId) return; // 파트너 대신 coupleId로 조건 변경
 
         let isMounted = true;
         const intervalId = setInterval(async () => {
@@ -26,5 +26,5 @@ export function useChallengeNotifications() {
             isMounted = false;
             clearInterval(intervalId);
         };
-    }, [partner, fetchNotifications]);
+    }, [user?.coupleId, fetchNotifications]); // 의존성 배열도 coupleId로 변경
 } 

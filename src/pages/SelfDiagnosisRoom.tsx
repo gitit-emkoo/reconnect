@@ -151,24 +151,31 @@ const ToggleButton = styled.button`
 `;
 
 const CTA = styled.button`
-  background: linear-gradient(135deg, #ff69b4, #785cd2);
+  background: linear-gradient(135deg, #8e44ad, #7c3aed);
   color: #fff;
   border: none;
-  padding: 0.7rem 1.75rem;
-  border-radius: 8px;
+  padding: 1rem 2.5rem;
+  border-radius: 50px;
   font-weight: 600;
+  font-size: 1.1rem;
   cursor: pointer;
-  width: 100%;
-  font-size: 1rem;
   box-shadow: 0 4px 15px rgba(124, 58, 237, 0.3);
   transition: all 0.3s ease;
   display: flex;
   align-items: center;
-  justify-content: center;
+  gap: 0.5rem;
 
   &:hover {
     transform: translateY(-2px);
     box-shadow: 0 6px 20px rgba(124, 58, 237, 0.4);
+  }
+
+  &:disabled {
+    background: #f5f5f5;
+    color: #999;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
   }
 `;
 
@@ -187,6 +194,7 @@ const SelfDiagnosisRoom: React.FC = () => {
   const user = useAuthStore(state => state.user);
   const [showSubscribeModal, setShowSubscribeModal] = useState(false);
   const [showPaymentModal, setShowPaymentModal] = useState(false);
+  const [showMarriageCompletedModal, setShowMarriageCompletedModal] = useState(false);
 
   // marriage를 항상 위로 오도록 정렬
   const sortedTemplates = [...DIAGNOSIS_TEMPLATES].sort((a, b) => {
@@ -194,6 +202,9 @@ const SelfDiagnosisRoom: React.FC = () => {
     if (b.id === 'marriage') return 1;
     return 0;
   });
+
+  // 결혼진단 완료 여부 확인
+  const hasCompletedMarriageDiagnosis = (histories['marriage']?.length ?? 0) > 0;
 
   useEffect(() => {
     const init = async () => {
@@ -267,27 +278,42 @@ const SelfDiagnosisRoom: React.FC = () => {
             </>
           ) : (<NoHistory>진단 내역이 없습니다.</NoHistory>)}
           <ButtonContainer>
-            <CTA onClick={() => {
-              if (tpl.id === 'marriage') {
-                navigate(`/generic-diagnosis/${tpl.id}`);
-                return;
-              }
-              if (tpl.id === 'sex') {
-                if (user?.subscriptionStatus === 'SUBSCRIBED') {
-              navigate(`/generic-diagnosis/${tpl.id}`);
-                } else {
-                  setShowSubscribeModal(true);
+            <CTA 
+              onClick={() => {
+                if (tpl.id === 'marriage') {
+                  // 결혼진단 완료 여부 확인
+                  if (hasCompletedMarriageDiagnosis) {
+                    setShowMarriageCompletedModal(true);
+                    return;
+                  }
+                  navigate(`/generic-diagnosis/${tpl.id}`);
+                  return;
                 }
-                return;
-              }
-              // 그 외 진단은 결제 안내 모달
-              setShowPaymentModal(true);
-            }}>
+                if (tpl.id === 'sex') {
+                  if (user?.subscriptionStatus === 'SUBSCRIBED') {
+                navigate(`/generic-diagnosis/${tpl.id}`);
+                  } else {
+                    setShowSubscribeModal(true);
+                  }
+                  return;
+                }
+                // 그 외 진단은 결제 안내 모달
+                setShowPaymentModal(true);
+              }}
+              disabled={tpl.id === 'marriage' && hasCompletedMarriageDiagnosis}
+            >
               {tpl.id === 'marriage' ? (
-                <>
-                  <Badge>이벤트</Badge>
-                  <FreeText>무료로 시작하기</FreeText>
-                </>
+                hasCompletedMarriageDiagnosis ? (
+                  <>
+                    <Badge style={{ backgroundColor: '#52c41a' }}>완료</Badge>
+                    <span style={{ color: '#52c41a', fontWeight: 'bold' }}>진단 완료됨</span>
+                  </>
+                ) : (
+                  <>
+                    <Badge>이벤트</Badge>
+                    <FreeText>무료로 시작하기</FreeText>
+                  </>
+                )
               ) : tpl.id === 'sex' && user?.subscriptionStatus === 'SUBSCRIBED' ? (
                 <>
                   <SubscriberBadge>구독자</SubscriberBadge>
@@ -322,7 +348,16 @@ const SelfDiagnosisRoom: React.FC = () => {
         onRequestClose={() => setShowPaymentModal(false)}
         onConfirm={() => setShowPaymentModal(false)}
         title="이용 안내"
-        message="결제 후 진단 가능합니다."
+        message="구독하거나 결제 후 이용 바랍니다."
+        confirmButtonText="확인"
+        showCancelButton={false}
+      />
+      <ConfirmationModal
+        isOpen={showMarriageCompletedModal}
+        onRequestClose={() => setShowMarriageCompletedModal(false)}
+        onConfirm={() => setShowMarriageCompletedModal(false)}
+        title="진단 완료"
+        message="결혼생활 만족도 진단을 이미 완료하셨습니다. 진단 결과는 관계온도 계산에 사용되며, 한 번만 진행할 수 있습니다."
         confirmButtonText="확인"
         showCancelButton={false}
       />
