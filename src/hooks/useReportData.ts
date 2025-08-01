@@ -11,7 +11,7 @@ export const useReportData = () => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [selectedWeekValue, setSelectedWeekValue] = useState<string>('');
-    const [latestScore, setLatestScore] = useState<number>(61);
+    const [latestScore, setLatestScore] = useState<number>(0);
     const [hasLoadedOnce, setHasLoadedOnce] = useState(false);
 
     const hasPartner = !!user?.partnerId;
@@ -37,14 +37,16 @@ export const useReportData = () => {
                 
                 if (sortedReports.length > 0) {
                     setSelectedWeekValue(sortedReports[0].id);
-                    setLatestScore(sortedReports[0].overallScore);
+                    // 파트너가 있는 경우: 커플 온도 (user.temperature는 파트너 연결 시 동기화됨)
+                    setLatestScore(user.temperature || 0);
                 } else {
-                    setLatestScore((user as any)?.temperature ?? 61);
+                    // 파트너가 있는 경우: 커플 온도
+                    setLatestScore(user.temperature || 0);
                 }
             } else {
-                // 파트너가 없으면 개인의 마지막 진단 점수를 가져옴
-                const soloDiagnosis = await getLatestDiagnosisResult();
-                setLatestScore(soloDiagnosis?.score ?? 61);
+                // 파트너가 없는 경우: 개인 결혼진단 결과
+                const latestDiagnosis = await getLatestDiagnosisResult();
+                setLatestScore(latestDiagnosis?.score || 0);
                 setReports([]);
                 setAvailableWeeks([]);
             }

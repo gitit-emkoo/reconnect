@@ -7,8 +7,7 @@ import challengeApi from '../api/challenge';
 
 export const useDashboardData = () => {
   const { user, partner } = useAuthStore();
-  const temperature = user?.temperature;
-
+  
   const { data: diaryList = [], isLoading: isDiaryLoading } = useQuery({
     queryKey: ['diaries', user?.id],
     queryFn: fetchDiaries,
@@ -39,6 +38,10 @@ export const useDashboardData = () => {
     queryFn: () => challengeApi.getActiveChallenge(),
     enabled: !!partner,
   });
+  
+  // 파트너가 있는 경우: 커플 온도 (user.temperature는 파트너 연결 시 동기화됨)
+  // 파트너가 없는 경우: 개인 결혼진단 결과 또는 0
+  const temperature = partner ? (user?.temperature || 0) : (latestDiagnosis?.score || 0);
   
   const isLoading = isDiaryLoading || isSentMessagesLoading || isReceivedMessagesLoading || isDiagnosisLoading || isChallengeLoading;
   const isHeartGaugeLoading = isDiagnosisLoading || !user;
