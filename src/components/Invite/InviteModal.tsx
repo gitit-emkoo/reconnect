@@ -221,7 +221,7 @@ export const InviteModal: React.FC<InviteModalProps> = ({ onClose }) => {
             </ShareButton>
 
             <StatusMessage>
-              {invite.status === 'PENDING' && '파트너가 초대 코드를 입력할 때까지 기다려주세요.'}
+              {invite.status === 'PENDING' && '파트너에게 초대코드를 알려주세요.'}
               {invite.status === 'RESPONDED' && '파트너가 초대에 응답했습니다. 수락하시겠습니까?'}
               {invite.status === 'CONFIRMED' && '파트너와 연결이 완료되었습니다!'}
               {invite.status === 'REJECTED' && '파트너가 초대를 거절했습니다.'}

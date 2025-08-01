@@ -208,6 +208,28 @@ const GlobalStyle = createGlobalStyle`
       overscroll-behavior: none;
     }
   }
+  
+  /* 스크롤 최적화 */
+  html {
+    scroll-behavior: auto; /* 부드러운 스크롤 비활성화로 즉시 이동 */
+  }
+  
+  body {
+    scroll-behavior: auto;
+  }
+  
+  /* 페이지 전환 시 스크롤 위치 초기화 보장 */
+  * {
+    scroll-behavior: auto;
+  }
+  
+  /* 모바일에서 스크롤 성능 최적화 */
+  @media screen and (max-width: 768px) {
+    html, body {
+      -webkit-overflow-scrolling: touch;
+      scroll-behavior: auto;
+    }
+  }
 `;
 
 export default GlobalStyle;

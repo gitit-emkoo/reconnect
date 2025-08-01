@@ -336,11 +336,11 @@ const BaselineDiagnosisResult: React.FC = () => {
           <>
             <LoginText>
             {/* ⚠️텍스트 절대 바꾸지 말기!!! */}
-              AI기반 정식 진단을 통해 당신의 결혼생활을 더 깊이<br/>
-              이해하고 부부관계를 더욱 건강하게 돌볼 수 있어요.<br/>
-              지금 로그인 하면 무료진단 혜택이 제공됩니다.
+              기초 진단만으로는 관계를 이해하기 어려워요.<br/>
+              로그인만으로 결혼생활 정식 진단을 무료로 받을 수 있어요.<br/>
+              당신의 관계를 더 따뜻하게 만들 한걸음 1분이면 충분해요.
             </LoginText>
-            <ActionButton onClick={handleNextStep} disabled={loading}>정식진단 혜택 바로가기</ActionButton>
+            <ActionButton onClick={handleNextStep} disabled={loading}>앱에서 바로 무료료진단 혜택 받기</ActionButton>
             
           </>
         ) : (
