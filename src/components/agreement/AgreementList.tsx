@@ -37,12 +37,18 @@ export interface Agreement {
 // 메인 컨테이너
 const Container = styled.div`
   padding: 1.5rem;
+  display: block;
+  align-items: flex-start;
+  justify-content: flex-start;
 `;
 
 // 리스트 컨테이너
 const ListContainer = styled.div`
   background: rgb(255, 255, 255);
   border-radius: 12px;
+  display: block;
+  align-items: flex-start;
+  justify-content: flex-start;
 `;
 
 // 카드 스타일
