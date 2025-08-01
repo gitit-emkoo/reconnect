@@ -137,8 +137,6 @@ const GlobalStyle = createGlobalStyle`
   #root {
     min-height: 100vh;
     min-height: 100dvh;
-    display: flex;
-    flex-direction: column;
     height: 100%;
     
     /* 하단 네비게이션을 위한 여백 확보 (더 넉넉하게) */

@@ -21,7 +21,7 @@ import HeartGauge from '../components/Dashboard/HeartGauge';
 import MainMenu from '../components/Dashboard/MainMenu';
 import DashboardCalendar from '../components/Dashboard/DashboardCalendar';
 import Popup from '../components/common/Popup';
-import logoImage from '../assets/Logo.png';
+import logoImage from '../assets/typologo.png';
 import { useReportData } from '../hooks/useReportData';
 import SkeletonHeartGauge from '../components/common/SkeletonHeartGauge';
 import { userService } from '../services/userService';
@@ -36,7 +36,7 @@ const getEmotionByTemperature = (temp: number): string => {
 };
 
 const Container = styled.div`
-  padding: 3rem 1.5rem;
+  padding: 1.5rem 1.5rem;
   background-color: #ffffff;
   padding-bottom: 40px;
   height: auto;
@@ -50,7 +50,7 @@ const Header = styled.div`
 `;
 
 const Logo = styled.img`
-  width: 180px;
+  width: 130px;
   height: auto;
 `;
 
