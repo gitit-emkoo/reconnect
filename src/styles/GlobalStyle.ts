@@ -22,12 +22,11 @@ const GlobalStyle = createGlobalStyle`
   body {
     font-size: calc(1em * var(--font-size-scale));
     background-color: #fafafa;
-      /* 폴더블 디바이스 최적화 */
-  min-height: 100vh;
-  min-height: 100dvh; /* dynamic viewport height */
-  min-height: calc(var(--vh, 1vh) * 100); /* 동적 뷰포트 높이 우선 적용 */
-  height: 100%;
-  overflow-x: hidden;
+    /* 폴더블 디바이스 최적화 */
+    min-height: 100vh;
+    min-height: 100dvh; /* dynamic viewport height */
+    height: 100%;
+    overflow-x: hidden;
     
     /* 상단 여백은 헤더 컴포넌트가 자연스럽게 처리하도록 제거 */
     
@@ -133,11 +132,6 @@ const GlobalStyle = createGlobalStyle`
     /* 웹뷰 전체 화면 지원 */
     height: 100%;
     overflow-x: hidden;
-    
-    /* 웹뷰 환경에서 Window Insets 통일 처리 */
-    @media screen and (display-mode: standalone) {
-      padding-bottom: max(env(safe-area-inset-bottom), 24px);
-    }
   }
   
   #root {
@@ -147,8 +141,8 @@ const GlobalStyle = createGlobalStyle`
     flex-direction: column;
     height: 100%;
     
-    /* 하단 네비게이션을 위한 여백 확보 (AdBox 사용으로 줄임) */
-    padding-bottom: calc(80px + max(env(safe-area-inset-bottom), 8px));
+    /* 하단 네비게이션을 위한 여백 확보 (더 넉넉하게) */
+    padding-bottom: calc(80px + max(env(safe-area-inset-bottom), 24px));
   }
   
   /* Android Chrome 주소창 숨김 처리 */
@@ -166,7 +160,7 @@ const GlobalStyle = createGlobalStyle`
     }
     
     #root {
-      padding-bottom: calc(80px + max(env(safe-area-inset-bottom), 8px));
+      padding-bottom: calc(80px + max(env(safe-area-inset-bottom), 64px));
     }
   }
   
@@ -177,7 +171,7 @@ const GlobalStyle = createGlobalStyle`
     }
     
     #root {
-      padding-bottom: calc(80px + max(env(safe-area-inset-bottom), 8px));
+      padding-bottom: calc(80px + max(env(safe-area-inset-bottom), 24px));
     }
   }
   
@@ -188,7 +182,7 @@ const GlobalStyle = createGlobalStyle`
     }
     
     #root {
-      padding-bottom: calc(80px + max(env(safe-area-inset-bottom), 8px));
+      padding-bottom: calc(80px + max(env(safe-area-inset-bottom), 20px));
     }
   }
   

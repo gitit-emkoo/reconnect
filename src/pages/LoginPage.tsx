@@ -359,52 +359,8 @@ const LoginPage: React.FC = () => {
   const handleSuccessfulLogin = async (user: User, token: string) => {
     setAuth(token, user);
     
-    // 즉시 대시보드로 이동 (사용자 경험 개선)
+    // 즉시 대시보드로 이동
     navigate(from, { replace: true });
-    
-    // 백그라운드에서 비회원 진단 결과 마이그레이션 (Fire-and-forget)
-    const unauthDiagnosisRaw = localStorage.getItem('baselineDiagnosisAnswers');
-    if (unauthDiagnosisRaw) {
-      try {
-        const { score, answers } = JSON.parse(unauthDiagnosisRaw);
-        // 비동기로 처리하고 에러 무시
-        axiosInstance.post('/diagnosis/unauth', { score, answers }, {
-          headers: { Authorization: `Bearer ${token}` },
-          timeout: 5000 // 5초 타임아웃
-        }).then(() => {
-          localStorage.removeItem('baselineDiagnosisAnswers');
-        }).catch(err => {
-          console.error("Failed to migrate unauth diagnosis", err);
-          // 실패해도 사용자 경험에 영향 없음
-        });
-      } catch (err) {
-        console.error("Failed to parse unauth diagnosis", err);
-      }
-    }
-
-    // 백그라운드에서 온보딩 완료 여부 확인
-    try {
-      await Promise.race([
-        axiosInstance.get('/diagnosis/my-latest', {
-          headers: { Authorization: `Bearer ${token}` },
-          timeout: 3000 // 3초 타임아웃
-        }),
-        new Promise<never>((_, reject) => 
-          setTimeout(() => reject(new Error('Timeout')), 3000)
-        )
-      ]);
-      
-      // 온보딩이 필요한 경우에만 리다이렉트
-      // 이미 대시보드에 있으므로 추가 리다이렉트 불필요
-    } catch (error) {
-      if (axios.isAxiosError(error) && error.response?.status === 404) {
-        // 온보딩이 필요한 경우에만 리다이렉트
-        navigate('/onboarding/1', { replace: true });
-      } else {
-        console.error('Failed to check for latest diagnosis, staying on dashboard', error);
-        // 에러가 있어도 대시보드에 머무름
-      }
-    }
   };
 
   const onSubmitEmailLogin: SubmitHandler<LoginFormData> = async (data) => {
@@ -438,56 +394,37 @@ const LoginPage: React.FC = () => {
   const handleSocialLoginSuccess = async (googleAccessToken: string) => {
     setLoginError('');
     try {
-      // 비회원 진단 결과 가져오기
-      const unauthDiagnosisRaw = localStorage.getItem('baselineDiagnosisAnswers');
-      const unauthDiagnosis = unauthDiagnosisRaw ? JSON.parse(unauthDiagnosisRaw) : null;
-      
       const response = await Promise.race([
         axiosInstance.post<{ user: User; accessToken: string }>(
           '/auth/google/login',
           { 
-            accessToken: googleAccessToken,
-            unauthDiagnosis: unauthDiagnosis ? {
-              score: unauthDiagnosis.score,
-              answers: unauthDiagnosis.answers,
-              createdAt: new Date().toISOString()
-            } : null
+            accessToken: googleAccessToken
           },
           { timeout: 8000 } // 8초 타임아웃
         ),
         new Promise<never>((_, reject) => 
           setTimeout(() => reject(new Error('Login timeout')), 8000)
         )
-      ]) as { data: { user: User; accessToken: string } };
-      
-      // 로그인 성공 시 비회원 진단 결과 삭제
-      if (unauthDiagnosis) {
-        localStorage.removeItem('baselineDiagnosisAnswers');
+      ]);
+
+      const { user, accessToken: token } = response.data;
+      if (user && token) {
+        await handleSuccessfulLogin(user, token);
+      } else {
+        setLoginError('로그인에 실패했습니다. 응답 데이터가 올바르지 않습니다.');
       }
-      
-      await handleSuccessfulLogin(response.data.user, response.data.accessToken);
     } catch (error: any) {
       console.error('Google login failed:', error);
-      if (error instanceof Error && error.message === 'Login timeout') {
-        setLoginError('로그인이 시간 초과되었습니다. 네트워크 상태를 확인하고 다시 시도해주세요.');
-      } else if (axios.isAxiosError(error) && error.response?.status === 401) {
-        // 가입되지 않은 사용자인 경우 회원가입 페이지로 이동
-        const unauthDiagnosisRaw = localStorage.getItem('baselineDiagnosisAnswers');
-        const unauthDiagnosis = unauthDiagnosisRaw ? JSON.parse(unauthDiagnosisRaw) : null;
-        
-        if (unauthDiagnosis) {
-          // 비회원 진단 결과가 있으면 회원가입 페이지로 이동
-          navigate('/register', { 
-            state: { 
-              from: location.state?.from || '/dashboard',
-              unauthDiagnosis 
-            } 
-          });
-        } else {
+      if (axios.isAxiosError(error) && error.response) {
+        if (error.response.status === 401) {
           setLoginError('가입되지 않은 사용자입니다. 회원가입을 진행해주세요.');
+        } else if (error.response.status === 409) {
+          setLoginError('이미 다른 방식으로 가입된 이메일입니다.');
+        } else {
+          setLoginError(`오류가 발생했습니다: ${error.response.data.message || '다시 시도해주세요.'}`);
         }
       } else {
-        setLoginError('구글 로그인에 실패했습니다. 다시 시도해주세요.');
+        setLoginError('네트워크 오류가 발생했습니다. 잠시 후 다시 시도해주세요.');
       }
     }
   };
@@ -504,62 +441,35 @@ const LoginPage: React.FC = () => {
   };
 
   const handleAppleLogin = async () => {
-    setLoginError('');
     try {
       const appleResponse = await signInWithApple();
       
-      // 비회원 진단 결과 가져오기
-      const unauthDiagnosisRaw = localStorage.getItem('baselineDiagnosisAnswers');
-      const unauthDiagnosis = unauthDiagnosisRaw ? JSON.parse(unauthDiagnosisRaw) : null;
-      
-      const response = await Promise.race([
-        axiosInstance.post<{ user: User; accessToken: string }>(
-          '/auth/apple/login',
-          { 
-            idToken: appleResponse.idToken,
-            authorizationCode: appleResponse.authorizationCode,
-            user: appleResponse.user,
-            unauthDiagnosis: unauthDiagnosis ? {
-              score: unauthDiagnosis.score,
-              answers: unauthDiagnosis.answers,
-              createdAt: new Date().toISOString()
-            } : null
-          },
-          { timeout: 8000 }
-        ),
-        new Promise<never>((_, reject) => 
-          setTimeout(() => reject(new Error('Login timeout')), 8000)
-        )
-      ]) as { data: { user: User; accessToken: string } };
-      
-      // 로그인 성공 시 비회원 진단 결과 삭제
-      if (unauthDiagnosis) {
-        localStorage.removeItem('baselineDiagnosisAnswers');
+      const response = await axiosInstance.post<{ user: User; accessToken: string }>(
+        '/auth/apple/login',
+        { 
+          idToken: appleResponse.idToken,
+          authorizationCode: appleResponse.authorizationCode
+        }
+      );
+
+      const { user, accessToken: token } = response.data;
+      if (user && token) {
+        await handleSuccessfulLogin(user, token);
+      } else {
+        setLoginError('로그인에 실패했습니다. 응답 데이터가 올바르지 않습니다.');
       }
-      
-      await handleSuccessfulLogin(response.data.user, response.data.accessToken);
     } catch (error: any) {
       console.error('Apple login failed:', error);
-      if (error instanceof Error && error.message === 'Login timeout') {
-        setLoginError('로그인이 시간 초과되었습니다. 네트워크 상태를 확인하고 다시 시도해주세요.');
-      } else if (axios.isAxiosError(error) && error.response?.status === 401) {
-        // 가입되지 않은 사용자인 경우 회원가입 페이지로 이동
-        const unauthDiagnosisRaw = localStorage.getItem('baselineDiagnosisAnswers');
-        const unauthDiagnosis = unauthDiagnosisRaw ? JSON.parse(unauthDiagnosisRaw) : null;
-        
-        if (unauthDiagnosis) {
-          // 비회원 진단 결과가 있으면 회원가입 페이지로 이동
-          navigate('/register', { 
-            state: { 
-              from: location.state?.from || '/dashboard',
-              unauthDiagnosis 
-            } 
-          });
-        } else {
+      if (axios.isAxiosError(error) && error.response) {
+        if (error.response.status === 401) {
           setLoginError('가입되지 않은 사용자입니다. 회원가입을 진행해주세요.');
+        } else if (error.response.status === 409) {
+          setLoginError('이미 다른 방식으로 가입된 이메일입니다.');
+        } else {
+          setLoginError(`오류가 발생했습니다: ${error.response.data.message || '다시 시도해주세요.'}`);
         }
       } else {
-        setLoginError('Apple ID 로그인에 실패했습니다. 다시 시도해주세요.');
+        setLoginError('네트워크 오류가 발생했습니다. 잠시 후 다시 시도해주세요.');
       }
     }
   };

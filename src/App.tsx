@@ -1,6 +1,13 @@
 // src/App.tsx (업데이트된 부분)
 
 import  {useEffect}  from 'react';
+
+// Window 객체에 커스텀 속성 타입 선언
+declare global {
+  interface Window {
+    reconnectBrandLogged?: boolean;
+  }
+}
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 import { GoogleOAuthProvider } from '@react-oauth/google';
 import GlobalStyle from "./styles/GlobalStyle";
@@ -83,7 +90,7 @@ const Home = () => {
     return <LoadingSpinner fullscreen={true} size={60} />;
   }
 
-  return isAuthenticated ? <Navigate to="/dashboard" replace /> : <Navigate to="/login" replace />;
+  return isAuthenticated ? <Navigate to="/dashboard" replace /> : <Navigate to="/onboarding" replace />;
 };
 
 // 알림 관련 훅을 관리하는 컴포넌트
@@ -114,6 +121,44 @@ const App = () => {
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
 
   useEffect(() => {
+    // RECONNECT 브랜드 콘솔 출력 (개발 환경에서만 한 번 출력)
+    if (!window.reconnectBrandLogged) {
+      console.log(`%c
+MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
+MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
+MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
+MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
+MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
+MMMMMMMMMMMMMMMMMMMMWNNNNWMMMMMMMWWNXXNWWMMMMMMMMMMMMMMMMMMM
+MMMMMMMMMMMMMMMMWXOxollcloxOKNNKkdolcclodOXWMMMMMMMMMMMMMMMM
+MMMMMMMMMMMMMMMXkl:;clddoc:;cllc;:coddoc:;cxKWMMMMMMMMMMMMMM
+MMMMMMMMMMMMMWKo:;lkKNWWWKo:;;:cx0XWWWWXOo:;l0WMMMMMMMMMMMMM
+MMMMMMMMMMMMMXd;:oKWMMMMWOc;:dOKWMMMMMMMMNx:;oKMMMMMMMMMMMMM
+MMMMMMMMMMMMM0c;c0MMMMMMNd;;oXMMMMMMMMMMMMKl;:OMMMMMMMMMMMMM
+MMMMMMMMMMMMM0c;c0MMMMMMXo;;dNMMMMMMMMMMMMKl;:OMMMMMMMMMMMMM
+MMMMMMMMMMMMMNd;:oKWMMMMWk:;cONWMMMMMMMMMMN0odXMMMMMMMMMMMMM
+MMMMMMMMMMMMMMXd::cxKWMMMNx:;cld0XWWWNXNMMMMWWMMMMMMMMMMMMMM
+MMMMMMMMMMMMMMMW0d:;cxKWMMW0oc:;:cooolcoONMMMMMMMMMMMMMMMMMM
+MMMMMMMMMMMMMMMMMW0d:;cd0WMMWK0kdoc::::lONMMMMMMMMMMMMMMMMMM
+MMMMMMMMMMMMMMMMMMMW0dc;:d0NMMMMNkl:;lkNMMMMMMMMMMMMMMMMMMMM
+MMMMMMMMMMMMMMMMMMMMMWKdc;:o0XX0o:;lkXMMMMMMMMMMMMMMMMMMMMMM
+MMMMMMMMMMMMMMMMMMMMMMMWKxc;:cc:;cxXWMMMMMMMMMMMMMMMMMMMMMMM
+MMMMMMMMMMMMMMMMMMMMMMMMMWKxc;;cxXWMMMMMMMMMMMMMMMMMMMMMMMMM
+MMMMMMMMMMMMMMMMMMMMMMMMMMMWKOkKWMMMMMMMMMMMMMMMMMMMMMMMMMMM
+MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
+MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
+MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
+MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
+MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
+MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
+MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
+`, 'color: #785cd2; font-family: monospace; font-size: 10px; line-height: 1;');
+      
+      console.log('%c리커넥트에 오신 것을 환영합니다!\n함께 성장하는 커플을 위한 서비스', 'color: #ff69b4; font-weight: bold; font-size: 16px;');
+      
+      window.reconnectBrandLogged = true;
+    }
+    
     console.log("checkAuth");
     checkAuth();
     // 안전 영역 초기화
@@ -201,6 +246,7 @@ const App = () => {
             <Route path="/support/faq" element={<FaqPage />} />
             <Route path="/legal/privacy" element={<PrivacyPolicyPage />} />
             <Route path="/auth/kakao/callback" element={<KakaoCallback />} />
+            <Route path="/auth/kakao/login/callback" element={<KakaoCallback />} />
             <Route path="/auth/kakao/register/callback" element={<KakaoCallback />} />
 
             {/* 보호된 라우트 */}

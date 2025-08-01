@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import styled from 'styled-components';
 import { useForm } from 'react-hook-form';
@@ -262,27 +262,12 @@ const AlreadyMember = styled.div`
   }
 `;
 
-const getUnauthDiagnosisData = () => {
-  const unauthResult = localStorage.getItem('baselineDiagnosisAnswers');
-  if (unauthResult) {
-    try {
-      const { score, answers } = JSON.parse(unauthResult);
-      return { unauthDiagnosis: { score, answers } };
-    } catch (e) {
-      console.error('Failed to parse unauth diagnosis data', e);
-      return {};
-    }
-  }
-  return {};
-};
-
 const RegisterPage: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const [passwordShown, setPasswordShown] = useState(false);
   const [confirmPasswordShown, setConfirmPasswordShown] = useState(false);
   const [agreedToTerms, setAgreedToTerms] = useState(false);
-  const [showDiagnosisModal, setShowDiagnosisModal] = useState(false);
   const [showTermsModal, setShowTermsModal] = useState(false);
   const [showPrivacyModal, setShowPrivacyModal] = useState(false);
   const [apiError, setApiError] = useState<string | null>(null);
@@ -297,41 +282,16 @@ const RegisterPage: React.FC = () => {
     resolver: zodResolver(registerSchema),
   });
 
-  useEffect(() => {
-    const unauthResult = localStorage.getItem('baselineDiagnosisAnswers');
-    if (!unauthResult) {
-      setShowDiagnosisModal(true);
-    }
-  }, []);
-
-  const handleConfirmDiagnosis = () => {
-    navigate('/diagnosis');
-  };
-
   const googleLogin = useGoogleLogin({
     onSuccess: async (tokenResponse) => {
       try {
-        // 비회원 진단 결과 가져오기
-        const unauthDiagnosisRaw = localStorage.getItem('baselineDiagnosisAnswers');
-        const unauthDiagnosis = unauthDiagnosisRaw ? JSON.parse(unauthDiagnosisRaw) : null;
-        
         const payload: any = {
-          accessToken: tokenResponse.access_token,
-          unauthDiagnosis: unauthDiagnosis ? {
-            score: unauthDiagnosis.score,
-            answers: unauthDiagnosis.answers,
-            createdAt: new Date().toISOString()
-          } : null
+          accessToken: tokenResponse.access_token
         };
 
         const response = await axiosInstance.post('/auth/google/register', payload);
         const { accessToken, user } = response.data;
         setAuth(accessToken, user);
-        
-        // 회원가입 성공 시 비회원 진단 결과 삭제
-        if (unauthDiagnosis) {
-          localStorage.removeItem('baselineDiagnosisAnswers');
-        }
         
         navigate(from, { replace: true });
       } catch (error: any) {
@@ -357,29 +317,15 @@ const RegisterPage: React.FC = () => {
     try {
       const appleResponse = await signInWithApple();
       
-      // 비회원 진단 결과 가져오기
-      const unauthDiagnosisRaw = localStorage.getItem('baselineDiagnosisAnswers');
-      const unauthDiagnosis = unauthDiagnosisRaw ? JSON.parse(unauthDiagnosisRaw) : null;
-      
       const payload: any = {
         idToken: appleResponse.idToken,
         authorizationCode: appleResponse.authorizationCode,
-        user: appleResponse.user,
-        unauthDiagnosis: unauthDiagnosis ? {
-          score: unauthDiagnosis.score,
-          answers: unauthDiagnosis.answers,
-          createdAt: new Date().toISOString()
-        } : null
+        user: appleResponse.user
       };
 
       const response = await axiosInstance.post('/auth/apple/register', payload);
       const { accessToken, user } = response.data;
       setAuth(accessToken, user);
-      
-      // 회원가입 성공 시 비회원 진단 결과 삭제
-      if (unauthDiagnosis) {
-        localStorage.removeItem('baselineDiagnosisAnswers');
-      }
       
       navigate(from, { replace: true });
     } catch (error: any) {
@@ -393,32 +339,25 @@ const RegisterPage: React.FC = () => {
   };
 
   const onSubmit = async (data: RegisterFormData) => {
-    if (!agreedToTerms) {
-      setApiError('이용약관 및 개인정보 처리방침에 동의해야 합니다.');
-      return;
-    }
     setApiError(null);
     try {
       const payload = {
         email: data.email,
         password: data.password,
-        nickname: data.nickname,
-        ...getUnauthDiagnosisData(),
+        nickname: data.nickname
       };
       
       const response = await axiosInstance.post('/auth/register', payload);
       const { accessToken, user } = response.data;
       setAuth(accessToken, user);
       
-      localStorage.removeItem('baselineDiagnosisAnswers');
-
       navigate(from, { replace: true });
     } catch (error: any) {
-      console.error(error);
-      if (error.response?.data?.message) {
-        setApiError(error.response.data.message);
+      console.error('Register error:', error);
+      if (isAxiosError(error) && error.response?.status === 409) {
+        setApiError('이미 가입된 사용자입니다. 로그인을 진행해주세요.');
       } else {
-        setApiError('회원가입에 실패했습니다. 잠시 후 다시 시도해주세요.');
+        setApiError(error.response?.data?.message || '회원가입에 실패했습니다.');
       }
     }
   };
@@ -499,15 +438,6 @@ const RegisterPage: React.FC = () => {
       </Form>
 
       <AlreadyMember>이미 회원이신가요? <a onClick={() => navigate('/login')}>로그인</a></AlreadyMember>
-
-      <ConfirmationModal
-        isOpen={showDiagnosisModal}
-        onRequestClose={() => setShowDiagnosisModal(false)}
-        onConfirm={handleConfirmDiagnosis}
-        message="관계온도 진단 기록이 없습니다. 정확한 진단을 위해 먼저 관계온도 진단을 진행해주세요."
-        confirmButtonText="진단하러 가기"
-        showCancelButton={false}
-      />
 
       {showTermsModal && (
         <ConfirmationModal

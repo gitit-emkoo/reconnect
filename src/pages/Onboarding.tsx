@@ -184,7 +184,7 @@ const Onboarding: React.FC = () => {
   });
 
   const handleStart = () => {
-    navigate('/diagnosis');
+    navigate('/login');
   };
 
   const handleCardClick = (direction: 'left' | 'right') => {
@@ -222,7 +222,7 @@ const Onboarding: React.FC = () => {
         ))}
       </DotsContainer>
       
-      <StartButton onClick={handleStart}>기초 관계온도 진단하기</StartButton>
+      <StartButton onClick={handleStart}>시작하기</StartButton>
     </Container>
   );
 };
