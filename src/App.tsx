@@ -24,6 +24,7 @@ import { fetchReceivedMessages } from './pages/EmotionCard';
 import { useQuery } from '@tanstack/react-query';
 import { initializeSafeArea } from './utils/safeArea';
 import { initializeAppleSignIn } from './utils/socialAuth';
+import { initializeWebViewOptimization } from './utils/webview';
 
 
 // 페이지 컴포넌트 임포트
@@ -165,6 +166,8 @@ MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
     initializeSafeArea();
     // Apple ID 로그인 초기화
     initializeAppleSignIn();
+    // 웹뷰 최적화 및 전체 화면 모드 활성화
+    initializeWebViewOptimization();
     
     // 뷰포트 높이 실시간 업데이트 함수
     const updateViewportHeight = () => {

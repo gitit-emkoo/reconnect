@@ -117,18 +117,6 @@ const GlobalStyle = createGlobalStyle`
   }
   
   html {
-    /* iOS 11 이하 호환성 */
-    padding-top: constant(safe-area-inset-top);
-    padding-left: constant(safe-area-inset-left);
-    padding-right: constant(safe-area-inset-right);
-    padding-bottom: constant(safe-area-inset-bottom);
-    
-    /* iOS 11+ 및 Android */
-    padding-top: env(safe-area-inset-top);
-    padding-left: env(safe-area-inset-left);
-    padding-right: env(safe-area-inset-right);
-    padding-bottom: env(safe-area-inset-bottom);
-    
     /* 웹뷰 전체 화면 지원 */
     height: 100%;
     overflow-x: hidden;
@@ -139,63 +127,26 @@ const GlobalStyle = createGlobalStyle`
     min-height: 100dvh;
     height: 100%;
     
-    /* 하단 네비게이션을 위한 여백 확보 (더 넉넉하게) */
-    padding-bottom: calc(80px + max(env(safe-area-inset-bottom), 24px));
+    /* 하단 네비게이션을 위한 여백 확보 */
+    padding-bottom: 80px;
   }
   
-  /* Android Chrome 주소창 숨김 처리 */
-  @media screen and (display-mode: standalone) {
-    body {
-      padding-bottom: max(env(safe-area-inset-bottom), 20px);
-    }
-  }
-  
-  /* 폴더블 디바이스 특별 처리 */
-  @media screen and (max-width: 412px) and (max-height: 915px) {
-    /* 갤럭시 Z 플립 감지 */
-    html {
-      padding-bottom: max(env(safe-area-inset-bottom), 64px);
-    }
-    
-    #root {
-      padding-bottom: calc(80px + max(env(safe-area-inset-bottom), 64px));
-    }
-  }
-  
-  @media screen and (min-width: 720px) and (max-width: 840px) {
-    /* 갤럭시 Z 폴드 감지 */
-    html {
-      padding-bottom: max(env(safe-area-inset-bottom), 24px);
-    }
-    
-    #root {
-      padding-bottom: calc(80px + max(env(safe-area-inset-bottom), 24px));
-    }
-  }
-  
-  /* iPhone X 이상 디바이스 */
-  @supports (padding: max(0px)) {
-    body {
-      padding-bottom: max(env(safe-area-inset-bottom), 20px);
-    }
-    
-    #root {
-      padding-bottom: calc(80px + max(env(safe-area-inset-bottom), 20px));
-    }
-  }
-  
-  /* 폴더블 디바이스 화면 변화 감지 */
+  /* 전체 화면 모드에서 네비게이션 여백 조정 */
   @media (display-mode: fullscreen) {
-    /* 전체 화면 모드 */
-    body {
-      padding-bottom: max(env(safe-area-inset-bottom), 20px);
+    #root {
+      padding-bottom: 80px;
+    }
+  }
+  
+  @media (display-mode: standalone) {
+    #root {
+      padding-bottom: 80px;
     }
   }
   
   @media (display-mode: minimal-ui) {
-    /* 최소 UI 모드 */
-    body {
-      padding-bottom: max(env(safe-area-inset-bottom), 20px);
+    #root {
+      padding-bottom: 80px;
     }
   }
   
