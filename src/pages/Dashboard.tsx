@@ -50,7 +50,7 @@ const Header = styled.div`
 `;
 
 const Logo = styled.img`
-  width: 130px;
+  width: 110px;
   height: auto;
 `;
 
