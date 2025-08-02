@@ -90,7 +90,7 @@ const EmotionCard: React.FC = () => {
   const ymd = formatInKST(today, 'yyyyMMdd');
   const hideToday = typeof window !== 'undefined' && localStorage.getItem(`${todayKey}_${ymd}`) === 'true';
   const [showPopup, setShowPopup] = useState(!hideToday);
-  const [selectedMonth, setSelectedMonth] = useState<string>(new Date().toISOString().slice(0, 7));
+  const [selectedMonth, setSelectedMonth] = useState<string>('');
   const [sortOrder, setSortOrder] = useState<'newest' | 'oldest'>('newest');
   const [tab, setTab] = useState<'sent' | 'received'>('sent');
   const [hoveredCard, setHoveredCard] = useState<string | null>(null);
@@ -132,6 +132,26 @@ const EmotionCard: React.FC = () => {
 
   // 커스텀 훅 사용 -> App.tsx로 이동
   // useEmotionCardNotifications(receivedMessages);
+
+  // 사용 가능한 월 중 가장 최신 월로 selectedMonth 설정
+  useEffect(() => {
+    const getAvailableMonths = (messages: SentMessage[]) => {
+      const months = new Set(messages.map(msg => formatInKST(msg.createdAt, 'yyyy-MM')));
+      return Array.from(months).sort().reverse();
+    };
+
+    if (tab === 'sent' && sentMessages.length > 0) {
+      const availableMonths = getAvailableMonths(sentMessages);
+      if (availableMonths.length > 0 && selectedMonth === '') {
+        setSelectedMonth(availableMonths[0]);
+      }
+    } else if (tab === 'received' && receivedMessages.length > 0) {
+      const availableMonths = getAvailableMonths(receivedMessages);
+      if (availableMonths.length > 0 && selectedMonth === '') {
+        setSelectedMonth(availableMonths[0]);
+      }
+    }
+  }, [sentMessages, receivedMessages, tab, selectedMonth]);
 
   // 탭 전환 시 refetch
   useEffect(() => {

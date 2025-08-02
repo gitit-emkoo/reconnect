@@ -186,7 +186,7 @@ const EmotionCardList: React.FC<EmotionCardListProps> = ({
                 </TabButton>
             </TabsContainer>
 
-            {tab === 'sent' && !isLoadingSent && sentMessages.length > 0 && (
+            {tab === 'sent' && !isLoadingSent && sentMessages.length > 0 && selectedMonth && (
                 <SentCardsSection>
                     <SentCardsTitle>내가 보낸 감정 카드</SentCardsTitle>
                     <FilterContainer>
@@ -241,13 +241,25 @@ const EmotionCardList: React.FC<EmotionCardListProps> = ({
                     <p>아직 작성한 카드가 없습니다.</p>
                 </SentCardsSection>
             )}
+            {tab === 'sent' && !isLoadingSent && sentMessages.length > 0 && !selectedMonth && (
+                <SentCardsSection>
+                    <SentCardsTitle>내가 보낸 감정 카드</SentCardsTitle>
+                    <p>{new Date().getFullYear()}년 {new Date().getMonth() + 1}월에 보낸 감정카드가 없습니다.</p>
+                </SentCardsSection>
+            )}
             {tab === 'received' && !isLoadingReceived && receivedMessages.length === 0 && (
                 <SentCardsSection>
                     <SentCardsTitle>내가 받은 감정 카드</SentCardsTitle>
                     <p>아직 받은 카드가 없습니다.</p>
                 </SentCardsSection>
             )}
-            {tab === 'received' && !isLoadingReceived && receivedMessages.length > 0 && (
+            {tab === 'received' && !isLoadingReceived && receivedMessages.length > 0 && !selectedMonth && (
+                <SentCardsSection>
+                    <SentCardsTitle>내가 받은 감정 카드</SentCardsTitle>
+                    <p>{new Date().getFullYear()}년 {new Date().getMonth() + 1}월에 받은 감정카드가 없습니다.</p>
+                </SentCardsSection>
+            )}
+            {tab === 'received' && !isLoadingReceived && receivedMessages.length > 0 && selectedMonth && (
                 <SentCardsSection>
                     <SentCardsTitle>파트너가 보낸 감정 카드</SentCardsTitle>
                     <FilterContainer>

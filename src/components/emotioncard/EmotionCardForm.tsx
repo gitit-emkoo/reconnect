@@ -135,7 +135,7 @@ const EmotionCardForm: React.FC<EmotionCardFormProps> = ({
           {selectedEmoji || '❤️'}
         </span>
         <button type="button" onClick={() => setShowEmojiPicker(v => !v)} style={{ border: '1px solid #eee', borderRadius: '8px', padding: '0.3rem 0.8rem', background: '#fafafa', cursor: 'pointer' }}>
-          {selectedEmoji ? '다시 클릭하고 이모지를 수정해보세요' : '전하고 싶은 감정을 선택하세요'}
+          {selectedEmoji ? '전하고 싶은 감정을 선택하세요' : '전하고 싶은 감정을 선택하세요'}
         </button>
       </div>
       {showEmojiPicker && (
