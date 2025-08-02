@@ -24,7 +24,7 @@ import { fetchReceivedMessages } from './pages/EmotionCard';
 import { useQuery } from '@tanstack/react-query';
 import { initializeSafeArea } from './utils/safeArea';
 import { initializeAppleSignIn } from './utils/socialAuth';
-import { enableFullscreenMode, initializeWebViewOptimization } from './utils/webview';
+import { initializeWebViewOptimization } from './utils/webview';
 
 
 // 페이지 컴포넌트 임포트
