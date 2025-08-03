@@ -231,12 +231,13 @@ const ModalOverlay = styled.div`
   left: 0;
   top: 0;
   width: 100vw;
-  height: 100vh;
+  
   background: rgba(0,0,0,0.25);
   z-index: 1000;
   display: flex;
   align-items: center;
   justify-content: center;
+  padding-bottom: 2rem;
 `;
 
 const PreviewModalBox = styled.div`

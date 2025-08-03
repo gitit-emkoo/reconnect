@@ -166,6 +166,9 @@ const EmotionCardList: React.FC<EmotionCardListProps> = ({
     // 사용 가능한 월 목록 생성 (최신순으로 정렬)
     const getAvailableMonths = (messages: SentMessage[]) => {
         const months = new Set(messages.map(msg => formatInKST(msg.createdAt, 'yyyy-MM')));
+        // 현재 월을 항상 포함
+        const currentMonth = formatInKST(new Date(), 'yyyy-MM');
+        months.add(currentMonth);
         return Array.from(months).sort().reverse();
     };
 
@@ -241,10 +244,31 @@ const EmotionCardList: React.FC<EmotionCardListProps> = ({
                     <p>아직 작성한 카드가 없습니다.</p>
                 </SentCardsSection>
             )}
-            {tab === 'sent' && !isLoadingSent && sentMessages.length > 0 && !selectedMonth && (
+            {tab === 'sent' && !isLoadingSent && sentMessages.length > 0 && selectedMonth && filteredAndSortedSentMessages.length === 0 && (
                 <SentCardsSection>
                     <SentCardsTitle>내가 보낸 감정 카드</SentCardsTitle>
-                    <p>{new Date().getFullYear()}년 {new Date().getMonth() + 1}월에 보낸 감정카드가 없습니다.</p>
+                    <FilterContainer>
+                        <FilterGroup>
+                            <Select
+                                value={selectedMonth}
+                                onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setSelectedMonth(e.target.value)}
+                            >
+                                {getAvailableMonths(sentMessages).map(month => (
+                                    <option key={month} value={month}>
+                                        {month.replace('-', '년 ')}월
+                                    </option>
+                                ))}
+                            </Select>
+                            <Select
+                                value={sortOrder}
+                                onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setSortOrder(e.target.value as 'newest' | 'oldest')}
+                            >
+                                <option value="newest">최신순</option>
+                                <option value="oldest">오래된순</option>
+                            </Select>
+                        </FilterGroup>
+                    </FilterContainer>
+                    <p>{selectedMonth.replace('-', '년 ')}월에 보낸 감정카드가 없습니다.</p>
                 </SentCardsSection>
             )}
             {tab === 'received' && !isLoadingReceived && receivedMessages.length === 0 && (
@@ -253,10 +277,31 @@ const EmotionCardList: React.FC<EmotionCardListProps> = ({
                     <p>아직 받은 카드가 없습니다.</p>
                 </SentCardsSection>
             )}
-            {tab === 'received' && !isLoadingReceived && receivedMessages.length > 0 && !selectedMonth && (
+            {tab === 'received' && !isLoadingReceived && receivedMessages.length > 0 && selectedMonth && filteredAndSortedReceivedMessages.length === 0 && (
                 <SentCardsSection>
-                    <SentCardsTitle>내가 받은 감정 카드</SentCardsTitle>
-                    <p>{new Date().getFullYear()}년 {new Date().getMonth() + 1}월에 받은 감정카드가 없습니다.</p>
+                    <SentCardsTitle>파트너가 보낸 감정 카드</SentCardsTitle>
+                    <FilterContainer>
+                        <FilterGroup>
+                            <Select
+                                value={selectedMonth}
+                                onChange={(e) => setSelectedMonth(e.target.value)}
+                            >
+                                {getAvailableMonths(receivedMessages).map(month => (
+                                    <option key={month} value={month}>
+                                        {month.replace('-', '년 ')}월
+                                    </option>
+                                ))}
+                            </Select>
+                            <Select
+                                value={sortOrder}
+                                onChange={(e) => setSortOrder(e.target.value as 'newest' | 'oldest')}
+                            >
+                                <option value="newest">최신순</option>
+                                <option value="oldest">오래된순</option>
+                            </Select>
+                        </FilterGroup>
+                    </FilterContainer>
+                    <p>{selectedMonth.replace('-', '년 ')}월에 받은 감정카드가 없습니다.</p>
                 </SentCardsSection>
             )}
             {tab === 'received' && !isLoadingReceived && receivedMessages.length > 0 && selectedMonth && (
