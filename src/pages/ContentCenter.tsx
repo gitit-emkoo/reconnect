@@ -14,7 +14,7 @@ import IconBookmark from '../assets/Icon_Bookmark.png';
 
 const FloatingButton = styled.button`
   position: fixed;
-  bottom: 80px;
+  bottom: 140px;
   right: 20px;
   background: none;
   border: none;
