@@ -208,7 +208,7 @@ const CommentCount = styled.span`
 const FABContainer = styled.div`
   position: fixed;
   right: 1.5rem;
-  bottom: 6.5rem;
+  bottom: 140px;
   z-index: 10;
 `;
 
