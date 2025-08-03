@@ -36,8 +36,7 @@ export interface SentMessage {
 const Container = styled.div`
   
   background-color: #f0f4f8; /* 부드러운 배경색 */
-  padding: 2rem 2rem 4rem 2rem;
-  min-height: 100vh;
+  padding: 2rem 2rem 7rem 2rem;
   display: flex;
   flex-direction: column;
   align-items: center; 
@@ -90,7 +89,7 @@ const EmotionCard: React.FC = () => {
   const ymd = formatInKST(today, 'yyyyMMdd');
   const hideToday = typeof window !== 'undefined' && localStorage.getItem(`${todayKey}_${ymd}`) === 'true';
   const [showPopup, setShowPopup] = useState(!hideToday);
-  const [selectedMonth, setSelectedMonth] = useState<string>('');
+  const [selectedMonth, setSelectedMonth] = useState<string>(formatInKST(new Date(), 'yyyy-MM'));
   const [sortOrder, setSortOrder] = useState<'newest' | 'oldest'>('newest');
   const [tab, setTab] = useState<'sent' | 'received'>('sent');
   const [hoveredCard, setHoveredCard] = useState<string | null>(null);
@@ -142,13 +141,19 @@ const EmotionCard: React.FC = () => {
 
     if (tab === 'sent' && sentMessages.length > 0) {
       const availableMonths = getAvailableMonths(sentMessages);
-      if (availableMonths.length > 0 && selectedMonth === '') {
-        setSelectedMonth(availableMonths[0]);
+      if (availableMonths.length > 0) {
+        // 현재 선택된 월이 사용 가능한 월 목록에 없으면 가장 최신 월로 설정
+        if (!availableMonths.includes(selectedMonth)) {
+          setSelectedMonth(availableMonths[0]);
+        }
       }
     } else if (tab === 'received' && receivedMessages.length > 0) {
       const availableMonths = getAvailableMonths(receivedMessages);
-      if (availableMonths.length > 0 && selectedMonth === '') {
-        setSelectedMonth(availableMonths[0]);
+      if (availableMonths.length > 0) {
+        // 현재 선택된 월이 사용 가능한 월 목록에 없으면 가장 최신 월로 설정
+        if (!availableMonths.includes(selectedMonth)) {
+          setSelectedMonth(availableMonths[0]);
+        }
       }
     }
   }, [sentMessages, receivedMessages, tab, selectedMonth]);

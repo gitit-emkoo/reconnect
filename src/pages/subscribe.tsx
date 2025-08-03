@@ -276,8 +276,11 @@ const SubscribePage: React.FC = () => {
         }
         confirmButtonText={
           modalType === 'subscribe' ? '시작하기' 
-          : modalType === 'cancel' ? '취소하기'
+          : modalType === 'cancel' ? '구독취소'
           : '확인'
+        }
+        cancelButtonText={
+          modalType === 'cancel' ? '유지하기' : '취소'
         }
         showCancelButton={modalType === 'cancel'}
       />
