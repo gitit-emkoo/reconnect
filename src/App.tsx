@@ -190,11 +190,10 @@ MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
     // 웹뷰 환경에서 강제 레이아웃 업데이트
     const forceLayoutUpdate = () => {
       updateViewportHeight();
-      // DOM 강제 리플로우
-      document.body.offsetHeight;
-      // Safe Area 재계산
-      const root = document.documentElement;
-      root.style.setProperty('--safe-area-bottom', `${window.innerHeight - document.body.clientHeight}px`);
+      // Safe Area 강제 업데이트
+      import('./utils/safeArea').then(({ forceSafeAreaUpdate }) => {
+        forceSafeAreaUpdate();
+      });
     };
     
     // 웹뷰 환경 감지 및 추가 이벤트 리스너
@@ -203,6 +202,9 @@ MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
       window.addEventListener('orientationchange', () => {
         setTimeout(forceLayoutUpdate, 100);
       });
+      // 앱 전환 시 강제 업데이트
+      window.addEventListener('focus', forceLayoutUpdate);
+      window.addEventListener('blur', forceLayoutUpdate);
     }
 
     // 클린업

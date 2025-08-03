@@ -61,7 +61,7 @@ const Container = styled.div`
   min-height: calc(100vh - 60px);
  
   position: relative;
-  padding-bottom: 80px; 
+  padding-bottom: var(--nav-height, 80px); 
 
   @media (min-width: 1024px) {
     display: grid;

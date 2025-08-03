@@ -17,37 +17,20 @@ const NavContainer = styled.nav`
   align-items: center;
   background-color: white;
   padding: 0.5rem 0;
-  padding-bottom: max(env(safe-area-inset-bottom), 20px); /* 하단 시스템 UI 안전 영역 확보 */
+  padding-bottom: max(env(safe-area-inset-bottom), 20px);
   box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.05);
   z-index: 1000; 
-  min-height: 60px; /* 고정 높이 대신 최소 높이 사용 */
+  min-height: 60px;
   border-top-left-radius: 20px;
   border-top-right-radius: 20px;
   overflow: hidden;
-  
-  /* 동적 뷰포트 높이 대응 */
-  bottom: env(safe-area-inset-bottom, 0px);
-  bottom: max(env(safe-area-inset-bottom), 0px);
-  
-  /* 웹뷰 환경에서 강제 Safe Area 적용 */
-  @media screen and (display-mode: standalone) {
-    bottom: max(env(safe-area-inset-bottom), 24px);
-    padding-bottom: max(env(safe-area-inset-bottom), 20px);
-  }
   
   /* 웹뷰 최적화 */
   -webkit-transform: translateZ(0);
   transform: translateZ(0);
   
-  /* iPhone X 이상 디바이스 대응 */
-  @supports (padding: max(0px)) {
-    padding-bottom: max(env(safe-area-inset-bottom), 20px);
-  }
-  
-  /* Android Chrome 주소창 숨김 대응 */
-  @media screen and (display-mode: standalone) {
-    padding-bottom: max(env(safe-area-inset-bottom), 20px);
-  }
+  /* 동적 높이 적용 */
+  height: var(--nav-height, 80px);
 `;
 
 interface NavButtonProps {
