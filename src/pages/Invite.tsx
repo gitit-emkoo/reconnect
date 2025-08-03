@@ -14,7 +14,7 @@ const Container = styled.div`
   height: calc(100vh - 60px); /* NavigationBar 높이만큼 줄임 */
   padding: 2rem;
   background-color: #f0fdfa;
-  padding-bottom: 80px; /* NavigationBar에 가려지지 않도록 하단 패딩 추가 */
+  padding-bottom: var(--nav-height, 80px); /* NavigationBar에 가려지지 않도록 하단 패딩 추가 */
 `;
 
 const Box = styled.div`

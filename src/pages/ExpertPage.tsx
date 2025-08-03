@@ -16,7 +16,7 @@ const Container = styled.div`
   min-height: calc(100vh - 60px);
   background: white;
   padding: 2rem;
-  padding-bottom: 80px;
+  padding-bottom: var(--nav-height, 80px);
   justify-content: flex-start;
   text-align: center;
   padding-top: 3.5rem;

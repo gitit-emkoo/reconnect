@@ -127,26 +127,26 @@ const GlobalStyle = createGlobalStyle`
     min-height: 100dvh;
     height: 100%;
     
-    /* 하단 네비게이션을 위한 여백 확보 */
-    padding-bottom: 80px;
+    /* 하단 네비게이션을 위한 동적 여백 확보 */
+    padding-bottom: var(--nav-height, 80px);
   }
   
   /* 전체 화면 모드에서 네비게이션 여백 조정 */
   @media (display-mode: fullscreen) {
     #root {
-      padding-bottom: 80px;
+      padding-bottom: var(--nav-height, 80px);
     }
   }
   
   @media (display-mode: standalone) {
     #root {
-      padding-bottom: 80px;
+      padding-bottom: var(--nav-height, 80px);
     }
   }
   
   @media (display-mode: minimal-ui) {
     #root {
-      padding-bottom: 80px;
+      padding-bottom: var(--nav-height, 80px);
     }
   }
   

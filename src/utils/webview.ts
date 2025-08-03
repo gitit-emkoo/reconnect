@@ -79,6 +79,12 @@ export const initializeWebViewOptimization = () => {
     setTimeout(updateViewportHeight, 100);
   });
   
+  // 웹뷰 생명주기 이벤트 추가
+  window.addEventListener('pageshow', updateViewportHeight);
+  window.addEventListener('pagehide', updateViewportHeight);
+  window.addEventListener('focus', updateViewportHeight);
+  window.addEventListener('blur', updateViewportHeight);
+  
   // 웹뷰에서 전체 화면 모드 활성화
   if (isWebView()) {
     enableFullscreenMode();
@@ -88,6 +94,23 @@ export const initializeWebViewOptimization = () => {
   if (isWebView()) {
     (document.body.style as any).webkitOverflowScrolling = 'touch';
     document.body.style.overscrollBehavior = 'none';
+  }
+  
+  // Safe Area 실시간 업데이트
+  const updateSafeArea = () => {
+    import('./safeArea').then(({ forceSafeAreaUpdate }) => {
+      forceSafeAreaUpdate();
+    });
+  };
+  
+  // 웹뷰 환경에서 추가 이벤트
+  if (isWebView()) {
+    window.addEventListener('resize', updateSafeArea);
+    window.addEventListener('orientationchange', () => {
+      setTimeout(updateSafeArea, 200);
+    });
+    window.addEventListener('focus', updateSafeArea);
+    window.addEventListener('blur', updateSafeArea);
   }
 };
 
