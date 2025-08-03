@@ -2,12 +2,13 @@ import React, { useState} from "react";
 import { useNavigate } from "react-router-dom";
 import styled from "styled-components";
 import { useSwipeable } from "react-swipeable";
-import Onboarding1 from "../assets/Onboarding_1.png";
-import Onboarding2 from "../assets/Onboarding_2.png";
-import Onboarding3 from "../assets/Onboarding_3.png";
-import Onboarding4 from "../assets/Onboarding_4.png";
-import Onboarding5 from "../assets/Onboarding_5.png";
-import Onboarding6 from "../assets/Onboarding_6.png";
+import Onboarding1 from "../assets/onboarding1.png";
+import Onboarding2 from "../assets/onboarding2.png";
+import Onboarding3 from "../assets/onboarding3.png";
+import Onboarding4 from "../assets/onboarding4.png";
+import Onboarding5 from "../assets/onboarding5.png";
+import Onboarding6 from "../assets/onboarding6.png";
+import Onboarding7 from "../assets/onboarding7.png";
 
 const Container = styled.div`
   display: flex;
@@ -40,6 +41,7 @@ const Title = styled.h1`
   font-size: 1.5rem;
   font-weight: bold;
   margin-bottom: 0.5rem;
+  color: #ff69b4;
 `;
 
 const Subtitle = styled.p`
@@ -150,12 +152,41 @@ const Dot = styled.div<{ $isActive: boolean }>`
 `;
 
 const onboardingSlides = [
-  { image: Onboarding1 },
-  { image: Onboarding2 },
-  { image: Onboarding3 },
-  { image: Onboarding4 },
-  { image: Onboarding5 },
-  { image: Onboarding6 },
+  { 
+    image: Onboarding1,
+    title: "내 감정을 기록하고 아껴요",
+    subtitle: "컬러와 트리거 선택, 짧은 텍스트로 간단하게 감정 일기를 작성하면 AI가 감정 흐름을 분석 해 줘요"
+  },
+  { 
+    image: Onboarding2,
+    title: "대화가 쉽고 따뜻해져요",
+    subtitle: "어색한 말 대신 감정 카드로마음을 주고받으며 정서적 거리를 가깝게 해요"
+  },
+  { 
+    image: Onboarding3,
+    title: "함께 하는 시간을 만들어요",
+    subtitle: "같이 하는 작은 실천 주간 커플 챌린지로 관계에 온기가 더 해져요"
+  },
+  { 
+    image: Onboarding4,
+    title: "노력을 데이터로 보여줘요",
+    subtitle: "매주 발행되는 관계 리포트에서 함께한 노력들과 감정의 흐름 우리의 온도를 쉽게 확인할 수 있어요"
+  },
+  { 
+    image: Onboarding5,
+    title: "책임있는 약속을 만들어요",
+    subtitle: "책임을 바탕으로 ‘합의된 약속’인증된 합의서는 안전하게 보관되어 언제든지 확인할 수 있어요"
+  },
+  { 
+    image: Onboarding6,
+    title: "전문가를 연결해요",
+    subtitle: "혼자서는 너무 힘들때 심리,법률 등 나에게 딱 맞고 믿음직 하고 든든한 전문가를 연결해요"
+  },
+  { 
+    image: Onboarding7,
+    title: "함께 만들어가는 우리만의 이야기",
+    subtitle: "리커넥트와 함께 시작하세요"
+  },
 ];
 
 const Onboarding: React.FC = () => {
@@ -198,8 +229,8 @@ const Onboarding: React.FC = () => {
   return (
     <Container {...handlers}>
       <Header>
-        <Title>우리의 시작 온도는 몇 도일까요?</Title>
-        <Subtitle>관계를 더 깊이 이해하기 위한 첫 걸음</Subtitle>
+        <Title>{onboardingSlides[currentIndex].title}</Title>
+        <Subtitle>{onboardingSlides[currentIndex].subtitle}</Subtitle>
       </Header>
 
       <CardsContainer>
