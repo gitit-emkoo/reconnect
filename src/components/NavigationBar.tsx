@@ -14,9 +14,9 @@ const NavContainer = styled.nav`
   right: 0;
   display: flex;
   justify-content: space-around;
-  align-items: center;
+  align-items: flex-start;
   background-color: white;
-  padding: 0.5rem 0;
+  padding: 0.3rem 0 0 0;
   padding-bottom: max(env(safe-area-inset-bottom), 20px);
   box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.05);
   z-index: 1000; 
@@ -42,14 +42,14 @@ const NavButton = styled.button<NavButtonProps>`
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
+  justify-content: flex-start;
   flex: 1;
   background: none;
   border: none;
-  font-size: 0.8rem; /* 네비게이션 텍스트 크기 조정 */
+  font-size: 0.8rem;
   font-weight: ${props => (props.$isActive ? '600' : '500')};
   cursor: ${props => (props.disabled ? 'not-allowed' : 'pointer')};
-  padding: 0.2rem 0;
+  padding: 0.5rem 0;
   opacity: ${props => (props.disabled ? 0.5 : 1)};
   transition: color 0.2s ease-in-out, stroke 0.2s ease-in-out;
 
@@ -58,7 +58,7 @@ const NavButton = styled.button<NavButtonProps>`
   svg {
     width: 24px;
     height: 24px;
-    margin-bottom: 4px;
+    margin-bottom: 2px;
     fill: ${props => 
       props.disabled 
         ? '#ccc' 
