@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
 import PageLayout from '../components/Layout/PageLayout';
-import Header from '../components/common/Header';
 import { ADMIN_CONFIG } from '../config/admin';
 import useAuthStore from '../store/authStore';
 import {
@@ -13,10 +12,9 @@ import {
 import { Content, ContentType } from '../types/content';
 import LoadingSpinner from '../components/common/LoadingSpinner';
 import CustomRichTextEditor from '../components/common/CustomRichTextEditor';
-import axiosInstance from '../api/axios';
 
 const AdminContainer = styled.div`
-  padding: 20px;
+  padding-bottom: 6rem;
   max-width: 1200px;
   margin: 0 auto;
 `;
@@ -183,55 +181,6 @@ const AddButton = styled.button`
   }
 `;
 
-const Table = styled.table`
-  width: 100%;
-  border-collapse: collapse;
-  margin-top: 2rem;
-  background: #fff;
-  border-radius: 8px;
-  overflow: hidden;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-`;
-const Th = styled.th`
-  background: #f8f9fa;
-  padding: 12px;
-  text-align: left;
-  font-weight: 600;
-  color: #333;
-  border-bottom: 1px solid #e9ecef;
-`;
-const Td = styled.td`
-  padding: 12px;
-  border-bottom: 1px solid #e9ecef;
-  vertical-align: middle;
-  font-size: 0.97rem;
-`;
-const Tr = styled.tr`
-  &:hover { background: #f8f9fa; }
-`;
-const ReasonBadge = styled.span`
-  background: #ffe0e6;
-  color: #d6336c;
-  padding: 2px 8px;
-  border-radius: 8px;
-  font-size: 0.92rem;
-`;
-const ComplaintTitle = styled.h2`
-  font-size: 1.3rem;
-  margin-top: 2rem;
-  margin-bottom: 1rem;
-`;
-
-interface Complaint {
-  id: string;
-  post?: { id: string; title: string } | null;
-  comment?: { id: string; content: string } | null;
-  reporter?: { id: string; nickname: string; email: string } | null;
-  reason: string;
-  etcReason?: string;
-  createdAt: string;
-}
-
 const ContentAdmin: React.FC = () => {
   const [contents, setContents] = useState<Content[]>([]);
   const [selectedContent, setSelectedContent] = useState<Content | null>(null);
@@ -250,9 +199,7 @@ const ContentAdmin: React.FC = () => {
     isPremium: false,
   });
 
-  const [complaints, setComplaints] = useState<Complaint[]>([]);
-  const [complaintsLoading, setComplaintsLoading] = useState(true);
-  const [complaintsError, setComplaintsError] = useState('');
+
 
   useEffect(() => {
     if (user) {
@@ -278,21 +225,7 @@ const ContentAdmin: React.FC = () => {
     }
   };
 
-  useEffect(() => {
-    const fetchComplaints = async () => {
-      setComplaintsLoading(true);
-      setComplaintsError('');
-      try {
-        const { data } = await axiosInstance.get('/community/complaints');
-        setComplaints(data);
-      } catch (err) {
-        setComplaintsError('신고 내역을 불러오는 데 실패했습니다.');
-      } finally {
-        setComplaintsLoading(false);
-      }
-    };
-    fetchComplaints();
-  }, []);
+
 
   const handleEdit = (content: Content) => {
     setSelectedContent(content);
@@ -369,7 +302,7 @@ const ContentAdmin: React.FC = () => {
 
   return (
     <PageLayout title="콘텐츠/신고 관리">
-      <Header title="콘텐츠 관리" />
+      
       <AdminContainer>
         <AddButton onClick={handleAdd}>+ 새 콘텐츠 추가</AddButton>
         {loading && <LoadingSpinner />}
@@ -384,42 +317,7 @@ const ContentAdmin: React.FC = () => {
             ))}
           </ContentList>
         )}
-        <ComplaintTitle>신고 내역</ComplaintTitle>
-        {complaintsLoading && <div>로딩 중...</div>}
-        {complaintsError && <div style={{ color: 'red' }}>{complaintsError}</div>}
-        {!complaintsLoading && !complaintsError && (
-          <Table>
-            <thead>
-              <tr>
-                <Th>유형</Th>
-                <Th>게시글/댓글</Th>
-                <Th>신고자</Th>
-                <Th>사유</Th>
-                <Th>일시</Th>
-              </tr>
-            </thead>
-            <tbody>
-              {complaints.map((c) => (
-                <Tr key={c.id}>
-                  <Td>{c.post ? '게시글' : '댓글'}</Td>
-                  <Td>
-                    {c.post ? (
-                      <span>[{c.post.id.slice(-4)}] {c.post.title}</span>
-                    ) : c.comment ? (
-                      <span>[{c.comment.id.slice(-4)}] {c.comment.content.slice(0, 20)}...</span>
-                    ) : '-'}
-                  </Td>
-                  <Td>{c.reporter ? `${c.reporter.nickname} (${c.reporter.email})` : '-'}</Td>
-                  <Td>
-                    <ReasonBadge>{c.reason}</ReasonBadge>
-                    {c.etcReason && <span style={{ marginLeft: 6, color: '#555' }}>({c.etcReason})</span>}
-                  </Td>
-                  <Td>{new Date(c.createdAt).toLocaleString()}</Td>
-                </Tr>
-              ))}
-            </tbody>
-          </Table>
-        )}
+
         {showModal && (
           <Modal>
             <ModalContent>
