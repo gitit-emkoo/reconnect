@@ -2,9 +2,11 @@ import React from 'react';
 import styled from 'styled-components';
 import { ContentType } from '../../types/content';
 
+
 interface ContentCardProps {
   title: string;
   type: ContentType;
+  isPremium?: boolean;
   // thumbnail: string; // 이미지 대신 배경색 사용
   onClick?: () => void;
   index: number;
@@ -97,17 +99,43 @@ const Title = styled.div`
   }
 `;
 
-export const ContentCard: React.FC<ContentCardProps> = ({ title, type, onClick, index }) => (
-  <CardButton
-    onClick={onClick}
-    style={{
-      background: CARD_COLORS[index % CARD_COLORS.length],
-    }}
-  >
-    {/* <img src={thumbnail} alt={title} className="thumbnail" /> */}
-    <Chip>{type}</Chip>
-    <Title>{title}</Title>
-  </CardButton>
-);
+const PremiumBadge = styled.div`
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  background: linear-gradient(135deg, #FFD700, #FFA500);
+  color: white;
+  padding: 4px 8px;
+  border-radius: 12px;
+  font-size: 10px;
+  font-weight: 600;
+  z-index: 10;
+
+  @media (max-width: 768px) {
+    font-size: 9px;
+    padding: 3px 6px;
+  }
+`;
+
+export const ContentCard: React.FC<ContentCardProps> = ({ 
+  title, 
+  type, 
+  isPremium, 
+  onClick, 
+  index 
+}) => {
+  return (
+    <CardButton
+      onClick={onClick}
+      style={{
+        background: CARD_COLORS[index % CARD_COLORS.length],
+      }}
+    >
+      {isPremium && <PremiumBadge>⭐</PremiumBadge>}
+      <Chip>{type}</Chip>
+      <Title>{title}</Title>
+    </CardButton>
+  );
+};
 
 // 스타일은 ContentCard.css를 참고하세요. 

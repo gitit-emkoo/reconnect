@@ -60,6 +60,7 @@ import PostWritePage from './pages/PostWritePage';
 import PostDetailPage from './pages/PostDetailPage';
 import PostEditPage from './pages/PostEditPage';
 import ContentAdmin from './pages/ContentAdmin';
+import PublicContentDetail from './pages/PublicContentDetail';
 import UserAdmin from './pages/UserAdmin';
 import SelfDiagnosisRoom from './pages/SelfDiagnosisRoom';
 import GenericDiagnosis from './pages/GenericDiagnosis';
@@ -253,6 +254,9 @@ MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
             <Route path="/auth/kakao/callback" element={<KakaoCallback />} />
             <Route path="/auth/kakao/login/callback" element={<KakaoCallback />} />
             <Route path="/auth/kakao/register/callback" element={<KakaoCallback />} />
+            
+            {/* 공개 컨텐츠 라우트 */}
+            <Route path="/content/:id" element={<PublicContentDetail />} />
 
             {/* 보호된 라우트 */}
             <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
