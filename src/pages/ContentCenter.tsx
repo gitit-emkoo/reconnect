@@ -11,7 +11,9 @@ import { Content } from '../types/content';
 import LoadingSpinner from '../components/common/LoadingSpinner';
 import ErrorModal from '../components/common/ErrorModal';
 import { BookmarkModal } from '../components/contents/BookmarkModal';
-import IconBookmark from '../assets/Icon_Bookmark.png';
+import IconBookmarkContents from '../assets/Icon_bookmarkContents.png';
+import IconListView from '../assets/Icon_listView.png';
+import IconCardView from '../assets/Icon_cardView.png';
 
 const FloatingButton = styled.button`
   position: fixed;
@@ -19,7 +21,6 @@ const FloatingButton = styled.button`
   right: 20px;
   background: none;
   border: none;
-  padding: 8px;
   cursor: pointer;
   z-index: 2001;
   border-radius: 50%;
@@ -37,21 +38,27 @@ const FloatingButton = styled.button`
 `;
 
 const ViewToggleButton = styled.button`
-  position: absolute;
-  top: 50%;
+  position: fixed;
+  bottom: 200px;
   right: 20px;
-  transform: translateY(-50%);
-  background: none;
-  border: none;
+  background: white;
+  border: 1px solid #e9ecef;
   padding: 8px;
   cursor: pointer;
   border-radius: 8px;
-  transition: background-color 0.2s;
-  font-size: 20px;
-  color: #666;
+  transition: all 0.2s;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  z-index: 2000;
 
   &:hover {
-    background-color: rgba(0, 0, 0, 0.05);
+    background-color: #f8f9fa;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  }
+
+  img {
+    width: 24px;
+    height: 24px;
+    display: block;
   }
 `;
 
@@ -114,9 +121,6 @@ const ContentCenter: React.FC = () => {
           title="관계 가이드"
           showBackButton={false}
         />
-        <ViewToggleButton onClick={toggleViewMode}>
-          {viewMode === 'card' ? '📋' : '🃏'}
-        </ViewToggleButton>
       </HeaderContainer>
       {error && <ErrorModal open={!!error} message={error} onClose={() => setError(null)} />}
       {viewMode === 'card' ? (
@@ -124,8 +128,14 @@ const ContentCenter: React.FC = () => {
       ) : (
         <ContentListView onCardClick={handleContentClick} contents={contents} />
       )}
+      <ViewToggleButton onClick={toggleViewMode}>
+        <img 
+          src={viewMode === 'card' ? IconListView : IconCardView} 
+          alt={viewMode === 'card' ? '리스트 보기' : '카드 보기'} 
+        />
+      </ViewToggleButton>
       <FloatingButton onClick={() => setIsBookmarkModalOpen(true)}>
-        <img src={IconBookmark} alt="저장한 아티클" />
+        <img src={IconBookmarkContents} alt="저장한 아티클" />
       </FloatingButton>
       <BookmarkModal
         isOpen={isBookmarkModalOpen}
