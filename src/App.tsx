@@ -254,26 +254,28 @@ MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
             })
           })
           .then(res => {
-            console.log('[Web] /auth/apple/login fetch 응답:', res);
+            const contentType = res.headers.get('content-type');
+            if (contentType && contentType.includes('application/json')) {
+              return res.json();
+            }
             if (window.ReactNativeWebView && window.ReactNativeWebView.postMessage) {
               window.ReactNativeWebView.postMessage(JSON.stringify({
                 type: 'debug',
-                message: '[Web] /auth/apple/login fetch 응답:' + JSON.stringify(res)
+                message: '[Web] /auth/apple/login fetch 응답이 JSON이 아님, 빈 객체 반환'
               }));
             }
-            return res.json();
+            return {};
           })
           .then(result => {
-            console.log('[Web] /auth/apple/login 결과:', result);
             if (window.ReactNativeWebView && window.ReactNativeWebView.postMessage) {
               window.ReactNativeWebView.postMessage(JSON.stringify({
                 type: 'debug',
                 message: '[Web] /auth/apple/login 결과:' + JSON.stringify(result)
               }));
             }
-            if (result.accessToken) {
-              localStorage.setItem('accessToken', result.accessToken);
-              localStorage.setItem('user', JSON.stringify(result.user));
+            if (result && typeof result === 'object' && 'accessToken' in result) {
+              localStorage.setItem('accessToken', (result as any).accessToken);
+              localStorage.setItem('user', JSON.stringify((result as any).user));
             }
             console.log('[Web] 대시보드로 이동');
             if (window.ReactNativeWebView && window.ReactNativeWebView.postMessage) {
@@ -321,26 +323,36 @@ MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
             })
           })
           .then(res => {
-            console.log('[Web] /auth/google/login fetch 응답:', res);
+            const contentType = res.headers.get('content-type');
             if (window.ReactNativeWebView && window.ReactNativeWebView.postMessage) {
               window.ReactNativeWebView.postMessage(JSON.stringify({
                 type: 'debug',
                 message: '[Web] /auth/google/login fetch 응답:' + JSON.stringify(res)
               }));
             }
-            return res.json();
+            console.log('[Web] /auth/google/login fetch 응답:', res);
+            if (contentType && contentType.includes('application/json')) {
+              return res.json();
+            }
+            if (window.ReactNativeWebView && window.ReactNativeWebView.postMessage) {
+              window.ReactNativeWebView.postMessage(JSON.stringify({
+                type: 'debug',
+                message: '[Web] /auth/google/login fetch 응답이 JSON이 아님, 빈 객체 반환'
+              }));
+            }
+            return {};
           })
           .then(result => {
-            console.log('[Web] /auth/google/login 결과:', result);
             if (window.ReactNativeWebView && window.ReactNativeWebView.postMessage) {
               window.ReactNativeWebView.postMessage(JSON.stringify({
                 type: 'debug',
                 message: '[Web] /auth/google/login 결과:' + JSON.stringify(result)
               }));
             }
-            if (result.accessToken) {
-              localStorage.setItem('accessToken', result.accessToken);
-              localStorage.setItem('user', JSON.stringify(result.user));
+            console.log('[Web] /auth/google/login 결과:', result);
+            if (result && typeof result === 'object' && 'accessToken' in result) {
+              localStorage.setItem('accessToken', (result as any).accessToken);
+              localStorage.setItem('user', JSON.stringify((result as any).user));
             }
             console.log('[Web] 대시보드로 이동');
             if (window.ReactNativeWebView && window.ReactNativeWebView.postMessage) {
