@@ -57,6 +57,7 @@ const Form = styled.form`
 
   @media (max-width: 768px) {
     padding: 1.5rem 1rem;
+    margin-bottom: 6rem;
     gap: 1rem;
   }
 `;

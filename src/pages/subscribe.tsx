@@ -118,13 +118,14 @@ const SubscribePage: React.FC = () => {
     setModalType('cancel');
   };
 
-  const handleReportView = () => {
-    setModalType('report');
-  };
+  // ⚠️인앱결재 구현 후 활성화
+  // const handleReportView = () => {
+  //   setModalType('report');
+  // };
 
-  const handleAgreementSave = () => {
-    setModalType('agreement');
-  };
+  // const handleAgreementSave = () => {
+  //   setModalType('agreement');
+  // };
 
   const handleModalConfirm = async () => {
     if (modalType === 'report') {
@@ -187,7 +188,7 @@ const SubscribePage: React.FC = () => {
               ✔ 월간 감정트랙 보고서<br/>
               ✔ 합의서 무제한 발행 및 출력<br/>
               ✔ 자기이해 진단 매월 1회<br/><br/>
-              💳 <strong>월 3,900원 / 무료 이벤트 중</strong>
+              💳 <strong>무료 이벤트 중</strong>
             </Description>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.8rem', alignItems: 'center' }}>
               {user?.subscriptionStatus === 'SUBSCRIBED' ? (
@@ -219,7 +220,12 @@ const SubscribePage: React.FC = () => {
             </div>
           </Section>
 
-          {/* 감정트랙 리포트 단품 */}
+          {/* 
+          
+          ⚠️인앱결재 구현 후 활성화
+
+
+          감정트랙 리포트 단품 
           <Section>
             <Title>감정트랙 보고서 열람권</Title>
             <Description>
@@ -234,7 +240,7 @@ const SubscribePage: React.FC = () => {
             </Button>
           </Section>
 
-          {/* 보증합의서 PDF 단품 */}
+           보증합의서 PDF 단품 
           <Section>
             <Title>인증 합의서 발행권</Title>
             <Description>
@@ -247,7 +253,7 @@ const SubscribePage: React.FC = () => {
             <Button variant="yellow" onClick={handleAgreementSave}>
               인증 합의서 발행
             </Button>
-          </Section>
+          </Section> */}
         </ContentContainer>
       </Container>
       <NavigationBar />

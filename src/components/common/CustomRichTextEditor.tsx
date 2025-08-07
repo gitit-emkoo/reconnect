@@ -7,8 +7,6 @@ import { ReactComponent as IconUnderline } from '../../assets/icon_underline.svg
 import { ReactComponent as IconAlignLeft } from '../../assets/icon_alignment_left.svg';
 import { ReactComponent as IconAlignCenter } from '../../assets/icon_alignment_center.svg';
 import { ReactComponent as IconAlignRight } from '../../assets/icon_alignment_right.svg';
-import axiosInstance from '../../api/axios';
-import useAuthStore from '../../store/authStore';
 
 // 타입 정의
 interface Draft {
@@ -17,7 +15,7 @@ interface Draft {
 }
 
 export interface CustomEditorRef {
-  insertImages: (urls: string[]) => void;
+  // insertImages 기능 제거
 }
 
 export interface CustomRichTextEditorProps {
@@ -115,9 +113,6 @@ const Placeholder = styled.div`
     left: 8px;
   }
 `;
-const HiddenInput = styled.input`
-  display: none;
-`;
 
 const format = (command: string, value?: string) => {
   document.execCommand(command, false, value);
@@ -127,12 +122,10 @@ const CustomRichTextEditor = forwardRef<CustomEditorRef, CustomRichTextEditorPro
   ({ onTitleChange, onContentChange, initialTitle = '', initialContent = '', draftKey = 'new' }, ref) => {
   
   const editorRef = useRef<HTMLDivElement>(null);
-  const fileInputRef = useRef<HTMLInputElement>(null);
   const [title, setTitle] = useState(initialTitle);
   const [content, setContent] = useState(initialContent);
   const [showDraftModal, setShowDraftModal] = useState(false);
   const [draftToLoad, setDraftToLoad] = useState<Draft | null>(null);
-  const token = useAuthStore((state: any) => state.token);
   const finalDraftKey = `custom_rich_text_editor_draft_${draftKey}`;
 
   const saveDraft = useCallback(() => {
@@ -184,12 +177,8 @@ const CustomRichTextEditor = forwardRef<CustomEditorRef, CustomRichTextEditorPro
     format(cmd, value);
     editorRef.current?.focus();
   };
-  
-  const insertImagesCallback = useCallback(() => {
-      // ... (logic to insert images)
-  }, []);
 
-  useImperativeHandle(ref, () => ({ insertImages: insertImagesCallback }), [insertImagesCallback]);
+  useImperativeHandle(ref, () => ({}), []);
 
   const handleInput = (e: React.FormEvent<HTMLDivElement>) => {
     const newContent = (e.target as HTMLDivElement).innerHTML;
@@ -202,24 +191,6 @@ const CustomRichTextEditor = forwardRef<CustomEditorRef, CustomRichTextEditorPro
     setTitle(newTitle);
     if(onTitleChange) onTitleChange(newTitle);
   }
-
-  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = e.target.files;
-    if (!files) return;
-    const formData = new FormData();
-    for(let i=0; i < files.length; i++) formData.append('images', files[i]);
-    
-    try {
-        const res = await axiosInstance.post('/community/posts/upload', formData, {
-            headers: { 'Content-Type': 'multipart/form-data', Authorization: `Bearer ${token}` }
-        });
-        if(res.data && Array.isArray(res.data)) {
-            res.data.forEach((url: string) => format('insertImage', url));
-        }
-    } catch(err) {
-        console.error('Image upload failed', err);
-    }
-  };
 
   return (
     <>
@@ -238,13 +209,11 @@ const CustomRichTextEditor = forwardRef<CustomEditorRef, CustomRichTextEditorPro
             <ToolButton onClick={() => handleFormat('justifyLeft')}><IconAlignLeft/></ToolButton>
             <ToolButton onClick={() => handleFormat('justifyCenter')}><IconAlignCenter/></ToolButton>
             <ToolButton onClick={() => handleFormat('justifyRight')}><IconAlignRight/></ToolButton>
-            <ToolButton onClick={() => fileInputRef.current?.click()}>🖼️</ToolButton>
         </Toolbar>
         <EditorContainer>
             <EditorArea ref={editorRef} contentEditable onInput={handleInput} />
             {(!content || content === '<br>') && <Placeholder>내용을 입력하세요</Placeholder>}
         </EditorContainer>
-        <HiddenInput ref={fileInputRef} type="file" accept="image/*" onChange={handleImageUpload} multiple />
       </EditorWrapper>
       <ConfirmationModal
         isOpen={showDraftModal}
