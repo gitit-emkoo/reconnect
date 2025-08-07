@@ -208,6 +208,60 @@ MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
       window.addEventListener('blur', forceLayoutUpdate);
     }
 
+    // 소셜 로그인(애플/구글) 네이티브 메시지 핸들러 등록
+    function handleNativeSocialLogin(event: MessageEvent) {
+      try {
+        const data = typeof event.data === 'string' ? JSON.parse(event.data) : event.data;
+        // 애플 로그인 처리
+        if (data.type === 'apple-login-success') {
+          localStorage.setItem('apple_login_data', JSON.stringify(data.credential));
+          fetch('/auth/apple/login', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              idToken: data.credential.identityToken,
+              authorizationCode: data.credential.authorizationCode
+            })
+          })
+          .then(res => res.json())
+          .then(result => {
+            if (result.accessToken) {
+              localStorage.setItem('accessToken', result.accessToken);
+              localStorage.setItem('user', JSON.stringify(result.user));
+            }
+            window.location.href = '/dashboard';
+          })
+          .catch(() => {
+            window.location.href = '/dashboard';
+          });
+        }
+        // 구글 로그인 처리
+        if (data.type === 'google-login-success') {
+          localStorage.setItem('google_login_data', JSON.stringify(data.credential));
+          fetch('/auth/google/login', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              idToken: data.credential.idToken,
+              accessToken: data.credential.accessToken
+            })
+          })
+          .then(res => res.json())
+          .then(result => {
+            if (result.accessToken) {
+              localStorage.setItem('accessToken', result.accessToken);
+              localStorage.setItem('user', JSON.stringify(result.user));
+            }
+            window.location.href = '/dashboard';
+          })
+          .catch(() => {
+            window.location.href = '/dashboard';
+          });
+        }
+      } catch (e) {}
+    }
+    window.addEventListener('message', handleNativeSocialLogin);
+
     // 클린업
     return () => {
       window.removeEventListener('resize', updateViewportHeight);
@@ -220,6 +274,7 @@ MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
       if ((window.navigator as any).standalone || window.matchMedia('(display-mode: standalone)').matches) {
         window.removeEventListener('resize', forceLayoutUpdate);
       }
+      window.removeEventListener('message', handleNativeSocialLogin);
     };
   }, [checkAuth]);
 
