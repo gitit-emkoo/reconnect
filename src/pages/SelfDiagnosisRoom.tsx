@@ -339,7 +339,7 @@ const SelfDiagnosisRoom: React.FC = () => {
         onRequestClose={() => setShowSubscribeModal(false)}
         onConfirm={() => setShowSubscribeModal(false)}
         title="이용 안내"
-        message="구독하거나 결제 후 이용 바랍니다."
+        message="무료 구독후 이용 바랍니다."
         confirmButtonText="확인"
         showCancelButton={false}
       />
@@ -348,7 +348,7 @@ const SelfDiagnosisRoom: React.FC = () => {
         onRequestClose={() => setShowPaymentModal(false)}
         onConfirm={() => setShowPaymentModal(false)}
         title="이용 안내"
-        message="구독하거나 결제 후 이용 바랍니다."
+        message="무료 구독후 이용 바랍니다."
         confirmButtonText="확인"
         showCancelButton={false}
       />

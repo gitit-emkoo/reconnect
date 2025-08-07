@@ -4,7 +4,7 @@ const stress: DiagnosisTemplate = {
   id: 'stress',
   title: '스트레스 진단',
   subtitle: '일상 및 관계에서의 스트레스 수준을 점검합니다.',
-  price: '50,000',
+  price: '이벤트 무료오픈',
   questions: [
     // ... (stress 진단 질문들 복사)
   ],
