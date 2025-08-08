@@ -129,6 +129,13 @@ const SocialLoginHandler: React.FC = () => {
         const data = typeof event.data === 'string' ? JSON.parse(event.data) : event.data;
         // 애플 로그인 처리
         if (data.type === 'apple-login-success') {
+          console.log('[Web] 애플 로그인 메시지 수신:', data);
+          if (window.ReactNativeWebView && window.ReactNativeWebView.postMessage) {
+            window.ReactNativeWebView.postMessage(JSON.stringify({
+              type: 'debug',
+              message: '[Web] 애플 로그인 메시지 수신:' + JSON.stringify(data)
+            }));
+          }
           fetch('/auth/apple/login', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -139,26 +146,79 @@ const SocialLoginHandler: React.FC = () => {
           })
           .then(res => {
             const contentType = res.headers.get('content-type');
+            if (window.ReactNativeWebView && window.ReactNativeWebView.postMessage) {
+              window.ReactNativeWebView.postMessage(JSON.stringify({
+                type: 'debug',
+                message: '[Web] /auth/apple/login fetch 응답:' + JSON.stringify(res)
+              }));
+            }
+            console.log('[Web] /auth/apple/login fetch 응답:', res);
             if (contentType && contentType.includes('application/json')) {
               return res.json();
             }
             return {};
           })
           .then((result: any) => {
+            console.log('[Web] /auth/apple/login 결과:', result);
+            if (window.ReactNativeWebView && window.ReactNativeWebView.postMessage) {
+              window.ReactNativeWebView.postMessage(JSON.stringify({
+                type: 'debug',
+                message: '[Web] /auth/apple/login 결과:' + JSON.stringify(result)
+              }));
+            }
             if (result && typeof result === 'object' && 'accessToken' in result && 'user' in result) {
               setAuthToken(result.accessToken);
               localStorage.setItem('accessToken', result.accessToken);
               localStorage.setItem('user', JSON.stringify(result.user));
               useAuthStore.getState().setAuth(result.accessToken, result.user);
+              console.log('[Web] setAuth 호출 후 checkAuth 호출');
+              if (window.ReactNativeWebView && window.ReactNativeWebView.postMessage) {
+                window.ReactNativeWebView.postMessage(JSON.stringify({
+                  type: 'debug',
+                  message: '[Web] setAuth 호출 후 checkAuth 호출'
+                }));
+              }
+              useAuthStore.getState().checkAuth();
+              setTimeout(() => {
+                console.log('[Web] navigate로 대시보드 이동');
+                if (window.ReactNativeWebView && window.ReactNativeWebView.postMessage) {
+                  window.ReactNativeWebView.postMessage(JSON.stringify({
+                    type: 'debug',
+                    message: '[Web] navigate로 대시보드 이동'
+                  }));
+                }
+                navigate('/dashboard', { replace: true });
+              }, 150);
+            } else {
+              console.error('[Web] 애플 로그인 응답에 accessToken/user 없음:', result);
+              if (window.ReactNativeWebView && window.ReactNativeWebView.postMessage) {
+                window.ReactNativeWebView.postMessage(JSON.stringify({
+                  type: 'debug',
+                  message: '[Web] 애플 로그인 응답에 accessToken/user 없음:' + JSON.stringify(result)
+                }));
+              }
             }
-            navigate('/dashboard', { replace: true });
           })
-          .catch(() => {
+          .catch((e) => {
+            console.error('[Web] /auth/apple/login fetch 에러:', e);
+            if (window.ReactNativeWebView && window.ReactNativeWebView.postMessage) {
+              window.ReactNativeWebView.postMessage(JSON.stringify({
+                type: 'debug',
+                message: '[Web] /auth/apple/login fetch 에러:' + String(e)
+              }));
+            }
             navigate('/dashboard', { replace: true });
           });
         }
-        // 구글 로그인 처리
+        // 구글 로그인 처리 (애플과 동일하게 디버깅 코드 추가)
         if (data.type === 'google-login-success') {
+          console.log('[Web] 구글 로그인 메시지 수신:', data);
+          if (window.ReactNativeWebView && window.ReactNativeWebView.postMessage) {
+            window.ReactNativeWebView.postMessage(JSON.stringify({
+              type: 'debug',
+              message: '[Web] 구글 로그인 메시지 수신:' + JSON.stringify(data)
+            }));
+          }
           fetch('/auth/google/login', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -169,26 +229,78 @@ const SocialLoginHandler: React.FC = () => {
           })
           .then(res => {
             const contentType = res.headers.get('content-type');
+            if (window.ReactNativeWebView && window.ReactNativeWebView.postMessage) {
+              window.ReactNativeWebView.postMessage(JSON.stringify({
+                type: 'debug',
+                message: '[Web] /auth/google/login fetch 응답:' + JSON.stringify(res)
+              }));
+            }
+            console.log('[Web] /auth/google/login fetch 응답:', res);
             if (contentType && contentType.includes('application/json')) {
               return res.json();
             }
             return {};
           })
           .then((result: any) => {
+            console.log('[Web] /auth/google/login 결과:', result);
+            if (window.ReactNativeWebView && window.ReactNativeWebView.postMessage) {
+              window.ReactNativeWebView.postMessage(JSON.stringify({
+                type: 'debug',
+                message: '[Web] /auth/google/login 결과:' + JSON.stringify(result)
+              }));
+            }
             if (result && typeof result === 'object' && 'accessToken' in result && 'user' in result) {
               setAuthToken(result.accessToken);
               localStorage.setItem('accessToken', result.accessToken);
               localStorage.setItem('user', JSON.stringify(result.user));
               useAuthStore.getState().setAuth(result.accessToken, result.user);
+              console.log('[Web] setAuth 호출 후 checkAuth 호출');
+              if (window.ReactNativeWebView && window.ReactNativeWebView.postMessage) {
+                window.ReactNativeWebView.postMessage(JSON.stringify({
+                  type: 'debug',
+                  message: '[Web] setAuth 호출 후 checkAuth 호출'
+                }));
+              }
+              useAuthStore.getState().checkAuth();
+              setTimeout(() => {
+                console.log('[Web] navigate로 대시보드 이동');
+                if (window.ReactNativeWebView && window.ReactNativeWebView.postMessage) {
+                  window.ReactNativeWebView.postMessage(JSON.stringify({
+                    type: 'debug',
+                    message: '[Web] navigate로 대시보드 이동'
+                  }));
+                }
+                navigate('/dashboard', { replace: true });
+              }, 150);
+            } else {
+              console.error('[Web] 구글 로그인 응답에 accessToken/user 없음:', result);
+              if (window.ReactNativeWebView && window.ReactNativeWebView.postMessage) {
+                window.ReactNativeWebView.postMessage(JSON.stringify({
+                  type: 'debug',
+                  message: '[Web] 구글 로그인 응답에 accessToken/user 없음:' + JSON.stringify(result)
+                }));
+              }
             }
-            navigate('/dashboard', { replace: true });
           })
-          .catch(() => {
+          .catch((e) => {
+            console.error('[Web] /auth/google/login fetch 에러:', e);
+            if (window.ReactNativeWebView && window.ReactNativeWebView.postMessage) {
+              window.ReactNativeWebView.postMessage(JSON.stringify({
+                type: 'debug',
+                message: '[Web] /auth/google/login fetch 에러:' + String(e)
+              }));
+            }
             navigate('/dashboard', { replace: true });
           });
         }
       } catch (e) {
-        // 무시
+        console.error('[Web] message 이벤트 처리 에러', e);
+        if (window.ReactNativeWebView && window.ReactNativeWebView.postMessage) {
+          window.ReactNativeWebView.postMessage(JSON.stringify({
+            type: 'debug',
+            message: '[Web] message 이벤트 처리 에러:' + String(e)
+          }));
+        }
       }
     }
     window.addEventListener('message', handleNativeSocialLogin);
