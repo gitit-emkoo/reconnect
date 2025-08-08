@@ -11,7 +11,7 @@ declare global {
     };
   }
 }
-import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
+import { BrowserRouter as Router, Routes, Route, Navigate, useNavigate } from "react-router-dom";
 import { GoogleOAuthProvider } from '@react-oauth/google';
 import GlobalStyle from "./styles/GlobalStyle";
 import ProtectedRoute from "./components/ProtectedRoute";
@@ -124,6 +124,7 @@ const App = () => {
   const checkAuth = useAuthStore((state) => state.checkAuth);
   const isLoading = useAuthStore((state) => state.isLoading);
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
+  const navigate = useNavigate();
 
   useEffect(() => {
     // RECONNECT 브랜드 콘솔 출력 (개발 환경에서만 한 번 출력)
@@ -284,7 +285,7 @@ MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
                 message: '[Web] 대시보드로 이동'
               }));
             }
-            window.location.href = '/dashboard';
+            navigate('/dashboard', { replace: true });
           })
           .catch((e) => {
             console.error('[Web] /auth/apple/login fetch 에러:', e);
@@ -294,7 +295,7 @@ MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
                 message: '[Web] /auth/apple/login fetch 에러:' + String(e)
               }));
             }
-            window.location.href = '/dashboard';
+            navigate('/dashboard', { replace: true });
           });
         }
         // 구글 로그인 처리
@@ -361,7 +362,7 @@ MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
                 message: '[Web] 대시보드로 이동'
               }));
             }
-            window.location.href = '/dashboard';
+            navigate('/dashboard', { replace: true });
           })
           .catch((e) => {
             console.error('[Web] /auth/google/login fetch 에러:', e);
@@ -371,7 +372,7 @@ MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
                 message: '[Web] /auth/google/login fetch 에러:' + String(e)
               }));
             }
-            window.location.href = '/dashboard';
+            navigate('/dashboard', { replace: true });
           });
         }
       } catch (e) {
@@ -414,10 +415,32 @@ MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
           <ScrollToTop />
           <GlobalStyle />
           {isAuthenticated && <NotificationHooks />}
-          <Routes>
-            {/* 루트 경로는 Home 컴포넌트가 처리하여 리디렉션 */}
-            <Route path="/" element={<Home />} />
-            <Route path="/onboarding" element={<Onboarding />} />
+          <AppRoutes />
+          <ToastContainer
+            position="top-right"
+            autoClose={3000}
+            hideProgressBar={false}
+            newestOnTop
+            closeOnClick
+            rtl={false}
+            pauseOnFocusLoss
+            draggable
+            pauseOnHover
+            theme="colored"
+          />
+        </Router>
+      </GoogleOAuthProvider>
+    </QueryClientProvider>
+  );
+};
+
+// AppRoutes 컴포넌트 정의 (useNavigate 사용을 위해)
+const AppRoutes = () => {
+  return (
+    <Routes>
+      {/* 루트 경로는 Home 컴포넌트가 처리하여 리디렉션 */}
+      <Route path="/" element={<Home />} />
+      <Route path="/onboarding" element={<Onboarding />} />
 
             {/* 공개 라우트 */}
             <Route path="/diagnosis" element={<BaselineDiagnosis />} />
@@ -481,22 +504,7 @@ MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
             {/* 404 페이지 - 항상 마지막에 위치해야 함 */}
             <Route path="*" element={<NotFound />} />
           </Routes>
-          <ToastContainer
-            position="top-right"
-            autoClose={3000}
-            hideProgressBar={false}
-            newestOnTop
-            closeOnClick
-            rtl={false}
-            pauseOnFocusLoss
-            draggable
-            pauseOnHover
-            theme="colored"
-          />
-        </Router>
-      </GoogleOAuthProvider>
-    </QueryClientProvider>
-  );
-};
+        );
+      };
 
 export default App;
