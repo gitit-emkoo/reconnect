@@ -28,6 +28,7 @@ import { useQuery } from '@tanstack/react-query';
 import { initializeSafeArea } from './utils/safeArea';
 import { initializeAppleSignIn } from './utils/socialAuth';
 import { initializeWebViewOptimization } from './utils/webview';
+import { setAuthToken } from './utils/cookies';
 
 
 // 페이지 컴포넌트 임포트
@@ -275,8 +276,10 @@ MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
               }));
             }
             if (result && typeof result === 'object' && 'accessToken' in result) {
+              setAuthToken((result as any).accessToken); // 쿠키 저장
               localStorage.setItem('accessToken', (result as any).accessToken);
               localStorage.setItem('user', JSON.stringify((result as any).user));
+              useAuthStore.getState().setAuth((result as any).accessToken, (result as any).user); // SPA 상태 동기화
             }
             console.log('[Web] 대시보드로 이동');
             if (window.ReactNativeWebView && window.ReactNativeWebView.postMessage) {
@@ -352,8 +355,10 @@ MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
             }
             console.log('[Web] /auth/google/login 결과:', result);
             if (result && typeof result === 'object' && 'accessToken' in result) {
+              setAuthToken((result as any).accessToken); // 쿠키 저장
               localStorage.setItem('accessToken', (result as any).accessToken);
               localStorage.setItem('user', JSON.stringify((result as any).user));
+              useAuthStore.getState().setAuth((result as any).accessToken, (result as any).user); // SPA 상태 동기화
             }
             console.log('[Web] 대시보드로 이동');
             if (window.ReactNativeWebView && window.ReactNativeWebView.postMessage) {
