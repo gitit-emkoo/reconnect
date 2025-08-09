@@ -11,11 +11,11 @@ declare global {
     };
   }
 }
-import { BrowserRouter as Router, Routes, Route, Navigate, useNavigate } from "react-router-dom";
+import { BrowserRouter as Router, Routes, Route, Navigate, useNavigate, useLocation } from "react-router-dom";
 import { GoogleOAuthProvider } from '@react-oauth/google';
 import GlobalStyle from "./styles/GlobalStyle";
 import ProtectedRoute from "./components/ProtectedRoute";
-import { ToastContainer } from 'react-toastify';
+import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import useAuthStore from './store/authStore';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
@@ -123,6 +123,7 @@ const NotificationHooks = () => {
 // 네이티브(WebView) 소셜 로그인 메시지 핸들러
 const SocialLoginHandler: React.FC = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   React.useEffect(() => {
     function handleNativeSocialLogin(event: MessageEvent) {
       try {
@@ -144,69 +145,95 @@ const SocialLoginHandler: React.FC = () => {
               authorizationCode: data.credential.authorizationCode
             })
           })
-          .then(res => {
+          .then(async res => {
             const contentType = res.headers.get('content-type');
-            if (window.ReactNativeWebView && window.ReactNativeWebView.postMessage) {
-              window.ReactNativeWebView.postMessage(JSON.stringify({
-                type: 'debug',
-                message: '[Web] /auth/apple/login fetch 응답:' + JSON.stringify(res)
-              }));
-            }
-            console.log('[Web] /auth/apple/login fetch 응답:', res);
-            if (contentType && contentType.includes('application/json')) {
-              return res.json();
-            }
-            return {};
-          })
-          .then((result: any) => {
-            console.log('[Web] /auth/apple/login 결과:', result);
-            if (window.ReactNativeWebView && window.ReactNativeWebView.postMessage) {
-              window.ReactNativeWebView.postMessage(JSON.stringify({
-                type: 'debug',
-                message: '[Web] /auth/apple/login 결과:' + JSON.stringify(result)
-              }));
-            }
-            if (result && typeof result === 'object' && 'accessToken' in result && 'user' in result) {
-              setAuthToken(result.accessToken);
-              localStorage.setItem('accessToken', result.accessToken);
-              localStorage.setItem('user', JSON.stringify(result.user));
-              useAuthStore.getState().setAuth(result.accessToken, result.user);
-              console.log('[Web] setAuth 호출 후 checkAuth 호출');
-              if (window.ReactNativeWebView && window.ReactNativeWebView.postMessage) {
-                window.ReactNativeWebView.postMessage(JSON.stringify({
-                  type: 'debug',
-                  message: '[Web] setAuth 호출 후 checkAuth 호출'
-                }));
-              }
-              useAuthStore.getState().checkAuth();
-              setTimeout(() => {
-                console.log('[Web] navigate로 대시보드 이동');
+            if (res.status === 401) {
+              // 로그인 화면에서 미가입이면 안내 후 회원가입 페이지로 이동
+              if (location.pathname === '/login') {
+                toast.error('가입되지 않은 사용자입니다. 회원가입을 진행해주세요.');
                 if (window.ReactNativeWebView && window.ReactNativeWebView.postMessage) {
                   window.ReactNativeWebView.postMessage(JSON.stringify({
                     type: 'debug',
-                    message: '[Web] navigate로 대시보드 이동'
+                    message: '[Web] /auth/apple/login 401 → 로그인 화면: 회원가입 페이지로 이동'
                   }));
                 }
-                navigate('/dashboard', { replace: true });
-              }, 150);
-            } else {
-              console.error('[Web] 애플 로그인 응답에 accessToken/user 없음:', result);
+                navigate('/register', { replace: true });
+                // 이후 체인 중단을 위해 빈 Response 반환
+                return new Response(new Blob([JSON.stringify({})], { type: 'application/json' }), { status: 204 });
+              }
+              // 기타 화면에서는 회원가입 폴백
               if (window.ReactNativeWebView && window.ReactNativeWebView.postMessage) {
                 window.ReactNativeWebView.postMessage(JSON.stringify({
                   type: 'debug',
-                  message: '[Web] 애플 로그인 응답에 accessToken/user 없음:' + JSON.stringify(result)
+                  message: '[Web] /auth/apple/login 401 감지 → /auth/apple/register 폴백'
                 }));
               }
+              return fetch('/auth/apple/register', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  idToken: data.credential.identityToken,
+                  authorizationCode: data.credential.authorizationCode
+                })
+              });
             }
+            if (contentType && contentType.includes('application/json')) {
+              const json = await res.json();
+              return new Response(new Blob([JSON.stringify(json)], { type: 'application/json' }), { status: res.status });
+            }
+            return new Response(new Blob([JSON.stringify({})], { type: 'application/json' }), { status: res.status });
+          })
+          .then(async res => {
+            const contentType = res.headers.get('content-type');
+            if (res.status === 204) {
+              // 앞 단계에서 리다이렉트 처리됨 (예: 로그인 화면에서 회원가입 페이지 이동)
+              return; // 체인 중단
+            }
+            if (res.status === 409) {
+              // 이미 가입된 사용자: 로그인으로 안내
+              toast.error('이미 가입된 계정입니다. 로그인으로 이동합니다.');
+              if (window.ReactNativeWebView && window.ReactNativeWebView.postMessage) {
+                window.ReactNativeWebView.postMessage(JSON.stringify({
+                  type: 'debug',
+                  message: '[Web] /auth/apple/register 409 → 로그인 페이지로 이동'
+                }));
+              }
+              navigate('/login', { replace: true });
+              return;
+            }
+            if (contentType && contentType.includes('application/json')) {
+              const result = await res.json();
+              if (window.ReactNativeWebView && window.ReactNativeWebView.postMessage) {
+                window.ReactNativeWebView.postMessage(JSON.stringify({
+                  type: 'debug',
+                  message: '[Web] /auth/apple 최종 결과:' + JSON.stringify(result)
+                }));
+              }
+              if (result && typeof result === 'object' && 'accessToken' in result) {
+                setAuthToken((result as any).accessToken);
+                localStorage.setItem('accessToken', (result as any).accessToken);
+                localStorage.setItem('user', JSON.stringify((result as any).user));
+                useAuthStore.getState().setAuth((result as any).accessToken, (result as any).user);
+                useAuthStore.getState().checkAuth();
+                setTimeout(() => {
+                  navigate('/dashboard', { replace: true });
+                }, 150);
+                return;
+              }
+              navigate('/dashboard', { replace: true });
+              return;
+            }
+            navigate('/dashboard', { replace: true });
           })
           .catch((e) => {
-            console.error('[Web] /auth/apple/login fetch 에러:', e);
+            console.error('[Web] /auth/apple 처리 에러:', e);
             if (window.ReactNativeWebView && window.ReactNativeWebView.postMessage) {
               window.ReactNativeWebView.postMessage(JSON.stringify({
                 type: 'debug',
-                message: '[Web] /auth/apple/login fetch 에러:' + String(e)
+                message: '[Web] /auth/apple 처리 에러:' + String(e)
               }));
             }
+            toast.error('애플 로그인 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.');
             navigate('/dashboard', { replace: true });
           });
         }
@@ -307,7 +334,7 @@ const SocialLoginHandler: React.FC = () => {
     return () => {
       window.removeEventListener('message', handleNativeSocialLogin);
     };
-  }, [navigate]);
+  }, [navigate, location]);
   return null;
 };
 
@@ -343,7 +370,6 @@ MMMMMMMMMMMMMMMMMMMMMWKdc;:o0XX0o:;lkXMMMMMMMMMMMMMMMMMMMMMM
 MMMMMMMMMMMMMMMMMMMMMMMWKxc;:cc:;cxXWMMMMMMMMMMMMMMMMMMMMMMM
 MMMMMMMMMMMMMMMMMMMMMMMMMWKxc;;cxXWMMMMMMMMMMMMMMMMMMMMMMMMM
 MMMMMMMMMMMMMMMMMMMMMMMMMMMWKOkKWMMMMMMMMMMMMMMMMMMMMMMMMMMM
-MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
 MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
 MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
 MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
