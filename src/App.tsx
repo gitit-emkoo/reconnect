@@ -237,7 +237,7 @@ const SocialLoginHandler: React.FC = () => {
             navigate('/dashboard', { replace: true });
           });
         }
-        // 구글 로그인 처리 (애플과 동일하게 디버깅 코드 추가)
+        // 구글 로그인 처리
         if (data.type === 'google-login-success') {
           console.log('[Web] 구글 로그인 메시지 수신:', data);
           if (window.ReactNativeWebView && window.ReactNativeWebView.postMessage) {
@@ -246,77 +246,100 @@ const SocialLoginHandler: React.FC = () => {
               message: '[Web] 구글 로그인 메시지 수신:' + JSON.stringify(data)
             }));
           }
+          const googleAccessToken = data?.credential?.accessToken;
+          if (!googleAccessToken) {
+            toast.error('구글 로그인 토큰이 유효하지 않습니다. 다시 시도해주세요.');
+            return;
+          }
           fetch('/auth/google/login', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              idToken: data.credential.idToken,
-              accessToken: data.credential.accessToken
-            })
+            body: JSON.stringify({ accessToken: googleAccessToken })
           })
-          .then(res => {
+          .then(async res => {
             const contentType = res.headers.get('content-type');
-            if (window.ReactNativeWebView && window.ReactNativeWebView.postMessage) {
-              window.ReactNativeWebView.postMessage(JSON.stringify({
-                type: 'debug',
-                message: '[Web] /auth/google/login fetch 응답:' + JSON.stringify(res)
-              }));
-            }
-            console.log('[Web] /auth/google/login fetch 응답:', res);
-            if (contentType && contentType.includes('application/json')) {
-              return res.json();
-            }
-            return {};
-          })
-          .then((result: any) => {
-            console.log('[Web] /auth/google/login 결과:', result);
-            if (window.ReactNativeWebView && window.ReactNativeWebView.postMessage) {
-              window.ReactNativeWebView.postMessage(JSON.stringify({
-                type: 'debug',
-                message: '[Web] /auth/google/login 결과:' + JSON.stringify(result)
-              }));
-            }
-            if (result && typeof result === 'object' && 'accessToken' in result && 'user' in result) {
-              setAuthToken(result.accessToken);
-              localStorage.setItem('accessToken', result.accessToken);
-              localStorage.setItem('user', JSON.stringify(result.user));
-              useAuthStore.getState().setAuth(result.accessToken, result.user);
-              console.log('[Web] setAuth 호출 후 checkAuth 호출');
-              if (window.ReactNativeWebView && window.ReactNativeWebView.postMessage) {
-                window.ReactNativeWebView.postMessage(JSON.stringify({
-                  type: 'debug',
-                  message: '[Web] setAuth 호출 후 checkAuth 호출'
-                }));
-              }
-              useAuthStore.getState().checkAuth();
-              setTimeout(() => {
-                console.log('[Web] navigate로 대시보드 이동');
+            if (res.status === 401) {
+              // 로그인 화면에서 미가입이면 안내 후 회원가입 페이지로 이동
+              if (location.pathname === '/login') {
+                toast.error('가입되지 않은 사용자입니다. 회원가입을 진행해주세요.');
                 if (window.ReactNativeWebView && window.ReactNativeWebView.postMessage) {
                   window.ReactNativeWebView.postMessage(JSON.stringify({
                     type: 'debug',
-                    message: '[Web] navigate로 대시보드 이동'
+                    message: '[Web] /auth/google/login 401 → 로그인 화면: 회원가입 페이지로 이동'
                   }));
                 }
-                navigate('/dashboard', { replace: true });
-              }, 150);
-            } else {
-              console.error('[Web] 구글 로그인 응답에 accessToken/user 없음:', result);
+                navigate('/register', { replace: true });
+                return new Response(new Blob([JSON.stringify({})], { type: 'application/json' }), { status: 204 });
+              }
+              // 기타 화면에서는 회원가입 폴백
               if (window.ReactNativeWebView && window.ReactNativeWebView.postMessage) {
                 window.ReactNativeWebView.postMessage(JSON.stringify({
                   type: 'debug',
-                  message: '[Web] 구글 로그인 응답에 accessToken/user 없음:' + JSON.stringify(result)
+                  message: '[Web] /auth/google/login 401 감지 → /auth/google/register 폴백'
                 }));
               }
+              return fetch('/auth/google/register', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ accessToken: googleAccessToken })
+              });
             }
+            if (contentType && contentType.includes('application/json')) {
+              const json = await res.json();
+              return new Response(new Blob([JSON.stringify(json)], { type: 'application/json' }), { status: res.status });
+            }
+            return new Response(new Blob([JSON.stringify({})], { type: 'application/json' }), { status: res.status });
+          })
+          .then(async res => {
+            if (!res) return; // 안전장치
+            const contentType = res.headers.get('content-type');
+            if (res.status === 204) {
+              return;
+            }
+            if (res.status === 409) {
+              toast.error('이미 가입된 구글 계정입니다. 로그인으로 이동합니다.');
+              if (window.ReactNativeWebView && window.ReactNativeWebView.postMessage) {
+                window.ReactNativeWebView.postMessage(JSON.stringify({
+                  type: 'debug',
+                  message: '[Web] /auth/google/register 409 → 로그인 페이지로 이동'
+                }));
+              }
+              navigate('/login', { replace: true });
+              return;
+            }
+            if (contentType && contentType.includes('application/json')) {
+              const result = await res.json();
+              if (window.ReactNativeWebView && window.ReactNativeWebView.postMessage) {
+                window.ReactNativeWebView.postMessage(JSON.stringify({
+                  type: 'debug',
+                  message: '[Web] /auth/google 최종 결과:' + JSON.stringify(result)
+                }));
+              }
+              if (result && typeof result === 'object' && 'accessToken' in result) {
+                setAuthToken((result as any).accessToken);
+                localStorage.setItem('accessToken', (result as any).accessToken);
+                localStorage.setItem('user', JSON.stringify((result as any).user));
+                useAuthStore.getState().setAuth((result as any).accessToken, (result as any).user);
+                useAuthStore.getState().checkAuth();
+                setTimeout(() => {
+                  navigate('/dashboard', { replace: true });
+                }, 150);
+                return;
+              }
+              navigate('/dashboard', { replace: true });
+              return;
+            }
+            navigate('/dashboard', { replace: true });
           })
           .catch((e) => {
-            console.error('[Web] /auth/google/login fetch 에러:', e);
+            console.error('[Web] /auth/google 처리 에러:', e);
             if (window.ReactNativeWebView && window.ReactNativeWebView.postMessage) {
               window.ReactNativeWebView.postMessage(JSON.stringify({
                 type: 'debug',
-                message: '[Web] /auth/google/login fetch 에러:' + String(e)
+                message: '[Web] /auth/google 처리 에러:' + String(e)
               }));
             }
+            toast.error('구글 로그인 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.');
             navigate('/dashboard', { replace: true });
           });
         }
