@@ -1,9 +1,9 @@
 import React from 'react';
 import styled from 'styled-components';
-import iconDiary from '../../assets/travel-journal_16997872.png';
-import iconCard from '../../assets/love-letter_14299289.png';
-import iconChallenge from '../../assets/finish_11741557.png';
-import iconReport from '../../assets/chart_11709638.png';
+import iconDiary from '../../assets/diary2.png';
+import iconCard from '../../assets/card2.png';
+import iconChallenge from '../../assets/challenge2.png';
+import iconReport from '../../assets/report2.png';
 
 const MainMenuRow = styled.div`
   display: flex;
