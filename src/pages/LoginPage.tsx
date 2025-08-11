@@ -28,7 +28,7 @@ const Container = styled.div`
   background: linear-gradient(135deg, #FFE5E5 0%, #E5E5FF 100%);
   padding: 2rem 1.5rem;
   box-sizing: border-box;
-  padding-bottom: var(--safe-area-bottom, 0px);
+  padding-bottom: var(--safe-area-inset-bottom);
 `;
 
 const Logo = styled.img`

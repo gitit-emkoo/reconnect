@@ -73,17 +73,11 @@ export const initializeWebViewOptimization = () => {
   // 초기 뷰포트 높이 설정
   updateViewportHeight();
   
-  // 뷰포트 크기 변경 감지
+  // 뷰포트 크기 변경 감지(필수 이벤트만 유지)
   window.addEventListener('resize', updateViewportHeight);
   window.addEventListener('orientationchange', () => {
     setTimeout(updateViewportHeight, 100);
   });
-  
-  // 웹뷰 생명주기 이벤트 추가
-  window.addEventListener('pageshow', updateViewportHeight);
-  window.addEventListener('pagehide', updateViewportHeight);
-  window.addEventListener('focus', updateViewportHeight);
-  window.addEventListener('blur', updateViewportHeight);
   
   // 웹뷰에서 전체 화면 모드 활성화
   if (isWebView()) {
@@ -94,23 +88,6 @@ export const initializeWebViewOptimization = () => {
   if (isWebView()) {
     (document.body.style as any).webkitOverflowScrolling = 'touch';
     document.body.style.overscrollBehavior = 'none';
-  }
-  
-  // Safe Area 실시간 업데이트
-  const updateSafeArea = () => {
-    import('./safeArea').then(({ forceSafeAreaUpdate }) => {
-      forceSafeAreaUpdate();
-    });
-  };
-  
-  // 웹뷰 환경에서 추가 이벤트
-  if (isWebView()) {
-    window.addEventListener('resize', updateSafeArea);
-    window.addEventListener('orientationchange', () => {
-      setTimeout(updateSafeArea, 200);
-    });
-    window.addEventListener('focus', updateSafeArea);
-    window.addEventListener('blur', updateSafeArea);
   }
 };
 
