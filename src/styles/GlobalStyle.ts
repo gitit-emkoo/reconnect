@@ -30,8 +30,8 @@ const GlobalStyle = createGlobalStyle`
     
     /* 상단 여백은 헤더 컴포넌트가 자연스럽게 처리하도록 제거 */
     
-    /* 하단 시스템 UI 안전 영역 확보 */
-    padding-bottom: max(env(safe-area-inset-bottom), 20px);
+    /* 하단 시스템 UI 안전 영역 확보 (CSS 변수로 통일) */
+    padding-bottom: max(var(--safe-area-inset-bottom), 20px);
   }
   
   /* 제목 요소들은 원래 크기 유지 */

@@ -414,46 +414,8 @@ MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
     // 웹뷰 최적화 및 전체 화면 모드 활성화
     initializeWebViewOptimization();
     
-    // 뷰포트 높이 실시간 업데이트 함수
-    const updateViewportHeight = () => {
-      const vh = window.innerHeight * 0.01;
-      document.documentElement.style.setProperty('--vh', `${vh}px`);
-    };
-
-    // 초기 설정
-    updateViewportHeight();
-
-    // 리사이즈, 오리엔테이션 변경, 가시성 변경 시 업데이트
-    window.addEventListener('resize', updateViewportHeight);
-    window.addEventListener('orientationchange', updateViewportHeight);
-    document.addEventListener('visibilitychange', updateViewportHeight);
-    
-    // 앱 포커스/블러 시에도 업데이트 (웹뷰에서 중요)
-    window.addEventListener('focus', updateViewportHeight);
-    window.addEventListener('blur', updateViewportHeight);
-    
-    // 웹뷰 환경에서 강제 레이아웃 업데이트
-    const forceLayoutUpdate = () => {
-      updateViewportHeight();
-      // Safe Area 강제 업데이트
-      import('./utils/safeArea').then(({ forceSafeAreaUpdate }) => {
-        forceSafeAreaUpdate();
-      });
-    };
-    
-    // 웹뷰 환경 감지 및 추가 이벤트 리스너
-    if ((window.navigator as any).standalone || window.matchMedia('(display-mode: standalone)').matches) {
-      window.addEventListener('resize', forceLayoutUpdate);
-      window.addEventListener('orientationchange', () => {
-        setTimeout(forceLayoutUpdate, 100);
-      });
-      // 앱 전환 시 강제 업데이트
-      window.addEventListener('focus', forceLayoutUpdate);
-      window.addEventListener('blur', forceLayoutUpdate);
-    }
-
-    // 소셜 로그인(애플/구글) 네이티브 메시지 핸들러 등록
-    // 이 부분은 SocialLoginHandler 컴포넌트에서 처리하므로 제거
+    // 뷰포트 높이 실시간 업데이트 함수 및 중복 리스너 제거
+    // safeArea와 webview 모듈에서 관리하므로 여기서는 추가 리스너를 붙이지 않습니다.
   }, [checkAuth]);
 
   // 인증 상태를 확인하는 동안 로딩 스피너를 전체 화면에 표시

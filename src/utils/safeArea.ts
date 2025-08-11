@@ -1,93 +1,67 @@
-// 안전 영역 계산 유틸리티
+// 안전 영역 계산 유틸리티 (안정화 버전)
+
+let isSafeAreaInitialized = false;
+let updateTimeoutId: number | null = null;
+
+// CSS 커스텀 변수에서 안전 영역 하단 값을 읽어 숫자로 반환
 export const getSafeAreaBottom = (): number => {
-  // CSS env() 값 직접 가져오기
-  const safeAreaBottom = getComputedStyle(document.documentElement)
-    .getPropertyValue('env(safe-area-inset-bottom)') || '0px';
-  
-  // px 값을 숫자로 변환
-  const bottomValue = parseInt(safeAreaBottom, 10);
-  
-  // 폴더블 디바이스 감지
-  const isFoldable = detectFoldableDevice();
-  
-  if (isFoldable) {
-    // 폴더블 디바이스는 더 큰 기본값 사용
-    return Math.max(bottomValue, 64);
-  }
-  
-  // 감지된 값이 있으면 사용, 없으면 0px
-  return bottomValue > 0 ? bottomValue : 0;
+  const cssBottom = getComputedStyle(document.documentElement)
+    .getPropertyValue('--safe-area-inset-bottom')
+    .trim();
+
+  // '0px' 형태를 숫자로 변환
+  const parsed = parseInt(cssBottom || '0', 10);
+  return Number.isFinite(parsed) && parsed > 0 ? parsed : 0;
 };
 
-// 폴더블 디바이스 감지
-export const detectFoldableDevice = (): boolean => {
-  const userAgent = navigator.userAgent.toLowerCase();
-  const isSamsungFoldable = userAgent.includes('samsung') && (
-    userAgent.includes('fold') || 
-    userAgent.includes('flip') || 
-    userAgent.includes('z fold') || 
-    userAgent.includes('z flip')
-  );
-  
-  const isFoldableRatio = window.innerWidth / window.innerHeight > 1.5 || 
-                          window.innerHeight / window.innerWidth > 1.5;
-  const isFoldableSize = window.innerWidth > 800 || window.innerHeight > 800;
-  
-  return isSamsungFoldable || (isFoldableRatio && isFoldableSize);
-};
-
-// CSS 변수로 안전 영역 설정
+// CSS 변수로 안전 영역 설정 (혼용 방지를 위해 --safe-area-bottom도 함께 세팅)
 export const setSafeAreaCSS = (): void => {
   const bottom = getSafeAreaBottom();
-  document.documentElement.style.setProperty('--safe-area-bottom', `${bottom}px`);
-  
-  // 디버깅용 로그
-  console.log('Safe Area Bottom:', bottom, 'px');
-};
 
-// 강제 레이아웃 업데이트
-export const forceSafeAreaUpdate = (): void => {
-  // DOM 강제 리플로우
-  document.body.offsetHeight;
-  
-  // Safe Area 재계산
-  setSafeAreaCSS();
-  
-  // 뷰포트 높이 업데이트
+  // 프로젝트 내 사용되는 두 변수를 모두 갱신
+  document.documentElement.style.setProperty('--safe-area-bottom', `${bottom}px`);
+  // 네비게이션 바 높이 업데이트
+  const navHeight = 60 + Math.max(bottom, 20);
+  document.documentElement.style.setProperty('--nav-height', `${navHeight}px`);
+
+  // 동적 뷰포트 높이도 여기서 함께 업데이트
   const vh = window.innerHeight * 0.01;
   document.documentElement.style.setProperty('--vh', `${vh}px`);
-  
-  // 네비게이션 바 높이 업데이트
-  const navHeight = 60 + Math.max(getSafeAreaBottom(), 20);
-  document.documentElement.style.setProperty('--nav-height', `${navHeight}px`);
-  
-  console.log('Safe Area Force Updated');
+
+  // 디버깅 로그(필요 시 주석 처리 가능)
+  console.log('[safeArea] bottom:', bottom, 'vh:', vh, 'navHeight:', navHeight);
 };
 
-// 초기화
+// 디바운스된 강제 업데이트 (중복 호출 최소화)
+export const forceSafeAreaUpdate = (): void => {
+  if (updateTimeoutId !== null) {
+    window.clearTimeout(updateTimeoutId);
+  }
+  updateTimeoutId = window.setTimeout(() => {
+    // DOM 강제 리플로우로 레이아웃 확정 후 계산
+    void document.body.offsetHeight;
+    setSafeAreaCSS();
+    updateTimeoutId = null;
+    console.log('[safeArea] force update');
+  }, 100);
+};
+
+// 초기화: 중복 방지 + 이벤트 축소(resize, orientationchange만)
 export const initializeSafeArea = (): void => {
+  if (isSafeAreaInitialized) {
+    return;
+  }
+  isSafeAreaInitialized = true;
+
+  // 최초 1회 설정
   setSafeAreaCSS();
-  
-  // 웹뷰 생명주기 이벤트 추가
-  window.addEventListener('pageshow', forceSafeAreaUpdate);
-  window.addEventListener('pagehide', forceSafeAreaUpdate);
-  window.addEventListener('focus', forceSafeAreaUpdate);
-  window.addEventListener('blur', forceSafeAreaUpdate);
+
+  // 창 크기/회전 변경 시에만 디바운스 업데이트
   window.addEventListener('resize', forceSafeAreaUpdate);
   window.addEventListener('orientationchange', () => {
-    setTimeout(forceSafeAreaUpdate, 100);
+    // 회전은 약간의 지연 후에 안정된 값을 반영
+    setTimeout(forceSafeAreaUpdate, 120);
   });
-  
-  // 가시성 변경 시 업데이트
-  document.addEventListener('visibilitychange', forceSafeAreaUpdate);
-  
-  // 웹뷰 환경에서 추가 이벤트
-  if ((window.navigator as any).standalone || window.matchMedia('(display-mode: standalone)').matches) {
-    window.addEventListener('resize', forceSafeAreaUpdate);
-    window.addEventListener('orientationchange', () => {
-      setTimeout(forceSafeAreaUpdate, 200);
-    });
-  }
-  
-  console.log('Safe Area Initialized');
+
+  console.log('[safeArea] initialized');
 }; 
