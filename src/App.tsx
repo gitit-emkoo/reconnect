@@ -423,6 +423,19 @@ MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
     return <LoadingSpinner fullscreen={true} size={60} />;
   }
   
+  // 네비게이션 존재 여부에 따라 #root에 has-nav 클래스 토글
+  React.useEffect(() => {
+    const root = document.getElementById('root');
+    if (!root) return;
+    const update = () => {
+      const path = window.location.pathname;
+      const hasNav = ['/dashboard', '/expert', '/content-center', '/community', '/my']
+        .some(p => path.startsWith(p));
+      root.classList.toggle('has-nav', hasNav);
+    };
+    update();
+  });
+
   return (
     <QueryClientProvider client={queryClient}>
       <GoogleOAuthProvider clientId={clientId || ''}>
