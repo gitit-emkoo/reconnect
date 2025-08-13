@@ -12,8 +12,7 @@ import ConfirmationModal from '../components/common/ConfirmationModal';
 const Container = styled.div`
   background-color: #f9fafb;
   min-height: 100vh;
-  padding: 2rem;
-  padding-bottom: 80px;
+  padding: 2rem; /* 하단 여백은 #root.has-nav가 담당 */
 `;
 
 const Header = styled.div`

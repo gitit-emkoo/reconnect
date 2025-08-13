@@ -4,7 +4,7 @@ const depression: DiagnosisTemplate = {
   id: 'depression',
   title: '우울증 진단',
   subtitle: '정서적 안정감, 무기력, 자살 사고 등 다양한 우울 증상을 점검합니다.',
-  price: '50,000',
+  price: '이벤트 무료오픈',
   questions: [
     { id: 'q1', text: '하루 대부분의 시간 동안 기분이 가라앉거나 슬프다.', options: [ { text: '매우 그렇다', value: 5 }, { text: '그렇다', value: 4 }, { text: '보통이다', value: 3 }, { text: '아니다', value: 2 }, { text: '전혀 아니다', value: 1 } ] },
     { id: 'q2', text: '예전에는 즐겁던 활동에 흥미나 즐거움을 느끼지 못한다.', options: [ { text: '매우 그렇다', value: 5 }, { text: '그렇다', value: 4 }, { text: '보통이다', value: 3 }, { text: '아니다', value: 2 }, { text: '전혀 아니다', value: 1 } ] },

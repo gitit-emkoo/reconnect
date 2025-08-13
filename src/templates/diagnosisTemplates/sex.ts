@@ -4,7 +4,7 @@ const sex: DiagnosisTemplate = {
   id: 'sex',
   title: '성생활 만족도 진단',
   subtitle: '성적 친밀감과 만족도를 점검하여 부부관계의 건강성을 확인합니다.',
-  price: '50,000',
+  price: '이벤트 무료오픈',
   questions: [
     { id: 'q1', text: '배우자와의 스킨십이 줄어들면서 정서적으로도 거리가 생긴다고 느낀다.', options: [ { text: '매우 그렇다', value: 5 }, { text: '그렇다', value: 4 }, { text: '보통이다', value: 3 }, { text: '아니다', value: 2 }, { text: '전혀 아니다', value: 1 } ] },
     { id: 'q2', text: '성관계를 피하고 싶다고 생각하는 경우가 많다.', options: [ { text: '매우 그렇다', value: 5 }, { text: '그렇다', value: 4 }, { text: '보통이다', value: 3 }, { text: '아니다', value: 2 }, { text: '전혀 아니다', value: 1 } ] },
