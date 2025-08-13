@@ -28,8 +28,6 @@ const GlobalStyle = createGlobalStyle`
     
     /* 상단 여백은 헤더 컴포넌트가 자연스럽게 처리하도록 제거 */
     
-    /* 하단 시스템 UI 안전 영역 확보 (CSS 변수로 통일) */
-    padding-bottom: max(var(--safe-area-inset-bottom), 20px);
   }
   
   /* 제목 요소들은 원래 크기 유지 */
@@ -122,28 +120,23 @@ const GlobalStyle = createGlobalStyle`
   
   #root {
     min-height: 100dvh;
-    
-    /* 하단 네비게이션을 위한 동적 여백 확보 */
+  }
+  /* 네비게이션이 렌더링되는 화면에서만 하단 여백 적용 */
+  #root.has-nav {
     padding-bottom: var(--nav-height, 80px);
   }
   
   /* 전체 화면 모드에서 네비게이션 여백 조정 */
   @media (display-mode: fullscreen) {
-    #root {
-      padding-bottom: var(--nav-height, 80px);
-    }
+    #root.has-nav { padding-bottom: var(--nav-height, 80px); }
   }
   
   @media (display-mode: standalone) {
-    #root {
-      padding-bottom: var(--nav-height, 80px);
-    }
+    #root.has-nav { padding-bottom: var(--nav-height, 80px); }
   }
   
   @media (display-mode: minimal-ui) {
-    #root {
-      padding-bottom: var(--nav-height, 80px);
-    }
+    #root.has-nav { padding-bottom: var(--nav-height, 80px); }
   }
   
   /* 웹뷰 최적화 */
