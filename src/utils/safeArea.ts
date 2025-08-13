@@ -24,8 +24,10 @@ export const setSafeAreaCSS = (): void => {
   const navHeight = 60 + Math.max(bottom, 20);
   document.documentElement.style.setProperty('--nav-height', `${navHeight}px`);
 
-  // 동적 뷰포트 높이도 여기서 함께 업데이트
-  const vh = window.innerHeight * 0.01;
+  // 동적 뷰포트 높이도 여기서 함께 업데이트 (visualViewport 우선)
+  const visual = (window as any).visualViewport;
+  const viewportHeight = visual?.height ? visual.height : window.innerHeight;
+  const vh = viewportHeight * 0.01;
   document.documentElement.style.setProperty('--vh', `${vh}px`);
 
   // 디버깅 로그(필요 시 주석 처리 가능)
@@ -62,6 +64,15 @@ export const initializeSafeArea = (): void => {
     // 회전은 약간의 지연 후에 안정된 값을 반영
     setTimeout(forceSafeAreaUpdate, 120);
   });
+
+  // 키보드 토글 등으로 visualViewport 변화 감지 (Android WebView 대응)
+  const visual = (window as any).visualViewport;
+  if (visual && typeof visual.addEventListener === 'function') {
+    visual.addEventListener('resize', forceSafeAreaUpdate);
+  }
+
+  // 입력 포커스 해제(키보드 닫힘) 직후 안정화
+  window.addEventListener('focusout', () => setTimeout(forceSafeAreaUpdate, 50));
 
   console.log('[safeArea] initialized');
 }; 

@@ -23,9 +23,7 @@ const GlobalStyle = createGlobalStyle`
     font-size: calc(1em * var(--font-size-scale));
     background-color: #fafafa;
     /* 폴더블 디바이스 최적화 */
-    min-height: 100vh;
     min-height: 100dvh; /* dynamic viewport height */
-    height: 100%;
     overflow-x: hidden;
     
     /* 상단 여백은 헤더 컴포넌트가 자연스럽게 처리하도록 제거 */
@@ -118,14 +116,12 @@ const GlobalStyle = createGlobalStyle`
   
   html {
     /* 웹뷰 전체 화면 지원 */
-    height: 100%;
+    background-color: #fafafa; /* WebView 바탕색 누수 방지 */
     overflow-x: hidden;
   }
   
   #root {
-    min-height: 100vh;
     min-height: 100dvh;
-    height: 100%;
     
     /* 하단 네비게이션을 위한 동적 여백 확보 */
     padding-bottom: var(--nav-height, 80px);
