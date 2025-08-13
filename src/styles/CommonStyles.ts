@@ -5,20 +5,19 @@ export const Container = styled.div`
   background-color: white;
   min-height: 100vh;
   padding: 1rem;
-  
-  /* NavigationBar가 있는 페이지를 위한 하단 여백 */
-  padding-bottom: calc(1rem + var(--nav-height, 80px));
+  /* 하단 여백은 #root.has-nav가 담당 → 컴포넌트 자체에서는 일반 패딩만 유지 */
+  padding-bottom: 1rem;
   
   /* 반응형 패딩 */
   @media screen and (max-width: 768px) {
     padding: 0.5rem;
-    padding-bottom: calc(0.5rem + var(--nav-height, 80px));
+    padding-bottom: 0.5rem;
   }
   
   /* 큰 화면에서 더 넓은 여백 */
   @media screen and (min-width: 1024px) {
     padding: 2rem;
-    padding-bottom: calc(2rem + var(--nav-height, 80px));
+    padding-bottom: 2rem;
   }
 `;
 
@@ -47,10 +46,11 @@ export const CustomContainer = styled.div<{
 }>`
   background-color: white;
   min-height: 100vh;
-  padding: ${props => props.$topPadding || '1rem'} ${props => props.$horizontalPadding || '1rem'} ${props => props.$bottomPadding || 'calc(1rem + var(--nav-height, 80px))'};
+  /* 기본적으로 네비 높이는 루트에서 처리 → 여기서는 명시 전달 없으면 일반 패딩만 */
+  padding: ${props => props.$topPadding || '1rem'} ${props => props.$horizontalPadding || '1rem'} ${props => props.$bottomPadding || '1rem'};
   
   /* 반응형 패딩 */
   @media screen and (max-width: 768px) {
-    padding: ${props => props.$topPadding || '0.5rem'} ${props => props.$horizontalPadding || '0.5rem'} ${props => props.$bottomPadding || 'calc(0.5rem + var(--nav-height, 80px))'};
+    padding: ${props => props.$topPadding || '0.5rem'} ${props => props.$horizontalPadding || '0.5rem'} ${props => props.$bottomPadding || '0.5rem'};
   }
 `;

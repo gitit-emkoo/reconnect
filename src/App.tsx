@@ -418,11 +418,6 @@ MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
     // safeArea와 webview 모듈에서 관리하므로 여기서는 추가 리스너를 붙이지 않습니다.
   }, [checkAuth]);
 
-  // 인증 상태를 확인하는 동안 로딩 스피너를 전체 화면에 표시
-  if (isLoading) {
-    return <LoadingSpinner fullscreen={true} size={60} />;
-  }
-  
   // 네비게이션 존재 여부에 따라 #root에 has-nav 클래스 토글
   React.useEffect(() => {
     const root = document.getElementById('root');
@@ -436,6 +431,11 @@ MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
     update();
   });
 
+  // 인증 상태를 확인하는 동안 로딩 스피너를 전체 화면에 표시
+  if (isLoading) {
+    return <LoadingSpinner fullscreen={true} size={60} />;
+  }
+  
   return (
     <QueryClientProvider client={queryClient}>
       <GoogleOAuthProvider clientId={clientId || ''}>

@@ -6,15 +6,6 @@ import { DiaryEntry } from '../../api/diary';
 import { formatInKST } from '../../utils/date';
 import { SentMessage } from "../../pages/EmotionCard";
 
-// 광고 박스 (투명한 여백용)
-const AdBox = styled.div`
-  width: 100%;
-  height: 10rem; 
-  background-color: transparent; 
-  margin-top: 1rem; 
-  border-radius: 0.5rem;
-`;
-
 // 캘린더 컴포넌트를 styled-components로 래핑합니다.
 const StyledCalendar = styled(OriginalCalendar)`
   width: 100%;
@@ -307,7 +298,7 @@ const DashboardCalendar = ({
         tileContent={tileContent}
         onClickDay={handleDayClick}
       />
-      <AdBox />
+      
       {renderDateModal()}
     </>
   );

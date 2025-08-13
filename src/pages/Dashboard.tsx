@@ -36,9 +36,8 @@ const getEmotionByTemperature = (temp: number): string => {
 };
 
 const Container = styled.div`
-  padding: 1.5rem 1.5rem;
+  padding: 1.5rem 1.5rem; /* 하단 여백은 #root.has-nav가 담당 */
   background-color: #ffffff;
-  padding-bottom: 40px;
   height: auto;
 `;
 

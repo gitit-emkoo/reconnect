@@ -34,14 +34,13 @@ export interface SentMessage {
 }
 
 const Container = styled.div`
-  
-  background-color: #f0f4f8; /* 부드러운 배경색 */
-  padding: 2rem 2rem 7rem 2rem;
+  background-color: #f0f4f8;
+  padding: 2rem; /* 하단 여백은 #root.has-nav가 담당 */
   display: flex;
   flex-direction: column;
-  align-items: center; 
-  box-sizing: border-box; 
-  overflow-y: auto; 
+  align-items: center;
+  box-sizing: border-box;
+  overflow-y: auto;
 `;
 
 const ErrorMessage = styled.p`

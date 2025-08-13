@@ -55,17 +55,6 @@ interface Post {
 }
 
 // === Styled Components (전면 개편) ===
-// 광고 박스 (투명한 여백용)
-const AdBox = styled.div`
-  width: 100%;
-  height: 6rem; /* 96px 높이 */
-  background-color: transparent; /* 투명 배경 */
-  margin-top: 1rem; /* 최신글 목록과의 간격 */
-  border-radius: 0.5rem;
-  /* 나중에 광고 추가 시 사용할 스타일 */
-  /* background-color: #f9f9f9; */
-  /* border: 1px solid #e0e0e0; */
-`;
 
 const Container = styled.div`
   background-color: #f8f9fa;
@@ -379,7 +368,6 @@ const PostDetailPage: React.FC = () => {
           />
         </div>
         
-        <AdBox />
       </Container>
       <NavigationBar />
     </>

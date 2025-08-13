@@ -4,7 +4,7 @@ const affection: DiagnosisTemplate = {
   id: 'affection',
   title: '정서적 애정결핍 진단',
   subtitle: '정서적 친밀감과 애정결핍 정도를 점검합니다.',
-  price: '50,000',
+  price: '이벤트 무료오픈',
   questions: [
     // ... (affection 진단 질문들 복사)
   ],
