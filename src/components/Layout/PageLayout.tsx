@@ -47,7 +47,7 @@ const StyledCommonBackButton = styled(CommonBackButton)`
 const ContentArea = styled.main`
   flex-grow: 1;
   padding: 1.5rem;
-  padding-bottom: 75px; /* 네비게이션바 높이(60px) + 추가 여유(15px) */
+  padding-bottom: var(--nav-height, 80px);
   /* background-color: white; // 페이지별로 배경색을 다르게 할 수 있도록 PageLayout에서는 제거 */
 `;
 

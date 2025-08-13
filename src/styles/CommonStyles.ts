@@ -7,18 +7,18 @@ export const Container = styled.div`
   padding: 1rem;
   
   /* NavigationBar가 있는 페이지를 위한 하단 여백 */
-  padding-bottom: calc(1rem + 60px);
+  padding-bottom: calc(1rem + var(--nav-height, 80px));
   
   /* 반응형 패딩 */
   @media screen and (max-width: 768px) {
     padding: 0.5rem;
-    padding-bottom: calc(0.5rem + 60px);
+    padding-bottom: calc(0.5rem + var(--nav-height, 80px));
   }
   
   /* 큰 화면에서 더 넓은 여백 */
   @media screen and (min-width: 1024px) {
     padding: 2rem;
-    padding-bottom: calc(2rem + 60px);
+    padding-bottom: calc(2rem + var(--nav-height, 80px));
   }
 `;
 
@@ -47,10 +47,10 @@ export const CustomContainer = styled.div<{
 }>`
   background-color: white;
   min-height: 100vh;
-  padding: ${props => props.$topPadding || '1rem'} ${props => props.$horizontalPadding || '1rem'} ${props => props.$bottomPadding || 'calc(1rem + 60px)'};
+  padding: ${props => props.$topPadding || '1rem'} ${props => props.$horizontalPadding || '1rem'} ${props => props.$bottomPadding || 'calc(1rem + var(--nav-height, 80px))'};
   
   /* 반응형 패딩 */
   @media screen and (max-width: 768px) {
-    padding: ${props => props.$topPadding || '0.5rem'} ${props => props.$horizontalPadding || '0.5rem'} ${props => props.$bottomPadding || 'calc(0.5rem + 60px)'};
+    padding: ${props => props.$topPadding || '0.5rem'} ${props => props.$horizontalPadding || '0.5rem'} ${props => props.$bottomPadding || 'calc(0.5rem + var(--nav-height, 80px))'};
   }
 `;
