@@ -1,9 +1,9 @@
-import React, { useCallback } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import styled from 'styled-components';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { ReactComponent as HomeIcon } from '../assets/Icon_Home.svg';
 import { ReactComponent as ExpertIcon } from '../assets/Icon_Expert.svg';
-import { ReactComponent as ContentsIcon } from '../assets/Icon_ContentsCenter.svg';
+import { ReactComponent as ContentsIcon } from '../assets/Icon_Recipe.svg';
 import { ReactComponent as CommunityIcon } from '../assets/Icon_Community.svg';
 import { ReactComponent as MyIcon } from '../assets/Icon_My.svg';
 
@@ -96,10 +96,37 @@ interface NavigationBarProps {
 const NavigationBar: React.FC<NavigationBarProps> = React.memo(() => {
   const navigate = useNavigate();
   const location = useLocation();
+  const [hiddenByKeyboard, setHiddenByKeyboard] = useState(false);
+
+  useEffect(() => {
+    const visual: any = (window as any).visualViewport;
+    const root = document.getElementById('root');
+    const detect = () => {
+      const visualHeight = visual?.height || window.innerHeight;
+      const delta = window.innerHeight - visualHeight;
+      const isOpen = delta > 150; // 키보드가 열리면 보통 150px 이상 줄어듦
+      setHiddenByKeyboard(isOpen);
+      if (root) root.classList.toggle('keyboard-open', isOpen);
+    };
+    if (visual && typeof visual.addEventListener === 'function') {
+      visual.addEventListener('resize', detect);
+    }
+    window.addEventListener('focusin', detect);
+    window.addEventListener('focusout', () => setTimeout(detect, 50));
+    detect();
+    return () => {
+      if (visual && typeof visual.removeEventListener === 'function') {
+        visual.removeEventListener('resize', detect);
+      }
+      window.removeEventListener('focusin', detect);
+    };
+  }, []);
 
   const handleNavClick = useCallback((path: string) => {
     navigate(path);
   }, [navigate]);
+
+  if (hiddenByKeyboard) return null;
 
   return (
     <NavContainer>
@@ -122,7 +149,7 @@ const NavigationBar: React.FC<NavigationBarProps> = React.memo(() => {
         $isActive={location.pathname === '/content-center'}
       >
         <ContentsIcon />
-        콘텐츠센터
+        부부처방소
       </NavButton>
       <NavButton
         onClick={() => handleNavClick("/community")}

@@ -118,7 +118,7 @@ const ContentCenter: React.FC = () => {
       <MobileOnlyBanner />
       <HeaderContainer>
         <Header
-          title="관계 가이드"
+          title="부부 처방소"
           showBackButton={false}
         />
       </HeaderContainer>

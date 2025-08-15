@@ -125,6 +125,10 @@ const GlobalStyle = createGlobalStyle`
   #root.has-nav {
     padding-bottom: var(--nav-height, 80px);
   }
+  /* 키보드 열림 시 네비게이션 여백 제거 (웹뷰에서 시각적 겹침 방지) */
+  #root.has-nav.keyboard-open {
+    padding-bottom: 0 !important;
+  }
   
   /* 전체 화면 모드에서 네비게이션 여백 조정 */
   @media (display-mode: fullscreen) {
