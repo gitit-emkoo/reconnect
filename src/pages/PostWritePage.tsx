@@ -57,7 +57,7 @@ const Form = styled.form`
 
   @media (max-width: 768px) {
     padding: 1.5rem 1rem;
-    margin-bottom: 6rem;
+    margin-bottom: 2rem;
     gap: 1rem;
   }
 `;
@@ -415,6 +415,10 @@ const PostWritePage: React.FC = () => {
                       </SubmitButton>
                     </ButtonContainer>
                 </Form>
+                <div style={{ fontSize: '0.9rem', color: '#6c757d', textAlign: 'left' }}>
+                  커뮤니티에는 불쾌한 콘텐츠에 대한 무관용 정책이 적용됩니다.
+                  <a href="/terms#zero-tolerance" target="_blank" rel="noopener noreferrer" style={{ color: '#785CD2', marginLeft: 6 }}>이용약관 확인</a>
+                </div>
             </Container>
             <NavigationBar />
         </>

@@ -9,6 +9,7 @@ import NavigationBar from "../components/NavigationBar";
 import ConfirmationModal from "../components/common/ConfirmationModal";
 import { getUserAvatar } from "../utils/avatar";
 import { ADMIN_CONFIG } from '../config/admin';
+import { blockApi } from '../api/user';
 
 // 아이콘 import
 import IconAgreement from "../assets/Icon_Agreement.png";
@@ -143,6 +144,29 @@ const InfoSection = styled.div`
   }
 `;
 
+const BlockList = styled.div`
+  margin-top: 0.5rem;
+`;
+
+const BlockListItem = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.6rem 0.4rem;
+  border-bottom: 1px solid #eee;
+`;
+
+const UnblockButton = styled.button`
+  background: #adb5bd;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 0.3rem 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+`;
+
 const ModalSectionTitle = styled.h4`
   font-size: 1.1rem;
   color: #333;
@@ -213,6 +237,7 @@ const MyPage: React.FC = () => {
   const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false);
   const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
   const [isCompanyInfoModalOpen, setIsCompanyInfoModalOpen] = useState(false);
+  const [blockedUsers, setBlockedUsers] = useState<Array<{ id: string; nickname: string; email: string; profileImageUrl?: string }>>([]);
 
   // 토큰 체크는 Zustand의 accessToken 사용
   const accessToken = useAuthStore((state) => state.accessToken);
@@ -221,6 +246,18 @@ const MyPage: React.FC = () => {
       navigate('/login');
     }
   }, [navigate, accessToken]);
+
+  useEffect(() => {
+    const loadBlocks = async () => {
+      try {
+        const list = await blockApi.getMyBlocks();
+        setBlockedUsers(list);
+      } catch {}
+    };
+    if (accessToken) {
+      loadBlocks();
+    }
+  }, [accessToken]);
 
   const confirmLogout = () => {
     logout();
@@ -310,6 +347,36 @@ const MyPage: React.FC = () => {
               <span>▸</span>
             </SettingItem>
           </SettingsListContainer>
+        </Section>
+
+        {/* 차단한 사용자 목록 */}
+        <Section style={{ textAlign: 'left' }}>
+          <SectionTitle>차단한 사용자</SectionTitle>
+          {blockedUsers.length === 0 ? (
+            <div style={{ color: '#999', fontSize: '0.9rem' }}>차단한 사용자가 없습니다.</div>
+          ) : (
+            <BlockList>
+              {blockedUsers.map(u => (
+                <BlockListItem key={u.id}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                    <img src={u.profileImageUrl || getUserAvatar({ id: u.id, email: u.email, nickname: u.nickname } as any)} alt={u.nickname} style={{ width: 32, height: 32, borderRadius: '50%' }} />
+                    <div>
+                      <div style={{ fontWeight: 600 }}>{u.nickname}</div>
+                      <div style={{ color: '#999', fontSize: 12 }}>{u.email}</div>
+                    </div>
+                  </div>
+                  <UnblockButton onClick={async () => {
+                    try {
+                      await blockApi.unblockUser(u.id);
+                      setBlockedUsers(prev => prev.filter(b => b.id !== u.id));
+                    } catch {
+                      alert('차단 해제 중 오류가 발생했습니다.');
+                    }
+                  }}>차단 해제</UnblockButton>
+                </BlockListItem>
+              ))}
+            </BlockList>
+          )}
         </Section>
 
         {/* 관리자 메뉴 - 관리자인 경우에만 표시 */}

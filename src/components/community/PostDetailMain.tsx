@@ -2,6 +2,11 @@ import React, { useState } from 'react';
 import styled from 'styled-components';
 import axiosInstance from '../../api/axios';
 import ConfirmationModal from '../common/ConfirmationModal';
+import { blockApi } from '../../api/user';
+import LoginModal from '../common/LoginModal';
+import useAuthStore from '../../store/authStore';
+import { useNavigate } from 'react-router-dom';
+import MeatballsIcon from '../../assets/Meatballs_menu.svg?url';
 
 interface PostAuthor {
   nickname: string;
@@ -27,6 +32,7 @@ interface PostDetailMainProps {
 const PostHeader = styled.div`
   padding-bottom: 1.5rem;
   border-bottom: 1px solid #e9ecef;
+  position: relative;
 `;
 const CategoryTag = styled.span`
   font-size: 0.8rem;
@@ -93,14 +99,47 @@ const ViewCount = styled.span`
   margin-left: 0.5rem;
 `;
 
-const ReportButton = styled.button`
-  background: #ffb347;
-  color: #fff;
+const ActionArea = styled.div`
+  position: absolute;
+  top: 0;
+  right: 0;
+`;
+
+const KebabButton = styled.button`
+  width: 32px;
+  height: 32px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   border: none;
-  border-radius: 0.5rem;
-  padding: 0.4rem 1.2rem;
-  font-weight: 600;
+  background: transparent;
   cursor: pointer;
+`;
+
+const DropdownMenu = styled.div`
+  position: absolute;
+  top: 36px;
+  right: 0;
+  background: #fff;
+  border: 1px solid #e9ecef;
+  border-radius: 8px;
+  box-shadow: 0 6px 20px rgba(0,0,0,0.08);
+  padding: 6px;
+  z-index: 10;
+  min-width: 140px;
+`;
+
+const MenuItem = styled.button`
+  width: 100%;
+  text-align: left;
+  padding: 10px 12px;
+  border: none;
+  background: transparent;
+  color: #495057;
+  font-size: 0.95rem;
+  border-radius: 6px;
+  cursor: pointer;
+  &:hover { background: #f8f9fa; }
 `;
 
 const REPORT_REASONS = [
@@ -112,12 +151,16 @@ const REPORT_REASONS = [
 ];
 
 const PostDetailMain: React.FC<PostDetailMainProps> = ({ post, user, onEdit, onDelete }) => {
+  const navigate = useNavigate();
   const [showReportModal, setShowReportModal] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
   const [reportReason, setReportReason] = useState('욕설/비방');
   const [etcReason, setEtcReason] = useState('');
   const [isReporting, setIsReporting] = useState(false);
   const [reportSuccess, setReportSuccess] = useState(false);
   const [reportError, setReportError] = useState('');
+  const [showLoginModal, setShowLoginModal] = useState(false);
+  const { isAuthenticated } = useAuthStore();
 
   const isOwnPost = user && post && (user.id === (post as any).authorId);
 
@@ -138,8 +181,43 @@ const PostDetailMain: React.FC<PostDetailMainProps> = ({ post, user, onEdit, onD
     }
   };
 
+  const handleBlock = async () => {
+    if (!isAuthenticated) {
+      setShowLoginModal(true);
+      return;
+    }
+    try {
+      await blockApi.blockUser((post as any).authorId);
+      alert('해당 사용자를 차단했습니다. 이후 이 사용자의 게시물과 댓글이 목록에서 숨겨집니다.');
+      // 차단 직후 글 목록으로 이동
+      navigate('/community');
+    } catch (e) {
+      alert('차단 처리 중 오류가 발생했습니다.');
+    }
+  };
+
   return (
-    <PostHeader>
+    <PostHeader onClick={() => setMenuOpen(false)}>
+      <ActionArea onClick={(e) => { e.stopPropagation(); }}>
+        <KebabButton onClick={() => setMenuOpen(prev => !prev)}>
+          <img src={MeatballsIcon} alt="more" width={22} height={22} />
+        </KebabButton>
+        {menuOpen && (
+          <DropdownMenu>
+            {isOwnPost ? (
+              <>
+                <MenuItem onClick={() => { setMenuOpen(false); onEdit(); }}>수정</MenuItem>
+                <MenuItem onClick={() => { setMenuOpen(false); onDelete(); }}>삭제</MenuItem>
+              </>
+            ) : (
+              <>
+                <MenuItem onClick={() => { setMenuOpen(false); setShowReportModal(true); }}>신고</MenuItem>
+                <MenuItem onClick={() => { setMenuOpen(false); handleBlock(); }}>사용자 차단</MenuItem>
+              </>
+            )}
+          </DropdownMenu>
+        )}
+      </ActionArea>
       {post.category && <CategoryTag>{post.category.name}</CategoryTag>}
       <PostTitle>{post.title}</PostTitle>
       {post.tags && post.tags.length > 0 && (
@@ -156,19 +234,6 @@ const PostDetailMain: React.FC<PostDetailMainProps> = ({ post, user, onEdit, onD
           <ViewCount>조회수 {post.viewCount}</ViewCount>
         )}
       </AuthorInfo>
-      {/* 본인 글일 때만 수정/삭제 버튼 노출 */}
-      {isOwnPost && (
-        <div style={{ marginTop: '1rem', display: 'flex', gap: '0.5rem' }}>
-          <button onClick={onEdit} style={{ background: '#785cd2', color: '#ffffff', border: 'none', borderRadius: '0.5rem', padding: '0.4rem 1.2rem', fontWeight: 600, cursor: 'pointer' }}>수정</button>
-          <button onClick={onDelete} style={{ background: '#ff69b4', color: '#ffffff', border: 'none', borderRadius: '0.5rem', padding: '0.4rem 1.2rem', fontWeight: 600, cursor: 'pointer' }}>삭제</button>
-        </div>
-      )}
-      {/* 본인 글이 아닐 때만 신고 버튼 노출 */}
-      {!isOwnPost && (
-        <div style={{ marginTop: '1rem' }}>
-          <ReportButton onClick={() => setShowReportModal(true)}>신고</ReportButton>
-        </div>
-      )}
       <PostContent dangerouslySetInnerHTML={{ __html: post.content }} />
 
       {/* 신고 모달 */}
@@ -203,6 +268,10 @@ const PostDetailMain: React.FC<PostDetailMainProps> = ({ post, user, onEdit, onD
           ) : (
             <>
               <div style={{ marginBottom: '1.2rem', textAlign: 'left' }}>
+                <div style={{ fontSize: '0.9rem', marginBottom: 8 }}>
+                  불쾌한 콘텐츠에 대한 무관용 정책을 적용합니다. 자세한 내용은
+                  <a href="/terms#zero-tolerance" target="_blank" rel="noopener noreferrer" style={{ color: '#785cd2', marginLeft: 6 }}>이용약관</a>을 확인하세요.
+                </div>
                 {REPORT_REASONS.map((reason) => (
                   <label key={reason} style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
                     <input
@@ -232,6 +301,11 @@ const PostDetailMain: React.FC<PostDetailMainProps> = ({ post, user, onEdit, onD
           )}
         </ConfirmationModal>
       )}
+
+      <LoginModal
+        isOpen={showLoginModal}
+        onClose={() => setShowLoginModal(false)}
+      />
     </PostHeader>
   );
 };
