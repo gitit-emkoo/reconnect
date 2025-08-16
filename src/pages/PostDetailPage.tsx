@@ -13,6 +13,8 @@ import PollVoteBox from '../components/community/PollVoteBox';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { produce } from 'immer';
 import type { Draft } from 'immer';
+import ConfirmationModal from '../components/common/ConfirmationModal';
+import MeatballsIcon from '../assets/Meatballs_menu.svg?url';
 
 // === 타입 정의 ===
 interface PostAuthor {
@@ -120,7 +122,7 @@ const CommentList = styled.div`
 `;
 
 const CommentItem = styled.div`
-  padding: 0.5rem 0;
+  padding: 0.35rem 0;
   
 `;
 
@@ -128,7 +130,8 @@ const CommentHeader = styled.div`
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  margin-bottom: 0.75rem;
+  margin-bottom: 0.5rem;
+  position: relative;
 `;
 
 const CommentAuthor = styled.span`
@@ -144,14 +147,55 @@ const CommentDate = styled.span`
 
 const CommentContent = styled.p`
   color: #495057;
-  line-height: 1.6;
+  line-height: 1.45;
 `;
 
+const KebabButton = styled.button`
+  margin-left: auto;
+  width: 28px;
+  height: 28px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  color: #868e96;
+  cursor: pointer;
+`;
+
+const DropdownMenu = styled.div`
+  position: absolute;
+  top: 32px;
+  right: 0;
+  background: #fff;
+  border: 1px solid #e9ecef;
+  border-radius: 8px;
+  box-shadow: 0 6px 20px rgba(0,0,0,0.08);
+  padding: 6px;
+  z-index: 10;
+  min-width: 120px;
+`;
+
+const MenuItem = styled.button`
+  width: 100%;
+  text-align: left;
+  padding: 8px 10px;
+  border: none;
+  background: transparent;
+  color: #495057;
+  font-size: 0.9rem;
+  border-radius: 6px;
+  cursor: pointer;
+  &:hover {
+    background: #f8f9fa;
+  }
+`;
 
 const ReplyBox = styled.div`
   margin-left: 2rem;
-  margin-top: 0.5rem;
-  padding-left: 1rem;
+  margin-top: 0.35rem;
+  padding-left: 0.75rem;
   border-left: 2px solid #f1f3f5;
 `;
 
@@ -178,6 +222,17 @@ const PostDetailPage: React.FC = () => {
   const [latestTotal, setLatestTotal] = useState(0);
   const LATEST_LIMIT = 20;
   const queryClient = useQueryClient();
+  const [menuOpenId, setMenuOpenId] = useState<string | null>(null);
+
+  // 댓글 신고 모달 상태
+  const [showCommentReportModal, setShowCommentReportModal] = useState(false);
+  const [reportTargetCommentId, setReportTargetCommentId] = useState<string | null>(null);
+  const [commentReportReason, setCommentReportReason] = useState('욕설/비방');
+  const [commentReportEtc, setCommentReportEtc] = useState('');
+  const [commentReportLoading, setCommentReportLoading] = useState(false);
+  const [commentReportSuccess, setCommentReportSuccess] = useState(false);
+  const [commentReportError, setCommentReportError] = useState('');
+  const REPORT_REASONS = ['욕설/비방', '음란/선정성', '광고/홍보', '도배/스팸', '기타'];
 
   // React Query: 게시글 상세
   const {
@@ -204,6 +259,12 @@ const PostDetailPage: React.FC = () => {
     };
     fetchLatestPosts();
   }, [latestPage]);
+  // 바깥 클릭 시 메뉴 닫기
+  useEffect(() => {
+    const handleDocClick = () => setMenuOpenId(null);
+    document.addEventListener('click', handleDocClick);
+    return () => document.removeEventListener('click', handleDocClick);
+  }, []);
 
   const totalPages = Math.max(1, Math.ceil(latestTotal / LATEST_LIMIT));
 
@@ -225,7 +286,7 @@ const PostDetailPage: React.FC = () => {
             draft.comments.push({
               id: 'temp-' + Date.now(),
               content,
-              author: { nickname: user?.nickname || '나' },
+              author: { id: user?.id || 'me', nickname: user?.nickname || '나' },
               createdAt: new Date().toISOString(),
               replies: []
             });
@@ -240,6 +301,7 @@ const PostDetailPage: React.FC = () => {
       }
     },
     onSettled: () => {
+      // 차단 사용자 댓글이 필터된 최신 상태로 동기화
       queryClient.invalidateQueries({ queryKey: ['post', id] });
     }
   });
@@ -259,7 +321,8 @@ const PostDetailPage: React.FC = () => {
       });
       setReplyContent((prev) => ({ ...prev, [parentId]: '' }));
       setReplyOpen((prev) => ({ ...prev, [parentId]: false }));
-      fetchPostDetail(id!);
+      // 서버에서 차단 사용자 댓글 필터가 적용되었으므로 최신 데이터 재조회
+      queryClient.invalidateQueries({ queryKey: ['post', id] });
     } catch (err) {
       alert('대댓글 등록에 실패했습니다.');
     }
@@ -299,35 +362,53 @@ const PostDetailPage: React.FC = () => {
       .map((comment) => (
         <div key={comment.id}>
           <CommentItem>
-            <CommentHeader>
+            <CommentHeader onClick={(e) => e.stopPropagation()}>
               <CommentAuthor>{comment.author.nickname}</CommentAuthor>
               <CommentDate>{new Date(comment.createdAt).toLocaleString()}</CommentDate>
-              <button
-                style={{ marginLeft: 'auto', fontSize: '0.85rem', color: '#adb5bd', background: 'none', border: '1px solid #dee2e6', borderRadius: 6, padding: '2px 8px', cursor: 'pointer' }}
-                onClick={async () => {
-                  try {
+              <KebabButton onClick={() => setMenuOpenId(prev => prev === comment.id ? null : comment.id)}>
+                <img src={MeatballsIcon} alt="more" width={20} height={20} />
+              </KebabButton>
+              {menuOpenId === comment.id && (
+                <DropdownMenu onClick={(e) => e.stopPropagation()}>
+                  <MenuItem onClick={() => {
+                    setReplyOpen(prev => ({ ...prev, [comment.id]: !prev[comment.id] }));
+                    setMenuOpenId(null);
+                  }}>답글 달기</MenuItem>
+                  <MenuItem onClick={() => {
                     if (!useAuthStore.getState().accessToken) {
                       alert('로그인이 필요합니다.');
                       navigate('/login');
                       return;
                     }
-                    await (await import('../api/user')).blockApi.blockUser(comment.author.id);
-                    alert('해당 사용자를 차단했습니다.');
-                  } catch {
-                    alert('차단 처리 중 오류가 발생했습니다.');
-                  }
-                }}
-              >사용자 차단</button>
+                    setReportTargetCommentId(comment.id);
+                    setCommentReportReason('욕설/비방');
+                    setCommentReportEtc('');
+                    setCommentReportError('');
+                    setCommentReportSuccess(false);
+                    setShowCommentReportModal(true);
+                    setMenuOpenId(null);
+                  }}>신고</MenuItem>
+                  <MenuItem onClick={async () => {
+                    try {
+                      if (!useAuthStore.getState().accessToken) {
+                        alert('로그인이 필요합니다.');
+                        navigate('/login');
+                        return;
+                      }
+                      await (await import('../api/user')).blockApi.blockUser(comment.author.id);
+                      alert('해당 사용자를 차단했습니다.');
+                      queryClient.invalidateQueries({ queryKey: ['post', id] });
+                      setMenuOpenId(null);
+                    } catch {
+                      alert('차단 처리 중 오류가 발생했습니다.');
+                    }
+                  }}>사용자 차단</MenuItem>
+                </DropdownMenu>
+              )}
             </CommentHeader>
             <CommentContent>{comment.content}</CommentContent>
             {!comment.parentId && (
-              <div style={{ marginTop: '0.5rem' }}>
-                <button
-                  style={{ fontSize: '0.9rem', color: '#785CD2', background: 'none', border: 'none', cursor: 'pointer' }}
-                  onClick={() => setReplyOpen((prev) => ({ ...prev, [comment.id]: !prev[comment.id] }))}
-                >
-                  답글 달기
-                </button>
+              <div style={{ marginTop: '0.35rem' }}>
                 {replyOpen[comment.id] && (
                   <ReplyBox>
                     <CommentForm onSubmit={e => { e.preventDefault(); handleReplySubmit(comment.id); }}>
@@ -373,6 +454,82 @@ const PostDetailPage: React.FC = () => {
               {renderComments(post.comments)}
             </CommentList>
         </CommentsSection>
+
+        {/* 댓글 신고 모달 */}
+        {showCommentReportModal && (
+          <ConfirmationModal
+            isOpen={showCommentReportModal}
+            onRequestClose={() => {
+              setShowCommentReportModal(false);
+              setCommentReportSuccess(false);
+              setCommentReportReason('욕설/비방');
+              setCommentReportEtc('');
+              setCommentReportError('');
+            }}
+            onConfirm={async () => {
+              if (commentReportSuccess) {
+                setShowCommentReportModal(false);
+                setCommentReportSuccess(false);
+                return;
+              }
+              if (!reportTargetCommentId) return;
+              try {
+                setCommentReportLoading(true);
+                setCommentReportError('');
+                await axiosInstance.post('/community/complaint', {
+                  postId: id,
+                  commentId: reportTargetCommentId,
+                  reason: commentReportReason,
+                  etcReason: commentReportReason === '기타' ? commentReportEtc : undefined,
+                });
+                setCommentReportSuccess(true);
+              } catch (e) {
+                setCommentReportError('신고 처리 중 오류가 발생했습니다.');
+              } finally {
+                setCommentReportLoading(false);
+              }
+            }}
+            title="댓글 신고"
+            confirmButtonText={commentReportSuccess ? '닫기' : (commentReportLoading ? '신고 중...' : '신고하기')}
+            cancelButtonText="취소"
+            showCancelButton={!commentReportSuccess}
+          >
+            {commentReportSuccess ? (
+              <div style={{ color: '#28a745', fontSize: '1rem', margin: '1.5rem 0' }}>신고가 정상적으로 접수되었습니다.</div>
+            ) : (
+              <div style={{ textAlign: 'left' }}>
+                <div style={{ fontSize: '0.9rem', marginBottom: 8 }}>
+                  불쾌한 콘텐츠에 대한 무관용 정책을 적용합니다. 자세한 내용은
+                  <a href="/terms#zero-tolerance" target="_blank" rel="noopener noreferrer" style={{ color: '#785cd2', marginLeft: 6 }}>이용약관</a>을 확인하세요.
+                </div>
+                {REPORT_REASONS.map((reason) => (
+                  <label key={reason} style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
+                    <input
+                      type="radio"
+                      name="comment-report-reason"
+                      value={reason}
+                      checked={commentReportReason === reason}
+                      onChange={() => setCommentReportReason(reason)}
+                      disabled={commentReportLoading}
+                    />
+                    {reason}
+                  </label>
+                ))}
+                {commentReportReason === '기타' && (
+                  <input
+                    type="text"
+                    placeholder="신고 사유를 입력하세요"
+                    value={commentReportEtc}
+                    onChange={e => setCommentReportEtc(e.target.value)}
+                    style={{ marginTop: 8, padding: 6, borderRadius: 4, border: '1px solid #ddd', width: '100%' }}
+                    disabled={commentReportLoading}
+                  />
+                )}
+                {commentReportError && <div style={{ color: '#dc3545', marginTop: 8 }}>{commentReportError}</div>}
+              </div>
+            )}
+          </ConfirmationModal>
+        )}
 
         {/* 최신글 목록 */}
         <div style={{  padding: '0 0.5rem 1rem', borderTop: '1px solid #f1f3f5' }}>
