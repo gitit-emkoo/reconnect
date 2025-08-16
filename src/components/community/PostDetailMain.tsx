@@ -203,6 +203,10 @@ const PostDetailMain: React.FC<PostDetailMainProps> = ({ post, user, onEdit, onD
           ) : (
             <>
               <div style={{ marginBottom: '1.2rem', textAlign: 'left' }}>
+                <div style={{ fontSize: '0.9rem', marginBottom: 8 }}>
+                  불쾌한 콘텐츠에 대한 무관용 정책을 적용합니다. 자세한 내용은
+                  <a href="/terms#zero-tolerance" target="_blank" rel="noopener noreferrer" style={{ color: '#785cd2', marginLeft: 6 }}>이용약관</a>을 확인하세요.
+                </div>
                 {REPORT_REASONS.map((reason) => (
                   <label key={reason} style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
                     <input
