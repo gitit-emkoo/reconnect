@@ -2,6 +2,9 @@ import React, { useState } from 'react';
 import styled from 'styled-components';
 import axiosInstance from '../../api/axios';
 import ConfirmationModal from '../common/ConfirmationModal';
+import { blockApi } from '../../api/user';
+import LoginModal from '../common/LoginModal';
+import useAuthStore from '../../store/authStore';
 
 interface PostAuthor {
   nickname: string;
@@ -118,6 +121,8 @@ const PostDetailMain: React.FC<PostDetailMainProps> = ({ post, user, onEdit, onD
   const [isReporting, setIsReporting] = useState(false);
   const [reportSuccess, setReportSuccess] = useState(false);
   const [reportError, setReportError] = useState('');
+  const [showLoginModal, setShowLoginModal] = useState(false);
+  const { isAuthenticated } = useAuthStore();
 
   const isOwnPost = user && post && (user.id === (post as any).authorId);
 
@@ -135,6 +140,19 @@ const PostDetailMain: React.FC<PostDetailMainProps> = ({ post, user, onEdit, onD
       setReportError('신고 처리 중 오류가 발생했습니다.');
     } finally {
       setIsReporting(false);
+    }
+  };
+
+  const handleBlock = async () => {
+    if (!isAuthenticated) {
+      setShowLoginModal(true);
+      return;
+    }
+    try {
+      await blockApi.blockUser((post as any).authorId);
+      alert('해당 사용자를 차단했습니다. 이후 이 사용자의 게시물과 댓글이 목록에서 숨겨집니다.');
+    } catch (e) {
+      alert('차단 처리 중 오류가 발생했습니다.');
     }
   };
 
@@ -166,7 +184,10 @@ const PostDetailMain: React.FC<PostDetailMainProps> = ({ post, user, onEdit, onD
       {/* 본인 글이 아닐 때만 신고 버튼 노출 */}
       {!isOwnPost && (
         <div style={{ marginTop: '1rem' }}>
-          <ReportButton onClick={() => setShowReportModal(true)}>신고</ReportButton>
+          <div style={{ display: 'flex', gap: '0.5rem' }}>
+            <ReportButton onClick={() => setShowReportModal(true)}>신고</ReportButton>
+            <button onClick={handleBlock} style={{ background: '#adb5bd', color: '#fff', border: 'none', borderRadius: '0.5rem', padding: '0.4rem 1.2rem', fontWeight: 600, cursor: 'pointer' }}>사용자 차단</button>
+          </div>
         </div>
       )}
       <PostContent dangerouslySetInnerHTML={{ __html: post.content }} />
@@ -236,6 +257,11 @@ const PostDetailMain: React.FC<PostDetailMainProps> = ({ post, user, onEdit, onD
           )}
         </ConfirmationModal>
       )}
+
+      <LoginModal
+        isOpen={showLoginModal}
+        onClose={() => setShowLoginModal(false)}
+      />
     </PostHeader>
   );
 };
