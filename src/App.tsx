@@ -27,7 +27,6 @@ import { fetchReceivedMessages } from './pages/EmotionCard';
 import { useQuery } from '@tanstack/react-query';
 import { initializeSafeArea } from './utils/safeArea';
 import { initializeAppleSignIn } from './utils/socialAuth';
-import { initializeWebViewOptimization } from './utils/webview';
 import { setAuthToken } from './utils/cookies';
 
 
@@ -411,8 +410,7 @@ MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
     initializeSafeArea();
     // Apple ID 로그인 초기화
     initializeAppleSignIn();
-    // 웹뷰 최적화 및 전체 화면 모드 활성화
-    initializeWebViewOptimization();
+    // 웹뷰 최적화는 safeArea/socialAuth 내에서 처리
     
     // 뷰포트 높이 실시간 업데이트 함수 및 중복 리스너 제거
     // safeArea와 webview 모듈에서 관리하므로 여기서는 추가 리스너를 붙이지 않습니다.
