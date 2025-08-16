@@ -16,10 +16,12 @@ import type { Draft } from 'immer';
 
 // === 타입 정의 ===
 interface PostAuthor {
+  id: string;
   nickname: string;
 }
 
 interface CommentAuthor {
+  id: string;
   nickname: string;
 }
 
@@ -300,6 +302,22 @@ const PostDetailPage: React.FC = () => {
             <CommentHeader>
               <CommentAuthor>{comment.author.nickname}</CommentAuthor>
               <CommentDate>{new Date(comment.createdAt).toLocaleString()}</CommentDate>
+              <button
+                style={{ marginLeft: 'auto', fontSize: '0.85rem', color: '#adb5bd', background: 'none', border: '1px solid #dee2e6', borderRadius: 6, padding: '2px 8px', cursor: 'pointer' }}
+                onClick={async () => {
+                  try {
+                    if (!useAuthStore.getState().accessToken) {
+                      alert('로그인이 필요합니다.');
+                      navigate('/login');
+                      return;
+                    }
+                    await (await import('../api/user')).blockApi.blockUser(comment.author.id);
+                    alert('해당 사용자를 차단했습니다.');
+                  } catch {
+                    alert('차단 처리 중 오류가 발생했습니다.');
+                  }
+                }}
+              >사용자 차단</button>
             </CommentHeader>
             <CommentContent>{comment.content}</CommentContent>
             {!comment.parentId && (
