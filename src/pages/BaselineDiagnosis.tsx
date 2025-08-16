@@ -30,7 +30,7 @@ const calculateScore = (answers: (string | null)[]) => {
   answers.forEach((answer: string | null, index: number) => {
     const question = diagnosisQuestions[index];
     if (question && answer) {
-      const key = answer === 'unknown' ? 'neutral' : (answer as 'yes' | 'no');
+      const key = answer === 'yes' ? 'yes' : answer === 'no' ? 'no' : 'neutral';
       if (question.scores.hasOwnProperty(key)) {
         calculatedScore += question.scores[key];
       }

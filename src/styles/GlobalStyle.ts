@@ -23,11 +23,15 @@ const GlobalStyle = createGlobalStyle`
     font-size: calc(1em * var(--font-size-scale));
     background-color: #fafafa;
     /* 폴더블 디바이스 최적화 */
+    min-height: 100vh;
     min-height: 100dvh; /* dynamic viewport height */
+    height: 100%;
     overflow-x: hidden;
     
     /* 상단 여백은 헤더 컴포넌트가 자연스럽게 처리하도록 제거 */
     
+    /* 하단 시스템 UI 안전 영역 확보 */
+    padding-bottom: max(env(safe-area-inset-bottom), 20px);
   }
   
   /* 제목 요소들은 원래 크기 유지 */
@@ -114,33 +118,36 @@ const GlobalStyle = createGlobalStyle`
   
   html {
     /* 웹뷰 전체 화면 지원 */
-    background-color: #fafafa; /* WebView 바탕색 누수 방지 */
+    height: 100%;
     overflow-x: hidden;
   }
   
   #root {
+    min-height: 100vh;
     min-height: 100dvh;
-  }
-  /* 네비게이션이 렌더링되는 화면에서만 하단 여백 적용 */
-  #root.has-nav {
+    height: 100%;
+    
+    /* 하단 네비게이션을 위한 동적 여백 확보 */
     padding-bottom: var(--nav-height, 80px);
-  }
-  /* 키보드 열림 시 네비게이션 여백 제거 (웹뷰에서 시각적 겹침 방지) */
-  #root.has-nav.keyboard-open {
-    padding-bottom: 0 !important;
   }
   
   /* 전체 화면 모드에서 네비게이션 여백 조정 */
   @media (display-mode: fullscreen) {
-    #root.has-nav { padding-bottom: var(--nav-height, 80px); }
+    #root {
+      padding-bottom: var(--nav-height, 80px);
+    }
   }
   
   @media (display-mode: standalone) {
-    #root.has-nav { padding-bottom: var(--nav-height, 80px); }
+    #root {
+      padding-bottom: var(--nav-height, 80px);
+    }
   }
   
   @media (display-mode: minimal-ui) {
-    #root.has-nav { padding-bottom: var(--nav-height, 80px); }
+    #root {
+      padding-bottom: var(--nav-height, 80px);
+    }
   }
   
   /* 웹뷰 최적화 */
