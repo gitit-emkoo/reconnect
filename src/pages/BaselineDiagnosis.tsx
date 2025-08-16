@@ -156,8 +156,8 @@ const BaselineDiagnosis: React.FC = () => {
     if (currentQuestion === 0 && !counterLoaded) {
       setCounterLoaded(true);
       incrementDiagnosisCounter()
-        .then((count) => setCounter(3391 + count)) // 2391은 기본값(원하면 0으로)
-        .catch(() => setCounter(3391));
+        .then((count) => setCounter(5692 + count)) 
+        .catch(() => setCounter(5692));
     }
   }, [currentQuestion, counterLoaded]);
 

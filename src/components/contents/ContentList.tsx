@@ -15,6 +15,7 @@ const SectionTitle = styled.h3`
   font-size: 18px;
   font-weight: 700;
   margin: 24px 0 16px 20px;
+  color: #ff69b4;
 `;
 
 const SwiperWrapper = styled.div`
@@ -80,7 +81,7 @@ export const ContentList: React.FC<ContentListProps> = React.memo(({ contents, o
   if (contents.length === 0) {
     return (
       <div>
-        <SectionTitle>AI가 추천하는 우리가 더욱 가까워 지는 방법</SectionTitle>
+        <SectionTitle>전문가에게 현실적인 해결방법을 문의하세요!</SectionTitle>
         <p style={{ textAlign: 'center', color: '#666', margin: '2rem 0' }}>
           아직 추천할 컨텐츠가 없습니다.
         </p>
@@ -90,7 +91,7 @@ export const ContentList: React.FC<ContentListProps> = React.memo(({ contents, o
 
   return (
     <div>
-      <SectionTitle>AI가 추천하는 우리가 더욱 가까워 지는 방법</SectionTitle>
+      <SectionTitle>전문가에게 현실적인 해결방법을 문의하세요!</SectionTitle>
       {rows.map((row, i) => (
         <MemoizedSwiper key={i} row={row} index={i} onCardClick={onCardClick} />
       ))}
