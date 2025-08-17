@@ -64,6 +64,29 @@ const Description = styled.div`
   line-height: 1.6;
 `;
 
+const DetailsBox = styled.div`
+  margin-top: 10px;
+  padding: 12px;
+  border-radius: 10px;
+  background: #fafafa;
+  border: 1px solid #eee;
+  color: #555;
+  font-size: 0.92rem;
+  line-height: 1.5;
+
+  ul { margin: 6px 0 0 18px; }
+  li { margin: 4px 0; }
+`;
+
+const MoreToggle = styled.button`
+  margin-top: 8px;
+  border: none;
+  background: transparent;
+  color: #785CD2;
+  font-weight: 700;
+  cursor: pointer;
+`;
+
 const PrimaryButton = styled.button<{ $done?: boolean; $loading?: boolean }>`
   width: 100%;
   margin-top: 18px;
@@ -99,8 +122,33 @@ const EventBannerModal: React.FC<EventBannerModalProps> = ({ isOpen, onClose }) 
   const [loading, setLoading] = useState(false);
   const [done, setDone] = useState(false);
   const [notice, setNotice] = useState('');
+  const [expanded, setExpanded] = useState(false);
+
+  // 모달이 열릴 때 이미 응모했는지 확인
+  React.useEffect(() => {
+    let mounted = true;
+    const check = async () => {
+      if (!isOpen) return;
+      try {
+        const res = await eventsApi.getMyEntry();
+        if (!mounted) return;
+        if (res?.entry) {
+          setDone(true);
+          setNotice('응모가 완료되었습니다!');
+        } else {
+          setDone(false);
+          setNotice('');
+        }
+      } catch {
+        // 무시 (비로그인 등)
+      }
+    };
+    check();
+    return () => { mounted = false; };
+  }, [isOpen]);
 
   const handleEnter = async () => {
+    if (loading) return; // 중복 클릭 가드
     if (done) {
       toast.info('이미 응모하셨습니다.');
       setNotice('이미 응모했습니다.');
@@ -114,7 +162,7 @@ const EventBannerModal: React.FC<EventBannerModalProps> = ({ isOpen, onClose }) 
       toast.success('응모가 완료되었습니다!');
       setNotice('응모가 완료되었습니다!');
     } catch (e) {
-      alert('응모 처리 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.');
+      toast.error('응모 처리 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.');
     } finally {
       setLoading(false);
     }
@@ -127,15 +175,27 @@ const EventBannerModal: React.FC<EventBannerModalProps> = ({ isOpen, onClose }) 
         <Title>이벤트 안내</Title>
         <BannerImage src="/images/eventBanner.png" alt="이벤트 배너" />
         <Description>
-          {!done ? (
-            <>
-              응모하기 버튼을 누르시면 본 이벤트에 즉시 참여됩니다.<br />
-              당첨자 발표 및 혜택 지급은 공지에 따라 순차 진행됩니다.
-            </>
-          ) : (
-            <span style={{ color: '#28a745', fontWeight: 700 }}>응모가 완료되었습니다!</span>
-          )}
+          응모하기 버튼을 누르시면 본 이벤트에 즉시 참여됩니다.<br />
+          당첨자 발표 및 혜택 지급은 공지에 따라 순차 진행됩니다.
         </Description>
+        <DetailsBox>
+          <div style={{ fontWeight: 700, color: '#333', marginBottom: 6 }}>이벤트 내용</div>
+          <ul>
+            <li>이벤트명: 론칭 기념 클릭 경품 이벤트</li>
+            <li>응모 방법: 본 모달에서 ‘응모하기’ 클릭 시 자동 응모</li>
+            <li>응모 대상: 리커넥트 회원 1인 1회</li>
+          </ul>
+          {expanded && (
+            <ul>
+              <li>경품: 텀블러 50명, 신세계 상품권 2만원 20명, 스타벅스 아메리카노 100명</li>
+              <li>발표: 앱 공지 및 개별 연락</li>
+              <li>유의사항: 부정 참여로 판단될 경우 당첨이 취소될 수 있습니다.</li>
+            </ul>
+          )}
+          <MoreToggle onClick={() => setExpanded(v => !v)}>
+            {expanded ? '접기 ▴' : '자세히 보기 ▾'}
+          </MoreToggle>
+        </DetailsBox>
         <PrimaryButton onClick={handleEnter} disabled={loading} $done={done} aria-disabled={done} $loading={loading}>
           {done ? '응모완료' : (loading ? '응모 중...' : '응모하기')}
         </PrimaryButton>

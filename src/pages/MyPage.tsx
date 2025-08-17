@@ -17,6 +17,7 @@ import IconPoint from "../assets/Icon_Point.png";
 import IconTrack from "../assets/Icon_Track.png";
 import IconSubscribe from "../assets/Icon_Subscribe.png";
 import EventBannerModal from "../components/common/EventBannerModal";
+import { getNotificationPreferences, updateNotificationPreferences } from '../api/notification';
 
 const Container = styled.div`
   background-color: white; 
@@ -216,6 +217,10 @@ const MyPage: React.FC = () => {
   const [isCompanyInfoModalOpen, setIsCompanyInfoModalOpen] = useState(false);
   const [isEventModalOpen, setIsEventModalOpen] = useState(false);
   const [blockedUsers, setBlockedUsers] = useState<Array<{ id: string; nickname: string; email: string; profileImageUrl?: string }>>([]);
+  const [muteAll, setMuteAll] = useState(false);
+  const [muteCommunity, setMuteCommunity] = useState(false);
+  const [muteChallenge, setMuteChallenge] = useState(false);
+  const [muteEmotionCard, setMuteEmotionCard] = useState(false);
 
   // 토큰 체크는 Zustand의 accessToken 사용
   const accessToken = useAuthStore((state) => state.accessToken);
@@ -235,6 +240,19 @@ const MyPage: React.FC = () => {
     if (accessToken) {
       loadBlocks();
     }
+  }, [accessToken]);
+
+  useEffect(() => {
+    const loadPrefs = async () => {
+      try {
+        const prefs = await getNotificationPreferences();
+        setMuteAll(!!prefs.muteAll);
+        setMuteCommunity(!!prefs.muteCommunity);
+        setMuteChallenge(!!prefs.muteChallenge);
+        setMuteEmotionCard(!!prefs.muteEmotionCard);
+      } catch {}
+    };
+    if (accessToken) loadPrefs();
   }, [accessToken]);
 
   const confirmLogout = () => {
@@ -322,10 +340,28 @@ const MyPage: React.FC = () => {
               비밀번호 변경
               <span>▸</span>
             </SettingItem>
-            <SettingItem onClick={() => alert("아직 준비 중인 기능입니다.")}>
-              알림 설정
-              <span>▸</span>
-            </SettingItem>
+            <div style={{ padding: '0.5rem 0.5rem', color: '#777' }}>
+              <div style={{ fontWeight: 600, marginBottom: 8 }}>알림 설정</div>
+              <label style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
+                <input type="checkbox" checked={muteAll} onChange={e => setMuteAll(e.target.checked)} />
+                전체 알림 끄기
+              </label>
+              <label style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
+                <input type="checkbox" checked={muteCommunity} onChange={e => setMuteCommunity(e.target.checked)} />
+                커뮤니티 알림 끄기
+              </label>
+              <label style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
+                <input type="checkbox" checked={muteChallenge} onChange={e => setMuteChallenge(e.target.checked)} />
+                챌린지 알림 끄기
+              </label>
+              <label style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <input type="checkbox" checked={muteEmotionCard} onChange={e => setMuteEmotionCard(e.target.checked)} />
+                감정카드 알림 끄기
+              </label>
+              <div style={{ marginTop: 10, display: 'flex', justifyContent: 'flex-end' }}>
+                <button onClick={async () => { try { await updateNotificationPreferences({ muteAll, muteCommunity, muteChallenge, muteEmotionCard }); } catch {} }} style={{ padding: '8px 12px', borderRadius: 8, border: '1px solid #ddd' }}>저장</button>
+              </div>
+            </div>
             <SettingItem onClick={() => setIsLogoutModalOpen(true)}>
               로그아웃
               <span>▸</span>

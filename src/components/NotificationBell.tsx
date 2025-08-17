@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
 import useNotificationStore, { Notification } from '../store/notificationsStore';
 import { ReactComponent as IconBell } from '../assets/Icon_Bell.svg';
 import styled from 'styled-components';
@@ -124,9 +124,33 @@ const EmptyState = styled.div`
   font-size: 0.9rem;
 `;
 
+const FILTER_OPTIONS = [
+  { key: 'ALL', label: '전체' },
+  { key: 'CHALLENGE', label: '챌린지' },
+  { key: 'EMOTION_CARD', label: '감정카드' },
+  { key: 'COMMUNITY', label: '커뮤니티' },
+];
+
+const FilterBar = styled.div`
+  display: flex;
+  gap: 6px;
+  padding: 8px 10px;
+  border-bottom: 1px solid #f0f0f0;
+`;
+
+const FilterChip = styled.button<{ $active: boolean }>`
+  border: 1px solid ${p => (p.$active ? '#007bff' : '#e5e5e5')};
+  background: ${p => (p.$active ? '#e8f3ff' : '#fff')};
+  color: ${p => (p.$active ? '#0b6bcb' : '#555')};
+  border-radius: 999px;
+  font-size: 12px;
+  padding: 6px 10px;
+`;
+
 const NotificationBell = () => {
-  const { notifications, hasUnread, unreadCount, markAllAsRead, markAsRead, updateHasUnread, fetchUnreadCount } = useNotificationStore();
+  const { notifications, hasUnread, unreadCount, markAllAsRead, markAsRead, fetchUnreadCount } = useNotificationStore();
   const [open, setOpen] = useState(false);
+  const [filter, setFilter] = useState<'ALL' | 'CHALLENGE' | 'EMOTION_CARD' | 'COMMUNITY'>('ALL');
   const navigate = useNavigate();
   const bellRef = useRef<HTMLDivElement>(null);
 
@@ -164,23 +188,19 @@ const NotificationBell = () => {
     };
   }, [bellRef]);
 
-  // hasUnread 상태를 주기적으로 업데이트
+  // hasUnread는 서버 카운트를 단일 소스로 사용 → 로컬 재계산 제거
   useEffect(() => {
-    updateHasUnread();
-  }, [notifications, updateHasUnread]);
+    // 목록 변경 시에도 서버 카운트 동기화 1회
+    fetchUnreadCount();
+  }, [notifications, fetchUnreadCount]);
 
-  // 주기적으로 읽지 않은 알림 개수 업데이트 (더 가벼운 API 호출)
-  useEffect(() => {
-    const interval = setInterval(() => {
-      fetchUnreadCount();
-    }, 15000); // 15초마다
+  // 주기적으로 읽지 않은 알림 개수 업데이트 (벨 내부 폴링 제거: 대시보드 단일화에 위임)
+  // useEffect(() => {}, []);
 
-    return () => clearInterval(interval);
-  }, [fetchUnreadCount]);
-
-  const sortedNotifications = [...notifications].sort((a, b) => 
-    new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-  );
+  const filteredSorted = useMemo(() => {
+    const base = filter === 'ALL' ? notifications : notifications.filter(n => (n.type || '').startsWith(filter));
+    return [...base].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+  }, [notifications, filter]);
 
   return (
     <BellWrapper ref={bellRef}>
@@ -198,10 +218,17 @@ const NotificationBell = () => {
               </MarkAllReadButton>
             )}
           </ModalHeader>
-          {sortedNotifications.length === 0 ? (
+          <FilterBar>
+            {FILTER_OPTIONS.map(opt => (
+              <FilterChip key={opt.key} $active={filter === (opt.key as any)} onClick={() => setFilter(opt.key as any)}>
+                {opt.label}
+              </FilterChip>
+            ))}
+          </FilterBar>
+          {filteredSorted.length === 0 ? (
             <EmptyState>새 알림이 없습니다.</EmptyState>
           ) : (
-            sortedNotifications.map(n => (
+            filteredSorted.map(n => (
               <NotificationItem
                 key={n.id}
                 read={n.read}

@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import styled from 'styled-components';
 import EmojiPicker, { EmojiStyle } from 'emoji-picker-react';
 import SubmitButton from '../common/SubmitButton';
+import { DotLottieReact } from '@lottiefiles/dotlottie-react';
 
 const ContentWrapper = styled.div`
   background-color: #ffffff;
@@ -96,7 +97,16 @@ const TextButton = styled.button`
   }
 `;
 
-const SparkleIcon = () => <span style={{ marginRight: "0.5rem" }}>✨</span>;
+const SparkleIcon = () => (
+  <span style={{ marginRight: '0.5rem', display: 'inline-flex', alignItems: 'center' }}>
+    <DotLottieReact
+      src="https://lottie.host/3bc0feb9-c94e-42d4-aba2-e89b32c682ac/5vwWH6Nrsh.lottie"
+      loop
+      autoplay
+      style={{ width: 18, height: 18 }}
+    />
+  </span>
+);
 
 interface EmotionCardFormProps {
   message: string;

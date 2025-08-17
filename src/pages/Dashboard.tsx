@@ -220,19 +220,64 @@ const Dashboard: React.FC = () => {
   
   useEffect(() => {
     if (user && isAuthenticated) {
+      const onVisibility = () => {
+        if (document.visibilityState === 'visible') {
+          fetchNotifications();
+        }
+      };
+      document.addEventListener('visibilitychange', onVisibility);
+
       fetchNotifications();
-      const interval = setInterval(fetchNotifications, 10000);
-      return () => clearInterval(interval);
+      let interval: any = null;
+      const start = () => {
+        if (!interval) interval = setInterval(fetchNotifications, 10000);
+      };
+      const stop = () => {
+        if (interval) {
+          clearInterval(interval);
+          interval = null;
+        }
+      };
+      // 가시성에 따라 폴링 제어
+      if (document.visibilityState === 'visible') start();
+      const handleVis = () => (document.visibilityState === 'visible' ? start() : stop());
+      document.addEventListener('visibilitychange', handleVis);
+
+      return () => {
+        stop();
+        document.removeEventListener('visibilitychange', handleVis);
+        document.removeEventListener('visibilitychange', onVisibility);
+      };
     }
   }, [user, fetchNotifications, isAuthenticated]);
 
-  // 읽지 않은 알림 개수만 더 자주 체크 (가벼운 API 호출)
+  // 읽지 않은 알림 카운트 폴링의 단일 소스 (5초)
   useEffect(() => {
     if (user && isAuthenticated) {
       const { fetchUnreadCount } = useNotificationStore.getState();
-      fetchUnreadCount();
-      const interval = setInterval(fetchUnreadCount, 5000);
-      return () => clearInterval(interval);
+      const run = () => fetchUnreadCount();
+
+      let interval: any = null;
+      const start = () => {
+        if (!interval) interval = setInterval(run, 5000);
+      };
+      const stop = () => {
+        if (interval) {
+          clearInterval(interval);
+          interval = null;
+        }
+      };
+
+      // 초기 1회 및 가시성 이벤트에 반응
+      run();
+      if (document.visibilityState === 'visible') start();
+      const handleVis = () => (document.visibilityState === 'visible' ? (run(), start()) : stop());
+      document.addEventListener('visibilitychange', handleVis);
+
+      return () => {
+        stop();
+        document.removeEventListener('visibilitychange', handleVis);
+      };
     }
   }, [user, isAuthenticated]);
 

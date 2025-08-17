@@ -12,6 +12,7 @@ export interface Notification {
   url: string;
   read: boolean;
   createdAt: string;
+  type?: string;
 }
 
 export interface NotificationState {
@@ -67,6 +68,9 @@ const useNotificationStore = create<NotificationState>((set, get) => ({
 
     try {
       await markNotificationAsRead(id);
+      // 서버 기준으로 카운트 동기화
+      const { count } = await getUnreadCount();
+      set({ unreadCount: count, hasUnread: count > 0 });
     } catch (error) {
       console.error('Failed to mark notification as read:', error);
       // Rollback optimistic update if API call fails
@@ -91,6 +95,9 @@ const useNotificationStore = create<NotificationState>((set, get) => ({
     
     try {
       await markAllNotificationsAsRead();
+      // 서버 기준으로 카운트 동기화
+      const { count } = await getUnreadCount();
+      set({ unreadCount: count, hasUnread: count > 0 });
     } catch (error) {
       console.error('Failed to mark all notifications as read:', error);
       const originalUnreadCount = originalNotifications.filter((n) => !n.read).length;
@@ -117,12 +124,8 @@ const useNotificationStore = create<NotificationState>((set, get) => ({
     }));
   },
 
-  updateHasUnread: () => {
-    const { notifications } = get();
-    const unreadCount = notifications.filter((n) => !n.read).length;
-    const hasUnread = unreadCount > 0;
-    set({ hasUnread, unreadCount });
-  },
+  // 로컬 재계산 제거: 서버 카운트를 단일 소스로 사용
+  updateHasUnread: () => {},
 }));
 
 export default useNotificationStore; 
