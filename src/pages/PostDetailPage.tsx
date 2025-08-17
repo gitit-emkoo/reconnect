@@ -81,23 +81,25 @@ const CommentsTitle = styled.h3`
     font-size: 1.25rem;
     font-weight: 600;
     color: #343a40;
-    margin-bottom: 1.5rem;
+    margin-bottom: 0.9rem;
 `;
 
 const CommentForm = styled.form`
     display: flex;
     gap: 0.5rem;
-    margin-top: 1.5rem;
+    margin-top: 0.9rem;
+    align-items: center;
 `;
 
 const CommentTextarea = styled.textarea`
     flex-grow: 1;
-    padding: 0.8rem 1rem;
+    padding: 0.3rem 0.4rem;
     border: 1px solid #ddd;
     border-radius: 0.5rem;
-    font-size: 1rem;
+    font-size: 0.95rem;
+    line-height: 1.3;
     resize: vertical;
-    min-height: 40px;
+    min-height: 36px;
     &:focus {
         outline: none;
         border-color: #785CD2;
@@ -107,8 +109,10 @@ const CommentTextarea = styled.textarea`
 const CommentSubmitButton = styled.button`
     background-color: #785CD2;
     color: white;
-    padding: 0.5rem 1rem;
-    font-weight: 500;
+    height: 50px;
+    padding: 0 0.9rem;
+    font-size: 0.95rem;
+    font-weight: 600;
     border: none;
     border-radius: 0.5rem;
     cursor: pointer;
@@ -118,7 +122,7 @@ const CommentSubmitButton = styled.button`
 `;
 
 const CommentList = styled.div`
-  margin-top: 1.5rem;
+  margin-top: 0.7rem;
 `;
 
 const CommentItem = styled.div`

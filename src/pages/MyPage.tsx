@@ -16,6 +16,7 @@ import IconAgreement from "../assets/Icon_Agreement.png";
 import IconPoint from "../assets/Icon_Point.png";
 import IconTrack from "../assets/Icon_Track.png";
 import IconSubscribe from "../assets/Icon_Subscribe.png";
+import EventBannerModal from "../components/common/EventBannerModal";
 
 const Container = styled.div`
   background-color: white; 
@@ -31,9 +32,8 @@ const Title = styled.h2`
 
 const Section = styled.div`
   background-color: transparent; 
+  padding: 0.4rem;
   border-radius: 0; 
-  padding: 1rem;
-  margin-bottom: 1rem;
   text-align: center; 
 `;
 
@@ -42,8 +42,7 @@ const ProfileImageContainer = styled.div`
   height: 120px;
   border-radius: 50%;
   overflow: hidden;
-  margin: 0 auto 1rem auto; 
-  border: 3px solid #FF69B4; 
+  margin: 0 auto 1rem auto;  
   img {
     width: 100%;
     height: 100%;
@@ -144,28 +143,6 @@ const InfoSection = styled.div`
   }
 `;
 
-const BlockList = styled.div`
-  margin-top: 0.5rem;
-`;
-
-const BlockListItem = styled.div`
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 0.75rem;
-  padding: 0.6rem 0.4rem;
-  border-bottom: 1px solid #eee;
-`;
-
-const UnblockButton = styled.button`
-  background: #adb5bd;
-  color: #fff;
-  border: none;
-  border-radius: 8px;
-  padding: 0.3rem 0.8rem;
-  font-weight: 600;
-  cursor: pointer;
-`;
 
 const ModalSectionTitle = styled.h4`
   font-size: 1.1rem;
@@ -237,6 +214,7 @@ const MyPage: React.FC = () => {
   const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false);
   const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
   const [isCompanyInfoModalOpen, setIsCompanyInfoModalOpen] = useState(false);
+  const [isEventModalOpen, setIsEventModalOpen] = useState(false);
   const [blockedUsers, setBlockedUsers] = useState<Array<{ id: string; nickname: string; email: string; profileImageUrl?: string }>>([]);
 
   // 토큰 체크는 Zustand의 accessToken 사용
@@ -323,6 +301,16 @@ const MyPage: React.FC = () => {
           </MenuContainer>
         </Section>
 
+        {/* 이벤트 배너 */}
+        <Section>
+          <img
+            src="/images/eventBanner.png"
+            alt="이벤트 배너"
+            style={{ width: '100%', borderRadius: 12, cursor: 'pointer' }}
+            onClick={() => setIsEventModalOpen(true)}
+          />
+        </Section>
+
         <Section style={{ textAlign: 'left' }}> {/* 설정 섹션은 내부 텍스트 왼쪽 정렬 */}
           <SectionTitle>설정</SectionTitle>
           <SettingsListContainer>
@@ -349,34 +337,12 @@ const MyPage: React.FC = () => {
           </SettingsListContainer>
         </Section>
 
-        {/* 차단한 사용자 목록 */}
+        {/* 차단 사용자 관리는 전용 페이지로 이동 */}
         <Section style={{ textAlign: 'left' }}>
-          <SectionTitle>차단한 사용자</SectionTitle>
-          {blockedUsers.length === 0 ? (
-            <div style={{ color: '#999', fontSize: '0.9rem' }}>차단한 사용자가 없습니다.</div>
-          ) : (
-            <BlockList>
-              {blockedUsers.map(u => (
-                <BlockListItem key={u.id}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                    <img src={u.profileImageUrl || getUserAvatar({ id: u.id, email: u.email, nickname: u.nickname } as any)} alt={u.nickname} style={{ width: 32, height: 32, borderRadius: '50%' }} />
-                    <div>
-                      <div style={{ fontWeight: 600 }}>{u.nickname}</div>
-                      <div style={{ color: '#999', fontSize: 12 }}>{u.email}</div>
-                    </div>
-                  </div>
-                  <UnblockButton onClick={async () => {
-                    try {
-                      await blockApi.unblockUser(u.id);
-                      setBlockedUsers(prev => prev.filter(b => b.id !== u.id));
-                    } catch {
-                      alert('차단 해제 중 오류가 발생했습니다.');
-                    }
-                  }}>차단 해제</UnblockButton>
-                </BlockListItem>
-              ))}
-            </BlockList>
-          )}
+          <SettingItem onClick={() => navigate('/blocked-users')}>
+            차단 사용자 관리
+            <span style={{ color: '#785cd2', background: '#f3f0ff', borderRadius: 999, padding: '2px 8px', fontSize: '0.8rem' }}>{blockedUsers.length}</span>
+          </SettingItem>
         </Section>
 
         {/* 관리자 메뉴 - 관리자인 경우에만 표시 */}
@@ -402,6 +368,10 @@ const MyPage: React.FC = () => {
               </SettingItem>
               <SettingItem onClick={() => navigate('/community-admin')}>
                 커뮤니티 관리
+                <span>▸</span>
+              </SettingItem>
+              <SettingItem onClick={() => navigate('/event-entries')}>
+                이벤트 참여 내역
                 <span>▸</span>
               </SettingItem>
             </SettingsListContainer>
@@ -444,6 +414,7 @@ const MyPage: React.FC = () => {
 
       </Container>
       <NavigationBar />
+      <EventBannerModal isOpen={isEventModalOpen} onClose={() => setIsEventModalOpen(false)} />
       {isEditModalOpen && user && (
         <ProfileEditModal
           user={user as User}
