@@ -1,5 +1,6 @@
 import React from 'react';
 import styled from 'styled-components';
+import { DotLottieReact } from '@lottiefiles/dotlottie-react';
 
 const Card = styled.div`
   border: 1px solid transparent;
@@ -28,15 +29,14 @@ const ProfileCol = styled.div`
   display: flex;
   flex-direction: column;
   align-items: center;
+  min-width: 0;
 `;
 
 const ProfileImage = styled.img`
-  width: 50px;
-  height: 50px;
+  width: 60px;
+  height: 60px;
   border-radius: 50%;
   object-fit: cover;
-  border: 2px solid #fff;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
 `;
 
 const ProfileName = styled.div`
@@ -44,12 +44,20 @@ const ProfileName = styled.div`
   margin-top: 2px;
   color:rgb(78, 78, 78);
   font-weight: 600;
+  max-width: 100%;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 `;
 
-const HeartIcon = styled.div`
-  font-size: 1.5rem;
-  color: #ff69b4;
+const HeartLottie = styled.div`
+  width: 60px;
+  height: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   margin: 0 0.5rem;
+  flex: 0 0 auto;
 `;
 
 interface PartnerCardProps {
@@ -81,7 +89,14 @@ const PartnerCard: React.FC<PartnerCardProps> = ({ partner, user, coupleCreatedA
         <ProfileImage src={user.profileImageUrl || '/default-avatar.svg'} alt={user.nickname} />
         <ProfileName>{user.nickname}</ProfileName>
       </ProfileCol>
-      <HeartIcon>❤️</HeartIcon>
+      <HeartLottie>
+        <DotLottieReact
+          src="https://lottie.host/917b78f1-4ec2-49d2-9716-7bbeebd44200/ZMLFM28xZ9.lottie"
+          loop
+          autoplay
+          style={{ width: '70px', height: '70px' }}
+        />
+      </HeartLottie>
       <ProfileCol>
         <ProfileImage src={partner.profileImageUrl || '/default-avatar.svg'} alt={partner.nickname} />
         <ProfileName>{partner.nickname}</ProfileName>

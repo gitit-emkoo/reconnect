@@ -71,17 +71,17 @@ const Right = styled.div`
 
 const StatusCard = styled.div`
   width: 100%;
-  padding: 1.2rem;
+  padding: 1.2rem 1.2rem 1.5rem 1.2rem;
   border-radius: 1rem;
-  border: 1px solid #E64A8D;
-  background: #fff;
+  border: none;
+  background: linear-gradient(135deg, #FFEFF6 0%, #FFF7DB 100%);
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
-  min-height: 80px;
+  min-height: 90px;
   text-align: left;
-  margin-bottom: 1rem; 
-  position: relative; 
+  margin-bottom: 1rem;
+  position: relative;
 `;
 
 const DateInfo = styled.div`
