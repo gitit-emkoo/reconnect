@@ -10,6 +10,10 @@ export const eventsApi = {
   listEntries: async (eventKey: string = EVENT_KEY) => {
     const { data } = await axiosInstance.get('/events/entries', { params: { eventKey } });
     return data as { success: boolean; entries: Array<{ id: string; createdAt: string; user: { id: string; nickname: string; email: string; profileImageUrl?: string } }> };
+  },
+  getMyEntry: async (eventKey: string = EVENT_KEY) => {
+    const { data } = await axiosInstance.get('/events/me/entry', { params: { eventKey } });
+    return data as { success: boolean; entry: { id: string; createdAt: string } | null };
   }
 };
 

@@ -78,11 +78,6 @@ const Nickname = styled.div`
   color: #343a40;
 `;
 
-const Email = styled.div`
-  color: #999;
-  font-size: 12px;
-`;
-
 const UnblockButton = styled.button`
   background: #adb5bd;
   color: #fff;
@@ -204,7 +199,6 @@ const BlockedUsersPage: React.FC = () => {
                       <img src={u.profileImageUrl || getUserAvatar({ id: u.id, email: u.email, nickname: u.nickname } as any)} alt={u.nickname} style={{ width: 38, height: 38, borderRadius: '50%' }} />
                       <div>
                         <Nickname>{u.nickname}</Nickname>
-                        <Email>{u.email}</Email>
                       </div>
                     </Info>
                     <UnblockButton onClick={() => handleUnblock(u.id)}>차단 해제</UnblockButton>
