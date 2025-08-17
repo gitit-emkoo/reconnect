@@ -26,3 +26,19 @@ export const adminApi = {
     return response.data;
   },
 }; 
+
+// 사용자 차단 API
+export const blockApi = {
+  blockUser: async (targetId: string) => {
+    const res = await axiosInstance.post(`/users/${targetId}/block`);
+    return res.data;
+  },
+  unblockUser: async (targetId: string) => {
+    const res = await axiosInstance.delete(`/users/${targetId}/block`);
+    return res.data;
+  },
+  getMyBlocks: async () => {
+    const res = await axiosInstance.get(`/users/me/blocks`);
+    return res.data as Array<{ id: string; nickname: string; email: string; profileImageUrl?: string }>;
+  }
+};
