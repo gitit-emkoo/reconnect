@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import styled from "styled-components";
+import { Container as BaseContainer } from '../styles/CommonStyles';
 import { useNavigate, useParams } from "react-router-dom";
 import NavigationBar from "../components/NavigationBar";
 import axiosInstance from "../api/axios";
@@ -13,10 +14,9 @@ interface Category {
   name: string;
 }
 
-const Container = styled.div`
+const Container = styled(BaseContainer)`
   background-color: #f8f9fa;
-  min-height: 100vh;
-  padding: 1.5rem 1rem 5rem 1rem;
+  padding: 1.5rem 1rem;
 `;
 const Header = styled.div`
   margin-bottom: 1.5rem;

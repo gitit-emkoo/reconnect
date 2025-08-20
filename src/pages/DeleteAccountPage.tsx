@@ -1,17 +1,16 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
+import { Container as BaseContainer } from '../styles/CommonStyles';
 import useAuthStore from '../store/authStore';
 import NavigationBar from '../components/NavigationBar';
 import ConfirmationModal from '../components/common/ConfirmationModal';
 import BackButton from '../components/common/BackButton';
 import axiosInstance from '../api/axios';
 
-const Container = styled.div`
-  height: auto;
+const Container = styled(BaseContainer)`
   background-color: #f8f9fa;
   padding: 1rem;
-  padding-bottom: 80px;
 `;
 
 const Content = styled.div`

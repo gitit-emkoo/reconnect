@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
+import { Container as BaseContainer } from '../styles/CommonStyles';
 import NavigationBar from '../components/NavigationBar';
 import axiosInstance from '../api/axios';
 import useAuthStore from '../store/authStore';
@@ -60,10 +61,9 @@ interface Post {
 
 // === Styled Components (전면 개편) ===
 
-const Container = styled.div`
+const Container = styled(BaseContainer)`
   background-color: #f8f9fa;
-  min-height: 100vh;
-  padding: 1.5rem 1rem 3rem 1rem;
+  padding: 1.5rem 1rem;
 `;
 
 const PostContainer = styled.div`

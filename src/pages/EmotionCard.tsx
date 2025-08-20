@@ -1,6 +1,7 @@
 // src/pages/EmotionCard.tsx (백엔드 연동 수정)
 import React, { useState, useEffect } from "react";
 import styled from "styled-components";
+import { Container as BaseContainer } from '../styles/CommonStyles';
 import NavigationBar from "../components/NavigationBar";
 import ConfirmationModal from '../components/common/ConfirmationModal';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -33,9 +34,9 @@ export interface SentMessage {
   coupleId: string;
 }
 
-const Container = styled.div`
+const Container = styled(BaseContainer)`
   background-color: #f0f4f8;
-  padding: 2rem; /* 하단 여백은 #root.has-nav가 담당 */
+  padding: 2rem;
   display: flex;
   flex-direction: column;
   align-items: center;

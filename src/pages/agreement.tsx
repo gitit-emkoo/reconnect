@@ -5,14 +5,15 @@ import NavigationBar from '../components/NavigationBar';
 import AgreementList from '../components/agreement/AgreementList';
 import ConfirmationModal from '../components/common/ConfirmationModal';
 import styled from 'styled-components';
+import { Container as BaseContainer } from '../styles/CommonStyles';
 import { useNavigate } from 'react-router-dom';
 import useAuthStore from '../store/authStore';
 import ImgAgreement from '../assets/Img_Agreement.png';
 
-const Container = styled.div`
+const Container = styled(BaseContainer)`
   max-width: 480px;
   margin: 0 auto;
-  padding: 0 0 80px;
+  padding: 0;
   background-color: #ffffff;
 `;
 const TopButtonRow = styled.div`

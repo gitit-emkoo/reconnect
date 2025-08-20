@@ -27,11 +27,6 @@ const GlobalStyle = createGlobalStyle`
     min-height: 100dvh; /* dynamic viewport height */
     height: 100%;
     overflow-x: hidden;
-    
-    /* 상단 여백은 헤더 컴포넌트가 자연스럽게 처리하도록 제거 */
-    
-    /* 하단 시스템 UI 안전 영역 확보 */
-    padding-bottom: max(env(safe-area-inset-bottom), 20px);
   }
   
   /* 제목 요소들은 원래 크기 유지 */
@@ -126,9 +121,17 @@ const GlobalStyle = createGlobalStyle`
     min-height: 100vh;
     min-height: 100dvh;
     height: 100%;
-    
-    /* 하단 네비게이션을 위한 동적 여백 확보 */
-    padding-bottom: var(--nav-height, 80px);
+    padding-bottom: 0; /* 기본적으로 여백 없음 */
+  }
+
+  /* 네비게이션이 있는 화면에서만 하단 여백 확보 */
+  #root.has-nav {
+    padding-bottom: calc(var(--nav-height, 72px) + var(--safe-area-inset-bottom, 0px) + 24px) !important;
+  }
+
+  /* 키보드 열릴 때는 하단 여백 제거 (입력창 가림 방지) */
+  #root.has-nav.keyboard-open {
+    padding-bottom: 0 !important;
   }
   
   /* 전체 화면 모드에서 네비게이션 여백 조정 */

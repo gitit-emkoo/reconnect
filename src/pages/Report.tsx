@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import styled from "styled-components";
+import { Container as BaseContainer } from '../styles/CommonStyles';
 import { useNavigate } from 'react-router-dom';
 import NavigationBar from '../components/NavigationBar';
 import TemperatureDescription from "../components/report/TemperatureDescription";
@@ -9,10 +10,9 @@ import { ReportData } from "../api/report";
 import LoadingSpinner from "../components/common/LoadingSpinner";
 import ConfirmationModal from '../components/common/ConfirmationModal';
 
-const Container = styled.div`
+const Container = styled(BaseContainer)`
   background-color: #f9fafb;
-  min-height: 100vh;
-  padding: 2rem; /* 하단 여백은 #root.has-nav가 담당 */
+  padding: 2rem;
 `;
 
 const Header = styled.div`

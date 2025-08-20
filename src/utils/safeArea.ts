@@ -10,10 +10,9 @@ export function initializeSafeArea(): void {
     try {
       // 모바일 환경에서 안전영역 하단 inset 적용 (지원되지 않으면 0으로 동작)
       root.style.setProperty('--safe-area-inset-bottom', 'env(safe-area-inset-bottom)');
-      // 기본 네비게이션 높이 값 (페이지 전역에서 사용)
-      if (!root.style.getPropertyValue('--nav-height')) {
-        root.style.setProperty('--nav-height', '80px');
-      }
+      // 기본 네비게이션 높이 값 (NavigationBar의 실제 높이에 맞춤)
+      // 아이콘+라벨 기준 약 72px + 안전 영역은 #root.has-nav에서 추가
+      root.style.setProperty('--nav-height', '72px');
       // 동적 뷰포트 높이(dvh)와 유사하게 화면 높이 기준값 설정
       const viewportHeight = (window as any).visualViewport?.height || window.innerHeight;
       root.style.setProperty('--vh', `${viewportHeight * 0.01}px`);

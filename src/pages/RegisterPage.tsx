@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import styled from 'styled-components';
+import { AuthContainer as BaseAuthContainer } from '../styles/CommonStyles';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { registerSchema, type RegisterFormData } from '../utils/validationSchemas';
@@ -19,14 +20,11 @@ import BackButton from '../components/common/BackButton';
 import TermsContent from './TermsContent';
 import PrivacyContent from './PrivacyContent';
 
-const Container = styled.div`
+const Container = styled(BaseAuthContainer)`
   display: flex;
   flex-direction: column;
   align-items: center;
-  min-height: 100vh;
-  background: white;
   padding: 2rem;
-  padding-bottom: var(--safe-area-inset-bottom);
 `;
 
 const Title = styled.h1`

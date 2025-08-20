@@ -429,6 +429,15 @@ MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
       root.classList.toggle('has-nav', hasNav);
     };
     update();
+    const unlisten = () => update();
+    window.addEventListener('popstate', unlisten);
+    window.addEventListener('pushstate', unlisten as any);
+    window.addEventListener('replacestate', unlisten as any);
+    return () => {
+      window.removeEventListener('popstate', unlisten);
+      window.removeEventListener('pushstate', unlisten as any);
+      window.removeEventListener('replacestate', unlisten as any);
+    };
   });
 
   // 인증 상태를 확인하는 동안 로딩 스피너를 전체 화면에 표시

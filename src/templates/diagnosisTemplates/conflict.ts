@@ -4,7 +4,7 @@ const conflict: DiagnosisTemplate = {
   id: 'conflict',
   title: '갈등 회피 진단',
   subtitle: '갈등 상황에서의 회피 및 대처 패턴을 점검합니다.',
-  price: '이벤트 무료오픈',
+  price: '0',
   questions: [
     // ... (conflict 진단 질문들 복사)
   ],

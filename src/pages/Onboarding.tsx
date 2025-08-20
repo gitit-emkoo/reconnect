@@ -1,6 +1,7 @@
 import React, { useState} from "react";
 import { useNavigate } from "react-router-dom";
 import styled from "styled-components";
+import { AuthContainer as BaseAuthContainer } from '../styles/CommonStyles';
 import { useSwipeable } from "react-swipeable";
 import Onboarding1 from "../assets/onboarding1.png";
 import Onboarding2 from "../assets/onboarding2.png";
@@ -10,18 +11,16 @@ import Onboarding5 from "../assets/onboarding5.png";
 import Onboarding6 from "../assets/onboarding6.png";
 import Onboarding7 from "../assets/onboarding7.png";
 
-const Container = styled.div`
+const Container = styled(BaseAuthContainer)`
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: space-between;
-  min-height: 100vh;
   background: #0A1B3D;
   padding: 3rem 1rem 2rem;
   color: white;
   position: relative;
   overflow: hidden;
-
   @media (min-width: 768px) {
     padding: 4rem 2rem 2rem;
   }

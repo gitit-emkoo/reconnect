@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
+import { Container as BaseContainer } from '../styles/CommonStyles';
 import { useNavigate, useParams } from 'react-router-dom';
 import NavigationBar from '../components/NavigationBar';
 import Header from '../components/common/Header';
@@ -8,11 +9,9 @@ import LoadingSpinner from '../components/common/LoadingSpinner';
 import useAuthStore from '../store/authStore';
 import axiosInstance from '../api/axios';
 
-const Container = styled.div`
+const Container = styled(BaseContainer)`
   background-color: #f9fafb;
-  min-height: 100vh;
   padding: 2rem;
-  padding-bottom: 80px;
 `;
 
 const HeaderSection = styled.div`
@@ -161,9 +160,17 @@ interface TrackReport {
   monthStartDate: string;
   emotionStats: Record<string, number>;
   triggerStats: Record<string, number>;
-  aiAnalysis: string;
+  aiAnalysis: string; // JSON or plain text
   totalDiaryCount: number;
   createdAt: string;
+  extendedMetrics?: {
+    dayOfWeekStats: Record<string, number>;
+    timeOfDayStats: Record<string, number>;
+    averageCommentLength: number;
+    positivityRatio: number;
+    topKeywords: string[];
+    topEmojis: string[];
+  };
 }
 
 const TrackReportDetail: React.FC = () => {
@@ -271,6 +278,30 @@ const TrackReportDetail: React.FC = () => {
   const topEmotions = getTopItems(report.emotionStats, 5);
   const topTriggers = getTopItems(report.triggerStats, 5);
 
+  // Parse AI analysis JSON if available (handles ```json fences)
+  let parsed: { summary?: string; comparison?: string; suggestions?: string[]; metrics?: any } | null = null;
+  if (report.aiAnalysis) {
+    const cleaned = report.aiAnalysis
+      .replace(/```json|```/g, '')
+      .replace(/[“”]/g, '"')
+      .replace(/[‘’]/g, "'")
+      .replace(/,\s*([}\]])/g, '$1')
+      .trim();
+    try {
+      parsed = JSON.parse(cleaned);
+    } catch {
+      try {
+        const start = cleaned.indexOf('{');
+        const end = cleaned.lastIndexOf('}');
+        if (start !== -1 && end !== -1 && end > start) {
+          parsed = JSON.parse(cleaned.slice(start, end + 1));
+        }
+      } catch {
+        parsed = null;
+      }
+    }
+  }
+
   return (
     <>
       <Header title={`${formatMonth(report.monthStartDate)} 트랙 리포트`} />
@@ -356,10 +387,63 @@ const TrackReportDetail: React.FC = () => {
           {/* AI 분석 */}
           <Section>
             <SectionTitle>🤖 AI 분석 결과</SectionTitle>
-            <AnalysisSection>
-              <AnalysisText>{report.aiAnalysis}</AnalysisText>
-            </AnalysisSection>
+            {parsed ? (
+              <div style={{ display: 'grid', gap: '0.75rem' }}>
+                <AnalysisSection>
+                  <SectionTitle style={{ marginBottom: 8, fontSize: '1rem' }}>요약</SectionTitle>
+                  <AnalysisText>{parsed.summary}</AnalysisText>
+                </AnalysisSection>
+                {parsed.comparison && (
+                  <div style={{ background: '#f5f7ff', border: '1px solid #e0e6ff', borderRadius: 12, padding: '1rem' }}>
+                    <div style={{ fontWeight: 600, marginBottom: 6 }}>전월 대비 변화</div>
+                    <div style={{ whiteSpace: 'pre-line', lineHeight: 1.6 }}>{parsed.comparison}</div>
+                  </div>
+                )}
+                {Array.isArray(parsed.suggestions) && parsed.suggestions.length > 0 && (
+                  <div style={{ background: '#f0fff4', border: '1px solid #c6f6d5', borderRadius: 12, padding: '1rem' }}>
+                    <div style={{ fontWeight: 600, marginBottom: 6 }}>개선 제안 (실천 팁)</div>
+                    <ul style={{ margin: 0, paddingLeft: 18 }}>
+                      {parsed.suggestions.slice(0,3).map((s, i) => (
+                        <li key={i} style={{ marginBottom: 4 }}>{s}</li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+                <div>
+                  <button onClick={() => window.print()} style={{ padding: '8px 12px', borderRadius: 8, border: '1px solid #ddd' }}>PDF로 저장(인쇄)</button>
+                </div>
+              </div>
+            ) : (
+              <AnalysisSection>
+                <AnalysisText>{report.aiAnalysis}</AnalysisText>
+              </AnalysisSection>
+            )}
           </Section>
+
+          {/* 확장 지표: AI JSON에 없더라도 서버에서 계산한 값을 사용 */}
+          {(() => {
+            const m: any = (parsed && (parsed as any).metrics) ? (parsed as any).metrics : report.extendedMetrics;
+            if (!m) return null;
+            return (
+              <Section>
+                <SectionTitle>📈 확장 지표</SectionTitle>
+                <div style={{ background: '#fafafa', border: '1px solid #eee', borderRadius: 12, padding: '1rem' }}>
+                  <div>평균 코멘트 길이: {m.averageCommentLength ?? '-'}</div>
+                  <div>긍정 비율: {m.positivityRatio != null ? `${Math.round(m.positivityRatio * 100)}%` : '-'}</div>
+                  {m.dayOfWeekStats && (
+                    <div>요일별 분포: {Object.entries(m.dayOfWeekStats).map(([k,v]) => `${k}:${v}`).join(', ')}</div>
+                  )}
+                  {m.timeOfDayStats && (
+                    <div>시간대별 분포: {Object.entries(m.timeOfDayStats).map(([k,v]) => `${k}:${v}`).join(', ')}</div>
+                  )}
+                  {Array.isArray(m.topKeywords) && m.topKeywords.length > 0 && (
+                    <div>상위 키워드: {m.topKeywords.join(', ')}</div>
+                  )}
+                  
+                </div>
+              </Section>
+            );
+          })()}
         </ContentGrid>
       </Container>
       <NavigationBar />

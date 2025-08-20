@@ -4,7 +4,7 @@ const marriage: DiagnosisTemplate = {
   id: 'marriage',
   title: '결혼생활 만족도 진단',
   subtitle: '부부 관계 전반의 정서적 안정감, 만족도, 상호 신뢰의 수준을 점검하여 건강한 결혼생활의 기반을 확인합니다.',
-  price: '무료(이벤트)',
+  price: '0',
   questions: [
     {
       id: 'q1',

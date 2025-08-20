@@ -36,16 +36,25 @@ const Button = styled.button`
 interface BackButtonProps {
   onClick?: () => void;
   className?: string;
+  fallbackTo?: string; // 히스토리가 없을 때 이동할 경로
 }
 
-const BackButton: React.FC<BackButtonProps> = ({ onClick, className }) => {
+const BackButton: React.FC<BackButtonProps> = ({ onClick, className, fallbackTo }) => {
   const navigate = useNavigate();
 
   const handleClick = () => {
     if (onClick) {
       onClick();
     } else {
-      navigate(-1);
+      const hasHistory = window.history.length > 1;
+      const sameOriginRef = document.referrer && document.referrer.startsWith(window.location.origin);
+      if (hasHistory && sameOriginRef) {
+        navigate(-1);
+      } else if (fallbackTo) {
+        navigate(fallbackTo);
+      } else {
+        navigate('/');
+      }
     }
   };
 

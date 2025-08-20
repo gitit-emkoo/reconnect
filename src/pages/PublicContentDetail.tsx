@@ -230,8 +230,8 @@ const PublicContentDetail: React.FC = () => {
     if (navigator.share) {
       try {
         await navigator.share({
-          title: content?.title || '관계 가이드',
-          text: content?.title || '관계 가이드',
+          title: content?.title || '부부 처방소',
+          text: content?.title || '부부 처방소',
           url: shareUrl,
         });
       } catch (err) {
@@ -260,7 +260,7 @@ const PublicContentDetail: React.FC = () => {
     <div>
       <Header>
         <BackButton onClick={handleBack} />
-        <HeaderTitle>관계 가이드</HeaderTitle>
+        <HeaderTitle>부부 처방소</HeaderTitle>
       </Header>
 
       <div style={{ paddingBottom: '80px' }}>

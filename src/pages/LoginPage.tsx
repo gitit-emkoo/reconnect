@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import styled from 'styled-components';
+import { AuthContainer as BaseAuthContainer } from '../styles/CommonStyles';
 import { useForm, type SubmitHandler } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { loginSchema, type LoginFormData } from '../utils/validationSchemas';
@@ -20,15 +21,13 @@ import { User } from '../types/user';
 import ConfirmationModal from '../components/common/ConfirmationModal';
 import Popup from '../components/common/Popup';
 
-const Container = styled.div`
+const Container = styled(BaseAuthContainer)`
   display: flex;
   flex-direction: column;
   align-items: center;
-  
   background: linear-gradient(135deg, #FFE5E5 0%, #E5E5FF 100%);
   padding: 2rem 1.5rem;
   box-sizing: border-box;
-  padding-bottom: var(--safe-area-inset-bottom);
 `;
 
 const Logo = styled.img`

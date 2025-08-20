@@ -1,19 +1,18 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
+import { Container as BaseContainer } from '../styles/CommonStyles';
 import { partnerInvitesApi } from '../api/partnerInvites';
 import NavigationBar from '../components/NavigationBar';
 import useAuthStore from '../store/authStore';
 
 
-const Container = styled.div`
+const Container = styled(BaseContainer)`
   padding: 1.5rem;
-  min-height: calc(100vh - 60px);
   background-color: #ffffff;
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding-bottom: 80px;
 `;
 
 const Title = styled.h1`

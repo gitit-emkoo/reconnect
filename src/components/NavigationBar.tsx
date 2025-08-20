@@ -30,7 +30,7 @@ const NavContainer = styled.nav`
   transform: translateZ(0);
   
   /* 동적 높이 적용 */
-  height: var(--nav-height, 80px);
+  height: var(--nav-height, 72px);
 `;
 
 interface NavButtonProps {

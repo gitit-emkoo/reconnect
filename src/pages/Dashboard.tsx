@@ -1,6 +1,7 @@
 // src/pages/Dashboard.tsx (최종 수정)
 import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
+import { Container as BaseContainer } from '../styles/CommonStyles';
 import { useNavigate, useLocation } from 'react-router-dom';
 import 'react-calendar/dist/Calendar.css';
 import { useDashboardData } from '../hooks/useDashboardData';
@@ -35,11 +36,11 @@ const getEmotionByTemperature = (temp: number): string => {
   return "얼어붙은 빙하 🧊";
 };
 
-const Container = styled.div`
-  padding: 1.5rem 1.5rem; /* 하단 여백은 #root.has-nav가 담당 */
+const Container = styled(BaseContainer)`
+  padding: 1.5rem 1.5rem;
   background-color: #ffffff;
-  height: auto;
 `;
+
 
 const Header = styled.div`
   display: flex;
