@@ -120,7 +120,6 @@ const GlobalStyle = createGlobalStyle`
   #root {
     min-height: 100vh;
     min-height: 100dvh;
-    height: 100%;
     padding-bottom: 0; /* 기본적으로 여백 없음 */
   }
 

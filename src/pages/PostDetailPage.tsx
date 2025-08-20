@@ -378,35 +378,50 @@ const PostDetailPage: React.FC = () => {
                     setReplyOpen(prev => ({ ...prev, [comment.id]: !prev[comment.id] }));
                     setMenuOpenId(null);
                   }}>답글 달기</MenuItem>
-                  <MenuItem onClick={() => {
-                    if (!useAuthStore.getState().accessToken) {
-                      alert('로그인이 필요합니다.');
-                      navigate('/login');
-                      return;
-                    }
-                    setReportTargetCommentId(comment.id);
-                    setCommentReportReason('욕설/비방');
-                    setCommentReportEtc('');
-                    setCommentReportError('');
-                    setCommentReportSuccess(false);
-                    setShowCommentReportModal(true);
-                    setMenuOpenId(null);
-                  }}>신고</MenuItem>
-                  <MenuItem onClick={async () => {
-                    try {
-                      if (!useAuthStore.getState().accessToken) {
-                        alert('로그인이 필요합니다.');
-                        navigate('/login');
-                        return;
+                  {user?.id === comment.author.id ? (
+                    <MenuItem onClick={async () => {
+                      if (!window.confirm('이 댓글을 삭제할까요?')) return;
+                      try {
+                        await axiosInstance.delete(`/community/comments/${comment.id}`);
+                        queryClient.invalidateQueries({ queryKey: ['post', id] });
+                        setMenuOpenId(null);
+                      } catch {
+                        alert('댓글 삭제에 실패했습니다.');
                       }
-                      await (await import('../api/user')).blockApi.blockUser(comment.author.id);
-                      alert('해당 사용자를 차단했습니다.');
-                      queryClient.invalidateQueries({ queryKey: ['post', id] });
-                      setMenuOpenId(null);
-                    } catch {
-                      alert('차단 처리 중 오류가 발생했습니다.');
-                    }
-                  }}>사용자 차단</MenuItem>
+                    }}>삭제</MenuItem>
+                  ) : (
+                    <>
+                      <MenuItem onClick={() => {
+                        if (!useAuthStore.getState().accessToken) {
+                          alert('로그인이 필요합니다.');
+                          navigate('/login');
+                          return;
+                        }
+                        setReportTargetCommentId(comment.id);
+                        setCommentReportReason('욕설/비방');
+                        setCommentReportEtc('');
+                        setCommentReportError('');
+                        setCommentReportSuccess(false);
+                        setShowCommentReportModal(true);
+                        setMenuOpenId(null);
+                      }}>신고</MenuItem>
+                      <MenuItem onClick={async () => {
+                        try {
+                          if (!useAuthStore.getState().accessToken) {
+                            alert('로그인이 필요합니다.');
+                            navigate('/login');
+                            return;
+                          }
+                          await (await import('../api/user')).blockApi.blockUser(comment.author.id);
+                          alert('해당 사용자를 차단했습니다.');
+                          queryClient.invalidateQueries({ queryKey: ['post', id] });
+                          setMenuOpenId(null);
+                        } catch {
+                          alert('차단 처리 중 오류가 발생했습니다.');
+                        }
+                      }}>사용자 차단</MenuItem>
+                    </>
+                  )}
                 </DropdownMenu>
               )}
             </CommentHeader>

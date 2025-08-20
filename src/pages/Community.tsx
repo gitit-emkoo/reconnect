@@ -247,8 +247,9 @@ const PaginationText = styled.span`
   font-weight: 600;
 `;
 
-const getCategoryName = (name: string | { text: string }): string => {
-  return typeof name === 'string' ? name : name.text;
+const getCategoryName = (name: string | { text: string } | undefined | null): string => {
+  if (!name) return '기타';
+  return typeof name === 'string' ? name : (name.text ?? '기타');
 };
 
 // Fetch functions
@@ -349,8 +350,8 @@ const Community: React.FC = () => {
             
               {posts.length > 0 ? posts.map((post: Post) => (
                 <PostListItem key={post.id}>
-                  <CategoryTag $bgcolor={getCategoryColor(getCategoryName(post.category.name))}>
-                    {getCategoryName(post.category.name)}
+                  <CategoryTag $bgcolor={getCategoryColor(getCategoryName(post.category?.name))}>
+                    {getCategoryName(post.category?.name)}
                   </CategoryTag>
                   <PostTitle to={`/community/${post.id}`}>{post.title}</PostTitle>
                   {post.tags && post.tags.length > 0 && (
