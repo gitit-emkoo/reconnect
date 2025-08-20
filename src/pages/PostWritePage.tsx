@@ -108,15 +108,9 @@ const Select = styled.select`
 
 const ButtonContainer = styled.div`
   display: flex;
-  justify-content: flex-end; /* 데스크탑에서는 오른쪽 정렬 유지 */
+  flex-direction: column;
+  align-items: flex-end;
   gap: 0.8rem;
-  
-
-  @media (max-width: 768px) {
-    display: flex;
-    flex-direction: column;
-    align-items: flex-end;
-  }
 `;
 
 const SubmitButton = styled.button`
@@ -143,6 +137,29 @@ const SubmitButton = styled.button`
   &:disabled {
     background-color: #ced4da;
     cursor: not-allowed;
+  }
+`;
+
+const CancelButton = styled.button`
+  background-color: transparent;
+  color: #495057;
+  padding: 0.8rem 1.2rem;
+  font-weight: 600;
+  border: 1px solid #ced4da;
+  border-radius: 0.5rem;
+  cursor: pointer;
+  font-size: 1rem;
+  transition: background-color 0.2s, color 0.2s, border-color 0.2s;
+
+  &:hover {
+    background-color: #f1f3f5;
+    border-color: #adb5bd;
+  }
+
+  @media (max-width: 768px) {
+    width: 100%;
+    padding: 0.9rem;
+    font-size: 0.95rem;
   }
 `;
 
@@ -318,6 +335,23 @@ const PostWritePage: React.FC = () => {
       }
     };
 
+    const handleCancel = () => {
+      const hasContent =
+        (editorTitle && editorTitle.trim().length > 0) ||
+        (editorContent && editorContent.trim().length > 0) ||
+        (Array.isArray(tags) && tags.length > 0) ||
+        (pollQuestion && pollQuestion.trim().length > 0);
+
+      if (!hasContent || window.confirm('작성 중인 내용을 취소하시겠어요? 작성 내용은 저장되지 않습니다.')) {
+        localStorage.removeItem('custom_rich_text_editor_draft_new');
+        if (window.history.length > 1) {
+          navigate(-1);
+        } else {
+          navigate('/community');
+        }
+      }
+    };
+
     return (
         <>
             <Container>
@@ -413,6 +447,7 @@ const PostWritePage: React.FC = () => {
                       <SubmitButton type="submit" disabled={isSubmitting}>
                           {isSubmitting ? <LoadingSpinner size={20} fullscreen={false} /> : '글 등록'}
                       </SubmitButton>
+                      <CancelButton type="button" onClick={handleCancel}>작성 취소</CancelButton>
                     </ButtonContainer>
                 </Form>
                 <div style={{ fontSize: '0.9rem', color: '#6c757d', textAlign: 'left' }}>
