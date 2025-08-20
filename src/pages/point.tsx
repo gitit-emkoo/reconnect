@@ -2,13 +2,12 @@ import React from 'react';
 import Header from '../components/common/Header';
 import BackButton from '../components/common/BackButton';
 import styled from 'styled-components';
+import { Container as BaseContainer } from '../styles/CommonStyles';
 import NavigationBar from '../components/NavigationBar';
 
-const Container = styled.div`
+const Container = styled(BaseContainer)`
   background-color: #f5f7fb;
-  min-height: 100vh;
   padding: 2rem;
-  padding-bottom: 70px; /* NavigationBar 높이만큼 패딩 */
   font-family: 'Pretendard', sans-serif;
   color: #222;
 `;

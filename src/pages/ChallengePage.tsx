@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import styled from 'styled-components';
+import { Container as BaseContainer } from '../styles/CommonStyles';
 import { useNavigate } from 'react-router-dom';
 import ActiveChallenge from '../components/challenge/ActiveChallenge';
 import ChallengeListModal from '../components/challenge/ChallengeListModal';
@@ -20,7 +21,7 @@ import badge1 from '../assets/challenge (1).png';
 import badge2 from '../assets/challenge (2).png';
 import badge3 from '../assets/challenge (3).png';
 
-const PageContainer = styled.div`
+const PageContainer = styled(BaseContainer)`
   max-width: 800px;
   margin: 0 auto;
   padding: 2rem 1rem;

@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
+import { Container as BaseContainer } from '../styles/CommonStyles';
 import NavigationBar from "../components/NavigationBar"; 
 import Header from '../components/common/Header';
 import ImgCounseling from '../assets/Img_counseling.jpg';
@@ -9,14 +10,12 @@ import ImgBeads from '../assets/Img_Beads.jpg';
 import ImgLaw from '../assets/Img_Law.jpg';
 import ConfirmationModal from '../components/common/ConfirmationModal';
 
-const Container = styled.div`
+const Container = styled(BaseContainer)`
   display: flex;
   flex-direction: column;
   align-items: center;
-  min-height: calc(100vh - 60px);
   background: white;
   padding: 2rem;
-  padding-bottom: var(--nav-height, 80px);
   justify-content: flex-start;
   text-align: center;
   padding-top: 3.5rem;

@@ -311,22 +311,22 @@ const SelfDiagnosisRoom: React.FC = () => {
                 ) : (
                   <>
                     <Badge>이벤트</Badge>
-                    <FreeText>무료로 시작하기</FreeText>
+                    <FreeText>시작하기</FreeText>
                   </>
                 )
               ) : tpl.id === 'sex' && user?.subscriptionStatus === 'SUBSCRIBED' ? (
                 <>
                   <SubscriberBadge>구독자</SubscriberBadge>
-                  <FreeText>구독자 무료</FreeText>
+                  <FreeText>구독자 가능</FreeText>
                 </>
               ) : tpl.id === 'sex' ? (
                 <>
                   <SubscriberBadge>구독자</SubscriberBadge>
-                  <span>구독자 무료</span>
+                  <span>구독자 가능</span>
                 </>
               ) : (
                 <>
-                  <Badge>유료</Badge>
+                  <Badge>이벤트</Badge>
                   <span>{tpl.price}원</span>
                 </>
               )}

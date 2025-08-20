@@ -1,12 +1,18 @@
 import styled from 'styled-components';
 
+// 네비게이션과 안전영역을 고려한 하단 여백 믹스인
+export const withNavSafeBottom = `
+  padding-bottom: calc(var(--nav-height, 72px) + var(--safe-area-inset-bottom, 0px) + 16px) !important;
+`;
+
 // 공통 Container 스타일
 export const Container = styled.div`
   background-color: white;
   min-height: 100vh;
   padding: 1rem;
-  /* 하단 여백은 #root.has-nav가 담당 → 컴포넌트 자체에서는 일반 패딩만 유지 */
-  padding-bottom: 1rem;
+  padding-bottom: 1.5rem; /* 전역 여백이 실패해도 최소 여백 보장 */
+  /* 내부 스크롤 컨테이너가 있을 경우에도 하단 여백이 보장되도록 */
+  & > *:last-child { margin-bottom: 0; }
   
   /* 반응형 패딩 */
   @media screen and (max-width: 768px) {
@@ -46,8 +52,9 @@ export const CustomContainer = styled.div<{
 }>`
   background-color: white;
   min-height: 100vh;
-  /* 기본적으로 네비 높이는 루트에서 처리 → 여기서는 명시 전달 없으면 일반 패딩만 */
+  /* 기본 패딩 */
   padding: ${props => props.$topPadding || '1rem'} ${props => props.$horizontalPadding || '1rem'} ${props => props.$bottomPadding || '1rem'};
+  & > *:last-child { margin-bottom: 0; }
   
   /* 반응형 패딩 */
   @media screen and (max-width: 768px) {

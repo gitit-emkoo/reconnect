@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import styled from 'styled-components';
+import { Container as BaseContainer } from '../styles/CommonStyles';
 import { Agreement } from '../components/agreement/AgreementList';
 import useAuthStore from '../store/authStore';
 import Header from '../components/common/Header';
@@ -13,10 +14,10 @@ import jsPDF from 'jspdf';
 import QRCodeGenerator from '../components/agreement/QRCodeGenerator';
 import Skeleton from '../components/common/Skeleton';
 
-const Container = styled.div`
+const Container = styled(BaseContainer)`
   max-width: 480px;
   margin: 1rem 1.2rem 1rem;
-  padding: 0 0 80px;
+  padding: 0;
 `;
 
 const Card = styled.div`
@@ -712,7 +713,7 @@ const IssuedAgreementsPage: React.FC = () => {
           navigate('/subscribe');
         }}
         title="구독 안내"
-        message="무료구독 후 사용하세요."
+        message="구독 후 사용하세요."
         confirmButtonText="구독하러 가기"
         cancelButtonText="취소"
         showCancelButton={true}

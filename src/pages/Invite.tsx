@@ -2,19 +2,18 @@
 
 import React, { useState } from "react";
 import styled from "styled-components";
+import { Container as BaseContainer } from '../styles/CommonStyles';
 import { useNavigate } from "react-router-dom";
 import NavigationBar from "../components/NavigationBar"; // NavigationBar 임포트 추가
 
 // 스타일 컴포넌트
-const Container = styled.div`
+const Container = styled(BaseContainer)`
   display: flex;
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  height: calc(100vh - 60px); /* NavigationBar 높이만큼 줄임 */
   padding: 2rem;
   background-color: #f0fdfa;
-  padding-bottom: var(--nav-height, 80px); /* NavigationBar에 가려지지 않도록 하단 패딩 추가 */
 `;
 
 const Box = styled.div`

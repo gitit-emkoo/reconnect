@@ -1,13 +1,13 @@
 import React, { useState } from 'react';
 import styled from 'styled-components';
+import { Container as BaseContainer } from '../styles/CommonStyles';
 import DigitalSignature from '../components/agreement/DigitalSignature';
 import { useNavigate } from 'react-router-dom';
 import useAuthStore from '../store/authStore';
 import { agreementApi } from '../api/agreement';
 
-const Container = styled.div`
+const Container = styled(BaseContainer)`
   background: #fff;
-  height: auto;
   padding: 2.5rem 2rem 2rem;
   display: flex;
   flex-direction: column;

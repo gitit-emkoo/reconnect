@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
+import { Container as BaseContainer } from '../styles/CommonStyles';
 import { useNavigate } from 'react-router-dom';
 import NavigationBar from '../components/NavigationBar';
 import Header from '../components/common/Header';
@@ -8,23 +9,14 @@ import LoadingSpinner from '../components/common/LoadingSpinner';
 import useAuthStore from '../store/authStore';
 import axiosInstance from '../api/axios';
 
-const Container = styled.div`
+const Container = styled(BaseContainer)`
   background-color: #f9fafb;
-  min-height: 100vh;
   padding: 2rem;
-  padding-bottom: 80px;
 `;
 
 const HeaderSection = styled.div`
   text-align: center;
   margin-bottom: 2rem;
-`;
-
-const Title = styled.h1`
-  font-size: 1.5rem;
-  font-weight: bold;
-  color: #333;
-  margin-bottom: 0.5rem;
 `;
 
 const Subtitle = styled.p`
@@ -45,15 +37,9 @@ const ReportCard = styled.div`
   border-radius: 16px;
   padding: 1.5rem;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-  cursor: pointer;
+  cursor: default;
   transition: all 0.3s ease;
   border: 2px solid transparent;
-
-  &:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
-    border-color: #785CD2;
-  }
 `;
 
 const ReportHeader = styled.div`
@@ -114,6 +100,22 @@ const ReportPreview = styled.div`
   border-left: 4px solid #785CD2;
 `;
 
+const CardFooter = styled.div`
+  margin-top: 1rem;
+`;
+
+const DetailButton = styled.button`
+  width: 100%;
+  padding: 0.75rem 1rem;
+  border: none;
+  border-radius: 10px;
+  background: #785CD2;
+  color: #fff;
+  font-weight: 700;
+  font-size: 0.95rem;
+  cursor: pointer;
+`;
+
 const EmptyState = styled.div`
   text-align: center;
   padding: 3rem 1rem;
@@ -162,6 +164,32 @@ const AdminButton = styled.button`
   }
 `;
 
+const AdminButtons = styled.div`
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  margin: 2rem 0;
+`;
+
+const FilterBar = styled.div`
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding: 0 0 0.5rem 0;
+  margin-bottom: 0.5rem;
+`;
+
+const Chip = styled.button<{ $active?: boolean }>`
+  flex: 0 0 auto;
+  padding: 6px 12px;
+  border-radius: 16px;
+  border: 1px solid ${p => (p.$active ? '#785CD2' : '#e5e7eb')};
+  background: ${p => (p.$active ? '#f4f0ff' : '#fff')};
+  color: ${p => (p.$active ? '#5b44b8' : '#444')};
+  font-weight: 600;
+  font-size: 0.85rem;
+`;
+
 interface TrackReport {
   id: string;
   monthStartDate: string;
@@ -179,6 +207,7 @@ const PublishedTrackReports: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [generating, setGenerating] = useState(false);
+  const [selectedMonthKey, setSelectedMonthKey] = useState<string>('ALL');
 
   useEffect(() => {
     // 구독자가 아니면 구독 페이지로 리다이렉트
@@ -190,10 +219,10 @@ const PublishedTrackReports: React.FC = () => {
     fetchTrackReports();
   }, [user, navigate]);
 
-  const fetchTrackReports = async () => {
+  const fetchTrackReports = async (force?: boolean) => {
     try {
       setLoading(true);
-      const response = await axiosInstance.get('/track-reports/me');
+      const response = await axiosInstance.get('/track-reports/me', { params: force ? { t: Date.now() } : undefined });
       setReports(response.data);
     } catch (err) {
       setError('트랙 리포트를 불러오는데 실패했습니다.');
@@ -228,7 +257,58 @@ const PublishedTrackReports: React.FC = () => {
   };
 
   const getAnalysisPreview = (analysis: string) => {
-    return analysis.length > 100 ? analysis.substring(0, 100) + '...' : analysis;
+    const normalize = (text: string) =>
+      text
+        .replace(/```json|```/g, '')
+        .replace(/[“”]/g, '"')
+        .replace(/[‘’]/g, "'")
+        .replace(/,\s*([}\]])/g, '$1')
+        .trim();
+
+    const parseAi = (text: string): any | null => {
+      if (!text) return null;
+      const cleaned = normalize(text);
+      try {
+        return JSON.parse(cleaned);
+      } catch {
+        const start = cleaned.indexOf('{');
+        const end = cleaned.lastIndexOf('}');
+        if (start !== -1 && end !== -1 && end > start) {
+          const candidate = cleaned.slice(start, end + 1).replace(/,\s*([}\]])/g, '$1');
+          try { return JSON.parse(candidate); } catch { /* noop */ }
+        }
+        return null;
+      }
+    };
+
+    const parsed = parseAi(analysis);
+    if (parsed && typeof parsed.summary === 'string') {
+      const s = parsed.summary as string;
+      return s.length > 100 ? s.substring(0, 100) + '...' : s;
+    }
+
+    // 최후 수단: 요약 텍스트만 정규식으로 추출
+    const cleaned = normalize(analysis);
+    // 1) 텍스트 형식(제목: 요약)에서 요약 본문만 추출
+    const byHeading = cleaned.match(/요약\s*([\s\S]*?)(?:\n\s*전월 대비 변화|\n\s*실천 제안|$)/);
+    if (byHeading && byHeading[1]) {
+      const s = byHeading[1].trim();
+      if (s) return s.length > 100 ? s.substring(0, 100) + '...' : s;
+    }
+
+    const m = cleaned.match(/\"summary\"\s*:\s*\"([\s\S]*?)\"\s*(,|})/);
+    if (m && m[1]) {
+      const s = m[1];
+      return s.length > 100 ? s.substring(0, 100) + '...' : s;
+    }
+
+    // 2) 여전히 중괄호가 많은 경우, JSON 노출을 피하고 안내 문구로 대체
+    if (cleaned.includes('{') || cleaned.includes('"metrics"')) {
+      return '요약은 상세 보기에서 확인하세요.';
+    }
+
+    const plain = cleaned.replace(/^{|}$/g, '');
+    return plain.length > 100 ? plain.substring(0, 100) + '...' : plain;
   };
 
   const handleManualGenerate = async () => {
@@ -240,7 +320,7 @@ const PublishedTrackReports: React.FC = () => {
       setGenerating(true);
       await axiosInstance.get('/track-reports/generate-manual');
       alert('개발용 트랙 리포트 생성이 완료되었습니다!');
-      fetchTrackReports(); // 목록 새로고침
+      fetchTrackReports(true); // 캐시 우회하여 새로고침
     } catch (err) {
       alert('트랙 리포트 생성에 실패했습니다.');
       console.error('수동 생성 실패:', err);
@@ -248,6 +328,39 @@ const PublishedTrackReports: React.FC = () => {
       setGenerating(false);
     }
   };
+
+  const handleManualGenerateCurrent = async () => {
+    if (!confirm('현재 월 데이터를 개발용으로 즉시 생성하시겠습니까?')) return;
+    try {
+      setGenerating(true);
+      await axiosInstance.get('/track-reports/me/current/generate-manual');
+      alert('현재 월 개발용 생성이 완료되었습니다!');
+      fetchTrackReports(true);
+    } catch (err) {
+      alert('현재 월 생성에 실패했습니다.');
+      console.error('현재 월 수동 생성 실패:', err);
+    } finally {
+      setGenerating(false);
+    }
+  };
+
+  const monthKey = (d: string) => {
+    const date = new Date(d);
+    const y = date.getFullYear();
+    const m = String(date.getMonth() + 1).padStart(2, '0');
+    return `${y}-${m}`;
+  };
+
+  const monthOptions = React.useMemo(() => {
+    const set = new Set<string>();
+    for (const r of reports) set.add(monthKey(r.monthStartDate));
+    const arr = Array.from(set).sort().reverse();
+    return arr;
+  }, [reports]);
+
+  const filteredReports = selectedMonthKey === 'ALL'
+    ? reports
+    : reports.filter(r => monthKey(r.monthStartDate) === selectedMonthKey);
 
   if (loading) {
     return (
@@ -263,7 +376,7 @@ const PublishedTrackReports: React.FC = () => {
         <div style={{ textAlign: 'center', color: '#666' }}>
           <p>{error}</p>
           <button 
-            onClick={fetchTrackReports}
+            onClick={() => fetchTrackReports()}
             style={{
               marginTop: '1rem',
               padding: '0.5rem 1rem',
@@ -283,11 +396,10 @@ const PublishedTrackReports: React.FC = () => {
 
   return (
     <>
-      <Header title="발행된 트랙 리포트" />
-      <BackButton />
+      <Header title="트랙 리포트" />
+      <BackButton fallbackTo="/my" />
       <Container>
         <HeaderSection>
-          <Title>발행된 트랙 리포트</Title>
           <Subtitle>
             AI가 분석한 월간 감정 흐름 리포트입니다.<br/>
             매월 1일 오전 10시에 자동으로 발행됩니다.
@@ -296,18 +408,35 @@ const PublishedTrackReports: React.FC = () => {
 
         {/* 관리자용 개발 테스트 버튼 */}
         {user?.role === 'ADMIN' && (
-          <AdminButton 
-            onClick={handleManualGenerate} 
-            disabled={generating}
-          >
-            {generating ? '생성 중...' : '🧪 개발용 트랙 리포트 생성'}
-          </AdminButton>
+          <AdminButtons>
+            <AdminButton onClick={handleManualGenerate} disabled={generating}>
+              {generating ? '생성 중...' : '🧪 지난 달 개발용 생성'}
+            </AdminButton>
+            <AdminButton onClick={handleManualGenerateCurrent} disabled={generating}>
+              {generating ? '생성 중...' : '🧪 현재 월 개발용 생성'}
+            </AdminButton>
+          </AdminButtons>
+        )}
+
+        {/* 월 필터 */}
+        {reports.length > 0 && (
+          <FilterBar>
+            <Chip $active={selectedMonthKey === 'ALL'} onClick={() => setSelectedMonthKey('ALL')}>전체</Chip>
+            {monthOptions.map((k) => {
+              const [y, m] = k.split('-');
+              return (
+                <Chip key={k} $active={selectedMonthKey === k} onClick={() => setSelectedMonthKey(k)}>
+                  {Number(y)}년 {Number(m)}월
+                </Chip>
+              );
+            })}
+          </FilterBar>
         )}
 
         <ReportGrid>
-          {reports.length > 0 ? (
-            reports.map((report) => (
-              <ReportCard key={report.id} onClick={() => handleReportClick(report)}>
+          {filteredReports.length > 0 ? (
+            filteredReports.map((report) => (
+              <ReportCard key={report.id}>
                 <ReportHeader>
                   <ReportDate>{formatMonth(report.monthStartDate)}</ReportDate>
                   <ReportBadge>발행됨</ReportBadge>
@@ -335,6 +464,10 @@ const PublishedTrackReports: React.FC = () => {
                 <ReportPreview>
                   {getAnalysisPreview(report.aiAnalysis)}
                 </ReportPreview>
+
+                <CardFooter>
+                  <DetailButton onClick={() => handleReportClick(report)}>상세 보기</DetailButton>
+                </CardFooter>
               </ReportCard>
             ))
           ) : (

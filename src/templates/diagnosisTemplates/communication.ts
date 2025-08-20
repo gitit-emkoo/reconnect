@@ -4,7 +4,7 @@ const communication: DiagnosisTemplate = {
   id: 'communication',
   title: '의사소통 패턴 진단',
   subtitle: '관계 내 의사소통 패턴과 문제점을 점검합니다.',
-  price: '이벤트 무료오픈',
+  price: '0',
   questions: [
     // ... (communication 진단 질문들 복사)
   ],

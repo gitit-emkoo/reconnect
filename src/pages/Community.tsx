@@ -2,6 +2,7 @@
 import React, { useState } from "react";
 import type { KeyboardEvent } from "react";
 import styled from "styled-components";
+import { Container as BaseContainer } from '../styles/CommonStyles';
 import { Link } from "react-router-dom";
 import NavigationBar from "../components/NavigationBar";
 import axiosInstance from "../api/axios"; // 우리 백엔드용 axios 인스턴스
@@ -41,9 +42,8 @@ type PostsResponse = { posts: Post[]; total: number };
 
 // === Styled Components ===
 
-const Container = styled.div`
+const Container = styled(BaseContainer)`
   background-color:rgb(255, 255, 255);
-  min-height: 100vh;
   padding: 1rem 1rem 2rem 1rem; 
   
 `;

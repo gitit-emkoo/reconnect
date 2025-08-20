@@ -1,5 +1,6 @@
 import React, { useState, useMemo } from "react";
 import styled from "styled-components";
+import { Container as BaseContainer } from '../styles/CommonStyles';
 import NavigationBar from "../components/NavigationBar";
 import EmotionDiaryCalendar from './EmotionDiaryCalendar';
 import Popup from '../components/common/Popup';
@@ -44,13 +45,10 @@ interface Trigger {
 
 // 스타일 컴포넌트 정의
 
-const Container = styled.div`
+const Container = styled(BaseContainer)`
   padding: 2rem;
   background-color: #fff;
-  min-height: calc(100vh - 60px);
- 
   position: relative;
-  padding-bottom: var(--nav-height, 80px); 
 
   @media (min-width: 1024px) {
     display: grid;

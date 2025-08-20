@@ -2,17 +2,16 @@ import React, { useState } from 'react';
 import Header from '../components/common/Header';
 import BackButton from '../components/common/BackButton';
 import styled from 'styled-components';
+import { Container as BaseContainer } from '../styles/CommonStyles';
 import NavigationBar from '../components/NavigationBar';
 import ConfirmationModal from '../components/common/ConfirmationModal';
 import { userService } from '../services/userService';
 import useAuthStore from '../store/authStore';
 import { User } from '../types/user';
 
-const Container = styled.div`
+const Container = styled(BaseContainer)`
   background-color: #f6f8fb;
-  min-height: 100vh;
   padding: 2rem;
-  padding-bottom: 70px; /* NavigationBar 높이만큼 패딩 */
   font-family: 'Pretendard', sans-serif;
   color: #222;
 `;

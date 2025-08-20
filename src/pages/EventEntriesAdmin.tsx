@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import styled from 'styled-components';
+import { Container as BaseContainer } from '../styles/CommonStyles';
 import Header from '../components/common/Header';
 import NavigationBar from '../components/NavigationBar';
 import useAuthStore from '../store/authStore';
@@ -7,10 +8,9 @@ import { ADMIN_CONFIG } from '../config/admin';
 import { eventsApi } from '../api/events';
 import LoadingSpinner from '../components/common/LoadingSpinner';
 
-const Container = styled.div`
+const Container = styled(BaseContainer)`
   background-color: white;
-  min-height: 100vh;
-  padding: 1rem 1rem 5rem;
+  padding: 1rem 1rem 1.5rem;
 `;
 
 const List = styled.div`
@@ -101,6 +101,8 @@ const EventEntriesAdmin: React.FC = () => {
 };
 
 export default EventEntriesAdmin;
+
+
 
 
 

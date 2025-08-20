@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useMemo, useRef } from "react";
 import styled from "styled-components";
+import { Container as BaseContainer } from '../styles/CommonStyles';
 import { useNavigate } from "react-router-dom";
 import NavigationBar from "../components/NavigationBar";
 import axiosInstance from "../api/axios";
@@ -18,13 +19,12 @@ interface Category {
 }
 
 // === Styled Components (전면 개편) ===
-const Container = styled.div`
+const Container = styled(BaseContainer)`
   background-color: #f8f9fa;
-  min-height: 100vh;
-  padding: 1.5rem 1rem 5rem 1rem;
+  padding: 1.5rem 1rem;
 
   @media (max-width: 768px) {
-    padding: 1rem 1rem 6rem 1rem;
+    padding: 1rem;
   }
 `;
 

@@ -1,13 +1,12 @@
 import React, { useState } from 'react';
 import styled from 'styled-components';
+import { Container as BaseContainer } from '../styles/CommonStyles';
 import NavigationBar from '../components/NavigationBar';
 import { Agreement } from '../components/agreement/AgreementList';
 
-const Container = styled.div`
+const Container = styled(BaseContainer)`
   background-color: white;
   padding: 2rem;
-  padding-bottom: 70px;
-  height: auto;
 `;
 
 const Title = styled.h2`

@@ -1,14 +1,14 @@
 // src/pages/Calendar.tsx
 import React from "react";
 import styled from "styled-components";
+import { Container as BaseContainer } from '../styles/CommonStyles';
 
-const Container = styled.div`
+const Container = styled(BaseContainer)`
   background-color: #f0f4f8; /* 약간 푸른 회색 계열 */
   padding: 2rem;
   display: flex;
   flex-direction: column;
   align-items: center;
-  height: auto;
 `;
 
 const Title = styled.h2`

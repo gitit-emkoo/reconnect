@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
+import { AuthContainer as BaseAuthContainer } from '../styles/CommonStyles';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -8,12 +9,10 @@ import axiosInstance from '../api/axios';
 import ConfirmationModal from '../components/common/ConfirmationModal';
 import BackButton from '../components/common/BackButton';
 
-const Container = styled.div`
+const Container = styled(BaseAuthContainer)`
   display: flex;
   flex-direction: column;
   align-items: center;
-  min-height: 100vh;
-  background: white;
   padding: 2rem;
 `;
 

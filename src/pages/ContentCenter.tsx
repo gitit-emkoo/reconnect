@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
+import { Container as BaseContainer } from '../styles/CommonStyles';
 import { ContentList } from '../components/contents/ContentList';
 import { ContentList as ContentListView } from '../components/contents/ContentListView';
 import NavigationBar from '../components/NavigationBar';
@@ -66,10 +67,8 @@ const HeaderContainer = styled.div`
   position: relative;
 `;
 
-const PageContainer = styled.div`
+const Container = styled(BaseContainer)`
   position: relative;
-  height: auto;
-  padding-bottom: 60px; /* NavigationBar 높이만큼 여백 */
 `;
 
 const ContentCenter: React.FC = () => {
@@ -114,7 +113,7 @@ const ContentCenter: React.FC = () => {
   }
 
   return (
-    <PageContainer>
+    <Container>
       <MobileOnlyBanner />
       <HeaderContainer>
         <Header
@@ -143,7 +142,7 @@ const ContentCenter: React.FC = () => {
         onContentClick={handleContentClickFromModal}
       />
       <NavigationBar />
-    </PageContainer>
+    </Container>
   );
 };
 

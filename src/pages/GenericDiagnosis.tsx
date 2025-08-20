@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import styled from 'styled-components';
+import { AuthContainer as BaseAuthContainer } from '../styles/CommonStyles';
 import { useNavigate, useParams } from 'react-router-dom';
 import BackButton from '../components/common/BackButton';
 import ProgressBar from '../components/common/ProgressBar';
@@ -8,15 +9,13 @@ import { DIAGNOSIS_TEMPLATES } from '../templates/diagnosisTemplates';
 import useAuthStore from '../store/authStore';
 import { postDiagnosisResult } from '../api/diagnosis';
 
-const Container = styled.div`
+const Container = styled(BaseAuthContainer)`
   display: flex;
   flex-direction: column;
-  min-height: 100vh;
   background: #FAF9F6;
   padding: 0 1rem;
   justify-content: center;
   position: relative;
-  
   @media (min-width: 768px) {
     padding: 0 2rem;
   }

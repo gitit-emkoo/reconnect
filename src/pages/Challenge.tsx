@@ -1,16 +1,16 @@
 import React from "react";
 import styled from "styled-components";
+import { Container as BaseContainer } from '../styles/CommonStyles';
 import NavigationBar from "../components/NavigationBar";
 import MobileOnlyBanner from '../components/common/MobileOnlyBanner';
 import Popup from '../components/common/Popup';
 import { formatInKST } from '../utils/date';
 
-const Container = styled.div`
+const Container = styled(BaseContainer)`
   background: #f9fafb;
-  padding: 2.5rem 0 6rem 0;
-  height: auto;
+  padding: 2.5rem 0;
   @media (max-width: 600px) {
-    padding: 1.2rem 0 5rem 0;
+    padding: 1.2rem 0;
   }
 `;
 
