@@ -1,6 +1,4 @@
-// 최소 안전영역 초기화: 하단 네비게이션/키보드 대응을 위한 CSS 변수 세팅
-// 기존 복잡 로직이 제거된 상태이므로, 필수 변수만 설정합니다.
-
+// 최소 안전영역 초기화: 안드로이드 WebView에서도 안정적으로 하단 inset을 계산해 주입
 export function initializeSafeArea(): void {
   if (typeof window === 'undefined' || typeof document === 'undefined') return;
 
@@ -8,13 +6,27 @@ export function initializeSafeArea(): void {
 
   const setVars = () => {
     try {
-      // 모바일 환경에서 안전영역 하단 inset 적용 (지원되지 않으면 0으로 동작)
-      root.style.setProperty('--safe-area-inset-bottom', 'env(safe-area-inset-bottom)');
+      const vv: any = (window as any).visualViewport;
+      const layoutHeight = window.innerHeight;
+      const visualHeight = vv?.height ?? layoutHeight;
+      const offsetTop = vv?.offsetTop ?? 0;
+
+      // 키보드 열림 여부 추정: layout과 visual의 차이가 큰 경우
+      const keyboardOpen = layoutHeight - visualHeight > 150;
+
+      // 하단 시스템 제스처/네비 영역 추정값 (키보드 열림 시 0으로 처리)
+      const computedBottomInset = keyboardOpen
+        ? 0
+        : Math.max(0, layoutHeight - (visualHeight + offsetTop));
+
+      // 안드로이드 WebView의 env()가 0인 경우가 많으므로 JS 계산값으로 덮어씀
+      root.style.setProperty('--safe-area-inset-bottom', `${Math.round(computedBottomInset)}px`);
+
       // 기본 네비게이션 높이 값 (NavigationBar의 실제 높이에 맞춤)
-      // 아이콘+라벨 기준 약 72px + 안전 영역은 #root.has-nav에서 추가
       root.style.setProperty('--nav-height', '72px');
-      // 동적 뷰포트 높이(dvh)와 유사하게 화면 높이 기준값 설정
-      const viewportHeight = (window as any).visualViewport?.height || window.innerHeight;
+
+      // 동적 뷰포트 높이(dvh) 유사 값
+      const viewportHeight = vv?.height || window.innerHeight;
       root.style.setProperty('--vh', `${viewportHeight * 0.01}px`);
     } catch {
       // 안전하게 무시
@@ -24,9 +36,9 @@ export function initializeSafeArea(): void {
   setVars();
 
   const vv: any = (window as any).visualViewport;
-  if (vv && typeof vv.addEventListener === 'function') {
-    vv.addEventListener('resize', setVars);
-  }
+  vv?.addEventListener?.('resize', setVars);
+  vv?.addEventListener?.('scroll', setVars);
+  window.addEventListener('resize', setVars);
   window.addEventListener('orientationchange', setVars);
 }
 
