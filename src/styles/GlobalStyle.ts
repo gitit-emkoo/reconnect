@@ -115,6 +115,8 @@ const GlobalStyle = createGlobalStyle`
     /* 웹뷰 전체 화면 지원 */
     height: 100%;
     overflow-x: hidden;
+    /* 초기 edge-to-edge 미적용 시 검정 하단 노출 방지 */
+    background-color: #fafafa;
   }
   
   #root {
