@@ -1,7 +1,3 @@
-// noop 모듈: 이전 버전 호환을 위해 남겨둠
-export function initializeWebViewOptimization(): void {
-  // 현재 로직은 safeArea/socialAuth에서 처리됨
-}
 // 웹뷰 최적화 유틸리티 함수들
 
 /**
@@ -102,9 +98,11 @@ export const initializeWebViewOptimization = () => {
   
   // Safe Area 실시간 업데이트
   const updateSafeArea = () => {
-    import('./safeArea').then(({ forceSafeAreaUpdate }) => {
-      forceSafeAreaUpdate();
-    });
+    import('./safeArea').then((mod) => {
+      if (typeof mod.initializeSafeArea === 'function') {
+        mod.initializeSafeArea();
+      }
+    }).catch(() => {});
   };
   
   // 웹뷰 환경에서 추가 이벤트
