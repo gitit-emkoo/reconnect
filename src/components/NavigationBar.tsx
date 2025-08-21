@@ -18,7 +18,7 @@ const NavContainer = styled.nav`
   background-color: white;
   padding: 0.3rem 0 0 0;
   /* 제스처 바와 아이콘이 겹치지 않도록 최소 여백 포함 */
-  padding-bottom: max(var(--safe-area-inset-bottom, 0px), 8px);
+  padding-bottom: max(var(--safe-area-inset-bottom, 0px), var(--kb, 8px));
   box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.05);
   z-index: 1000; 
   min-height: 60px;
@@ -31,7 +31,7 @@ const NavContainer = styled.nav`
   transform: translateZ(0);
   
   /* 하단 inset을 포함한 총 높이 적용 */
-  height: calc(var(--nav-height, 72px) + var(--safe-area-inset-bottom, 0px));
+  height: calc(var(--nav-height, 72px) + max(var(--safe-area-inset-bottom, 0px), var(--kb, 0px)));
 `;
 
 interface NavButtonProps {

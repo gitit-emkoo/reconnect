@@ -8,7 +8,8 @@ export const withNavSafeBottom = `
 // 공통 Container 스타일
 export const Container = styled.div`
   background-color: white;
-  min-height: 100vh;
+  min-height: calc(var(--vh, 1vh) * 100);
+  min-height: 100dvh;
   padding: 1rem;
   padding-bottom: 1.5rem; /* 전역 여백이 실패해도 최소 여백 보장 */
   /* 내부 스크롤 컨테이너가 있을 경우에도 하단 여백이 보장되도록 */
@@ -30,7 +31,8 @@ export const Container = styled.div`
 // NavigationBar가 없는 페이지용 Container (로그인, 회원가입 등)
 export const AuthContainer = styled.div`
   background-color: white;
-  min-height: 100vh;
+  min-height: calc(var(--vh, 1vh) * 100);
+  min-height: 100dvh;
   padding: 2rem 1rem;
   
   /* 반응형 패딩 */
