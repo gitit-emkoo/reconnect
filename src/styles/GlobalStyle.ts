@@ -9,6 +9,7 @@ const GlobalStyle = createGlobalStyle`
     --safe-area-inset-left: env(safe-area-inset-left, 0px);
     --safe-area-inset-right: env(safe-area-inset-right, 0px);
     --vh: 1vh; /* 동적 뷰포트 높이 */
+    --kb: 0px; /* 키보드 높이 추정치 */
   }
   
   * {
@@ -23,7 +24,7 @@ const GlobalStyle = createGlobalStyle`
     font-size: calc(1em * var(--font-size-scale));
     background-color: #fafafa;
     /* 폴더블 디바이스 최적화 */
-    min-height: 100vh;
+    min-height: calc(var(--vh, 1vh) * 100);
     min-height: 100dvh; /* dynamic viewport height */
     height: 100%;
     overflow-x: hidden;
@@ -120,14 +121,17 @@ const GlobalStyle = createGlobalStyle`
   }
   
   #root {
-    min-height: 100vh;
+    min-height: calc(var(--vh, 1vh) * 100);
     min-height: 100dvh;
     padding-bottom: 0; /* 기본적으로 여백 없음 */
   }
 
   /* 네비게이션이 있는 화면에서만 하단 여백 확보 */
   #root.has-nav {
-    padding-bottom: calc(var(--nav-height, 72px) + var(--safe-area-inset-bottom, 0px) + 24px) !important;
+    padding-bottom: max(
+      calc(var(--nav-height, 72px) + var(--safe-area-inset-bottom, 0px) + 24px),
+      var(--kb, 0px)
+    ) !important;
   }
 
   /* 키보드 열릴 때는 하단 여백 제거 (입력창 가림 방지) */

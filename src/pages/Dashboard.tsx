@@ -75,7 +75,7 @@ const StatusCard = styled.div`
   padding: 1.2rem 1.2rem 1.5rem 1.2rem;
   border-radius: 1rem;
   border: none;
-  background: linear-gradient(135deg, #FFEFF6 0%, #FFF7DB 100%);
+  background: linear-gradient(135deg, #FFEFF6 0%, rgb(219, 236, 255) 100%);
   display: flex;
   align-items: flex-start;
   justify-content: space-between;

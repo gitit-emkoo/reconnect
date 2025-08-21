@@ -2,11 +2,11 @@ import React from 'react';
 import styled from 'styled-components';
 
 const Card = styled.div`
-  background:rgb(237, 234, 250);
+  background: linear-gradient(135deg, #FFEFF6 0%, rgb(219, 236, 255) 100%);
   border-radius: 1rem;
-  padding: 1.1rem 1rem;
+  padding: 1.2rem;
   text-align: center;
-  margin-top: 1rem;
+  margin-top: 1.5rem;
   width: 100%;
   margin-left: auto;
   margin-right: auto;

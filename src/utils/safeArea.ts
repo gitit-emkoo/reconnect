@@ -21,6 +21,9 @@ export function initializeSafeArea(): void {
 
       // 안드로이드 WebView의 env()가 0인 경우가 많으므로 JS 계산값으로 덮어씀
       root.style.setProperty('--safe-area-inset-bottom', `${Math.round(computedBottomInset)}px`);
+      // 키보드 높이 CSS 변수에 반영
+      const keyboardHeight = Math.max(0, layoutHeight - visualHeight - (vv?.offsetTop ?? 0));
+      root.style.setProperty('--kb', `${Math.round(keyboardHeight)}px`);
 
       // 기본 네비게이션 높이 값 (NavigationBar의 실제 높이에 맞춤)
       root.style.setProperty('--nav-height', '72px');

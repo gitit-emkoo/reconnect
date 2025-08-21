@@ -28,6 +28,7 @@ import { useQuery } from '@tanstack/react-query';
 import { initializeSafeArea } from './utils/safeArea';
 import { initializeAppleSignIn } from './utils/socialAuth';
 import { setAuthToken } from './utils/cookies';
+import { useViewportInsets } from './hooks/useViewportInsets';
 
 
 // 페이지 컴포넌트 임포트
@@ -368,6 +369,9 @@ const App = () => {
   const checkAuth = useAuthStore((state) => state.checkAuth);
   const isLoading = useAuthStore((state) => state.isLoading);
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
+
+  // 키보드/뷰포트 인셋 변수 업데이트 훅
+  useViewportInsets();
 
   React.useEffect(() => {
     // RECONNECT 브랜드 콘솔 출력 (개발 환경에서만 한 번 출력)
