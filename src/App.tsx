@@ -26,6 +26,7 @@ import { useEmotionCardNotifications } from './hooks/useEmotionCardNotifications
 import { fetchReceivedMessages } from './pages/EmotionCard';
 import { useQuery } from '@tanstack/react-query';
 import { initializeSafeArea } from './utils/safeArea';
+import { initializeWebViewOptimization } from './utils/webview';
 import { initializeAppleSignIn } from './utils/socialAuth';
 import { setAuthToken } from './utils/cookies';
 import { useViewportInsets } from './hooks/useViewportInsets';
@@ -412,8 +413,9 @@ MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
     
     console.log("checkAuth");
     checkAuth();
-    // 안전 영역 초기화
+    // 안전 영역/웹뷰 최적화 초기화
     initializeSafeArea();
+    initializeWebViewOptimization();
     // Apple ID 로그인 초기화
     initializeAppleSignIn();
     // 웹뷰 최적화는 safeArea/socialAuth 내에서 처리

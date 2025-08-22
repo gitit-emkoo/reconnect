@@ -9,7 +9,7 @@ import { ReactComponent as MyIcon } from '../assets/Icon_My.svg';
 
 const NavContainer = styled.nav`
   position: fixed;
-  bottom: 0;
+  bottom: max(env(safe-area-inset-bottom, 0px), var(--safe-area-inset-bottom, 0px));
   left: 0;
   right: 0;
   display: flex;
@@ -17,8 +17,8 @@ const NavContainer = styled.nav`
   align-items: flex-start;
   background-color: white;
   padding: 0.3rem 0 0 0;
-  /* 제스처 바와 아이콘이 겹치지 않도록 최소 여백 포함 */
-  padding-bottom: max(var(--safe-area-inset-bottom, 0px), var(--kb, 8px));
+  /* 내부 여백 (safe-area는 bottom 오프셋으로 이격) */
+  padding-bottom: 12px;
   box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.05);
   z-index: 1000; 
   min-height: 60px;
@@ -30,8 +30,8 @@ const NavContainer = styled.nav`
   -webkit-transform: translateZ(0);
   transform: translateZ(0);
   
-  /* 하단 inset을 포함한 총 높이 적용 */
-  height: calc(var(--nav-height, 72px) + max(var(--safe-area-inset-bottom, 0px), var(--kb, 0px)));
+  /* 네비게이션 고정 높이 (safe-area는 bottom 오프셋으로 처리) */
+  height: var(--nav-height, 72px);
 `;
 
 interface NavButtonProps {
