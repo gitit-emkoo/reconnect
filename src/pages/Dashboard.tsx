@@ -309,7 +309,7 @@ const Dashboard: React.FC = () => {
   const todayStatus = getDiaryStatusForDate(todayString);
   const todaySchedules = scheduleMap[todayString] || [];
   const todayScheduleText = todaySchedules.length === 0
-    ? '오늘의 일정을 등록해보세요'
+    ? '일정을 등록해보세요'
     : todaySchedules.length === 1
       ? todaySchedules[0]
       : `${todaySchedules[0]} 외 ${todaySchedules.length - 1}개 일정`;

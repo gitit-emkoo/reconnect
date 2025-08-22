@@ -113,6 +113,9 @@ const GlobalStyle = createGlobalStyle`
   }
   
   html {
+    /* OS 텍스트 크기 변경과 관계없이 레이아웃 안정화 */
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
     /* 웹뷰 전체 화면 지원 */
     height: 100%;
     overflow-x: hidden;

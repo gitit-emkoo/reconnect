@@ -5,38 +5,13 @@ import BackButton from '../components/common/BackButton';
 import ProgressBar from '../components/common/ProgressBar';
 import { diagnosisQuestions } from '../config/baselineDiagnosisQuestions';
 import logoImage from '../assets/Logo.png';
+import BrainIcon from '../assets/Icon_Brain.png';
 import { incrementDiagnosisCounter } from '../api/diagnosis';
 
-// 진단 이미지들 import
-import diagnosisImage1 from '../assets/Img_diagnosis (1).png';
-import diagnosisImage2 from '../assets/Img_diagnosis (2).png';
-import diagnosisImage3 from '../assets/Img_diagnosis (3).png';
-import diagnosisImage4 from '../assets/Img_diagnosis (4).png';
-import diagnosisImage5 from '../assets/Img_diagnosis (5).png';
-import diagnosisImage6 from '../assets/Img_diagnosis (6).png';
 
-// 진단 이미지 배열
-const diagnosisImages = [
-  diagnosisImage1,
-  diagnosisImage2,
-  diagnosisImage3,
-  diagnosisImage4,
-  diagnosisImage6,
-  diagnosisImage5,
-];
-
-const calculateScore = (answers: (string | null)[]) => {
-  let calculatedScore = 0;
-  answers.forEach((answer: string | null, index: number) => {
-    const question = diagnosisQuestions[index];
-    if (question && answer) {
-      const key = answer === 'yes' ? 'yes' : answer === 'no' ? 'no' : 'neutral';
-      if (question.scores.hasOwnProperty(key)) {
-        calculatedScore += question.scores[key];
-      }
-    }
-  });
-  return calculatedScore;
+// 5점(매우 그렇다) ~ 1점(전혀 아니다) 합산
+const calculateScore = (answers: number[]) => {
+  return answers.reduce((sum, v) => sum + (typeof v === 'number' ? v : 0), 0);
 };
 
 const Container = styled.div`
@@ -78,12 +53,12 @@ const Subtitle = styled.p`
   margin-bottom: 2rem;
 `;
 
-const DiagnosisImage = styled.img`
-  width: 100%;
-  max-width: 260px;
-  height: auto;
-  margin: 0 auto 1.5rem;
-  
+const BrainImg = styled.img`
+  width: 80px;
+  height: 80px;
+  object-fit: contain;
+  display: block;
+  margin: 0.5rem auto 0.75rem;
 `;
 
 const Question = styled.p`
@@ -97,43 +72,29 @@ const Question = styled.p`
 `;
 
 const ButtonContainer = styled.div`
-  display: flex;
-  gap: 1rem;
-  justify-content: center;
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 0.6rem;
   padding: 0 1rem;
 
   @media (max-width: 480px) {
-    flex-direction: column;
-    gap: 0.8rem;
-    align-items: center;
+    grid-template-columns: 1fr;
   }
 `;
 
-const Button = styled.button<{ colorType: 'yes' | 'neutral' | 'no' }>`
-  padding: 1rem 2rem;
-  border-radius: 30px;
-  font-size: 1.1rem;
-  font-weight: 500;
+const ScaleButton = styled.button<{ $tone: 'strongPos' | 'pos' | 'neutral' | 'neg' | 'strongNeg' }>`
+  padding: 0.9rem 0.6rem;
+  border-radius: 14px;
+  font-size: 0.95rem;
+  font-weight: 600;
   border: none;
   cursor: pointer;
-  width: 100%;
-  max-width: 200px;
-  color: white;
-  background: ${({ colorType }) =>
-    colorType === 'yes'
-      ? 'linear-gradient(to right, #FF69B4, #FF1493)'
-      : colorType === 'no'
-      ? 'linear-gradient(to right, #4169E1, #0000CD)'
-      : 'linear-gradient(to right, #888, #666)'};
-  transition: transform 0.2s;
+  color: #fff;
+  transition: transform 0.15s ease, opacity 0.15s ease;
+  /* 신뢰감 있는 단일 톤(블루-인디고 계열)으로 통일 */
+  background: linear-gradient(135deg,rgb(163, 198, 255), #6366f1);
 
-  &:hover {
-    transform: translateY(-2px);
-  }
-
-  @media (max-width: 480px) {
-    max-width: 100%;
-  }
+  &:active { transform: translateY(1px); opacity: 0.95; }
 `;
 
 const CounterText = styled.div`
@@ -147,7 +108,7 @@ const CounterText = styled.div`
 const BaselineDiagnosis: React.FC = () => {
   const navigate = useNavigate();
   const [currentQuestion, setCurrentQuestion] = useState(0);
-  const [answers, setAnswers] = useState<string[]>([]);
+  const [answers, setAnswers] = useState<number[]>([]);
   const [counter, setCounter] = useState<number | null>(null);
   const [counterLoaded, setCounterLoaded] = useState(false);
 
@@ -161,8 +122,8 @@ const BaselineDiagnosis: React.FC = () => {
     }
   }, [currentQuestion, counterLoaded]);
 
-  const handleAnswer = (answer: 'yes' | 'no' | 'unknown') => {
-    const newAnswers = [...answers, answer];
+  const handleAnswer = (value: 1 | 2 | 3 | 4 | 5) => {
+    const newAnswers = [...answers, value];
     setAnswers(newAnswers);
     if (currentQuestion < diagnosisQuestions.length - 1) {
       setCurrentQuestion(currentQuestion + 1);
@@ -175,10 +136,16 @@ const BaselineDiagnosis: React.FC = () => {
   return (
     <Container>
       <BackButton />
-      <Header>
+      <Header style={{ marginBottom: currentQuestion === 0 ? '2rem' : '0.5rem' }}>
         <Logo src={logoImage} alt="Reconnect Logo" />
-        <Title>기초 관계온도 진단</Title>
-        <Subtitle>우리의 관계를 이해하기 위한 첫 단계예요</Subtitle>
+        {currentQuestion === 0 && (
+          <>
+            <Title>EmoMap: 감정지도 진단</Title>
+            <BrainImg src={BrainIcon} alt="brain" />
+            <Subtitle>신경과학, 사회심리학, 감정인지 모델을 통합한 정서 진단 프레임워크로, UCLA대학 심리학 연구 기관의 검증된 이론을 기반으로 본 진단은 개인의 감정을 결정짓는 7가지 핵심 심리 영역을 기반으로, 현재의 정서적 균형과 감정 건강 상태를 정밀하게 분석합니다.  
+            정서적 안정성, 긍정 정서 결핍, 자기 인식, 대인관계 연결감, 회복탄력성, 감정 조절 능력, 동기 및 에너지 수준 등 각 영역을 통해 감정의 흐름과 불균형 요인을 파악하고, 감정 회복을 위한 방향성을 제시합니다. </Subtitle>
+          </>
+        )}
       </Header>
 
       {/* 첫 번째 질문에서만 카운터 표시 */}
@@ -191,24 +158,16 @@ const BaselineDiagnosis: React.FC = () => {
         total={diagnosisQuestions.length}
       />
 
-      <DiagnosisImage 
-        src={diagnosisImages[currentQuestion]} 
-        alt={`진단 질문 ${currentQuestion + 1}`}
-      />
       <Question>
         {diagnosisQuestions[currentQuestion].text}
       </Question>
 
       <ButtonContainer>
-        <Button colorType="yes" onClick={() => handleAnswer('yes')}>
-          예
-        </Button>
-        <Button colorType="neutral" onClick={() => handleAnswer('unknown')}>
-          잘 모르겠다
-        </Button>
-        <Button colorType="no" onClick={() => handleAnswer('no')}>
-          아니요
-        </Button>
+        <ScaleButton $tone="strongPos" onClick={() => handleAnswer(5)}>매우 그렇다</ScaleButton>
+        <ScaleButton $tone="pos" onClick={() => handleAnswer(4)}>그렇다</ScaleButton>
+        <ScaleButton $tone="neutral" onClick={() => handleAnswer(3)}>보통이다</ScaleButton>
+        <ScaleButton $tone="neg" onClick={() => handleAnswer(2)}>아니다</ScaleButton>
+        <ScaleButton $tone="strongNeg" onClick={() => handleAnswer(1)}>전혀 아니다</ScaleButton>
       </ButtonContainer>
     </Container>
   );
