@@ -437,7 +437,7 @@ const BaselineDiagnosisResult: React.FC = () => {
             <polyline
               fill="none"
               stroke="#94a3b8"
-              strokeWidth="2"
+              strokeWidth="1"
               strokeDasharray="4 4"
               points={(() => {
                 const n = BENCHMARKS.length;
