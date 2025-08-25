@@ -145,9 +145,28 @@ const BaselineDiagnosis: React.FC = () => {
     }
   };
 
+  const handleBackButton = () => {
+    if (currentQuestion > 0) {
+      // 2페이지부터는 1페이지로 돌아가기
+      setCurrentQuestion(0);
+      // 답변도 초기화 (선택사항)
+      setAnswers([]);
+    } else {
+      // 1페이지에서는 진단 페이지로 돌아가기
+      navigate('/diagnosis');
+    }
+  };
+
   return (
     <Container>
-      <BackButton fallbackTo="/diagnosis" />
+      {/* 2페이지부터만 뒤로가기 버튼 표시 */}
+      {currentQuestion > 0 && (
+        <BackButton onClick={handleBackButton} />
+      )}
+      {/* 1페이지에서는 기존 fallbackTo 사용 */}
+      {currentQuestion === 0 && (
+        <BackButton fallbackTo="/diagnosis" />
+      )}
       <Header style={{ marginBottom: currentQuestion === 0 ? '2rem' : '0.5rem' }}>
         <Logo src={logoImage} alt="Reconnect Logo" />
         <BrainImg src={BrainIcon} alt="brain" />

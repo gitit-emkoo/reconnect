@@ -14,7 +14,7 @@ import axios from 'axios';
 import axiosInstance from '../api/axios';
 import { useGoogleLogin } from '@react-oauth/google';
 import { getKakaoLoginUrl, signInWithApple } from '../utils/socialAuth';
-import MainImg from '../assets/Img_LogIn.png';
+import MainImg from '../assets/Img_couple-problems.jpg';
 import logoImage from '../assets/Logo.png';
 import useAuthStore from '../store/authStore';
 import { User } from '../types/user';
@@ -25,7 +25,7 @@ const Container = styled(BaseAuthContainer)`
   display: flex;
   flex-direction: column;
   align-items: center;
-  background: linear-gradient(135deg, #FFE5E5 0%, #E5E5FF 100%);
+  background: linear-gradient(135deg,rgb(60, 34, 126) 0%,rgb(10, 10, 49) 100%);
   padding: 2rem 1.5rem;
   box-sizing: border-box;
 `;
@@ -39,13 +39,12 @@ const Logo = styled.img`
 
 const IllustrationWrapper = styled.div`
   width: 100%;
-  max-width: 320px;
-  aspect-ratio: 16/10;
+  max-width: 340px;
   position: relative;
   border-radius: 20px;
   margin-bottom: 2rem;
   padding: 3px;
-  background: linear-gradient(to right, #FF69B4, #785ce2);
+  /* background: linear-gradient(to right, #FF69B4, #785ce2); */
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
   overflow: hidden;
 
@@ -60,16 +59,15 @@ const IllustrationWrapper = styled.div`
 
 const Subtitle = styled.p`
   position: absolute;
-  bottom: 1.5rem;
+  bottom: 10rem;
   left: 0;
   right: 0;
   z-index: 10;
-  font-size: 1.3rem;
-  color: #785cd2;
+  font-size: 1.2rem;
+  color:rgb(255, 255, 255);
   font-weight: 500;
   text-align: center;
   line-height: 1.5;
-  text-shadow: 0 2px 4px rgb(248, 242, 242);
   padding: 0 1rem;
 `;
 
@@ -91,7 +89,7 @@ const SocialLoginButtonContainer = styled.div`
   margin-bottom: 1rem;
 `;
 
-const SocialLoginButtonStyled = styled.button<{ $isKakao?: boolean; $isApple?: boolean }>`
+const SocialLoginButtonStyled = styled.button<{ $isKakao?: boolean; $isApple?: boolean; $isEmail?: boolean }>`
   width: 100%;
   padding: 0.85rem 1rem;
   border-radius: 12px;
@@ -121,6 +119,16 @@ const SocialLoginButtonStyled = styled.button<{ $isKakao?: boolean; $isApple?: b
         &:hover {
           background-color: #333333;
           border-color: #333333;
+        }
+      `;
+    } else if (props.$isEmail) {
+      return `
+        background-color: #785cd2;
+        color: #FFFFFF;
+        border-color: #785cd2;
+        &:hover {
+          background-color: #6b4fc7;
+          border-color: #6b4fc7;
         }
       `;
     } else {
@@ -180,34 +188,18 @@ const ModalRegisterButton = styled.button`
   }
 `;
 
-const DividerTextStyled = styled.p`
-  font-size: 0.9rem;
-  color: #999;
-  text-align: center;
-  margin-top: 0;
-  margin-bottom: 1.5rem;
-  width: 100%;
-  max-width: 340px;
-  display: flex;
-  align-items: center;
-
-  &::before,
-  &::after {
-    content: '';
-    flex: 1;
-    height: 1px;
-    background: #999;
-    margin: 0 1rem;
-  }
-`;
-
-const FormWrapper = styled.form`
+const FormWrapper = styled.form<{ $isVisible: boolean }>`
   width: 100%;
   max-width: 340px;
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 0.8rem;
+  overflow: hidden;
+  transition: all 0.3s ease-in-out;
+  max-height: ${props => props.$isVisible ? '500px' : '0'};
+  opacity: ${props => props.$isVisible ? '1' : '0'};
+  transform: ${props => props.$isVisible ? 'translateY(0)' : 'translateY(-20px)'};
 `;
 
 const InputWrapper = styled.div`
@@ -329,9 +321,10 @@ const SocialLoginButton: React.FC<{
   onClick: () => void;
   $isKakao?: boolean;
   $isApple?: boolean;
+  $isEmail?: boolean;
   children: React.ReactNode;
-}> = ({ onClick, $isKakao, $isApple, children }) => (
-  <SocialLoginButtonStyled onClick={onClick} $isKakao={$isKakao} $isApple={$isApple}>
+}> = ({ onClick, $isKakao, $isApple, $isEmail, children }) => (
+  <SocialLoginButtonStyled onClick={onClick} $isKakao={$isKakao} $isApple={$isApple} $isEmail={$isEmail}>
     {children}
   </SocialLoginButtonStyled>
 );
@@ -346,6 +339,7 @@ const LoginPage: React.FC = () => {
   const [loginError, setLoginError] = useState('');
   const [showFindEmailModal, setShowFindEmailModal] = useState(false);
   const [showWelcomePopup, setShowWelcomePopup] = useState(true);
+  const [showEmailForm, setShowEmailForm] = useState(false);
 
   const {
     register,
@@ -360,6 +354,11 @@ const LoginPage: React.FC = () => {
     
     // 즉시 대시보드로 이동
     navigate(from, { replace: true });
+  };
+
+  const handleEmailLoginToggle = () => {
+    setShowEmailForm(!showEmailForm);
+    setLoginError(''); // 폼을 토글할 때 에러 메시지 초기화
   };
 
   const onSubmitEmailLogin: SubmitHandler<LoginFormData> = async (data) => {
@@ -483,7 +482,7 @@ const LoginPage: React.FC = () => {
       
       <IllustrationWrapper>
         <img src={MainImg} alt="Login Illustration" />
-        <Subtitle>"다시 우리의 감정이 연결될 <br/>단 한번의 골든타임"</Subtitle>
+        <Subtitle>"내 감정과 관계를 안전하게 만드는 <br/>가장 쉬운 루틴, 지금 시작하세요요"</Subtitle>
       </IllustrationWrapper>
 
       {/* 환영 팝업 */}
@@ -543,8 +542,8 @@ const LoginPage: React.FC = () => {
 
       {/* 기존 로그인 폼 */}
       <Notice>
-        소셜 계정으로 간편하게 로그인하거나<br />
-        이메일과 비밀번호를 입력해주세요
+        9.30까지 무료 혜택이 제공됩니다<br />
+        바로 혜택을 받아보세요!
       </Notice>
       <SocialLoginButtonContainer>
         <SocialLoginButton onClick={handleKakaoLogin} $isKakao>
@@ -553,12 +552,18 @@ const LoginPage: React.FC = () => {
         </SocialLoginButton>
         <SocialLoginButton onClick={googleLogin} $isKakao={false}>
           <GoogleIcon style={{ marginRight: '8px', width: '18px', height: '18px' }} />
-          Google로 계속하기
+          Google로 시작하기
         </SocialLoginButton>
         <SocialLoginButton onClick={handleAppleLogin} $isKakao={false} $isApple={true}>
           <AppleIcon style={{ marginRight: '8px', width: '18px', height: '18px', filter: 'brightness(0) invert(1)' }} />
-          Apple로 계속하기
+          Apple로 시작하기
         </SocialLoginButton>
+        {!showEmailForm && (
+          <SocialLoginButton onClick={handleEmailLoginToggle} $isKakao={false} $isApple={false} $isEmail>
+            <img src="/images/favicon.png" style={{ marginRight: '8px', width: '18px', height: '18px' }} alt="Reconnect" />
+            이메일로 시작하기
+          </SocialLoginButton>
+        )}
       </SocialLoginButtonContainer>
       
       <RegisterPrompt>
@@ -566,41 +571,41 @@ const LoginPage: React.FC = () => {
         <span onClick={() => navigate('/register')}>회원가입</span>
       </RegisterPrompt>
 
-      <DividerTextStyled>OR</DividerTextStyled>
-
       {loginError && <GeneralErrorMessage>{loginError}</GeneralErrorMessage>}
 
-      <FormWrapper onSubmit={handleSubmit(onSubmitEmailLogin)}>
-        <InputWrapper>
-          <StyledInput
-            {...register('email')}
-            placeholder="이메일 주소"
-            type="email"
-          />
-        </InputWrapper>
-        {errors.email && <FieldErrorMessage>{errors.email.message}</FieldErrorMessage>}
+      {showEmailForm && (
+        <FormWrapper onSubmit={handleSubmit(onSubmitEmailLogin)} $isVisible={showEmailForm}>
+          <InputWrapper>
+            <StyledInput
+              {...register('email')}
+              placeholder="이메일 주소"
+              type="email"
+            />
+          </InputWrapper>
+          {errors.email && <FieldErrorMessage>{errors.email.message}</FieldErrorMessage>}
 
-        <InputWrapper>
-          <StyledInput 
-            {...register('password')}
-            type={passwordShown ? 'text' : 'password'}
-            placeholder="비밀번호"
-          />
-          <PasswordToggle type="button" onClick={() => setPasswordShown(!passwordShown)}>
-            {passwordShown ? <OpenEye /> : <CloseEye />}
-          </PasswordToggle>
-        </InputWrapper>
-        {errors.password && <FieldErrorMessage>{errors.password.message}</FieldErrorMessage>}
+          <InputWrapper>
+            <StyledInput 
+              {...register('password')}
+              type={passwordShown ? 'text' : 'password'}
+              placeholder="비밀번호"
+            />
+            <PasswordToggle type="button" onClick={() => setPasswordShown(!passwordShown)}>
+              {passwordShown ? <OpenEye /> : <CloseEye />}
+            </PasswordToggle>
+          </InputWrapper>
+          {errors.password && <FieldErrorMessage>{errors.password.message}</FieldErrorMessage>}
 
-        <Button type="submit" disabled={isSubmitting}>
-          {isSubmitting ? '로그인 중...' : '이메일로 계속하기'}
-        </Button>
-      </FormWrapper>
+          <Button type="submit" disabled={isSubmitting}>
+            {isSubmitting ? '로그인 중...' : '이메일로 계속하기'}
+          </Button>
 
-      <ForgotPasswordLinksContainer>
-        <ForgotLink onClick={handleFindEmailClick}>이메일 찾기</ForgotLink>
-        <ForgotLink onClick={() => navigate('/forgot-password')}>비밀번호 재설정</ForgotLink>
-      </ForgotPasswordLinksContainer>
+          <ForgotPasswordLinksContainer>
+            <ForgotLink onClick={handleFindEmailClick}>이메일 찾기</ForgotLink>
+            <ForgotLink onClick={() => navigate('/forgot-password')}>비밀번호 재설정</ForgotLink>
+          </ForgotPasswordLinksContainer>
+        </FormWrapper>
+      )}
 
       <ConfirmationModal
         isOpen={showFindEmailModal}

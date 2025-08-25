@@ -251,6 +251,7 @@ const IosButton = styled(ActionButton)`
 const ButtonsRow = styled.div`
   display: flex;
   gap: 0.75rem;
+  margin-bottom: 3rem;
 
   ${ActionButton} {
     width: auto;
@@ -270,7 +271,7 @@ const PromoContainer = styled.div`
 const PromoTitle = styled.h3`
   color: #785cd2;
   margin-bottom: 15px;
-  font-size: 1.1rem;
+  font-size: 1.3rem;
   font-weight: bold;
 `;
 
@@ -534,8 +535,20 @@ const BaselineDiagnosisResult: React.FC = () => {
 
       {/* 프로모션 영역 + 스토어 버튼 */}
             <PromoContainer>
-              <PromoTitle>🎉 이벤트 기간 가입 혜택</PromoTitle>
+              <PromoTitle>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                  <div style={{ width: '24px', height: '24px' }}>
+                    <DotLottieReact
+                      src="https://lottie.host/3bc0feb9-c94e-42d4-aba2-e89b32c682ac/5vwWH6Nrsh.lottie"
+                      loop
+                      autoplay
+                    />
+                  </div>
+                  지금 다운받고 혜택을 받아보세요!
+                </div>
+              </PromoTitle>
               <PromoList>
+                <PromoListItem>🎉 이벤트 기간 가입 혜택</PromoListItem>
                 <PromoListItem>✅ 결혼생활 정식 진단</PromoListItem>
                 <PromoListItem>✅ 책임이 담긴 인증 합의서 무제한 발행</PromoListItem>
                 <PromoListItem>✅ 감정 일기 분석 + AI감정 리포트 제공</PromoListItem>
@@ -545,11 +558,11 @@ const BaselineDiagnosisResult: React.FC = () => {
             <ButtonsRow>
         <AndroidButton onClick={() => window.open('https://play.google.com/store/apps/details?id=com.reconnect.kwcc', '_blank', 'noopener,noreferrer')}>
                 <IconImage src={GoogleIcon} alt="Google" />
-          안드로이드
+          플레이스토어
               </AndroidButton>
         <IosButton onClick={() => window.open('https://apps.apple.com/app/id6749503525', '_blank', 'noopener,noreferrer')}>
                 <IconImage src={AppleIcon} alt="Apple" />
-          애플
+          앱스토어
               </IosButton>
             </ButtonsRow>
     </Container>
