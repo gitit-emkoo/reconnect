@@ -20,7 +20,6 @@ const Container = styled.div`
   min-height: 100vh;
   background: #FFFFFF;
   padding: 0 1rem;
-  justify-content: center;
   position: relative;
   
   @media (min-width: 768px) {
@@ -38,6 +37,10 @@ const Logo = styled.img`
 const Header = styled.div`
   text-align: center;
   margin-bottom: 2rem;
+  margin-top: 2rem;
+  background-color: #f0f0f0;
+  padding: 2rem;
+  border-radius: 14px;
 `;
 
 const Title = styled.h1`
@@ -61,12 +64,20 @@ const BrainImg = styled.img`
   margin: 0.5rem auto 0.75rem;
 `;
 
+const TimeNotice = styled.p`
+  text-align: center;
+  color:rgb(68, 89, 131);
+  font-size: 1rem;
+  margin: -0.5rem 0 0.75rem;
+`;
+
 const Question = styled.p`
-  font-size: 1.2rem;
+  font-size: 1.4rem;
+  font-weight: 600;
   color: #333;
   line-height: 1.6;
   white-space: pre-line;
-  margin: 0 auto 2rem;
+  margin: 2rem auto 2rem;
   text-align: center;
   max-width: 500px;
 `;
@@ -79,6 +90,7 @@ const ButtonContainer = styled.div`
 
   @media (max-width: 480px) {
     grid-template-columns: 1fr;
+    padding: 0 1rem 2rem;
   }
 `;
 
@@ -92,7 +104,7 @@ const ScaleButton = styled.button<{ $tone: 'strongPos' | 'pos' | 'neutral' | 'ne
   color: #fff;
   transition: transform 0.15s ease, opacity 0.15s ease;
   /* 신뢰감 있는 단일 톤(블루-인디고 계열)으로 통일 */
-  background: linear-gradient(135deg,rgb(163, 198, 255), #6366f1);
+  background: linear-gradient(135deg,rgb(163, 198, 255), #785cd2);
 
   &:active { transform: translateY(1px); opacity: 0.95; }
 `;
@@ -135,7 +147,7 @@ const BaselineDiagnosis: React.FC = () => {
 
   return (
     <Container>
-      <BackButton />
+      <BackButton fallbackTo="/diagnosis" />
       <Header style={{ marginBottom: currentQuestion === 0 ? '2rem' : '0.5rem' }}>
         <Logo src={logoImage} alt="Reconnect Logo" />
         <BrainImg src={BrainIcon} alt="brain" />
@@ -146,12 +158,17 @@ const BaselineDiagnosis: React.FC = () => {
             정서적 안정성, 긍정 정서 결핍, 자기 인식, 대인관계 연결감, 회복탄력성, 감정 조절 능력, 동기 및 에너지 수준 등 각 영역을 통해 감정의 흐름과 불균형 요인을 파악하고, 감정 회복을 위한 방향성을 제시합니다. </Subtitle>
           </>
         )}
-      </Header>
+        {currentQuestion === 0 && (
+        <TimeNotice>이 진단은 약 3분 정도 소요됩니다.</TimeNotice>
+      )}
 
       {/* 첫 번째 질문에서만 카운터 표시 */}
       {currentQuestion === 0 && counter !== null && (
         <CounterText> 현재 {counter.toLocaleString()}명이 테스트를 완료했어요</CounterText>
       )}
+      </Header>
+
+      
 
       <ProgressBar 
         current={currentQuestion} 
