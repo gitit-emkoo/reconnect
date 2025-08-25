@@ -30,7 +30,7 @@ const Container = styled.div`
 const Logo = styled.img`
   width: 150px;
   height: auto;
-  margin: 0 auto 3rem;
+  margin: 0 auto 1rem;
   display: block;
 `;
 
@@ -77,7 +77,7 @@ const Question = styled.p`
   color: #333;
   line-height: 1.6;
   white-space: pre-line;
-  margin: 2rem auto 2rem;
+  margin: 0 auto 2rem;
   text-align: center;
   max-width: 500px;
 `;

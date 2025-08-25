@@ -82,10 +82,10 @@ interface LoadingScreenProps {
 
 const LoadingScreen: React.FC<LoadingScreenProps> = ({ onComplete }) => {
   useEffect(() => {
-    // 10초초후에 로딩 완료
+    // 15초초후에 로딩 완료
     const completeTimer = setTimeout(() => {
       onComplete?.();
-    }, 10000);
+    }, 15000);
 
     return () => {
       clearTimeout(completeTimer);
