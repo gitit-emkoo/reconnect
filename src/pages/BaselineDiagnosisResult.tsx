@@ -4,6 +4,8 @@ import styled from "styled-components";
 import axiosInstance from '../api/axios';
 import GoogleIcon from '../assets/btn_google.svg?url';
 import AppleIcon from '../assets/btn_apple.svg?url';
+import LoadingScreen from '../components/common/LoadingScreen';
+import { DotLottieReact } from '@lottiefiles/dotlottie-react';
 
 const Container = styled.div`
   display: flex;
@@ -87,8 +89,8 @@ const Bars = styled.div`
 `;
 
 const BenchSvg = styled.svg`
-  position: absolute;
-  left: 0;
+    position: absolute;
+    left: 0;
   bottom: 0;
   width: 100%;
   height: 160px;
@@ -100,7 +102,7 @@ const Bar = styled.div`
   flex-direction: column;
   align-items: center;
   justify-content: flex-end;
-  height: 100%;
+    height: 100%;
   gap: 6px;
 `;
 
@@ -299,32 +301,57 @@ const IconImage = styled.img`
   margin-right: 6px;
 `;
 
+const LoadingContainer = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  justify-content: center;
+`;
+
+const LoadingIcon = styled.div`
+  width: 24px;
+  height: 24px;
+`;
 
 
 // 온도 기반 결과 로직은 사용하지 않습니다.
 
 const BaselineDiagnosisResult: React.FC = () => {
   const location = useLocation();
+  const [aiSummary, setAiSummary] = useState<string | null>(null);
+  const [loadingAI, setLoadingAI] = useState(false);
+  const [showLoading, setShowLoading] = useState(true);
+
+  // 로딩 완료 후 결과 페이지 표시
+  const handleLoadingComplete = () => {
+    console.log('로딩 완료, 결과 페이지로 전환');
+    setShowLoading(false);
+  };
+
   // 결과 화면 새로고침/직접 진입 대비: state가 없으면 로컬스토리지에서 복구
-  let stateAnswers: number[] = (location.state && (location.state as any).answers) || [];
-  if (!Array.isArray(stateAnswers) || stateAnswers.length === 0) {
-    try {
-      const saved = localStorage.getItem('baselineDiagnosisAnswers');
-      if (saved) {
-        const parsed = JSON.parse(saved);
-        if (parsed && Array.isArray(parsed.answers)) {
-          stateAnswers = parsed.answers as number[];
+  const answers = useMemo(() => {
+    let stateAnswers: number[] = (location.state && (location.state as any).answers) || [];
+    if (!Array.isArray(stateAnswers) || stateAnswers.length === 0) {
+      try {
+        const saved = localStorage.getItem('baselineDiagnosisAnswers');
+        if (saved) {
+          const parsed = JSON.parse(saved);
+          if (parsed && Array.isArray(parsed.answers)) {
+            stateAnswers = parsed.answers as number[];
+          }
         }
-      }
-    } catch {}
-  }
-  const answers: number[] = stateAnswers;
+      } catch {}
+    }
+    return stateAnswers;
+  }, [location.state]);
 
   const sections = useMemo(() => {
+    if (!answers || answers.length === 0) return [];
+    
     const res: Array<{ title: string; score: number; avg: number; level: Level; message: string }> = [];
     for (let i = 0; i < 7; i++) {
       const start = i * 5;
-      const slice = (answers as number[]).slice(start, start + 5).map(v => (typeof v === 'number' ? v : 0));
+      const slice = answers.slice(start, start + 5).map(v => (typeof v === 'number' ? v : 0));
       const sum = slice.reduce((s, v) => s + v, 0);
       const avg = slice.length ? sum / slice.length : 0;
       const title = SECTION_TITLES[i];
@@ -343,6 +370,8 @@ const BaselineDiagnosisResult: React.FC = () => {
   }, [sections]);
 
   const summaryText = useMemo(() => {
+    if (!sections || sections.length === 0) return '';
+    
     const risks = sections.filter(s => s.level === '매우 위험' || s.level === '위험');
     const cautions = sections.filter(s => s.level === '주의');
     const strengths = sections.filter(s => s.level === '양호' || s.level === '매우 양호');
@@ -351,18 +380,18 @@ const BaselineDiagnosisResult: React.FC = () => {
       '정서적 안정성': '최근 감정 기복이나 불안으로 스스로가 버거웠을 수 있어요. 많이 힘드셨죠.',
       '긍정 정서 결핍도': '기쁨이나 만족감이 잘 느껴지지 않아 하루가 무겁게 느껴졌을 수 있어요.',
       '자기인식·자기수용': '내 감정을 정확히 이해하고 스스로를 받아들이는 일이 쉽지 않았을 수 있어요.',
-      '대인관계·사회적 연결감': '평소 “혼자”라는 느낌이 잦았을 수 있어요. 마음 놓고 기대기 어려웠을지도요.',
+      '대인관계·사회적 연결감': '평소 "혼자"라는 느낌이 잦았을 수 있어요. 마음 놓고 기대기 어려웠을지도요.',
       '회복 탄력성': '힘든 경험에서 회복하는 데 시간이 오래 걸려 지칠 수 있었어요.',
       '감정 조절 능력': '감정이 올라올 때 조절이 어려워 관계나 일상에 부담이 됐을 수 있어요.',
       '동기·에너지 저하': '에너지가 바닥나 하루를 견디는 것만으로도 벅찼을 수 있어요.',
     };
 
     const TIPS: Record<string, string[]> = {
-      '정서적 안정성': ['감정이름 붙이기(“나는 지금 당황/답답함을 느껴”)를 1일 1회', '루틴 호흡 3분(4-4-6 호흡)으로 신체 각성 낮추기'],
-      '긍정 정서 결핍도': ['잠들기 전 “오늘 괜찮았던 1가지” 기록', '짧은 햇빛 산책 10분으로 기분 활성화'],
-      '자기인식·자기수용': ['감정 발생 상황-느낌-욕구를 3줄로 메모', '스스로에게 “그럴 수 있어” 한 문장 허용 연습'],
+      '정서적 안정성': ['감정이름 붙이기("나는 지금 당황/답답함을 느껴")를 1일 1회', '루틴 호흡 3분(4-4-6 호흡)으로 신체 각성 낮추기'],
+      '긍정 정서 결핍도': ['잠들기 전 "오늘 괜찮았던 1가지" 기록', '짧은 햇빛 산책 10분으로 기분 활성화'],
+      '자기인식·자기수용': ['감정 발생 상황-느낌-욕구를 3줄로 메모', '스스로에게 "그럴 수 있어" 한 문장 허용 연습'],
       '대인관계·사회적 연결감': ['신뢰 가능한 1인에게 안부/감사 메시지 보내기', '대화는 사실-느낌-요청 순서로 3분만'],
-      '회복 탄력성': ['하루 1회 “작은 성취” 체크', '힘들 땐 20분 휴식 후 재시도(타임아웃 규칙)'],
+      '회복 탄력성': ['하루 1회 "작은 성취" 체크', '힘들 땐 20분 휴식 후 재시도(타임아웃 규칙)'],
       '감정 조절 능력': ['감정이 7/10 이상이면 대화 잠시 중단, 물 한 잔 후 재개', '감정일기 5문장으로 감정 배출'],
       '동기·에너지 저하': ['할 일을 5분 조각내서 착수(시작 난이도 최소화)', '기상 후 30분 안에 가벼운 스트레칭'],
     };
@@ -375,7 +404,7 @@ const BaselineDiagnosisResult: React.FC = () => {
 
     const top = (risks[0] || cautions[0]);
     const opener = top ? OPENERS[top.title] : '스스로를 돌보려는 지금의 선택만으로도 이미 큰 진전이에요.';
-    const tips = top ? TIPS[top.title].map(t => `• ${t}`).join('\n') : '• 오늘 하루 “괜찮았던 1가지”를 기록해 보세요.';
+    const tips = top ? TIPS[top.title].map(t => `• ${t}`).join('\n') : '• 오늘 하루 "괜찮았던 1가지"를 기록해 보세요.';
 
     return [
       opener,
@@ -389,14 +418,12 @@ const BaselineDiagnosisResult: React.FC = () => {
   }, [sections]);
 
   // 서버 LLM 요약
-  const [aiSummary, setAiSummary] = useState<string | null>(null);
-  const [loadingAI, setLoadingAI] = useState(false);
   const fetchAiSummary = async () => {
     try {
       setLoadingAI(true);
       const res = await axiosInstance.post<{ summary: string }>(`/diagnosis/ai/summary`, { sections });
       setAiSummary(typeof res.data?.summary === 'string' ? res.data.summary : null);
-    } catch {
+    } catch (error: any) {
       setAiSummary(null);
     } finally {
       setLoadingAI(false);
@@ -408,7 +435,25 @@ const BaselineDiagnosisResult: React.FC = () => {
     if (!answers || (Array.isArray(answers) && answers.length === 0)) return;
     fetchAiSummary();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [answers]);
+
+  // 로딩 화면 표시 중일 때
+  if (showLoading) {
+    return <LoadingScreen onComplete={handleLoadingComplete} />;
+  }
+
+  // answers가 없으면 기본 페이지로 리다이렉트
+  if (!answers || answers.length === 0) {
+    return (
+      <Container>
+        <SectionHeader>진단 데이터를 찾을 수 없습니다</SectionHeader>
+        <p>진단을 다시 진행해주세요.</p>
+      </Container>
+    );
+  }
+
+  console.log('현재 answers:', answers);
+  console.log('answers 길이:', answers.length);
 
   return (
     <Container>
@@ -420,7 +465,7 @@ const BaselineDiagnosisResult: React.FC = () => {
               <strong>{idx + 1}. {s.title}</strong>
               <Pill $level={s.level}>{s.level}</Pill>
             </Row>
-            <Small>점수 {s.score} / 25 (평균 {s.avg.toFixed(1)}점)</Small>
+            <Small>점수 {s.score} / 25 </Small>
             <Message>{s.message}</Message>
           </Card>
         ))}
@@ -429,7 +474,7 @@ const BaselineDiagnosisResult: React.FC = () => {
       <Chart>
         <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6 }}>
           <strong>섹션별 평균 점수</strong>
-          <Small>회색 점선 = 전체 평균 {(BENCHMARKS.reduce((a,b)=>a+b,0)/BENCHMARKS.length).toFixed(1)}</Small>
+          <Small>회색 점선 = 전체 평균 </Small>
         </div>
         <Bars>
           {/* 벤치마크 꺾은선 */}
@@ -438,7 +483,7 @@ const BaselineDiagnosisResult: React.FC = () => {
               fill="none"
               stroke="#94a3b8"
               strokeWidth="1"
-              strokeDasharray="4 4"
+              strokeDasharray="2 2"
               points={(() => {
                 const n = BENCHMARKS.length;
                 return BENCHMARKS.map((v, idx) => {
@@ -460,7 +505,7 @@ const BaselineDiagnosisResult: React.FC = () => {
 
       <SummaryBox>
         <OverallRow>
-          <strong>AI 종합 의견(베타)</strong>
+          <strong>분석결과</strong>
           {/* 종합 위험도 표시 */}
           <span style={{ fontSize: 12, color: '#6b7280' }}>종합 위험도: {(() => {
             const riskCount = sections.filter(s => s.level === '매우 위험').length * 2 + sections.filter(s => s.level === '위험').length;
@@ -469,7 +514,22 @@ const BaselineDiagnosisResult: React.FC = () => {
             return scale;
           })()}</span>
         </OverallRow>
-        <Message style={{ marginTop: 8, whiteSpace: 'pre-line' }}>{(loadingAI ? '개인화 의견 생성 중…' : (aiSummary || summaryText))}</Message>
+        <Message style={{ marginTop: 8, whiteSpace: 'pre-line' }}>
+          {loadingAI ? (
+            <LoadingContainer>
+              <LoadingIcon>
+                <DotLottieReact
+                  src="https://lottie.host/3bc0feb9-c94e-42d4-aba2-e89b32c682ac/5vwWH6Nrsh.lottie"
+                  loop
+                  autoplay
+                />
+              </LoadingIcon>
+              분석결과 생성 중…
+            </LoadingContainer>
+          ) : (
+            aiSummary || summaryText
+          )}
+        </Message>
       </SummaryBox>
 
       {/* 프로모션 영역 + 스토어 버튼 */}
