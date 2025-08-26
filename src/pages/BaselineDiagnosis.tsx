@@ -129,8 +129,8 @@ const BaselineDiagnosis: React.FC = () => {
     if (currentQuestion === 0 && !counterLoaded) {
       setCounterLoaded(true);
       incrementDiagnosisCounter()
-        .then((count) => setCounter(5692 + count)) 
-        .catch(() => setCounter(5692));
+        .then((count) => setCounter(2472 + count)) 
+        .catch(() => setCounter(2472));
     }
   }, [currentQuestion, counterLoaded]);
 
@@ -167,25 +167,25 @@ const BaselineDiagnosis: React.FC = () => {
       {currentQuestion === 0 && (
         <BackButton fallbackTo="/diagnosis" />
       )}
-      <Header style={{ marginBottom: currentQuestion === 0 ? '2rem' : '0.5rem' }}>
-        <Logo src={logoImage} alt="Reconnect Logo" />
-        <BrainImg src={BrainIcon} alt="brain" />
-        {currentQuestion === 0 && (
-          <>
-            <Title>EmoMap: 감정지도 진단</Title>
-            <Subtitle>신경과학, 사회심리학, 감정인지 모델을 통합한 정서 진단 프레임워크로, UCLA대학 심리학 연구 기관의 검증된 이론을 기반으로 본 진단은 개인의 감정을 결정짓는 7가지 핵심 심리 영역을 기반으로, 현재의 정서적 균형과 감정 건강 상태를 정밀하게 분석합니다.  
-            정서적 안정성, 긍정 정서 결핍, 자기 인식, 대인관계 연결감, 회복탄력성, 감정 조절 능력, 동기 및 에너지 수준 등 각 영역을 통해 감정의 흐름과 불균형 요인을 파악하고, 감정 회복을 위한 방향성을 제시합니다. </Subtitle>
-          </>
-        )}
-        {currentQuestion === 0 && (
-        <TimeNotice>이 진단은 약 3분 정도 소요됩니다.</TimeNotice>
+      {/* 1페이지에서는 전체 헤더 표시 */}
+      {currentQuestion === 0 ? (
+        <Header style={{ marginBottom: '2rem' }}>
+          <Logo src={logoImage} alt="Reconnect Logo" />
+          <BrainImg src={BrainIcon} alt="brain" />
+          <Title>EmoMap: 감정지도 진단</Title>
+          <Subtitle>신경과학, 사회심리학, 감정인지 모델을 통합한 정서 진단 프레임워크로, UCLA대학 심리학 연구 기관의 검증된 이론을 기반으로 본 진단은 개인의 감정을 결정짓는 7가지 핵심 심리 영역을 기반으로, 현재의 정서적 균형과 감정 건강 상태를 정밀하게 분석합니다.  
+          정서적 안정성, 긍정 정서 결핍, 자기 인식, 대인관계 연결감, 회복탄력성, 감정 조절 능력, 동기 및 에너지 수준 등 각 영역을 통해 감정의 흐름과 불균형 요인을 파악하고, 감정 회복을 위한 방향성을 제시합니다. </Subtitle>
+          <TimeNotice>이 진단은 약 3분 정도 소요됩니다.</TimeNotice>
+          {counter !== null && (
+            <CounterText> 현재 {counter.toLocaleString()}명이 진단을 받았어요</CounterText>
+          )}
+        </Header>
+      ) : (
+        /* 2페이지부터는 뇌 그림만 표시 */
+        <div style={{ textAlign: 'center', marginBottom: '0.5rem', marginTop: '6rem' }}>
+          <BrainImg src={BrainIcon} alt="brain" />
+        </div>
       )}
-
-      {/* 첫 번째 질문에서만 카운터 표시 */}
-      {currentQuestion === 0 && counter !== null && (
-        <CounterText> 현재 {counter.toLocaleString()}명이 테스트를 완료했어요</CounterText>
-      )}
-      </Header>
 
       
 

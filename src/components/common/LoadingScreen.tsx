@@ -108,7 +108,7 @@ const LoadingScreen: React.FC<LoadingScreenProps> = ({ onComplete }) => {
       </MessageTextLeft>
       
       <MessageTextRight>
-        리커넥트가 5000명 한정으로<br/> <HighlightText>결혼생활 진단을 <br/>무료로 제공 하고 있어요!</HighlightText><br/>지금 로그인하면 바로 진단 혜택을 받으실 수 있어요.
+        리커넥트가 5000명 한정으로<br/> <HighlightText>결혼생활 진단을 <br/>무료로 제공 하고 있어요!</HighlightText><br/>로그인하고고 바로 진단 혜택을 받아보세요.
       </MessageTextRight>
       
       <MessageTextLeft2>
