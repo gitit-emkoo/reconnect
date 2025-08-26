@@ -314,6 +314,33 @@ const LoadingIcon = styled.div`
   height: 24px;
 `;
 
+const ReconnectMeaningContainer = styled.div`
+  background: #f0f9eb; /* 연한 초록색 배경 */
+  border: 1px solid #a5d6a7; /* 연한 초록색 테두리 */
+  border-radius: 12px;
+  padding: 15px;
+  margin-bottom: 1rem;
+  text-align: center;
+`;
+
+const ReconnectMeaningTitle = styled.h4`
+  color: #2e7d32; /* 진한 초록색 제목 */
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+`;
+
+const ReconnectMeaningText = styled.p`
+  color: #388e3c; /* 진한 초록색 텍스트 */
+  font-size: 0.9rem;
+  line-height: 1.5;
+  margin: 0;
+`;
+
 
 // 온도 기반 결과 로직은 사용하지 않습니다.
 
@@ -533,6 +560,25 @@ const BaselineDiagnosisResult: React.FC = () => {
         </Message>
       </SummaryBox>
 
+      {/* 리커넥트 의미 설명 */}
+      <ReconnectMeaningContainer>
+        <ReconnectMeaningTitle>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            <div style={{ width: '20px', height: '20px' }}>
+              <DotLottieReact
+                src="https://lottie.host/3bc0feb9-c94e-42d4-aba2-e89b32c682ac/5vwWH6Nrsh.lottie"
+                loop
+                autoplay
+              />
+            </div>
+            리커넥트를 시작했다는 것은
+          </div>
+        </ReconnectMeaningTitle>
+        <ReconnectMeaningText>
+          당신의 감정을 안전하게 기록하고 분석해 지속적인 자기 성장과 관계 발전을 만들어 간다는 의미입니다.
+        </ReconnectMeaningText>
+      </ReconnectMeaningContainer>
+
       {/* 프로모션 영역 + 스토어 버튼 */}
             <PromoContainer>
               <PromoTitle>
@@ -544,14 +590,13 @@ const BaselineDiagnosisResult: React.FC = () => {
                       autoplay
                     />
                   </div>
-                  지금 다운받고 혜택을 받아보세요!
+                  무료혜택이 준비되어 있어요!
                 </div>
               </PromoTitle>
               <PromoList>
-                <PromoListItem>🎉 이벤트 기간 가입 혜택</PromoListItem>
-                <PromoListItem>✅ 결혼생활 정식 진단</PromoListItem>
-                <PromoListItem>✅ 책임이 담긴 인증 합의서 무제한 발행</PromoListItem>
-                <PromoListItem>✅ 감정 일기 분석 + AI감정 리포트 제공</PromoListItem>
+                <PromoListItem>✅ 결혼생활 진단</PromoListItem>
+                <PromoListItem>✅ 디지털 부부합의서 인증 및 발행(무제한)</PromoListItem>
+                <PromoListItem>✅ 간편 감정일기 분석리포트(감정트랙) </PromoListItem>
               </PromoList>
               <PromoCTA>지금 바로 나와 우리의 관계를 더 깊고 건강하게 만들어 보세요! 💖</PromoCTA>
             </PromoContainer>
