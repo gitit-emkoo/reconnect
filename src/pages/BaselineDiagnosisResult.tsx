@@ -315,17 +315,16 @@ const LoadingIcon = styled.div`
 `;
 
 const ReconnectMeaningContainer = styled.div`
-  background: #f0f9eb; /* 연한 초록색 배경 */
-  border: 1px solid #a5d6a7; /* 연한 초록색 테두리 */
+  
   border-radius: 12px;
   padding: 15px;
-  margin-bottom: 1rem;
+  margin: 1rem 0 1rem 0;
   text-align: center;
 `;
 
 const ReconnectMeaningTitle = styled.h4`
-  color: #2e7d32; /* 진한 초록색 제목 */
-  font-size: 1.1rem;
+  color:rgb(42, 27, 102); /* 진한 초록색 제목 */
+  font-size: 1.3rem;
   font-weight: 600;
   margin-bottom: 8px;
   display: flex;
@@ -335,7 +334,7 @@ const ReconnectMeaningTitle = styled.h4`
 `;
 
 const ReconnectMeaningText = styled.p`
-  color: #388e3c; /* 진한 초록색 텍스트 */
+  color:rgb(72, 61, 98); /* 진한 초록색 텍스트 */
   font-size: 0.9rem;
   line-height: 1.5;
   margin: 0;
