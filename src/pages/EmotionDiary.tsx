@@ -46,7 +46,6 @@ interface Trigger {
 // 스타일 컴포넌트 정의
 
 const Container = styled(BaseContainer)`
-  padding: 2rem;
   background-color: #fff;
   position: relative;
 

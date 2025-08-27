@@ -15,7 +15,6 @@ const Container = styled(BaseContainer)`
   flex-direction: column;
   align-items: center;
   background: white;
-  padding: 2rem;
   justify-content: flex-start;
   text-align: center;
   padding-top: 3.5rem;

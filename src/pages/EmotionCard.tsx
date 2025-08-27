@@ -36,7 +36,6 @@ export interface SentMessage {
 
 const Container = styled(BaseContainer)`
   background-color: #f0f4f8;
-  padding: 2rem;
   display: flex;
   flex-direction: column;
   align-items: center;

@@ -37,7 +37,7 @@ const getEmotionByTemperature = (temp: number): string => {
 };
 
 const Container = styled(BaseContainer)`
-  padding: 1.5rem 1.5rem;
+  
   background-color: #ffffff;
 `;
 

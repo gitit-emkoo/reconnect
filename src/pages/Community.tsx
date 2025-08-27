@@ -44,7 +44,6 @@ type PostsResponse = { posts: Post[]; total: number };
 
 const Container = styled(BaseContainer)`
   background-color:rgb(255, 255, 255);
-  padding: 1rem 1rem 2rem 1rem; 
   
 `;
 

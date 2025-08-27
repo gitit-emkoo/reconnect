@@ -7,11 +7,6 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { registerSchema, type RegisterFormData } from '../utils/validationSchemas';
 import { ReactComponent as CloseEye } from '../assets/Icon_CloseEye.svg';
 import { ReactComponent as OpenEye } from '../assets/Icon_OpenEye.svg';
-import { ReactComponent as AppleIcon } from '../assets/btn_apple.svg';
-import { ReactComponent as GoogleIcon } from '../assets/btn_google.svg';
-import { ReactComponent as KakaoIcon } from '../assets/btn_kakao.svg';
-import { useGoogleLogin } from '@react-oauth/google';
-import { getKakaoRegisterUrl, signInWithApple } from '../utils/socialAuth';
 import axiosInstance from '../api/axios';
 import { isAxiosError } from 'axios';
 import useAuthStore from '../store/authStore';
@@ -35,64 +30,13 @@ const Title = styled.h1`
   text-align: center;
 `;
 
-const SocialLoginButton = styled.button<{ $isKakao?: boolean; $isApple?: boolean }>`
-  width: 100%;
-  max-width: 340px;
-  padding: 1rem;
-  border: none;
-  border-radius: 15px;
-  background: ${props => {
-    if (props.$isKakao) return '#FEE500';
-    if (props.$isApple) return '#000000';
-    return '#fff';
-  }};
-  color: ${props => {
-    if (props.$isKakao) return '#000';
-    if (props.$isApple) return '#FFFFFF';
-    return '#333';
-  }};
+const Subtitle = styled.p`
   font-size: 1rem;
-  font-weight: 500;
-  cursor: pointer;
-  margin-bottom: 1rem;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  transition: background-color 0.2s;
-
-  &:hover {
-    background: ${props => {
-      if (props.$isKakao) return '#f0d800';
-      if (props.$isApple) return '#333333';
-      return '#f7f7f7';
-    }};
-  }
-
-  img {
-    width: 24px;
-    height: 24px;
-    margin-right: 0.5rem;
-  }
-`;
-
-const Divider = styled.div`
-  width: 100%;
+  color: #666;
+  text-align: center;
+  margin: 0 0 2rem 0;
+  line-height: 1.5;
   max-width: 340px;
-  display: flex;
-  align-items: center;
-  margin: 2rem 0;
-  color: #999;
-  font-size: 0.9rem;
-
-  &::before,
-  &::after {
-    content: '';
-    flex: 1;
-    height: 1px;
-    background: #999;
-    margin: 0 1rem;
-  }
 `;
 
 const Form = styled.form`
@@ -280,62 +224,6 @@ const RegisterPage: React.FC = () => {
     resolver: zodResolver(registerSchema),
   });
 
-  const googleLogin = useGoogleLogin({
-    onSuccess: async (tokenResponse) => {
-      try {
-        const payload: any = {
-          accessToken: tokenResponse.access_token
-        };
-
-        const response = await axiosInstance.post('/auth/google/register', payload);
-        const { accessToken, user } = response.data;
-        setAuth(accessToken, user);
-        
-        navigate(from, { replace: true });
-      } catch (error: any) {
-        console.error('Google register error:', error);
-        if (isAxiosError(error) && error.response?.status === 409) {
-          setApiError('이미 가입된 사용자입니다. 로그인을 진행해주세요.');
-        } else {
-          setApiError(error.response?.data?.message || '구글 회원가입에 실패했습니다.');
-        }
-      }
-    },
-    onError: (error) => {
-      console.error('Google register failed:', error);
-      setApiError('구글 회원가입 과정에서 오류가 발생했습니다.');
-    },
-  });
-
-  const handleKakaoRegister = () => {
-    window.location.href = getKakaoRegisterUrl();
-  };
-
-  const handleAppleRegister = async () => {
-    try {
-      const appleResponse = await signInWithApple();
-      
-      const payload: any = {
-        idToken: appleResponse.idToken,
-        authorizationCode: appleResponse.authorizationCode,
-        user: appleResponse.user
-      };
-
-      const response = await axiosInstance.post('/auth/apple/register', payload);
-      const { accessToken, user } = response.data;
-      setAuth(accessToken, user);
-      
-      navigate(from, { replace: true });
-    } catch (error: any) {
-      console.error('Apple register error:', error);
-      if (isAxiosError(error) && error.response?.status === 409) {
-        setApiError('이미 가입된 사용자입니다. 로그인을 진행해주세요.');
-      } else {
-        setApiError(error.response?.data?.message || 'Apple ID 회원가입에 실패했습니다.');
-      }
-    }
-  };
-
   const onSubmit = async (data: RegisterFormData) => {
     setApiError(null);
     try {
@@ -364,22 +252,7 @@ const RegisterPage: React.FC = () => {
     <Container>
       <BackButton />
       <Title>회원가입</Title>
-      
-      <SocialLoginButton onClick={() => googleLogin()}>
-        <GoogleIcon style={{ marginRight: '8px', width: '18px', height: '18px' }} />
-        구글로 회원가입
-      </SocialLoginButton>
-      <SocialLoginButton $isKakao onClick={handleKakaoRegister}>
-        <KakaoIcon style={{ marginRight: '8px', width: '28px', height: '28px' }} />
-        카카오톡으로 회원가입
-      </SocialLoginButton>
-      <SocialLoginButton onClick={handleAppleRegister} $isApple={true}>
-        <AppleIcon style={{ marginRight: '8px', width: '18px', height: '18px', filter: 'brightness(0) invert(1)' }} />
-        Apple로 회원가입
-      </SocialLoginButton>
-
-      <Divider>또는 이메일로 회원가입</Divider>
-
+      <Subtitle>이메일만 비밀번호면 설정하면<br/>간편하게 리커넥트를 이용하실수 있습니다</Subtitle>
       <Form onSubmit={handleSubmit(onSubmit)}>
         {apiError && <ErrorMessage style={{ textAlign: 'center', marginBottom: '1rem' }}>{apiError}</ErrorMessage>}
         <InputWrapper>

@@ -23,8 +23,6 @@ import badge3 from '../assets/challenge (3).png';
 
 const PageContainer = styled(BaseContainer)`
   max-width: 800px;
-  margin: 0 auto;
-  padding: 2rem 1rem;
 `;
 
 const Description = styled.p`

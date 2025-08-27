@@ -20,7 +20,6 @@ import NotificationSettingsSheet from '../components/common/NotificationSettings
 
 const Container = styled(BaseContainer)`
   background-color: white; 
-  padding: 2rem 1rem;
 `;
 
 const Title = styled.h2`

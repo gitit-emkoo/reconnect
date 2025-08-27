@@ -12,7 +12,6 @@ import ConfirmationModal from '../components/common/ConfirmationModal';
 
 const Container = styled(BaseContainer)`
   background-color: #f9fafb;
-  padding: 2rem;
 `;
 
 const Header = styled.div`

@@ -63,11 +63,9 @@ interface Post {
 
 const Container = styled(BaseContainer)`
   background-color: #f8f9fa;
-  padding: 1.5rem 1rem;
 `;
 
 const PostContainer = styled.div`
-  
   padding: 3rem 0.5rem 1rem;
   
 `;

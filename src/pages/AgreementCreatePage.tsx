@@ -8,7 +8,6 @@ import { agreementApi } from '../api/agreement';
 
 const Container = styled(BaseContainer)`
   background: #fff;
-  padding: 2.5rem 2rem 2rem;
   display: flex;
   flex-direction: column;
   align-items: center;

@@ -8,6 +8,7 @@ const PageWrapper = styled.div`
   flex-direction: column;
   height: auto;
   background-color: #f9f9f9; /* 기본 배경색 */
+  padding-bottom: 6rem;
 `;
 
 // EmotionCard.tsx의 PageHeaderContainer 스타일 참고

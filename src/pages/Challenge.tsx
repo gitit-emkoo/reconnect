@@ -8,10 +8,6 @@ import { formatInKST } from '../utils/date';
 
 const Container = styled(BaseContainer)`
   background: #f9fafb;
-  padding: 2.5rem 0;
-  @media (max-width: 600px) {
-    padding: 1.2rem 0;
-  }
 `;
 
 const GuideText = styled.div`
