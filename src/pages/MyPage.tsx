@@ -11,13 +11,11 @@ import ConfirmationModal from "../components/common/ConfirmationModal";
 import { getUserAvatar } from "../utils/avatar";
 import { ADMIN_CONFIG } from '../config/admin';
 import { blockApi } from '../api/user';
-
-// 아이콘 import
 import IconAgreement from "../assets/Icon_Agreement.png";
 import IconPoint from "../assets/Icon_Point.png";
 import IconTrack from "../assets/Icon_Track.png";
 import IconSubscribe from "../assets/Icon_Subscribe.png";
-import EventBannerModal from "../components/common/EventBannerModal";
+// import EventBannerModal from "../components/common/EventBannerModal";
 import NotificationSettingsSheet from '../components/common/NotificationSettingsSheet';
 
 const Container = styled(BaseContainer)`
@@ -421,7 +419,16 @@ const MyPage: React.FC = () => {
       </Container>
       <NavigationBar />
       <NotificationSettingsSheet open={isNotificationSheetOpen} onClose={() => setIsNotificationSheetOpen(false)} />
-      <EventBannerModal isOpen={isEventModalOpen} onClose={() => setIsEventModalOpen(false)} />
+      {/* 임시 이벤트 안내 모달 */}
+      <ConfirmationModal
+        isOpen={isEventModalOpen}
+        onRequestClose={() => setIsEventModalOpen(false)}
+        onConfirm={() => setIsEventModalOpen(false)}
+        title="이벤트 안내"
+        message="아직 응모 기간이 아닙니다. 응모 시작은 PUSH알림으로 알려드립니다."
+        confirmButtonText="확인"
+        showCancelButton={false}
+      />
       {isEditModalOpen && user && (
         <ProfileEditModal
           user={user as User}
