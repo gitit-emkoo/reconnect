@@ -12,8 +12,6 @@ import ImgAgreement from '../assets/Img_Agreement.png';
 
 const Container = styled(BaseContainer)`
   max-width: 480px;
-  margin: 0 auto;
-  padding: 0;
   background-color: #ffffff;
 `;
 const TopButtonRow = styled.div`

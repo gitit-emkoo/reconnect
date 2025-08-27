@@ -129,13 +129,6 @@ const GlobalStyle = createGlobalStyle`
     padding-bottom: 0; /* 기본적으로 여백 없음 */
   }
 
-  /* 네비게이션이 있는 화면에서만 하단 여백 확보 */
-  #root.has-nav {
-    padding-bottom: max(
-      calc(var(--nav-height, 72px) + var(--safe-area-inset-bottom, 0px) + 24px),
-      var(--kb, 0px)
-    ) !important;
-  }
 
   /* 키보드 열릴 때는 하단 여백 제거 (입력창 가림 방지) */
   #root.has-nav.keyboard-open {

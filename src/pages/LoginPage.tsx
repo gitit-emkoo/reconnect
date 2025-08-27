@@ -147,25 +147,6 @@ const SocialLoginButtonStyled = styled.button<{ $isKakao?: boolean; $isApple?: b
   }}
 `;
 
-const RegisterPrompt = styled.p`
-  width: 100%;
-  max-width: 340px;
-  text-align: center;
-  margin: 1.5rem 0;
-  font-size: 0.9rem;
-  color: #666;
-
-  span {
-    color: #FF69B4;
-    font-weight: 600;
-    text-decoration: underline;
-    cursor: pointer;
-
-    &:hover {
-      color: #E0559A;
-    }
-  }
-`;
 
 const ModalRegisterButton = styled.button`
   width: 100%;
@@ -277,7 +258,7 @@ const ForgotPasswordLinksContainer = styled.div`
   justify-content: center;
   gap: 1.5rem;
   margin-top: 0.2rem;
-  margin-bottom: 5rem;  
+  margin-bottom: 1rem;  
   width: 100%;
   max-width: 340px;
 `;
@@ -315,6 +296,58 @@ const Button = styled.button`
     opacity: 0.7;
     cursor: not-allowed;
   }
+`;
+
+const SignupPrompt = styled.p`
+  width: 100%;
+  max-width: 340px;
+  text-align: center;
+  font-size: 0.9rem;
+  color: #fff;
+`;
+
+const SignupButton = styled.button`
+  width: 100%;
+  max-width: 340px;
+  padding: 0.85rem 1rem;
+  border-radius: 12px;
+  background: #785cd2;
+  color: white;
+  font-size: 0.95rem;
+  font-weight: 500;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  transition: all 0.2s;
+  margin-top: 1rem;
+
+  &:hover {
+    background: #6B4FC7;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(120, 92, 210, 0.3);
+  }
+`;
+
+const Divider = styled.div`
+  display: flex;
+  align-items: center;
+  width: 100%;
+  max-width: 340px;
+  margin-bottom: 1rem;
+`;
+
+const DividerLine = styled.div`
+  flex-grow: 1;
+  height: 1px;
+  background-color: #E0E0E0;
+`;
+
+const DividerText = styled.span`
+  margin: 0 10px;
+  color: #E0E0E0;
+  font-size: 0.85rem;
 `;
 
 const SocialLoginButton: React.FC<{
@@ -482,7 +515,7 @@ const LoginPage: React.FC = () => {
       
       <IllustrationWrapper>
         <img src={MainImg} alt="Login Illustration" />
-        <Subtitle>"내 감정과 관계를 안전하게 만드는 <br/>가장 쉬운 루틴, 지금 시작하세요요"</Subtitle>
+        <Subtitle>"내 감정과 관계를 안전하게 만드는 <br/>가장 쉬운 루틴, 지금 시작하세요"</Subtitle>
       </IllustrationWrapper>
 
       {/* 환영 팝업 */}
@@ -558,6 +591,17 @@ const LoginPage: React.FC = () => {
           <AppleIcon style={{ marginRight: '8px', width: '18px', height: '18px', filter: 'brightness(0) invert(1)' }} />
           Apple로 시작하기
         </SocialLoginButton>
+        
+        {showEmailForm && (
+          <>
+            <Divider>
+              <DividerLine />
+              <DividerText>이메일로 시작하기</DividerText>
+              <DividerLine />
+            </Divider>
+          </>
+        )}
+        
         {!showEmailForm && (
           <SocialLoginButton onClick={handleEmailLoginToggle} $isKakao={false} $isApple={false} $isEmail>
             <img src="/images/favicon.png" style={{ marginRight: '8px', width: '18px', height: '18px' }} alt="Reconnect" />
@@ -565,11 +609,6 @@ const LoginPage: React.FC = () => {
           </SocialLoginButton>
         )}
       </SocialLoginButtonContainer>
-      
-      <RegisterPrompt>
-        아직 회원이 아니신가요?{' '}
-        <span onClick={() => navigate('/register')}>회원가입</span>
-      </RegisterPrompt>
 
       {loginError && <GeneralErrorMessage>{loginError}</GeneralErrorMessage>}
 
@@ -604,6 +643,15 @@ const LoginPage: React.FC = () => {
             <ForgotLink onClick={handleFindEmailClick}>이메일 찾기</ForgotLink>
             <ForgotLink onClick={() => navigate('/forgot-password')}>비밀번호 재설정</ForgotLink>
           </ForgotPasswordLinksContainer>
+
+          <SignupPrompt>
+            이메일 계정이 없으신가요? <br/>간편하게 생성 후 시작하세요
+          </SignupPrompt>
+          
+          <SignupButton type="button" onClick={() => navigate('/register')}>
+            <img src="/images/favicon.png" style={{ marginRight: '8px', width: '18px', height: '18px' }} alt="Reconnect" />
+            이메일 계정 생성
+          </SignupButton>
         </FormWrapper>
       )}
 

@@ -1,12 +1,14 @@
 import React, { useEffect, useState } from 'react';
 import styled from 'styled-components';
 import { useNavigate } from 'react-router-dom';
-import PageLayout from '../components/Layout/PageLayout';
 import useAuthStore from '../store/authStore';
 import { getDiagnosisHistory } from '../api/diagnosis';
 import { DIAGNOSIS_TEMPLATES } from '../templates/diagnosisTemplates';
 import BrainIcon from '../assets/Icon_Brain.png';
 import ConfirmationModal from '../components/common/ConfirmationModal';
+import PageLayout from '../components/Layout/PageLayout';
+
+
 
 const Badge = styled.span`
   background-color: #ff4d4f;
@@ -361,7 +363,8 @@ const SelfDiagnosisRoom: React.FC = () => {
         confirmButtonText="확인"
         showCancelButton={false}
       />
-    </PageLayout>
+      </PageLayout>
+   
   );
 };
 
