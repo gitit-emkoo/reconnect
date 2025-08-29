@@ -1,5 +1,5 @@
 import React from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import styled from 'styled-components';
 
 const Button = styled.button`
@@ -41,18 +41,23 @@ interface BackButtonProps {
 
 const BackButton: React.FC<BackButtonProps> = ({ onClick, className, fallbackTo }) => {
   const navigate = useNavigate();
+  const location = useLocation();
 
   const handleClick = () => {
     if (onClick) {
       onClick();
     } else {
-      const hasHistory = window.history.length > 1;
-      const sameOriginRef = document.referrer && document.referrer.startsWith(window.location.origin);
-      if (hasHistory && sameOriginRef) {
+      // React Router의 히스토리 상태를 확인
+      const hasRouterHistory = location.key !== 'default';
+      
+      if (hasRouterHistory) {
+        // React Router 히스토리가 있으면 뒤로가기
         navigate(-1);
       } else if (fallbackTo) {
+        // 폴백 경로가 지정되어 있으면 해당 경로로
         navigate(fallbackTo);
       } else {
+        // 기본값으로 홈으로
         navigate('/');
       }
     }

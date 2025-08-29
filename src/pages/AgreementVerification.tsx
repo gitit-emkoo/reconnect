@@ -6,7 +6,6 @@ import { Agreement } from '../components/agreement/AgreementList';
 
 const Container = styled(BaseContainer)`
   background-color: white;
-  padding: 2rem;
 `;
 
 const Title = styled.h2`

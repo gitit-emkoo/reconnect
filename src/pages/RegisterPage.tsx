@@ -251,8 +251,8 @@ const RegisterPage: React.FC = () => {
   return (
     <Container>
       <BackButton />
-      <Title>회원가입</Title>
-      <Subtitle>이메일만 비밀번호면 설정하면<br/>간편하게 리커넥트를 이용하실수 있습니다</Subtitle>
+      <Title>계정생성</Title>
+      <Subtitle>이메일과 비밀번호만 설정하면 바로<br/>간편하게 리커넥트를 이용하실 수 있습니다</Subtitle>
       <Form onSubmit={handleSubmit(onSubmit)}>
         {apiError && <ErrorMessage style={{ textAlign: 'center', marginBottom: '1rem' }}>{apiError}</ErrorMessage>}
         <InputWrapper>
@@ -304,7 +304,7 @@ const RegisterPage: React.FC = () => {
         </CheckboxWrapper>
 
         <RegisterButton type="submit" disabled={isSubmitting}>
-          {isSubmitting ? '가입 중...' : '회원가입'}
+          {isSubmitting ? '생성 중...' : '시작하기'}
         </RegisterButton>
       </Form>
 
