@@ -129,8 +129,8 @@ const BaselineDiagnosis: React.FC = () => {
     if (currentQuestion === 0 && !counterLoaded) {
       setCounterLoaded(true);
       incrementDiagnosisCounter()
-        .then((count) => setCounter(2472 + count)) 
-        .catch(() => setCounter(2472));
+        .then((count) => setCounter(2084 + count)) 
+        .catch(() => setCounter(2084));
     }
   }, [currentQuestion, counterLoaded]);
 

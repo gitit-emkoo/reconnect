@@ -145,7 +145,8 @@ const SocialLoginHandler: React.FC = () => {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
               idToken: data.credential.identityToken,
-              authorizationCode: data.credential.authorizationCode
+              authorizationCode: data.credential.authorizationCode,
+              user: data.credential.user
             })
           })
           .then(async res => {
@@ -176,7 +177,8 @@ const SocialLoginHandler: React.FC = () => {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                   idToken: data.credential.identityToken,
-                  authorizationCode: data.credential.authorizationCode
+                  authorizationCode: data.credential.authorizationCode,
+                  user: data.credential.user
                 })
               });
             }

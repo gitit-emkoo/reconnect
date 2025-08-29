@@ -424,7 +424,7 @@ const MyPage: React.FC = () => {
         onRequestClose={() => setIsEventModalOpen(false)}
         onConfirm={() => setIsEventModalOpen(false)}
         title="이벤트 안내"
-        message="아직 응모 기간이 아닙니다. 응모 시작은 PUSH알림으로 알려드립니다."
+        message="경품 이벤트가 곧 시작됩니다. 이벤트 시작은 PUSH로 알려드립니다."
         confirmButtonText="확인"
         showCancelButton={false}
       />

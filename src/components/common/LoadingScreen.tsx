@@ -101,18 +101,18 @@ const LoadingScreen: React.FC<LoadingScreenProps> = ({ onComplete }) => {
           autoplay
         />
       </LoadingIcon>
-      <LoadingText>지금 당신의 감정을 정밀하게 분석하고 있어요</LoadingText>
+      <LoadingText>지금 당신의 감정을 정밀하게 분석하고 있어요<br/> 최대 30초가 소요될수 있습니다.</LoadingText>
       
       <MessageTextLeft>
         감정의 흐름뿐 아니라, <br /><HighlightText>소중한 관계까지 이해할 때</HighlightText><br/> 삶이 더 깊고 행복해집니다.
       </MessageTextLeft>
       
       <MessageTextRight>
-        리커넥트가 5000명 한정으로<br/> <HighlightText>결혼생활 진단을 <br/>무료로 제공 하고 있어요!</HighlightText><br/>로그인하고고 바로 진단 혜택을 받아보세요.
+        리커넥트가 5000명 한정으로<br/> <HighlightText>결혼생활 진단을 <br/>무료로 제공 하고 있어요!</HighlightText><br/>간편 로그인 후 바로 진단 혜택을 받아보세요.
       </MessageTextRight>
       
       <MessageTextLeft2>
-        <HighlightText>나의 감정 케어부터,<br/>우리의 관계 관리까지—</HighlightText><br/> 리커넥트는 더 나은 삶을 열기위한 필수앱 입니다.
+        <HighlightText>나의 감정 케어부터<br/>우리의 관계 관리까지</HighlightText><br/> 리커넥트는 더 나은 삶을 열기위한 필수앱입니다.
       </MessageTextLeft2>
     </Container>
   );

@@ -25,7 +25,7 @@ const Container = styled(BaseAuthContainer)`
   display: flex;
   flex-direction: column;
   align-items: center;
-  background: linear-gradient(135deg,rgb(60, 34, 126) 0%,rgb(10, 10, 49) 100%);
+  background-color: #ffffff;
   padding: 2rem 1.5rem;
   box-sizing: border-box;
 `;
