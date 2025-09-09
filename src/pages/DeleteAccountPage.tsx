@@ -130,11 +130,24 @@ const DeleteAccountPage: React.FC = () => {
   const confirmWithdraw = async () => {
     setIsLoading(true);
     try {
-      await axiosInstance.post('/users/me/withdraw', {
+      const response = await axiosInstance.post('/users/me/withdraw', {
         reason: selectedReason,
       });
 
-      alert('탈퇴가 완료되었습니다.');
+      // 소셜 로그인 사용자인 경우 추가 안내
+      const provider = response.data.provider;
+      let alertMessage = '탈퇴가 완료되었습니다.';
+      
+      if (provider && provider !== 'EMAIL') {
+        const providerName = provider === 'GOOGLE' ? '구글' : 
+                            provider === 'KAKAO' ? '카카오' : 
+                            provider === 'APPLE' ? '애플' : provider;
+        
+        alertMessage += `\n\n${providerName} 계정 연동도 해제되었습니다.`;
+        alertMessage += `\n필요시 ${providerName} 계정 설정에서 앱 권한을 직접 해제하실 수 있습니다.`;
+      }
+
+      alert(alertMessage);
       logout();
       navigate('/login');
     } catch (error) {

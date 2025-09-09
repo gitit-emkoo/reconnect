@@ -426,8 +426,8 @@ const LoginPage: React.FC = () => {
     setLoginError('');
     try {
       const response = await Promise.race([
-        axiosInstance.post<{ user: User; accessToken: string }>(
-          '/auth/google/login',
+        axiosInstance.post<{ user: User; accessToken: string; isNewUser: boolean }>(
+          '/auth/google/signin',
           { 
             accessToken: googleAccessToken
           },
@@ -438,9 +438,14 @@ const LoginPage: React.FC = () => {
         )
       ]);
 
-      const { user, accessToken: token } = response.data;
+      const { user, accessToken: token, isNewUser } = response.data;
       if (user && token) {
         await handleSuccessfulLogin(user, token);
+        
+        // 신규 사용자인 경우 환영 메시지 표시
+        if (isNewUser) {
+          alert('리커넥트에 오신 것을 환영합니다! 🎉\n자동으로 회원가입이 완료되었습니다.');
+        }
       } else {
         setLoginError('로그인에 실패했습니다. 응답 데이터가 올바르지 않습니다.');
       }
@@ -462,7 +467,12 @@ const LoginPage: React.FC = () => {
 
   const googleLogin = useGoogleLogin({
     onSuccess: (tokenResponse) => handleSocialLoginSuccess(tokenResponse.access_token),
-    onError: () => {
+    onError: (errorResponse: { error?: string; error_description?: string; error_uri?: string }) => {
+      // 팝업이 사용자에 의해 닫힌 경우 조용히 처리 (에러 메시지 표시 안함)
+      if (errorResponse.error === 'access_denied') {
+        console.log('Google 로그인 팝업이 사용자에 의해 닫힘');
+        return; // 에러 메시지 표시하지 않고 조용히 종료
+      }
       setLoginError('구글 로그인 중 오류가 발생했습니다.');
     },
   });
@@ -475,22 +485,34 @@ const LoginPage: React.FC = () => {
     try {
       const appleResponse = await signInWithApple();
       
-      const response = await axiosInstance.post<{ user: User; accessToken: string }>(
-        '/auth/apple/login',
+      const response = await axiosInstance.post<{ user: User; accessToken: string; isNewUser: boolean }>(
+        '/auth/apple/signin',
         { 
           idToken: appleResponse.idToken,
           authorizationCode: appleResponse.authorizationCode
         }
       );
 
-      const { user, accessToken: token } = response.data;
+      const { user, accessToken: token, isNewUser } = response.data;
       if (user && token) {
         await handleSuccessfulLogin(user, token);
+        
+        // 신규 사용자인 경우 환영 메시지 표시
+        if (isNewUser) {
+          alert('리커넥트에 오신 것을 환영합니다! 🎉\n자동으로 회원가입이 완료되었습니다.');
+        }
       } else {
         setLoginError('로그인에 실패했습니다. 응답 데이터가 올바르지 않습니다.');
       }
     } catch (error: any) {
       console.error('Apple login failed:', error);
+      
+      // 팝업이 사용자에 의해 닫힌 경우 조용히 처리 (에러 메시지 표시 안함)
+      if (error?.error === 'popup_closed_by_user' || error?.error === 'user_cancel') {
+        console.log('Apple 로그인 팝업이 사용자에 의해 닫힘');
+        return; // 에러 메시지 표시하지 않고 조용히 종료
+      }
+      
       if (axios.isAxiosError(error) && error.response) {
         if (error.response.status === 401) {
           setLoginError('가입되지 않은 사용자입니다. 회원가입을 진행해주세요.');

@@ -143,7 +143,7 @@ const NavigationBar: React.FC<NavigationBarProps> = React.memo(() => {
         $isActive={location.pathname === '/expert'}
       >
         <ExpertIcon />
-        전문가
+        진단실
       </NavButton>
       <NavButton
         onClick={() => handleNavClick("/content-center")}

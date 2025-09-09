@@ -284,10 +284,6 @@ const MyPage: React.FC = () => {
           </UserInfoText>
           <MenuContainer>
             <MenuGrid>
-              <MenuButton onClick={() => navigate('/agreement')}>
-                <img src={IconTrack} alt="합의서" />
-                합의서
-              </MenuButton>
               <MenuButton onClick={() => navigate('/track')}>
                 <img src={IconAgreement} alt="트랙" />
                 감정트랙

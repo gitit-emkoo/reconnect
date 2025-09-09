@@ -21,16 +21,6 @@ const Badge = styled.span`
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
 `;
 
-const SubscriberBadge = styled.span`
-  background-color: #785cd2;
-  color: white;
-  padding: 4px 10px;
-  border-radius: 12px;
-  font-size: 0.8rem;
-  font-weight: bold;
-  margin-right: 10px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
-`;
 
 const FreeText = styled.span`
   color:rgb(255, 193, 194);
@@ -193,8 +183,6 @@ const SelfDiagnosisRoom: React.FC = () => {
   const [histories, setHistories] = useState<Record<string, DiagnosisHistoryItem[]>>({});
   const [showAllMap, setShowAllMap] = useState<Record<string, boolean>>({});
   const accessToken = useAuthStore(state=>state.accessToken);
-  const user = useAuthStore(state => state.user);
-  const [showSubscribeModal, setShowSubscribeModal] = useState(false);
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [showMarriageCompletedModal, setShowMarriageCompletedModal] = useState(false);
 
@@ -291,12 +279,9 @@ const SelfDiagnosisRoom: React.FC = () => {
                   navigate(`/generic-diagnosis/${tpl.id}`);
                   return;
                 }
+                // 성생활 진단도 이벤트로 처리 (0원)
                 if (tpl.id === 'sex') {
-                  if (user?.subscriptionStatus === 'SUBSCRIBED') {
-                navigate(`/generic-diagnosis/${tpl.id}`);
-                  } else {
-                    setShowSubscribeModal(true);
-                  }
+                  navigate(`/generic-diagnosis/${tpl.id}`);
                   return;
                 }
                 // 그 외 진단은 결제 안내 모달
@@ -316,19 +301,14 @@ const SelfDiagnosisRoom: React.FC = () => {
                     <FreeText>시작하기</FreeText>
                   </>
                 )
-              ) : tpl.id === 'sex' && user?.subscriptionStatus === 'SUBSCRIBED' ? (
-                <>
-                  <SubscriberBadge>구독자</SubscriberBadge>
-                  <FreeText>구독자 가능</FreeText>
-                </>
               ) : tpl.id === 'sex' ? (
                 <>
-                  <SubscriberBadge>구독자</SubscriberBadge>
-                  <span>구독자 가능</span>
+                  <Badge>이벤트 기간</Badge>
+                  <span>0원</span>
                 </>
               ) : (
                 <>
-                  <Badge>이벤트</Badge>
+                  <Badge>이벤트 기간</Badge>
                   <span>{tpl.price}원</span>
                 </>
               )}
@@ -337,21 +317,15 @@ const SelfDiagnosisRoom: React.FC = () => {
         </Section>
       ))}
       <ConfirmationModal
-        isOpen={showSubscribeModal}
-        onRequestClose={() => setShowSubscribeModal(false)}
-        onConfirm={() => setShowSubscribeModal(false)}
-        title="이용 안내"
-        message="무료 구독후 이용 바랍니다."
-        confirmButtonText="확인"
-        showCancelButton={false}
-      />
-      <ConfirmationModal
         isOpen={showPaymentModal}
         onRequestClose={() => setShowPaymentModal(false)}
-        onConfirm={() => setShowPaymentModal(false)}
+        onConfirm={() => {
+          setShowPaymentModal(false);
+          navigate('/subscribe');
+        }}
         title="이용 안내"
         message="무료 구독후 이용 바랍니다."
-        confirmButtonText="확인"
+        confirmButtonText="구독하러 가기"
         showCancelButton={false}
       />
       <ConfirmationModal
