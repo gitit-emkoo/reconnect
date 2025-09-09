@@ -4,6 +4,7 @@ import iconDiary from '../../assets/diary2.png';
 import iconCard from '../../assets/card2.png';
 import iconChallenge from '../../assets/challenge2.png';
 import iconReport from '../../assets/report2.png';
+import ImgAgreement2 from '../../assets/img_agreement2.png';
 
 const MainMenuRow = styled.div`
   display: flex;
@@ -45,6 +46,10 @@ const MainMenu: React.FC<MainMenuProps> = ({ onFeatureClick, hasPartner }) => (
     <MainMenuItem onClick={() => onFeatureClick('/emotion-diary')}>
         <MainMenuIcon src={iconDiary} alt="감정일기 아이콘" />
         <MainMenuText>감정일기</MainMenuText>
+    </MainMenuItem>
+    <MainMenuItem disabled={!hasPartner} onClick={() => onFeatureClick('/agreement', true)}>
+        <MainMenuIcon src={ImgAgreement2} alt="합의서 아이콘" />
+        <MainMenuText>합의서</MainMenuText>
     </MainMenuItem>
     <MainMenuItem disabled={!hasPartner} onClick={() => onFeatureClick('/emotion-card', true)}>
         <MainMenuIcon src={iconCard} alt="감정카드 아이콘" />
