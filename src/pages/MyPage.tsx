@@ -11,7 +11,6 @@ import ConfirmationModal from "../components/common/ConfirmationModal";
 import { getUserAvatar } from "../utils/avatar";
 import { ADMIN_CONFIG } from '../config/admin';
 import { blockApi } from '../api/user';
-import IconAgreement from "../assets/Icon_Agreement.png";
 import IconPoint from "../assets/Icon_Point.png";
 import IconTrack from "../assets/Icon_Track.png";
 import IconSubscribe from "../assets/Icon_Subscribe.png";
@@ -285,7 +284,7 @@ const MyPage: React.FC = () => {
           <MenuContainer>
             <MenuGrid>
               <MenuButton onClick={() => navigate('/track')}>
-                <img src={IconAgreement} alt="트랙" />
+                <img src={IconTrack} alt="트랙" />
                 감정트랙
               </MenuButton>
               <MenuButton onClick={() => navigate('/point')}>
