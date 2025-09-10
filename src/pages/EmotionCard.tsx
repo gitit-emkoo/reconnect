@@ -301,7 +301,7 @@ const EmotionCard: React.FC = () => {
   */
 
   useEffect(() => {
-    let interval: NodeJS.Timeout | null = null;
+    let interval: ReturnType<typeof setInterval> | null = null;
     // partnerId 또는 coupleId가 없으면 주기적으로 user 정보 fetch
     if (user && (!user.partner?.id || !user.couple?.id)) {
       interval = setInterval(async () => {

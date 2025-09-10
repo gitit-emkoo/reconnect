@@ -15,25 +15,24 @@ export const initializeAppleSignIn = () => {
     try {
       // Apple ID가 이미 초기화되어 있는지 확인
       if (window.AppleID.auth) {
+        console.log('Apple ID 이미 초기화됨');
         return window.AppleID;
       }
       
-      // 환경 변수가 설정되지 않은 경우 초기화 건너뛰기
-      const clientId = import.meta.env.VITE_APPLE_CLIENT_ID;
-      const redirectURI = import.meta.env.VITE_APPLE_REDIRECT_URI;
+      // HTML에서 설정된 메타 태그 사용 (환경변수 대신)
+      const clientId = 'com.reconnect.kwcc.web'; // HTML에서 설정된 값
+      const redirectURI = 'https://reconnect-ivory.vercel.app/auth/apple/callback'; // HTML에서 설정된 값
       
-      if (!clientId || !redirectURI) {
-        console.warn('Apple ID 로그인 환경 변수가 설정되지 않았습니다.');
-        return null;
-      }
+      console.log('Apple ID 초기화 시도:', { clientId, redirectURI });
       
-      // Apple ID 초기화 (이미 HTML에서 초기화됨)
+      // Apple ID 초기화 (HTML에서 이미 설정됨)
       return window.AppleID;
     } catch (error) {
       console.error('Apple ID 초기화 실패:', error);
       return null;
     }
   }
+  console.warn('Apple ID 스크립트가 로드되지 않았습니다.');
   return null;
 };
 
@@ -44,14 +43,18 @@ export const signInWithApple = async (): Promise<{
   user?: string;
 }> => {
   return new Promise((resolve, reject) => {
+    console.log('Apple 로그인 시작');
     const AppleID = initializeAppleSignIn();
     
     if (!AppleID) {
+      console.error('Apple ID 초기화 실패');
       reject(new Error('Apple ID 로그인이 현재 설정되지 않았습니다.'));
       return;
     }
 
+    console.log('Apple ID 로그인 시도');
     AppleID.auth.signIn().then((response: any) => {
+      console.log('Apple 로그인 성공:', response);
       resolve({
         idToken: response.authorization.id_token,
         authorizationCode: response.authorization.code,

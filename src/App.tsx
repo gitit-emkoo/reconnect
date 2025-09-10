@@ -25,11 +25,9 @@ import { useChallengeNotifications } from './hooks/useChallengeNotifications';
 import { useEmotionCardNotifications } from './hooks/useEmotionCardNotifications';
 import { fetchReceivedMessages } from './pages/EmotionCard';
 import { useQuery } from '@tanstack/react-query';
-import { initializeSafeArea } from './utils/safeArea';
 import { initializeWebViewOptimization } from './utils/webview';
 import { initializeAppleSignIn } from './utils/socialAuth';
 import { setAuthToken } from './utils/cookies';
-import { useViewportInsets } from './hooks/useViewportInsets';
 
 
 // 페이지 컴포넌트 임포트
@@ -373,8 +371,6 @@ const App = () => {
   const isLoading = useAuthStore((state) => state.isLoading);
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
 
-  // 키보드/뷰포트 인셋 변수 업데이트 훅
-  useViewportInsets();
 
   React.useEffect(() => {
     // RECONNECT 브랜드 콘솔 출력 (개발 환경에서만 한 번 출력)
@@ -415,38 +411,12 @@ MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
     
     console.log("checkAuth");
     checkAuth();
-    // 안전 영역/웹뷰 최적화 초기화
-    initializeSafeArea();
+    // 웹뷰 최적화 초기화
     initializeWebViewOptimization();
     // Apple ID 로그인 초기화
     initializeAppleSignIn();
-    // 웹뷰 최적화는 safeArea/socialAuth 내에서 처리
-    
-    // 뷰포트 높이 실시간 업데이트 함수 및 중복 리스너 제거
-    // safeArea와 webview 모듈에서 관리하므로 여기서는 추가 리스너를 붙이지 않습니다.
   }, [checkAuth]);
 
-  // 네비게이션 존재 여부에 따라 #root에 has-nav 클래스 토글
-  React.useEffect(() => {
-    const root = document.getElementById('root');
-    if (!root) return;
-    const update = () => {
-      const path = window.location.pathname;
-      const hasNav = ['/dashboard', '/expert', '/content-center', '/community', '/my']
-        .some(p => path.startsWith(p));
-      root.classList.toggle('has-nav', hasNav);
-    };
-    update();
-    const unlisten = () => update();
-    window.addEventListener('popstate', unlisten);
-    window.addEventListener('pushstate', unlisten as any);
-    window.addEventListener('replacestate', unlisten as any);
-    return () => {
-      window.removeEventListener('popstate', unlisten);
-      window.removeEventListener('pushstate', unlisten as any);
-      window.removeEventListener('replacestate', unlisten as any);
-    };
-  });
 
   // 인증 상태를 확인하는 동안 로딩 스피너를 전체 화면에 표시
   if (isLoading) {

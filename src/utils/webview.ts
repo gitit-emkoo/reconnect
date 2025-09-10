@@ -96,24 +96,6 @@ export const initializeWebViewOptimization = () => {
     document.body.style.overscrollBehavior = 'none';
   }
   
-  // Safe Area 실시간 업데이트
-  const updateSafeArea = () => {
-    import('./safeArea').then((mod) => {
-      if (typeof mod.initializeSafeArea === 'function') {
-        mod.initializeSafeArea();
-      }
-    }).catch(() => {});
-  };
-  
-  // 웹뷰 환경에서 추가 이벤트
-  if (isWebView()) {
-    window.addEventListener('resize', updateSafeArea);
-    window.addEventListener('orientationchange', () => {
-      setTimeout(updateSafeArea, 200);
-    });
-    window.addEventListener('focus', updateSafeArea);
-    window.addEventListener('blur', updateSafeArea);
-  }
 };
 
 /**

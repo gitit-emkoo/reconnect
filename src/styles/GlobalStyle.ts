@@ -4,12 +4,6 @@ import { createGlobalStyle } from "styled-components";
 const GlobalStyle = createGlobalStyle`
   :root {
     --font-size-scale: 0.95; /* 전체 폰트 크기 5% 축소로 완화 */
-    --safe-area-inset-bottom: env(safe-area-inset-bottom, 0px);
-    --safe-area-inset-top: env(safe-area-inset-top, 0px);
-    --safe-area-inset-left: env(safe-area-inset-left, 0px);
-    --safe-area-inset-right: env(safe-area-inset-right, 0px);
-    --vh: 1vh; /* 동적 뷰포트 높이 */
-    --kb: 0px; /* 키보드 높이 추정치 */
   }
   
   * {
@@ -23,9 +17,6 @@ const GlobalStyle = createGlobalStyle`
   body {
     font-size: calc(1em * var(--font-size-scale));
     background-color: #fafafa;
-    /* 폴더블 디바이스 최적화 */
-    min-height: calc(var(--vh, 1vh) * 100);
-    min-height: 100dvh; /* dynamic viewport height */
     height: 100%;
     overflow-x: hidden;
   }
@@ -124,34 +115,12 @@ const GlobalStyle = createGlobalStyle`
   }
   
   #root {
-    min-height: calc(var(--vh, 1vh) * 100);
-    min-height: 100dvh;
-    padding-bottom: 0; /* 기본적으로 여백 없음 */
-  }
-
-
-  /* 키보드 열릴 때는 하단 여백 제거 (입력창 가림 방지) */
-  #root.has-nav.keyboard-open {
-    padding-bottom: 0 !important;
-  }
-  
-  /* 전체 화면 모드에서 네비게이션 여백 조정 */
-  @media (display-mode: fullscreen) {
-    #root {
-      padding-bottom: var(--nav-height, 80px);
-    }
-  }
-  
-  @media (display-mode: standalone) {
-    #root {
-      padding-bottom: var(--nav-height, 80px);
-    }
-  }
-  
-  @media (display-mode: minimal-ui) {
-    #root {
-      padding-bottom: var(--nav-height, 80px);
-    }
+    height: 100%;
+    padding-top: env(safe-area-inset-top, 0px);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+    padding-left: env(safe-area-inset-left, 0px);
+    padding-right: env(safe-area-inset-right, 0px);
+    box-sizing: border-box;
   }
   
   /* 웹뷰 최적화 */
