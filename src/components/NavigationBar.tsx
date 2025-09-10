@@ -9,7 +9,7 @@ import { ReactComponent as MyIcon } from '../assets/Icon_My.svg';
 
 const NavContainer = styled.nav`
   position: fixed;
-  bottom: max(env(safe-area-inset-bottom, 0px), var(--safe-area-inset-bottom, 0px));
+  bottom: env(safe-area-inset-bottom, 0px);
   left: 0;
   right: 0;
   display: flex;
@@ -17,7 +17,6 @@ const NavContainer = styled.nav`
   align-items: flex-start;
   background-color: white;
   padding: 0.3rem 0 0 0;
-  /* 내부 여백 (safe-area는 bottom 오프셋으로 이격) */
   padding-bottom: 12px;
   box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.05);
   z-index: 1000; 
@@ -29,9 +28,6 @@ const NavContainer = styled.nav`
   /* 웹뷰 최적화 */
   -webkit-transform: translateZ(0);
   transform: translateZ(0);
-  
-  /* 네비게이션 고정 높이 (safe-area는 bottom 오프셋으로 처리) */
-  height: var(--nav-height, 72px);
 `;
 
 interface NavButtonProps {
@@ -101,13 +97,11 @@ const NavigationBar: React.FC<NavigationBarProps> = React.memo(() => {
 
   useEffect(() => {
     const visual: any = (window as any).visualViewport;
-    const root = document.getElementById('root');
     const detect = () => {
       const visualHeight = visual?.height || window.innerHeight;
       const delta = window.innerHeight - visualHeight;
       const isOpen = delta > 150; // 키보드가 열리면 보통 150px 이상 줄어듦
       setHiddenByKeyboard(isOpen);
-      if (root) root.classList.toggle('keyboard-open', isOpen);
     };
     if (visual && typeof visual.addEventListener === 'function') {
       visual.addEventListener('resize', detect);
