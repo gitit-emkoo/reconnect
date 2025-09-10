@@ -2,7 +2,7 @@ import React, { useCallback, useEffect, useState } from 'react';
 import styled from 'styled-components';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { ReactComponent as HomeIcon } from '../assets/Icon_Home.svg';
-import { ReactComponent as ExpertIcon } from '../assets/Icon_Expert.svg';
+import { ReactComponent as ExpertIcon } from '../assets/Icon_stethoscope.svg';
 import { ReactComponent as ContentsIcon } from '../assets/Icon_Recipe.svg';
 import { ReactComponent as CommunityIcon } from '../assets/Icon_Community.svg';
 import { ReactComponent as MyIcon } from '../assets/Icon_My.svg';

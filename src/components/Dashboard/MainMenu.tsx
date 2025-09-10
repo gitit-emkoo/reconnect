@@ -47,13 +47,13 @@ const MainMenu: React.FC<MainMenuProps> = ({ onFeatureClick, hasPartner }) => (
         <MainMenuIcon src={iconDiary} alt="감정일기 아이콘" />
         <MainMenuText>감정일기</MainMenuText>
     </MainMenuItem>
-    <MainMenuItem disabled={!hasPartner} onClick={() => onFeatureClick('/agreement', true)}>
-        <MainMenuIcon src={ImgAgreement2} alt="합의서 아이콘" />
-        <MainMenuText>합의서</MainMenuText>
-    </MainMenuItem>
     <MainMenuItem disabled={!hasPartner} onClick={() => onFeatureClick('/emotion-card', true)}>
         <MainMenuIcon src={iconCard} alt="감정카드 아이콘" />
         <MainMenuText>감정카드</MainMenuText>
+    </MainMenuItem>
+    <MainMenuItem disabled={!hasPartner} onClick={() => onFeatureClick('/agreement', true)}>
+        <MainMenuIcon src={ImgAgreement2} alt="합의서 아이콘" />
+        <MainMenuText>합의서</MainMenuText>
     </MainMenuItem>
     <MainMenuItem disabled={!hasPartner} onClick={() => onFeatureClick('/challenge', true)}>
         <MainMenuIcon src={iconChallenge} alt="챌린지 아이콘" />
