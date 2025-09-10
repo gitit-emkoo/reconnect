@@ -382,11 +382,16 @@ const LoginPage: React.FC = () => {
     resolver: zodResolver(loginSchema),
   });
 
-  const handleSuccessfulLogin = async (user: User, token: string) => {
+  const handleSuccessfulLogin = async (user: User, token: string, isSocialLogin = false) => {
     setAuth(token, user);
     
-    // 즉시 대시보드로 이동
-    navigate(from, { replace: true });
+    if (isSocialLogin) {
+      // 소셜 로그인 성공 시 대시보드로 이동 (이전 페이지가 없을 수 있음)
+      navigate('/dashboard', { replace: true });
+    } else {
+      // 이메일 로그인 성공 시 이전 페이지로 이동
+      navigate(from, { replace: true });
+    }
   };
 
   const handleEmailLoginToggle = () => {
@@ -403,8 +408,7 @@ const LoginPage: React.FC = () => {
       );
       const { user, accessToken: token } = response.data;
       if (user && token) {
-        setAuth(token, user);
-        navigate('/dashboard');
+        await handleSuccessfulLogin(user, token);
       } else {
         setLoginError('로그인에 실패했습니다. 응답 데이터가 올바르지 않습니다.');
       }
@@ -440,7 +444,7 @@ const LoginPage: React.FC = () => {
 
       const { user, accessToken: token, isNewUser } = response.data;
       if (user && token) {
-        await handleSuccessfulLogin(user, token);
+        await handleSuccessfulLogin(user, token, true);
         
         // 신규 사용자인 경우 환영 메시지 표시
         if (isNewUser) {
@@ -495,7 +499,7 @@ const LoginPage: React.FC = () => {
 
       const { user, accessToken: token, isNewUser } = response.data;
       if (user && token) {
-        await handleSuccessfulLogin(user, token);
+        await handleSuccessfulLogin(user, token, true);
         
         // 신규 사용자인 경우 환영 메시지 표시
         if (isNewUser) {

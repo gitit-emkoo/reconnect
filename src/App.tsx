@@ -99,7 +99,7 @@ const Home = () => {
     return <LoadingSpinner fullscreen={true} size={60} />;
   }
 
-  return isAuthenticated ? <Navigate to="/dashboard" replace /> : <Navigate to="/onboarding" replace />;
+  return isAuthenticated ? <Navigate to="/dashboard" replace /> : <Navigate to="/login" replace />;
 };
 
 // 알림 관련 훅을 관리하는 컴포넌트
