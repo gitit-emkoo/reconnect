@@ -21,6 +21,15 @@ import badge1 from '../assets/challenge (1).png';
 import badge2 from '../assets/challenge (2).png';
 import badge3 from '../assets/challenge (3).png';
 
+// 배열을 행 단위로 나누는 chunkCards 함수
+function chunkCards<T>(array: T[], size: number): T[][] {
+    const result: T[][] = [];
+    for (let i = 0; i < array.length; i += size) {
+        result.push(array.slice(i, i + size));
+    }
+    return result;
+}
+
 const PageContainer = styled(BaseContainer)`
   max-width: 800px;
 `;
@@ -132,10 +141,19 @@ const CategoryButton = styled.button<{ bg: string; color: string }>`
 const HistoryList = styled.div`
   background: #f9fafb;
   border-radius: 1.2rem;
-  padding: 2rem 2rem 4rem;
+  padding: 2rem 1rem 2rem;
   min-height: 120px;
+`;
+
+const CardRow = styled.div`
   display: flex;
-  align-items: center;
+  margin-bottom: 1rem;
+  justify-content: flex-start;
+  
+  
+  &:last-child {
+    margin-bottom: 0;
+  }
 `;
 
 const HistoryCardMini = styled.div<{ success: boolean }>`
@@ -150,10 +168,8 @@ const HistoryCardMini = styled.div<{ success: boolean }>`
   height: 95px;
   transition: all 0.2s ease-in-out;
   border: 2px solid ${({ success }) => (success ? '#4CAF50' : '#F44336')};
-
-  &:not(:first-child) {
-    margin-left: -30px;
-  }
+  flex-shrink: 0;
+  margin-right: -40px;
 
   &:hover {
     transform: translateY(-5px) scale(1.05);
@@ -445,10 +461,14 @@ const ChallengePage: React.FC = () => {
         />
         <HistoryList>
           {currentHistory.length > 0 ? (
-            currentHistory.map((c, i) => (
-              <HistoryCardMini key={i} onClick={() => handleHistoryCardClick(c)} success={historyTab === 'success'}>
-                <HistoryBadgeImage src={badgeImages[i % badgeImages.length] || badge1} alt={`${c.title} 뱃지`} />
-              </HistoryCardMini>
+            chunkCards(currentHistory, 5).map((row, rowIndex) => (
+              <CardRow key={rowIndex}>
+                {row.map((c, i) => (
+                  <HistoryCardMini key={i} onClick={() => handleHistoryCardClick(c)} success={historyTab === 'success'}>
+                    <HistoryBadgeImage src={badgeImages[i % badgeImages.length] || badge1} alt={`${c.title} 뱃지`} />
+                  </HistoryCardMini>
+                ))}
+              </CardRow>
             ))
           ) : (
             <EmptyText>
