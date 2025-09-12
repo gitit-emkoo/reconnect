@@ -166,9 +166,6 @@ const EmotionCardList: React.FC<EmotionCardListProps> = ({
     // 사용 가능한 월 목록 생성 (최신순으로 정렬)
     const getAvailableMonths = (messages: SentMessage[]) => {
         const months = new Set(messages.map(msg => formatInKST(msg.createdAt, 'yyyy-MM')));
-        // 현재 월을 항상 포함
-        const currentMonth = formatInKST(new Date(), 'yyyy-MM');
-        months.add(currentMonth);
         return Array.from(months).sort().reverse();
     };
 
@@ -189,168 +186,122 @@ const EmotionCardList: React.FC<EmotionCardListProps> = ({
                 </TabButton>
             </TabsContainer>
 
-            {tab === 'sent' && !isLoadingSent && sentMessages.length > 0 && selectedMonth && (
+            {tab === 'sent' && !isLoadingSent && (
                 <SentCardsSection>
                     <SentCardsTitle>내가 보낸 감정 카드</SentCardsTitle>
-                    <FilterContainer>
-                        <FilterGroup>
-                            <Select
-                                value={selectedMonth}
-                                onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setSelectedMonth(e.target.value)}
-                            >
-                                {getAvailableMonths(sentMessages).map(month => (
-                                    <option key={month} value={month}>
-                                        {month.replace('-', '년 ')}월
-                                    </option>
-                                ))}
-                            </Select>
-                            <Select
-                                value={sortOrder}
-                                onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setSortOrder(e.target.value as 'newest' | 'oldest')}
-                            >
-                                <option value="newest">최신순</option>
-                                <option value="oldest">오래된순</option>
-                            </Select>
-                        </FilterGroup>
-                    </FilterContainer>
-                    {chunkCards(filteredAndSortedSentMessages, CARDS_PER_ROW).map((row, rowIndex) => (
-                        <CardGridWrapper key={rowIndex}>
-                            <CardRow>
-                                {row.map((msg, index) => {
-                                    // 중요: 카드 시각적 스태킹(z-index) 로직. 최신 카드가 항상 위에 보이게 하기 위함.
-                                    // 데이터 정렬 순서(최신순/오래된순)는 유지하면서 시각적으로만 겹치는 순서를 조절.
-                                    const zIndex = sortOrder === 'newest' ? row.length - index : index + 1;
-                                    return (
-                                        <EmotionCardItem
-                                            key={msg.id}
-                                            card={msg}
-                                            onClick={() => openModal(msg)}
-                                            onMouseEnter={() => setHoveredCard(msg.id)}
-                                            onMouseLeave={() => setHoveredCard(null)}
-                                            isHovered={hoveredCard === msg.id}
-                                            showTodayBadge={false}
-                                            zIndex={zIndex}
-                                        />
-                                    );
-                                })}
-                            </CardRow>
-                        </CardGridWrapper>
-                    ))}
+                    {sentMessages.length > 0 ? (
+                        <>
+                            <FilterContainer>
+                                <FilterGroup>
+                                    <Select
+                                        value={selectedMonth}
+                                        onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setSelectedMonth(e.target.value)}
+                                    >
+                                        {getAvailableMonths(sentMessages).map(month => (
+                                            <option key={month} value={month}>
+                                                {month.replace('-', '년 ')}월
+                                            </option>
+                                        ))}
+                                    </Select>
+                                    <Select
+                                        value={sortOrder}
+                                        onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setSortOrder(e.target.value as 'newest' | 'oldest')}
+                                    >
+                                        <option value="newest">최신순</option>
+                                        <option value="oldest">오래된순</option>
+                                    </Select>
+                                </FilterGroup>
+                            </FilterContainer>
+                            {filteredAndSortedSentMessages.length > 0 ? (
+                                chunkCards(filteredAndSortedSentMessages, CARDS_PER_ROW).map((row, rowIndex) => (
+                                    <CardGridWrapper key={rowIndex}>
+                                        <CardRow>
+                                            {row.map((msg, index) => {
+                                                // 중요: 카드 시각적 스태킹(z-index) 로직. 최신 카드가 항상 위에 보이게 하기 위함.
+                                                // 데이터 정렬 순서(최신순/오래된순)는 유지하면서 시각적으로만 겹치는 순서를 조절.
+                                                const zIndex = sortOrder === 'newest' ? row.length - index : index + 1;
+                                                return (
+                                                    <EmotionCardItem
+                                                        key={msg.id}
+                                                        card={msg}
+                                                        onClick={() => openModal(msg)}
+                                                        onMouseEnter={() => setHoveredCard(msg.id)}
+                                                        onMouseLeave={() => setHoveredCard(null)}
+                                                        isHovered={hoveredCard === msg.id}
+                                                        showTodayBadge={false}
+                                                        zIndex={zIndex}
+                                                    />
+                                                );
+                                            })}
+                                        </CardRow>
+                                    </CardGridWrapper>
+                                ))
+                            ) : (
+                                <p>{selectedMonth.replace('-', '년 ')}월에 보낸 감정카드가 없습니다.</p>
+                            )}
+                        </>
+                    ) : (
+                        <p>아직 작성한 카드가 없습니다.</p>
+                    )}
                 </SentCardsSection>
             )}
-            {tab === 'sent' && !isLoadingSent && sentMessages.length === 0 && (
-                <SentCardsSection>
-                    <SentCardsTitle>내가 보낸 감정 카드</SentCardsTitle>
-                    <p>아직 작성한 카드가 없습니다.</p>
-                </SentCardsSection>
-            )}
-            {tab === 'sent' && !isLoadingSent && sentMessages.length > 0 && selectedMonth && filteredAndSortedSentMessages.length === 0 && (
-                <SentCardsSection>
-                    <SentCardsTitle>내가 보낸 감정 카드</SentCardsTitle>
-                    <FilterContainer>
-                        <FilterGroup>
-                            <Select
-                                value={selectedMonth}
-                                onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setSelectedMonth(e.target.value)}
-                            >
-                                {getAvailableMonths(sentMessages).map(month => (
-                                    <option key={month} value={month}>
-                                        {month.replace('-', '년 ')}월
-                                    </option>
-                                ))}
-                            </Select>
-                            <Select
-                                value={sortOrder}
-                                onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setSortOrder(e.target.value as 'newest' | 'oldest')}
-                            >
-                                <option value="newest">최신순</option>
-                                <option value="oldest">오래된순</option>
-                            </Select>
-                        </FilterGroup>
-                    </FilterContainer>
-                    <p>{selectedMonth.replace('-', '년 ')}월에 보낸 감정카드가 없습니다.</p>
-                </SentCardsSection>
-            )}
-            {tab === 'received' && !isLoadingReceived && receivedMessages.length === 0 && (
-                <SentCardsSection>
-                    <SentCardsTitle>내가 받은 감정 카드</SentCardsTitle>
-                    <p>아직 받은 카드가 없습니다.</p>
-                </SentCardsSection>
-            )}
-            {tab === 'received' && !isLoadingReceived && receivedMessages.length > 0 && selectedMonth && filteredAndSortedReceivedMessages.length === 0 && (
+            {tab === 'received' && !isLoadingReceived && (
                 <SentCardsSection>
                     <SentCardsTitle>파트너가 보낸 감정 카드</SentCardsTitle>
-                    <FilterContainer>
-                        <FilterGroup>
-                            <Select
-                                value={selectedMonth}
-                                onChange={(e) => setSelectedMonth(e.target.value)}
-                            >
-                                {getAvailableMonths(receivedMessages).map(month => (
-                                    <option key={month} value={month}>
-                                        {month.replace('-', '년 ')}월
-                                    </option>
-                                ))}
-                            </Select>
-                            <Select
-                                value={sortOrder}
-                                onChange={(e) => setSortOrder(e.target.value as 'newest' | 'oldest')}
-                            >
-                                <option value="newest">최신순</option>
-                                <option value="oldest">오래된순</option>
-                            </Select>
-                        </FilterGroup>
-                    </FilterContainer>
-                    <p>{selectedMonth.replace('-', '년 ')}월에 받은 감정카드가 없습니다.</p>
-                </SentCardsSection>
-            )}
-            {tab === 'received' && !isLoadingReceived && receivedMessages.length > 0 && selectedMonth && (
-                <SentCardsSection>
-                    <SentCardsTitle>파트너가 보낸 감정 카드</SentCardsTitle>
-                    <FilterContainer>
-                        <FilterGroup>
-                            <Select
-                                value={selectedMonth}
-                                onChange={(e) => setSelectedMonth(e.target.value)}
-                            >
-                                {getAvailableMonths(receivedMessages).map(month => (
-                                    <option key={month} value={month}>
-                                        {month.replace('-', '년 ')}월
-                                    </option>
-                                ))}
-                            </Select>
-                            <Select
-                                value={sortOrder}
-                                onChange={(e) => setSortOrder(e.target.value as 'newest' | 'oldest')}
-                            >
-                                <option value="newest">최신순</option>
-                                <option value="oldest">오래된순</option>
-                            </Select>
-                        </FilterGroup>
-                    </FilterContainer>
-                    {chunkCards(filteredAndSortedReceivedMessages, CARDS_PER_ROW).map((row, rowIndex) => (
-                        <CardGridWrapper key={rowIndex}>
-                            <CardRow>
-                                {row.map((msg, index) => {
-                                     // 중요: 카드 시각적 스태킹(z-index) 로직. 최신 카드가 항상 위에 보이게 하기 위함.
-                                     // 데이터 정렬 순서(최신순/오래된순)는 유지하면서 시각적으로만 겹치는 순서를 조절.
-                                     const zIndex = sortOrder === 'newest' ? row.length - index : index + 1;
-                                     return (
-                                        <EmotionCardItem
-                                            key={msg.id}
-                                            card={msg}
-                                            onClick={() => openModal(msg)}
-                                            onMouseEnter={() => setHoveredCard(msg.id)}
-                                            onMouseLeave={() => setHoveredCard(null)}
-                                            isHovered={hoveredCard === msg.id}
-                                            showTodayBadge={true}
-                                            zIndex={zIndex}
-                                        />
-                                    );
-                                })}
-                            </CardRow>
-                        </CardGridWrapper>
-                    ))}
+                    {receivedMessages.length > 0 ? (
+                        <>
+                            <FilterContainer>
+                                <FilterGroup>
+                                    <Select
+                                        value={selectedMonth}
+                                        onChange={(e) => setSelectedMonth(e.target.value)}
+                                    >
+                                        {getAvailableMonths(receivedMessages).map(month => (
+                                            <option key={month} value={month}>
+                                                {month.replace('-', '년 ')}월
+                                            </option>
+                                        ))}
+                                    </Select>
+                                    <Select
+                                        value={sortOrder}
+                                        onChange={(e) => setSortOrder(e.target.value as 'newest' | 'oldest')}
+                                    >
+                                        <option value="newest">최신순</option>
+                                        <option value="oldest">오래된순</option>
+                                    </Select>
+                                </FilterGroup>
+                            </FilterContainer>
+                            {filteredAndSortedReceivedMessages.length > 0 ? (
+                                chunkCards(filteredAndSortedReceivedMessages, CARDS_PER_ROW).map((row, rowIndex) => (
+                                    <CardGridWrapper key={rowIndex}>
+                                        <CardRow>
+                                            {row.map((msg, index) => {
+                                                 // 중요: 카드 시각적 스태킹(z-index) 로직. 최신 카드가 항상 위에 보이게 하기 위함.
+                                                 // 데이터 정렬 순서(최신순/오래된순)는 유지하면서 시각적으로만 겹치는 순서를 조절.
+                                                 const zIndex = sortOrder === 'newest' ? row.length - index : index + 1;
+                                                 return (
+                                                    <EmotionCardItem
+                                                        key={msg.id}
+                                                        card={msg}
+                                                        onClick={() => openModal(msg)}
+                                                        onMouseEnter={() => setHoveredCard(msg.id)}
+                                                        onMouseLeave={() => setHoveredCard(null)}
+                                                        isHovered={hoveredCard === msg.id}
+                                                        showTodayBadge={true}
+                                                        zIndex={zIndex}
+                                                    />
+                                                );
+                                            })}
+                                        </CardRow>
+                                    </CardGridWrapper>
+                                ))
+                            ) : (
+                                <p>{selectedMonth.replace('-', '년 ')}월에 받은 감정카드가 없습니다.</p>
+                            )}
+                        </>
+                    ) : (
+                        <p>아직 받은 카드가 없습니다.</p>
+                    )}
                 </SentCardsSection>
             )}
         </>

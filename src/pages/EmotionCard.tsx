@@ -141,7 +141,7 @@ const EmotionCard: React.FC = () => {
     if (tab === 'sent' && sentMessages.length > 0) {
       const availableMonths = getAvailableMonths(sentMessages);
       if (availableMonths.length > 0) {
-        // 현재 선택된 월이 사용 가능한 월 목록에 없으면 가장 최신 월로 설정
+        // 현재 월이 사용 가능한 월 목록에 없으면 가장 최신 월로 설정
         if (!availableMonths.includes(selectedMonth)) {
           setSelectedMonth(availableMonths[0]);
         }
@@ -149,7 +149,7 @@ const EmotionCard: React.FC = () => {
     } else if (tab === 'received' && receivedMessages.length > 0) {
       const availableMonths = getAvailableMonths(receivedMessages);
       if (availableMonths.length > 0) {
-        // 현재 선택된 월이 사용 가능한 월 목록에 없으면 가장 최신 월로 설정
+        // 현재 월이 사용 가능한 월 목록에 없으면 가장 최신 월로 설정
         if (!availableMonths.includes(selectedMonth)) {
           setSelectedMonth(availableMonths[0]);
         }
